@@ -84,6 +84,15 @@ describe('Agent and Computer lifecycle RPC', () => {
     expect(RUNTIME_CAPABILITIES).toContain(COMPUTER_GIT_IDENTITY_RUNTIME_CAPABILITY)
   })
 
+  it('does not advertise lifecycle services that the host did not compose', () => {
+    const capabilities = new DorkaRuntimeService().getStatus().capabilities
+
+    expect(capabilities).not.toContain(AGENT_ROSTER_RUNTIME_CAPABILITY)
+    expect(capabilities).not.toContain(AGENT_EXECUTION_RUNTIME_CAPABILITY)
+    expect(capabilities).not.toContain(COMPUTER_LIFECYCLE_RUNTIME_CAPABILITY)
+    expect(capabilities).not.toContain(COMPUTER_GIT_IDENTITY_RUNTIME_CAPABILITY)
+  })
+
   it('routes lifecycle calls and refuses to move an Agent to a missing Computer', async () => {
     const directory = await temporaryDirectory()
     const engine = new FakeComputerEngine()

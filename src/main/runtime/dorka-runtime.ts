@@ -16,6 +16,13 @@ import type { AgentExecutionService } from '../agents/agent-execution-service'
 import type { ComputerRuntimeManager } from '../computers/computer-runtime-manager'
 import type { ComputerRunSourceControlService } from '../agents/computer-run-source-control'
 import type { ComputerGitIdentityService } from '../computers/computer-git-identity'
+import {
+  AGENT_EXECUTION_RUNTIME_CAPABILITY,
+  AGENT_ROSTER_RUNTIME_CAPABILITY,
+  COMPUTER_GIT_IDENTITY_RUNTIME_CAPABILITY,
+  COMPUTER_LIFECYCLE_RUNTIME_CAPABILITY,
+  type RuntimeCapability
+} from '../../shared/protocol-version'
 
 type BaseRuntimeConstructorParams = ConstructorParameters<typeof DorkaRuntimeWithResolveWaiter>
 type BaseRuntimeDependencies = NonNullable<BaseRuntimeConstructorParams[2]>
@@ -30,6 +37,25 @@ export type DorkaLifecycleRpcDependencies = {
 
 type DorkaRuntimeDependencies = BaseRuntimeDependencies & DorkaLifecycleRpcDependencies
 
+function withLifecycleCapabilityHonesty(
+  deps: DorkaRuntimeDependencies | undefined
+): DorkaRuntimeDependencies {
+  const disabled = new Set<RuntimeCapability>(deps?.disabledRuntimeCapabilities)
+  if (!deps?.agentRosterStore) {
+    disabled.add(AGENT_ROSTER_RUNTIME_CAPABILITY)
+  }
+  if (!deps?.agentExecutionService) {
+    disabled.add(AGENT_EXECUTION_RUNTIME_CAPABILITY)
+  }
+  if (!deps?.computerRuntimeManager) {
+    disabled.add(COMPUTER_LIFECYCLE_RUNTIME_CAPABILITY)
+  }
+  if (!deps?.computerGitIdentity) {
+    disabled.add(COMPUTER_GIT_IDENTITY_RUNTIME_CAPABILITY)
+  }
+  return { ...deps, disabledRuntimeCapabilities: [...disabled] }
+}
+
 class DorkaRuntimeService extends DorkaRuntimeWithResolveWaiter {
   private readonly agentRosterStore?: AgentRosterStore
   private readonly agentExecutionService?: AgentExecutionService
@@ -42,7 +68,7 @@ class DorkaRuntimeService extends DorkaRuntimeWithResolveWaiter {
     stats?: BaseRuntimeConstructorParams[1],
     deps?: DorkaRuntimeDependencies
   ) {
-    super(store, stats, deps)
+    super(store, stats, withLifecycleCapabilityHonesty(deps))
     this.agentRosterStore = deps?.agentRosterStore
     this.agentExecutionService = deps?.agentExecutionService
     this.computerRuntimeManager = deps?.computerRuntimeManager
