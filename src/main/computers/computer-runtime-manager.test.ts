@@ -127,9 +127,12 @@ describe('ComputerRuntimeManager', () => {
 
     const alpha = manager.create({ id: 'alpha', image: 'safe/image:tag' })
     const beta = manager.create({ id: 'beta', image: 'safe/image:tag' })
-    await new Promise((resolve) => setTimeout(resolve, 25))
 
-    expect(commands).toEqual([expect.arrayContaining(['create', '--name', 'dorka-computer-alpha'])])
+    await vi.waitFor(() => {
+      expect(commands).toEqual([
+        expect.arrayContaining(['create', '--name', 'dorka-computer-alpha'])
+      ])
+    })
     firstCreate.resolve(processResult())
     await Promise.all([alpha, beta])
 
