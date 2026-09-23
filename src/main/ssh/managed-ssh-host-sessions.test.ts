@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { SshConnectionState, SshTarget } from '../../shared/ssh-types'
-import { Store } from '../persistence'
+import type { Store } from '../persistence'
 
 const mocks = vi.hoisted(() => {
   let provider: object | undefined
@@ -135,6 +135,8 @@ vi.mock('./ssh-relay-session', () => ({
 
 import { ManagedSshHostSessions } from './managed-ssh-host-sessions'
 
+const store = {} as Store
+
 const target: SshTarget = {
   id: 'runtime-ssh-computer-computer-1',
   label: 'computer-1',
@@ -162,7 +164,7 @@ describe('ManagedSshHostSessions', () => {
   })
 
   it('reuses one incumbent SSH relay connection and returns only after its PTY provider exists', async () => {
-    const sessions = new ManagedSshHostSessions({ store: new Store() })
+    const sessions = new ManagedSshHostSessions({ store })
 
     await Promise.all([sessions.connect(target), sessions.connect(target)])
 
@@ -172,7 +174,7 @@ describe('ManagedSshHostSessions', () => {
   })
 
   it('waits for PTY registration even after relay establishment returns', async () => {
-    const sessions = new ManagedSshHostSessions({ store: new Store() })
+    const sessions = new ManagedSshHostSessions({ store })
     mocks.registerProviderOnEstablish = false
     let connected = false
 
@@ -188,7 +190,7 @@ describe('ManagedSshHostSessions', () => {
   })
 
   it('disconnects every managed session during host shutdown', async () => {
-    const sessions = new ManagedSshHostSessions({ store: new Store() })
+    const sessions = new ManagedSshHostSessions({ store })
     const other = { ...target, id: 'runtime-ssh-computer-computer-2' }
     await sessions.connect(target)
     await sessions.connect(other)
@@ -201,7 +203,7 @@ describe('ManagedSshHostSessions', () => {
   })
 
   it('rejects client-owned targets before opening a transport', () => {
-    const sessions = new ManagedSshHostSessions({ store: new Store() })
+    const sessions = new ManagedSshHostSessions({ store })
 
     expect(() => sessions.connect({ ...target, id: 'ssh-user-target', owner: undefined })).toThrow(
       'runtime-owned target'
@@ -211,7 +213,7 @@ describe('ManagedSshHostSessions', () => {
   })
 
   it('redacts the server-private identity path from connection errors', async () => {
-    const sessions = new ManagedSshHostSessions({ store: new Store() })
+    const sessions = new ManagedSshHostSessions({ store })
     const identityFile = '/server/private/computer-1/id_ed25519'
     mocks.connectError = new Error(`Could not read ${identityFile}`)
 
