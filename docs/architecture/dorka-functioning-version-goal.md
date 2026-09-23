@@ -85,14 +85,16 @@ the server container must start and accept remote client connections.
 - [x] Pass Node and renderer typechecks.
 - [x] Build `dorkad` and the web/desktop application.
 - [x] Launch the integrated application for manual testing.
-- [ ] Smoke-test tabs, settings, diff, review, automations, and terminal launch.
+- [x] Smoke-test tabs, Settings, Diff, Review, Automations, and managed terminal launch.
 - [x] Record remaining deferred work without presenting it as completed.
 
 ## Remaining functional gaps
 
 - Hidden Electron/CDP QA against `/tmp/dorka-computer-use-qa-repo` passed project add, Settings,
-  tabs, local terminal execution, local Diff, and Automations with no renderer errors. Evidence is
-  recorded in `/tmp/dorka-computer-use-qa.md`.
+  tabs, local terminal execution, local Diff, and Automations with no renderer errors. A second
+  isolated paired-Server pass proved visible Agent launch, durable Run history after reload,
+  Computer-local working-tree Diff, and provider-neutral Review. Evidence is recorded in
+  `/tmp/dorka-computer-use-qa.md` and `/tmp/dorka-paired-run-ui-qa.md`.
 - Rootless Podman E2E proved authenticated pairing, Computer reconciliation, managed SSH/relay/PTY
   launch identity, immutable effective prompts, Run-scoped working-tree Diff, provider-neutral
   Git-ref Review, Computer-local Git identity, persistent SSH host identity, and server restart
@@ -104,6 +106,8 @@ the server container must start and accept remote client connections.
 - Server restart reconnects each active Run's running Computer once without starting stopped
   Computers or relaunching work. An exited PTY discovered only after restart remains outcome-
   unverifiable; authoritative completion projection across a server outage is still open.
+- Agent skill and MCP references are not yet versioned or resolved at launch. They must remain
+  separate from Computer-owned credentials, provider homes, packages, and filesystems.
 - Existing Project and Workspace language still needs a careful Dorka terminology pass. This must
   not erase useful Git/worktree distinctions.
 - Browser-hosted graphical Computer desktop proxying and scoped access tickets remain post-MVP

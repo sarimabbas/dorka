@@ -3,7 +3,7 @@
 ## Purpose and status
 
 This forecast turns the functioning-version goal into an ordered delivery plan. It reflects
-`feat/dorka-computers` through `17ff80cc2` and the evidence listed below. A checked item means the
+`feat/dorka-computers` through `5a46e5885` and the evidence listed below. A checked item means the
 repository contains both implementation and named verification evidence, or the functioning-version
 goal records a completed live check. It does **not** mean the full graphical Computer MVP is proved.
 
@@ -36,11 +36,11 @@ a diagnostic headless entrypoint; the full Selkies image still needs native-Linu
 | Priority | Horizon | Type | Deliverable and acceptance evidence | Dependencies | Forecast |
 | --- | --- | --- | --- | --- | --- |
 | P0 | Now | Validation | Run the standard Selkies Computer entrypoint on native Linux. Prove desktop readiness, managed SSH/relay launch, terminal streaming, and no published Computer ports. | Native amd64 Linux; rootless engine socket | 1–2 engineering days |
-| P0 | Now | Validation | Extend hidden Electron QA through a paired Server: launch an Agent, reload durable Run history, open Run working-tree Diff and Git-ref Review, and verify no renderer errors. | Current runtime image; disposable `/workspace` repository | 1 day |
 | P0 | Now | Bug/validation | Reconstruct post-restart PTY observation for persisted active Runs. Preserve `live`/`unverifiable`/`exited`; never retry or infer death from lost contact. | Persisted process identity; relay reattach evidence | 1–3 days |
 | P0 | Now | Validation | Prove first-run `Main` provisioning on native Linux with rootless Docker and Podman, including missing-image degradation, server replacement, and Computer reconciliation. | Built Computer image; engine socket; Linux runner | 2–4 days |
 | P1 | Next | Validation | Prove two-Computer identity isolation: separate home/workspace volumes and Git identities, shared identity within one Computer, and changed identity after moving an Agent's next Run. | Native-Linux P0 evidence; two isolated repositories | 2–4 days |
 | P1 | Next | Feature | Expose honest provisioning/retry state and compact Agent/Computer selection in the retained shell, without reintroducing a parallel shell. | Stable Run lifecycle; renderer state projection | 3–5 days |
+| P1 | Next | Feature | Add versioned Agent skill/MCP references and resolve them at launch without moving credentials, provider homes, packages, or files into Agent state. | Stable capability catalog and Computer-local resolution contract | 3–5 days |
 | P1 | Next | Validation | Exercise Mac, mobile, folder-workspace, SSH/remote, restart, and mixed-client-version flows against one headless Server. | Stable RPC contract; fixtures for each execution boundary | 1–2 weeks |
 | P1 | Next | Bug/cleanup | Complete the terminology pass while retaining precise repository, branch, folder-workspace, and worktree terms where they describe real execution details. | Finalized product copy; reachability tests | 2–4 days |
 | P2 | Later | Feature | Add authenticated Selkies desktop proxying with short-lived Computer-scoped tickets and persisted browser/desktop state. | Stable Computer network, session, and authorization model | 2–4 weeks |
@@ -48,7 +48,7 @@ a diagnostic headless entrypoint; the full Selkies image still needs native-Linu
 | P2 | Later | Cleanup | Delete unreachable legacy modules and proprietary relay/cloud-account paths only after direct-connect, reconnect, mobile-resume, and mixed-version gates pass. | Reachability inventory and replacement coverage | Incremental; 2–4 weeks |
 
 Forecasts are engineering ranges, not calendar commitments. They assume one engineer, available
-Linux/container test infrastructure, and no migration redesign. The remaining P0 slice is realistically **3–7 engineering days**, dominated by native-Linux
+Linux/container test infrastructure, and no migration redesign. The remaining P0 slice is realistically **3–6 engineering days**, dominated by native-Linux
 validation and cross-restart Run observation. P1 adds **1–2 weeks**. P2 should be planned only after
 P0 evidence is green.
 
@@ -72,9 +72,10 @@ P0 evidence is green.
 | ✅ | Run-scoped Computer source-control authority and provider-neutral Git-ref Review | strict RPC/source-control tests; live `/workspace` Git fixture; commits `d82881410`, `72d85e5d1`, `17ff80cc2` |
 | ✅ | Best-effort startup host recovery without relaunch/start/mutation, plus certified PTY-exit projection to waiting | recovery and PTY observer tests; commits `5b3f107c3`, `cb8e9c296` |
 | ✅ | Rootless Podman managed launch, restart, source-control, Review, and Git-identity evidence | `/tmp/dorka-managed-computer-e2e.md`; real server/Computer images with the documented headless-emulation limitation |
+| ✅ | Paired-Server Settings QA for Agent launch, reload-persistent Run history, working-tree Diff, and Git-ref Review | `/tmp/dorka-paired-run-ui-qa.md`; hidden Electron/Playwright CDP with no renderer errors; commits `1e57fe508`, `5a46e5885` include two defects found during the pass |
 | ✅ | Isolated retained-shell QA for project add, Settings, tabs, local terminal, local Diff, and Automations | `/tmp/dorka-computer-use-qa.md` and ten screenshots; hidden Playwright/Electron CDP against a throwaway `/tmp` repository |
 | ✅ | Integrated focused tests, typechecks, relay build, and Node-only `dorkad` bundle | 60 Node tests and 26 renderer tests after Run Review/exit observation; `build:dorkad` reports 4,593 modules and zero Electron/`node:sqlite` imports |
-| ⬜ | Native-Linux graphical image proof, paired-client Run Diff/Review QA, and authoritative post-outage PTY observation | Explicitly open in `dorka-functioning-version-goal.md`; these remain P0 |
+| ⬜ | Native-Linux graphical image proof and authoritative post-outage PTY observation | Explicitly open in `dorka-functioning-version-goal.md`; these remain P0 |
 
 ## Known risks
 
@@ -101,9 +102,9 @@ P0 evidence is green.
 1. **M0 — Baseline (complete):** retained shell launches; durable Agent/Computer control-plane
    seams exist; focused checks and a limited live smoke are recorded.
 2. **M1 — Functioning local loop (Now):** managed launch, durable identity, Run Diff/Review, Git
-   identity, and non-relaunching restart are proved under rootless Podman. Native-Linux graphical
-   startup, paired-client UI QA, and authoritative post-outage completion remain before the gate is
-   complete.
+   identity, non-relaunching restart, and paired-client UI are proved under rootless Podman.
+   Native-Linux graphical startup and authoritative post-outage completion remain before the gate
+   is complete.
 3. **M2 — Isolated multi-Computer beta (Next):** placement, moves, identity isolation, remote/mobile
    reconnect, and mixed-version behavior pass end-to-end tests.
 4. **M3 — Desktop and production hardening (Later):** scoped desktop access and operational controls
