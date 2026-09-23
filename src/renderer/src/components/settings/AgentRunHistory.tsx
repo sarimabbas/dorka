@@ -12,6 +12,14 @@ import { RunTerminalOutput } from './RunTerminalOutput'
 
 const MAX_RECENT_RUNS = 5
 
+function computerLabel(computerId: string): string {
+  return computerId
+    .split(/[-_\s]+/)
+    .filter(Boolean)
+    .map((part) => `${part[0]?.toUpperCase() ?? ''}${part.slice(1)}`)
+    .join(' ')
+}
+
 function runErrorMessage(error: unknown): string {
   if (error instanceof AgentRunHistoryUnsupportedError) {
     return error.message
@@ -82,19 +90,23 @@ export function AgentRunHistory({
                     <Badge variant={run.status === 'failed' ? 'destructive' : 'outline'}>
                       {run.status}
                     </Badge>
-                    <span className="font-mono text-[11px] text-muted-foreground">
-                      Computer: {run.computerId}
-                    </span>
                     <span className="text-[11px] text-muted-foreground">
-                      {new Date(run.createdAt).toLocaleString()}
+                      {computerLabel(run.computerId)} · {new Date(run.createdAt).toLocaleString()}
                     </span>
                   </div>
-                  <p className="truncate text-xs text-foreground">{run.prompt}</p>
-                  <p className="font-mono text-[11px] text-muted-foreground">
-                    Terminal: {run.terminalSessionId ?? 'unavailable'}
-                    {run.processIdentity ? ` · Process: ${run.processIdentity}` : ''}
-                  </p>
+                  <p className="line-clamp-2 text-xs text-foreground">{run.prompt}</p>
                   {run.error ? <p className="text-xs text-destructive">{run.error}</p> : null}
+                  <details className="text-[11px] text-muted-foreground">
+                    <summary className="w-fit cursor-pointer select-none hover:text-foreground">
+                      Details
+                    </summary>
+                    <div className="mt-1 space-y-0.5 font-mono">
+                      <p>Run: {run.id}</p>
+                      <p>Computer: {run.computerId}</p>
+                      <p>Terminal: {run.terminalSessionId ?? 'unavailable'}</p>
+                      <p>Process: {run.processIdentity ?? 'unavailable'}</p>
+                    </div>
+                  </details>
                 </div>
                 <div className="flex shrink-0 gap-1.5">
                   <Button
@@ -104,7 +116,7 @@ export function AgentRunHistory({
                     disabled={!run.terminalSessionId}
                     onClick={() => setTerminalRunId(terminalRunId === run.id ? null : run.id)}
                   >
-                    {terminalRunId === run.id ? 'Hide Terminal' : 'View Terminal'}
+                    {terminalRunId === run.id ? 'Hide Output' : 'View Output'}
                   </Button>
                   <Button
                     type="button"
@@ -112,7 +124,7 @@ export function AgentRunHistory({
                     size="xs"
                     onClick={() => setSelectedRunId(run.id)}
                   >
-                    Open Changes
+                    Changes
                   </Button>
                 </div>
               </div>
