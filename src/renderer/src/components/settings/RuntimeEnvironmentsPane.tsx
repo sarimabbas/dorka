@@ -2,10 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import type { GlobalSettings } from '../../../../shared/global-settings-types'
 import type { PublicKnownRuntimeEnvironment } from '../../../../shared/runtime-environments'
 import { useAppStore } from '@/store'
-import { cn } from '@/lib/utils'
 import { SearchableSetting } from './SearchableSetting'
-import { EphemeralVmRuntimesSection } from './EphemeralVmRuntimesSection'
-import { CloudVmSetupGuide } from './CloudVmSetupGuide'
 import {
   getRuntimeEnvironmentsSearchEntry,
   getWebRuntimeEnvironmentsSearchEntry
@@ -17,12 +14,6 @@ import {
   RuntimeEnvironmentRemoveDialog,
   RuntimeEnvironmentSwitchDialog
 } from './runtime-environment-dialogs'
-import {
-  RuntimeServerShareSection,
-  RuntimeServerTroubleshooting,
-  RuntimeServerWorkflowPicker,
-  type RemoteServerWorkflow
-} from './runtime-server-workflow-sections'
 import { useRuntimeEnvironmentCatalog } from './use-runtime-environment-catalog'
 import { useRuntimeEnvironmentConnectionActions } from './use-runtime-environment-connection-actions'
 import { useRuntimeEnvironmentMutationActions } from './use-runtime-environment-mutation-actions'
@@ -59,9 +50,7 @@ export function RuntimeEnvironmentsPane({
   const [pendingSwitchValue, setPendingSwitchValue] = useState<string | null>(null)
   const [pendingRemove, setPendingRemove] = useState<PublicKnownRuntimeEnvironment | null>(null)
   const [addServerFormOpen, setAddServerFormOpen] = useState(false)
-  const [shareServerFormOpen, setShareServerFormOpen] = useState(true)
   const [advancedOpen, setAdvancedOpen] = useState(false)
-  const [workflow, setWorkflow] = useState<RemoteServerWorkflow>('connect')
   const remoteServerUpdates = useAppStore((state) => state.remoteServerUpdates)
   const remoteServerUpdatesChecking = useAppStore((state) => state.remoteServerUpdatesChecking)
   const remoteServerUpdatesRunning = useAppStore((state) => state.remoteServerUpdatesRunning)
@@ -160,8 +149,6 @@ export function RuntimeEnvironmentsPane({
   const searchEntry = canGeneratePairingUrl
     ? getRuntimeEnvironmentsSearchEntry()
     : getWebRuntimeEnvironmentsSearchEntry()
-  const visibleWorkflow: RemoteServerWorkflow = addServerFormOpen ? 'connect' : workflow
-
   const openRemoveDialog = (environment: PublicKnownRuntimeEnvironment): void => {
     setRemoveError(null)
     setPendingRemove(environment)
@@ -196,15 +183,8 @@ export function RuntimeEnvironmentsPane({
       keywords={searchEntry.keywords}
       className="space-y-4 py-2"
     >
-      <RuntimeServerWorkflowPicker
-        canGeneratePairingUrl={canGeneratePairingUrl}
-        visibleWorkflow={visibleWorkflow}
-        onCloseAddServerForm={closeAddServerForm}
-        onWorkflowChange={setWorkflow}
-      />
-
       <RuntimeServersConnectSection
-        visible={visibleWorkflow === 'connect'}
+        visible
         environments={environments}
         detailsByEnvironmentId={detailsByEnvironmentId}
         activeRuntimeEnvironmentId={settings.activeRuntimeEnvironmentId}
@@ -235,13 +215,8 @@ export function RuntimeEnvironmentsPane({
         onRemove={openRemoveDialog}
       />
 
-      <div className={cn('space-y-5 pt-2', visibleWorkflow !== 'cloud-vm' && 'hidden')}>
-        <CloudVmSetupGuide />
-        <EphemeralVmRuntimesSection active={visibleWorkflow === 'cloud-vm'} />
-      </div>
-
       <RuntimeActiveServerSection
-        visible={visibleWorkflow === 'connect'}
+        visible
         advancedOpen={advancedOpen}
         allowLocalRuntime={allowLocalRuntime}
         localRuntimeValue={LOCAL_RUNTIME_VALUE}
@@ -258,15 +233,6 @@ export function RuntimeEnvironmentsPane({
         }}
         onRefresh={() => void loadEnvironments()}
       />
-
-      {visibleWorkflow === 'share' && canGeneratePairingUrl ? (
-        <RuntimeServerShareSection
-          shareServerFormOpen={shareServerFormOpen}
-          onToggleShareServerForm={() => setShareServerFormOpen((open) => !open)}
-        />
-      ) : null}
-
-      {visibleWorkflow === 'connect' ? <RuntimeServerTroubleshooting /> : null}
 
       <RuntimeEnvironmentSwitchDialog
         pendingSwitchValue={pendingSwitchValue}

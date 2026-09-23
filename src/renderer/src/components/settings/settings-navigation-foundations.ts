@@ -7,6 +7,26 @@ import { getDefaultVoiceSettings } from '../../../../shared/constants'
 import type { SettingsNavSection, SettingsNavTarget } from '@/lib/settings-navigation-types'
 import type { SettingsDeepLinkTargetWatch } from './settings-deep-link-target-watcher'
 
+const VISIBLE_DORKA_SETTINGS_SECTION_IDS: ReadonlySet<string> = new Set([
+  'general',
+  'appearance',
+  'terminal',
+  'agents',
+  'orchestration',
+  'computer-use',
+  'automations',
+  'notifications',
+  'privacy',
+  'advanced',
+  'servers'
+])
+
+export function filterVisibleDorkaSettingsSections<T extends { id: string }>(
+  sections: readonly T[]
+): T[] {
+  return sections.filter((section) => VISIBLE_DORKA_SETTINGS_SECTION_IDS.has(section.id))
+}
+
 export const SETTINGS_NAV_GROUPS = [
   {
     id: 'capabilities',

@@ -17,11 +17,11 @@ export function renderServersSettingsSection(context: SettingsRenderContext): Re
         model.isWebClient
           ? translate(
               'auto.components.settings.Settings.7686cb5c36',
-              'Connect this browser to a saved Dorka server.'
+              'Connect this browser directly to a paired Dorka server.'
             )
           : translate(
               'auto.components.settings.Settings.b5ee17826b',
-              'Pair remote Dorka runtimes for persistent sessions, richer remote state, and web or mobile handoff.'
+              'Pair this app directly with another Dorka server.'
             )
       }
       searchEntries={navigation.getSectionSearchEntries('servers')}

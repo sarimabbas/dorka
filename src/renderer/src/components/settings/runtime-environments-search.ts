@@ -11,7 +11,7 @@ export const getRuntimeEnvironmentsSearchEntry = createLocalizedCatalog(
     ),
     description: translate(
       'auto.components.settings.runtime.environments.search.4575341c77',
-      'Add a saved remote Dorka server, generate a pairing URL, or adjust the advanced default runtime.'
+      'Pair this app directly with a saved Dorka server or adjust the default runtime.'
     ),
     keywords: [
       ...translateSearchKeyword(
@@ -39,24 +39,8 @@ export const getRuntimeEnvironmentsSearchEntry = createLocalizedCatalog(
         'pairing'
       ),
       ...translateSearchKeyword(
-        'auto.components.settings.runtime.environments.search.81444c4102',
-        'pairing url'
-      ),
-      ...translateSearchKeyword(
-        'auto.components.settings.runtime.environments.search.f1575f1e09',
-        'web client'
-      ),
-      ...translateSearchKeyword(
-        'auto.components.settings.runtime.environments.search.45501ff2c3',
-        'cloud'
-      ),
-      ...translateSearchKeyword(
-        'auto.components.settings.runtime.environments.search.772e3b4753',
-        'vm'
-      ),
-      ...translateSearchKeyword(
-        'auto.components.settings.runtime.environments.search.c6e5a03aa0',
-        'dev box'
+        'auto.components.settings.runtime.environments.search.2bd988d041',
+        'pairing code'
       )
     ]
   })
@@ -70,7 +54,7 @@ export const getWebRuntimeEnvironmentsSearchEntry = createLocalizedCatalog(
     ),
     description: translate(
       'auto.components.settings.runtime.environments.search.baec27aa8f',
-      'Connect this browser to a saved Dorka server.'
+      'Connect this browser directly to a paired Dorka server.'
     ),
     keywords: [
       ...translateSearchKeyword(
@@ -96,14 +80,6 @@ export const getWebRuntimeEnvironmentsSearchEntry = createLocalizedCatalog(
       ...translateSearchKeyword(
         'auto.components.settings.runtime.environments.search.2bd988d041',
         'pairing code'
-      ),
-      ...translateSearchKeyword(
-        'auto.components.settings.runtime.environments.search.45501ff2c3',
-        'cloud'
-      ),
-      ...translateSearchKeyword(
-        'auto.components.settings.runtime.environments.search.772e3b4753',
-        'vm'
       )
     ]
   })

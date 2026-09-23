@@ -1,5 +1,6 @@
 import { useCallback, useMemo } from 'react'
 import { applyDocumentTheme } from '@/lib/document-theme'
+import { translate } from '@/i18n/i18n'
 import { useSettingsNavigationMetadata } from '@/hooks/useSettingsNavigationMetadata'
 import type { SettingsNavInstallStatus } from '@/lib/settings-navigation-types'
 import {
@@ -16,7 +17,14 @@ import { deriveNeededSectionIds } from './settings-load-performance'
 import { SCROLLBACK_PRESETS_ROWS } from './SettingsConstants'
 import type { SettingsStoreModel } from './use-settings-store-model'
 import type { SettingsInteractionController } from './use-settings-interaction-controller'
-import { hasReadyVoiceModel } from './settings-navigation-foundations'
+import {
+  filterVisibleDorkaSettingsSections,
+  hasReadyVoiceModel
+} from './settings-navigation-foundations'
+import {
+  getRuntimeEnvironmentsSearchEntry,
+  getWebRuntimeEnvironmentsSearchEntry
+} from './runtime-environments-search'
 
 export function useSettingsNavigationModel(
   model: SettingsStoreModel,
@@ -41,7 +49,32 @@ export function useSettingsNavigationModel(
   }, [])
 
   const displayedGitUsername = model.repos[0]?.gitUsername ?? ''
-  const baseNavSections = useSettingsNavigationMetadata()
+  const allNavSections = useSettingsNavigationMetadata()
+  const baseNavSections = useMemo(
+    () =>
+      filterVisibleDorkaSettingsSections(allNavSections).map((section) =>
+        section.id === 'servers'
+          ? {
+              ...section,
+              description: model.isWebClient
+                ? translate(
+                    'auto.components.settings.runtime.environments.directWebDescription',
+                    'Connect this browser directly to a paired Dorka server.'
+                  )
+                : translate(
+                    'auto.components.settings.runtime.environments.directDescription',
+                    'Pair this app directly with another Dorka server.'
+                  ),
+              searchEntries: [
+                model.isWebClient
+                  ? getWebRuntimeEnvironmentsSearchEntry()
+                  : getRuntimeEnvironmentsSearchEntry()
+              ]
+            }
+          : section
+      ),
+    [allNavSections, model.isWebClient]
+  )
   const { installed: orchestrationSkillInstalled, loading: orchestrationSkillLoading } =
     model.orchestrationSkill
   const {

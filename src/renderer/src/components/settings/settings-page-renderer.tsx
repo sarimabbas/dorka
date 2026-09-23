@@ -80,8 +80,6 @@ export function renderSettingsPage(context: SettingsRenderContext): React.JSX.El
         settings={model.settings}
         activeSectionId={model.activeSectionId}
         generalGroups={view.generalNavGroups}
-        repoSections={view.repoNavSections}
-        hasRepos={model.repos.length > 0}
         searchInputRef={interactions.searchInputRef}
         // Why: deep-links open panes/modals that own focus; plain entry lands in search.
         searchAutoFocus={model.settingsNavigationTarget == null}
