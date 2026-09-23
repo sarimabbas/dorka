@@ -104,8 +104,10 @@ the server container must start and accept remote client connections.
   its heavy Selkies startup with a diagnostic headless `sshd` entrypoint. The standard graphical
   image still needs native-Linux launch and desktop-readiness proof.
 - Server restart reconnects each active Run's running Computer once without starting stopped
-  Computers or relaunching work. An exited PTY discovered only after restart remains outcome-
-  unverifiable; authoritative completion projection across a server outage is still open.
+  Computers or relaunching work. For an exactly reattached terminal handle and process identity, it
+  now verifies Computer ownership and re-arms the incumbent PTY-exit observer. An exit observed only
+  while the Server was absent still lacks durable host-certified evidence and remains outcome-
+  unverifiable; authoritative completion projection across that outage interval is still open.
 - Agent skill and MCP references are not yet versioned or resolved at launch. They must remain
   separate from Computer-owned credentials, provider homes, packages, and filesystems.
 - Existing Project and Workspace language still needs a careful Dorka terminology pass. This must

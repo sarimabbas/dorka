@@ -3,13 +3,15 @@
 ## Purpose and status
 
 This forecast turns the functioning-version goal into an ordered delivery plan. It reflects
-`feat/dorka-computers` through `5a46e5885` and the evidence listed below. A checked item means the
+`feat/dorka-computers` through `f27686310` and the evidence listed below. A checked item means the
 repository contains both implementation and named verification evidence, or the functioning-version
 goal records a completed live check. It does **not** mean the full graphical Computer MVP is proved.
 
 Current verdict: the retained shell, managed execution path, durable Run history, Computer-local Git
 identity, Run-scoped Diff, and provider-neutral Review form a functioning integration baseline.
-Native-Linux graphical-image readiness and authoritative cross-restart Run completion remain open.
+Native-Linux graphical-image readiness and durable exit evidence for the interval when the Server is
+offline remain open. Exact PTYs that survive restart now re-arm the incumbent exit observer after
+reconnection without relaunch or state inference.
 
 ## Execution flow
 
@@ -36,10 +38,11 @@ a diagnostic headless entrypoint; the full Selkies image still needs native-Linu
 | Priority | Horizon | Type | Deliverable and acceptance evidence | Dependencies | Forecast |
 | --- | --- | --- | --- | --- | --- |
 | P0 | Now | Validation | Run the standard Selkies Computer entrypoint on native Linux. Prove desktop readiness, managed SSH/relay launch, terminal streaming, and no published Computer ports. | Native amd64 Linux; rootless engine socket | 1–2 engineering days |
-| P0 | Now | Bug/validation | Reconstruct post-restart PTY observation for persisted active Runs. Preserve `live`/`unverifiable`/`exited`; never retry or infer death from lost contact. | Persisted process identity; relay reattach evidence | 1–3 days |
+| P0 | Now | Bug/validation | Preserve and replay host-certified PTY exit evidence across a Server outage. Startup now re-arms observation for exact reattached PTYs; an exit seen only while the Server is absent must remain unverifiable until durable remote evidence exists. Never retry or infer death from lost contact. | Persisted process identity; relay- or Computer-side durable exit evidence | 2–4 days |
 | P0 | Now | Validation | Prove first-run `Main` provisioning on native Linux with rootless Docker and Podman, including missing-image degradation, server replacement, and Computer reconciliation. | Built Computer image; engine socket; Linux runner | 2–4 days |
 | P1 | Next | Validation | Prove two-Computer identity isolation: separate home/workspace volumes and Git identities, shared identity within one Computer, and changed identity after moving an Agent's next Run. | Native-Linux P0 evidence; two isolated repositories | 2–4 days |
 | P1 | Next | Feature | Expose honest provisioning/retry state and compact Agent/Computer selection in the retained shell, without reintroducing a parallel shell. | Stable Run lifecycle; renderer state projection | 3–5 days |
+| P1 | Next | Refactor | Deepen the managed Computer host seam so callers receive only execution-host identity and incumbent Git capability, not `SshTarget` details or global provider-registration timing. | Exact PTY recovery checkpoint; existing SSH/Git adapters | 2–3 days |
 | P1 | Next | Feature | Add versioned Agent skill/MCP references and resolve them at launch without moving credentials, provider homes, packages, or files into Agent state. | Stable capability catalog and Computer-local resolution contract | 3–5 days |
 | P1 | Next | Validation | Exercise Mac, mobile, folder-workspace, SSH/remote, restart, and mixed-client-version flows against one headless Server. | Stable RPC contract; fixtures for each execution boundary | 1–2 weeks |
 | P1 | Next | Bug/cleanup | Complete the terminology pass while retaining precise repository, branch, folder-workspace, and worktree terms where they describe real execution details. | Finalized product copy; reachability tests | 2–4 days |
@@ -48,9 +51,10 @@ a diagnostic headless entrypoint; the full Selkies image still needs native-Linu
 | P2 | Later | Cleanup | Delete unreachable legacy modules and proprietary relay/cloud-account paths only after direct-connect, reconnect, mobile-resume, and mixed-version gates pass. | Reachability inventory and replacement coverage | Incremental; 2–4 weeks |
 
 Forecasts are engineering ranges, not calendar commitments. They assume one engineer, available
-Linux/container test infrastructure, and no migration redesign. The remaining P0 slice is realistically **3–6 engineering days**, dominated by native-Linux
-validation and cross-restart Run observation. P1 adds **1–2 weeks**. P2 should be planned only after
-P0 evidence is green.
+Linux/container test infrastructure, and no migration redesign. The remaining P0 slice is realistically **4–8 engineering days**, dominated by native-Linux
+validation and durable exit evidence across a Server outage. Exact surviving PTYs now recover their
+observers, but that does not shorten the remote evidence design into a local inference. P1 adds
+**1–2 weeks**. P2 should be planned only after P0 evidence is green.
 
 ## Completion evidence
 
@@ -70,12 +74,13 @@ P0 evidence is green.
 | ✅ | Server image builds/packages the incumbent relay for managed Computer SSH sessions | `Dockerfile`; `dorkad-server-image-relay.test.mjs`; commit `1fc0db4df` |
 | ✅ | Retained Settings exposes Agent presets, launch controls, durable Run history, Computer lifecycle, and Computer-local Git identity | focused renderer tests; commits `54d861ad2`, `edb8d33ad`, `05c23ac74`, `41c39e5ca`, `a91892f93` |
 | ✅ | Run-scoped Computer source-control authority and provider-neutral Git-ref Review | strict RPC/source-control tests; live `/workspace` Git fixture; commits `d82881410`, `72d85e5d1`, `17ff80cc2` |
-| ✅ | Best-effort startup host recovery without relaunch/start/mutation, plus certified PTY-exit projection to waiting | recovery and PTY observer tests; commits `5b3f107c3`, `cb8e9c296` |
+| ✅ | Best-effort startup host recovery without relaunch/start/mutation, certified PTY-exit projection to waiting, and exact observer re-arming for reattached persisted PTYs | recovery, runtime-identity, and PTY observer tests; commits `5b3f107c3`, `cb8e9c296`, `f27686310` |
 | ✅ | Rootless Podman managed launch, restart, source-control, Review, and Git-identity evidence | `/tmp/dorka-managed-computer-e2e.md`; real server/Computer images with the documented headless-emulation limitation |
 | ✅ | Paired-Server Settings QA for Agent launch, reload-persistent Run history, working-tree Diff, and Git-ref Review | `/tmp/dorka-paired-run-ui-qa.md`; hidden Electron/Playwright CDP with no renderer errors; commits `1e57fe508`, `5a46e5885` include two defects found during the pass |
 | ✅ | Isolated retained-shell QA for project add, Settings, tabs, local terminal, local Diff, and Automations | `/tmp/dorka-computer-use-qa.md` and ten screenshots; hidden Playwright/Electron CDP against a throwaway `/tmp` repository |
-| ✅ | Integrated focused tests, typechecks, relay build, and Node-only `dorkad` bundle | 60 Node tests and 26 renderer tests after Run Review/exit observation; `build:dorkad` reports 4,593 modules and zero Electron/`node:sqlite` imports |
-| ⬜ | Native-Linux graphical image proof and authoritative post-outage PTY observation | Explicitly open in `dorka-functioning-version-goal.md`; these remain P0 |
+| ✅ | Run source placement is resolved once, persisted on the Run, and passed unchanged to the managed terminal launcher | execution/launcher tests; commit `35aca87ad`; `dorka-deep-module-review.md` |
+| ✅ | Integrated focused tests, typechecks, relay build, and Node-only `dorkad` bundle | 60 Node tests and 26 renderer tests after Run Review/exit observation; latest recovery/execution slice adds 56 focused passing tests; `build:dorkad` reports 4,593 modules and zero Electron/`node:sqlite` imports |
+| ⬜ | Native-Linux graphical image proof and durable host-certified exit evidence across the Server-offline interval | Explicitly open in `dorka-functioning-version-goal.md`; these remain P0 |
 
 ## Known risks
 
