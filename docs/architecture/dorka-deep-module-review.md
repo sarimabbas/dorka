@@ -2,7 +2,7 @@
 
 ## Scope and verdict
 
-This review covers the Agent, Run, Computer, and Server vertical slice through `09bd41365`. It applies
+This review covers the Agent, Run, Computer, and Server vertical slice through `97f7a6367`. It applies
 Ousterhout's deep-module criteria: information hiding, interface leverage, temporal coupling, policy
 ownership, error vocabulary, and deletion opportunity.
 
@@ -12,8 +12,11 @@ meaningful policy behind small interfaces. Cross-instance Agent/Run roster write
 whole-file transaction lock. Exact Run execution identity, relay parsing, strict evidence-candidate
 projection, and certificate matching now live behind one internal module. Computer configuration now
 has a revision-fenced, redacted `get/plan/replace` seam for resources, ordinary environment, and
-operator-allowlisted premounts. The largest remaining design debt is presenting that capability through
-a simple confirmation UI without exposing environment values.
+operator-allowlisted premounts. The retained shell now presents that capability through a redacted
+Review → Apply flow. Apply is bound to the exact reviewed request, lifecycle state participates in the
+replacement fence, and ordinary replacement-command failures trigger reconciliation. The remaining
+debt is crash-recoverable replacement intent, canonical host-path policy, and a smaller renderer state
+machine.
 
 ```text
 Renderer domain clients
@@ -83,6 +86,16 @@ resources, environment names, and premounts. `plan` names changes without values
 revision under the existing cross-process record lock, treats no-ops as no-ops, recreates through the
 fixed engine template, and rotates the generation. The RPC is additive and capability-negotiated.
 
+### Computer setup binds review, lifecycle, and recovery
+
+Commits `912b29d66`, `aa244a8d5`, and `97f7a6367` expose the existing deep configuration seam without
+a second persistence or engine path. The renderer ignores stale plans and applies the immutable request
+that produced the visible plan. The Server checks both execution generation and desired lifecycle state
+under the record lock, so `plan(stopped) → start → replace` conflicts instead of silently interrupting a
+running Computer. If a normal engine command fails after replacement starts, the manager reconciles the
+durable record before returning the error. Environment output remains names-only and the UI labels the
+input as ordinary, non-secret configuration.
+
 ### Agent and Run records no longer lose cross-instance writes
 
 Commit `ee8fffcb1` keeps the `AgentRosterStore` public interface unchanged but rereads the latest durable
@@ -92,14 +105,14 @@ change remains behind the existing store boundary and does not alter PTY ownersh
 
 ## Ranked remaining findings
 
-| Rank | Verdict | Finding                                                                                                                    | Required direction                                                                                                                                            |
-| ---- | ------- | -------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1    | Next    | Computer configuration has a safe backend seam but no compact confirmation UI.                                             | Build UI on the redacted snapshot/plan. Preserve existing environment names by default; never represent hidden values with fake placeholders.                 |
-| 2    | Next    | Cross-entity Agent/Run/Computer/Server rules are split between `DorkaRuntimeService` pass-throughs and dorkad composition. | Deepen the existing dorkad control plane and let `DorkaRuntimeService` remain the capability boundary that delegates to it. Do not add a facade or transport. |
-| 3    | Later   | Capability requirements and response parsing are duplicated between RPC method arrays and renderer clients.                | Add lifecycle-operation descriptors with params, result schema, and capability metadata while preserving method strings and envelopes.                        |
-| 4    | Later   | Renderer lifecycle clients still expose target selection, compatibility policy, and unchecked generic responses to React.  | Bind one lifecycle client to a runtime target and centralize capability/error/result handling. Keep UI state local.                                           |
-| 5    | Later   | Run and Computer UI behavior classifies some failures by matching prose.                                                   | Add an additive, allowlisted domain error vocabulary while retaining human messages and mixed-version fallback.                                               |
-| 6    | Later   | Computer-create constraints are restated in RPC schemas and command validation.                                            | Reuse one Computer-domain parser at RPC, persistence, and execution trust boundaries. Keep operator mount allowlisting and argv emission server-local.        |
+| Rank | Verdict | Finding                                                                                                                          | Required direction                                                                                                                                            |
+| ---- | ------- | -------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1    | Next    | Replacement recovery still exposes a temporal store callback protocol and has no durable in-progress intent for process crashes. | Deepen the existing configuration/reconciler seam into one recoverable operation; persist intent and let startup reconciliation complete or roll it back.     |
+| 2    | Next    | Exact-string premount allowlisting does not canonicalize execution-host symlinks.                                                | Resolve and validate canonical operator-owned sources immediately before engine creation; document the remaining filesystem TOCTOU boundary.                  |
+| 3    | Next    | Cross-entity Agent/Run/Computer/Server rules are split between `DorkaRuntimeService` pass-throughs and dorkad composition.       | Deepen the existing dorkad control plane and let `DorkaRuntimeService` remain the capability boundary that delegates to it. Do not add a facade or transport. |
+| 4    | Next    | The configuration renderer still combines remote state, editor state, validation, and most fields in one large component.        | Extract one reviewed-configuration state machine plus substantive environment and premount editors; avoid cosmetic wrappers.                                  |
+| 5    | Later   | Capability requirements and response parsing are duplicated between RPC method arrays and renderer clients.                      | Add lifecycle-operation descriptors with params, result schema, and capability metadata while preserving method strings and envelopes.                        |
+| 6    | Later   | Run and Computer UI behavior classifies some failures by matching prose.                                                         | Add an additive, allowlisted domain error vocabulary while retaining human messages and mixed-version fallback.                                               |
 
 ## Modules to preserve
 
