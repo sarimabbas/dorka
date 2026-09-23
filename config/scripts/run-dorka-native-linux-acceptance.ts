@@ -24,6 +24,17 @@ type Run = {
 }
 type Names = ReturnType<typeof acceptanceNames>
 
+type AcceptanceEngineCommand = (args: string[]) => {
+  status: number | null
+  stdout: string
+  stderr: string
+}
+
+export type AcceptanceLock = { name: string; token: string }
+
+const ACCEPTANCE_LOCK_VOLUME = 'dorka-native-linux-acceptance-lock'
+const ACCEPTANCE_LOCK_LABEL = 'dev.dorka.acceptance-invocation'
+
 type AcceptanceEngineInfo = {
   host?: { arch?: string; os?: string; security?: { rootless?: boolean } }
   store?: { graphRoot?: string }
@@ -84,6 +95,55 @@ export function acceptanceNames(env = process.env, now = new Date(), pid = proce
     computerImage: `${run}-computer-acceptance:selkies`,
     serverData: `${run}-server-data`,
     controlNetwork: `${run}-control`
+  }
+}
+
+export function acquireAcceptanceLock(
+  runEngine: AcceptanceEngineCommand,
+  token: string
+): AcceptanceLock {
+  const created = runEngine([
+    'volume',
+    'create',
+    '--label',
+    `${ACCEPTANCE_LOCK_LABEL}=${token}`,
+    ACCEPTANCE_LOCK_VOLUME
+  ])
+  if (created.status !== 0) {
+    throw new Error(
+      `acceptance lock acquisition failed: ${created.stderr.trim() || 'unknown error'}`
+    )
+  }
+  const inspected = runEngine([
+    'volume',
+    'inspect',
+    ACCEPTANCE_LOCK_VOLUME,
+    '--format',
+    `{{ index .Labels "${ACCEPTANCE_LOCK_LABEL}" }}`
+  ])
+  if (inspected.status !== 0 || inspected.stdout.trim() !== token) {
+    throw new Error('acceptance lock is owned by another invocation')
+  }
+  return { name: ACCEPTANCE_LOCK_VOLUME, token }
+}
+
+export function releaseAcceptanceLock(
+  runEngine: AcceptanceEngineCommand,
+  lock: AcceptanceLock
+): void {
+  const inspected = runEngine([
+    'volume',
+    'inspect',
+    lock.name,
+    '--format',
+    `{{ index .Labels "${ACCEPTANCE_LOCK_LABEL}" }}`
+  ])
+  if (inspected.status !== 0 || inspected.stdout.trim() !== lock.token) {
+    return
+  }
+  const removed = runEngine(['volume', 'rm', lock.name])
+  if (removed.status !== 0 && !/no such|not found|does not exist/i.test(removed.stderr)) {
+    throw new Error(`acceptance lock release failed: ${removed.stderr.trim() || 'unknown error'}`)
   }
 }
 

@@ -6,8 +6,10 @@ import {
   acceptanceBuildArgs,
   acceptanceEngineFacts,
   acceptanceNames,
+  acquireAcceptanceLock,
   assertUnverifiable,
-  redactArtifact
+  redactArtifact,
+  releaseAcceptanceLock
 } from '../../../../config/scripts/run-dorka-native-linux-acceptance.ts'
 import { selkiesServiceStatus, verifyDesktopReadiness } from './native-linux-desktop-readiness.mjs'
 import { verifyTwoComputerIsolation } from './native-linux-two-computer-acceptance.mjs'
@@ -47,6 +49,10 @@ function requireValue(condition, message) {
 }
 function engine(args, options) {
   return command(process.env.DORKA_ENGINE ?? 'podman', args, options)
+}
+function runEngineCommand(args) {
+  const result = spawnSync(process.env.DORKA_ENGINE ?? 'podman', args, { encoding: 'utf8' })
+  return { status: result.status, stdout: result.stdout, stderr: result.stderr }
 }
 function journalCount(directory) {
   return Number(
@@ -105,6 +111,19 @@ function preflight(names) {
     ) >= 62914560,
     'requires 60 GiB free in the container image store'
   )
+  command('git', ['diff', '--quiet'])
+  command('git', ['diff', '--cached', '--quiet'])
+  const expected = process.env.DORKA_ACCEPTANCE_SHA
+  if (expected) {
+    requireValue(
+      command('git', ['rev-parse', 'HEAD']) === expected,
+      'checkout does not match DORKA_ACCEPTANCE_SHA'
+    )
+  }
+  requireValue(names.run.length <= 80, 'acceptance resource token is unexpectedly long')
+  return facts
+}
+function requireFixedResourcesAvailable() {
   for (const computer of COMPUTERS) {
     requireValue(
       engine(['ps', '-aq', '--filter', `name=^${computer}$`]) === '',
@@ -121,17 +140,6 @@ function preflight(names) {
     engine(['network', 'ls', '-q', '--filter', 'name=^dorka-runtimes$']) === '',
     'dorka-runtimes already exists'
   )
-  command('git', ['diff', '--quiet'])
-  command('git', ['diff', '--cached', '--quiet'])
-  const expected = process.env.DORKA_ACCEPTANCE_SHA
-  if (expected) {
-    requireValue(
-      command('git', ['rev-parse', 'HEAD']) === expected,
-      'checkout does not match DORKA_ACCEPTANCE_SHA'
-    )
-  }
-  requireValue(names.run.length <= 80, 'acceptance resource token is unexpectedly long')
-  return facts
 }
 function cleanup(names, artifacts) {
   const failures = []
@@ -347,9 +355,12 @@ function runAcceptance() {
   let failure
   let imageIds = {}
   let engineFacts
+  let acceptanceLock
   let ownsRuntimeResources = false
   try {
     engineFacts = preflight(names)
+    acceptanceLock = acquireAcceptanceLock(runEngineCommand, names.run)
+    requireFixedResourcesAvailable()
     ownsRuntimeResources = true
     const built = Date.now()
     build(names, artifacts)
@@ -525,12 +536,28 @@ function runAcceptance() {
   } catch (error) {
     failure = error
   } finally {
-    if (failure) {
-      captureFailureDiagnostics(names, artifacts, failure)
-    }
-    const residue = ownsRuntimeResources ? cleanup(names, artifacts) : []
-    if (!ownsRuntimeResources) {
-      artifact(artifacts, 'cleanup.json', { attempted: false, failures: [], residue })
+    let residue = []
+    try {
+      if (failure) {
+        captureFailureDiagnostics(names, artifacts, failure)
+      }
+      residue = ownsRuntimeResources ? cleanup(names, artifacts) : []
+      if (!ownsRuntimeResources) {
+        artifact(artifacts, 'cleanup.json', { attempted: false, failures: [], residue })
+      }
+    } catch (cleanupError) {
+      failure = new Error('acceptance cleanup failed', { cause: failure ?? cleanupError })
+    } finally {
+      if (acceptanceLock) {
+        try {
+          releaseAcceptanceLock(runEngineCommand, acceptanceLock)
+        } catch (releaseError) {
+          failure = new Error(
+            `acceptance lock release failed: ${releaseError instanceof Error ? releaseError.message : String(releaseError)}`,
+            { cause: failure ?? releaseError }
+          )
+        }
+      }
     }
     const summary = {
       schemaVersion: 1,

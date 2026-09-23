@@ -7,10 +7,12 @@ import {
   acceptanceBuildArgs,
   acceptanceEngineFacts,
   acceptanceNames,
+  acquireAcceptanceLock,
   assertUnverifiable,
   certificateMatchesRun,
   cleanupResourceNames,
-  redactArtifact
+  redactArtifact,
+  releaseAcceptanceLock
 } from './run-dorka-native-linux-acceptance'
 import { managedPtyExitCertificateId } from '../../src/shared/managed-pty-exit-evidence'
 import { assertPreSpawnFailure } from '../../tests/e2e/fixtures/dorka-native-linux-computer/native-linux-agent-requirements-acceptance.mjs'
@@ -178,6 +180,50 @@ describe('native Linux acceptance contracts', () => {
     expect(fixture).not.toContain("'computers.create'")
   })
 
+  it('serializes fixed-name ownership with an engine-scoped invocation lock', () => {
+    let lockToken: string | undefined
+    const runEngine = (args: string[]) => {
+      if (args[1] === 'create') {
+        lockToken ??= args[3]?.split('=').at(-1)
+        return { status: 0, stdout: `${args.at(-1)}\n`, stderr: '' }
+      }
+      if (args[1] === 'inspect') {
+        return lockToken
+          ? { status: 0, stdout: `${lockToken}\n`, stderr: '' }
+          : { status: 1, stdout: '', stderr: 'volume not found' }
+      }
+      lockToken = undefined
+      return { status: 0, stdout: args[2] ?? '', stderr: '' }
+    }
+
+    const first = acquireAcceptanceLock(runEngine, 'invocation-a')
+    expect(() => acquireAcceptanceLock(runEngine, 'invocation-b')).toThrow(
+      /owned by another invocation/
+    )
+    expect(lockToken).toBe('invocation-a')
+
+    releaseAcceptanceLock(runEngine, first)
+    expect(() => acquireAcceptanceLock(runEngine, 'invocation-b')).not.toThrow()
+    expect(lockToken).toBe('invocation-b')
+  })
+
+  it('does not release a replacement lock owned by an interleaved invocation', () => {
+    let removed = false
+    const runEngine = (args: string[]) => {
+      if (args[1] === 'inspect') {
+        return { status: 0, stdout: 'invocation-b\n', stderr: '' }
+      }
+      removed = true
+      return { status: 0, stdout: '', stderr: '' }
+    }
+
+    releaseAcceptanceLock(runEngine, {
+      name: 'dorka-native-linux-acceptance-lock',
+      token: 'invocation-a'
+    })
+    expect(removed).toBe(false)
+  })
+
   it('does not clean fixed resources after a rejected preflight and prints its verdict', () => {
     const runtime = readFileSync(
       resolve(
@@ -191,6 +237,15 @@ describe('native Linux acceptance contracts', () => {
     )
 
     expect(runtime).toContain('ownsRuntimeResources = false')
+    expect(runtime.indexOf('engineFacts = preflight(names)')).toBeLessThan(
+      runtime.indexOf('acceptanceLock = acquireAcceptanceLock(runEngineCommand, names.run)')
+    )
+    expect(runtime.indexOf('acceptanceLock = acquireAcceptanceLock')).toBeLessThan(
+      runtime.lastIndexOf('requireFixedResourcesAvailable()')
+    )
+    expect(runtime.lastIndexOf('requireFixedResourcesAvailable()')).toBeLessThan(
+      runtime.indexOf('ownsRuntimeResources = true')
+    )
     expect(runtime).toContain('ownsRuntimeResources ? cleanup(names, artifacts) : []')
     expect(runtime).toContain("DORKA_NATIVE_LINUX_ACCEPTANCE=${failure ? 'FAIL' : 'PASS'}")
     expect(packageJson.scripts['test:e2e:dorka-native-linux:self-service']).toContain(
