@@ -72,12 +72,25 @@ the server container must start and accept remote client connections.
 
 ### Validation and handoff
 
-- [ ] Pass focused unit and component tests for every changed seam.
-- [ ] Pass Node and renderer typechecks.
-- [ ] Build `dorkad` and the web/desktop application.
-- [ ] Launch the integrated application for manual testing.
+- [x] Pass focused unit and component tests for every changed seam.
+- [x] Pass Node and renderer typechecks.
+- [x] Build `dorkad` and the web/desktop application.
+- [x] Launch the integrated application for manual testing.
 - [ ] Smoke-test tabs, settings, diff, review, automations, and terminal launch.
-- [ ] Record remaining deferred work without presenting it as completed.
+- [x] Record remaining deferred work without presenting it as completed.
+
+## Remaining functional gaps
+
+- The desktop shell, reduced Settings, and Automations passed a live Electron/CDP smoke test.
+  Project-bound tabs, local Diff, Review, and terminal launch still need a workspace fixture for a
+  complete manual smoke test.
+- The existing local Diff and Review implementation remains in the application, but Review has not
+  yet been moved onto Computer-local `git`/`gh` execution and credentials.
+- The Agent and Computer control plane is durable and remotely callable, but Agent presets do not
+  yet launch through the existing PTY path or persist terminal session identity on a Run.
+- Existing Project and Workspace language still needs a careful Dorka terminology pass. This must
+  not erase useful git/worktree distinctions.
+- Browser-hosted graphical Computer desktops remain a post-MVP runtime integration.
 
 ## Explicitly deferred unless required for the smoke test
 
