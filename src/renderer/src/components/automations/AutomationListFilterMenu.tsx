@@ -108,7 +108,7 @@ export function AutomationListFilterPills({
     <>
       {hostPillLabel && onClearHost ? (
         <FilterPill
-          label={translate('auto.components.automations.AutomationsPage.tableHost', 'Host')}
+          label={translate('auto.components.automations.AutomationsPage.tableHost', 'Computer')}
           value={hostPillLabel}
           onClear={onClearHost}
         />
@@ -201,7 +201,7 @@ export function AutomationListFilterMenu({
           <>
             <DropdownMenuSub>
               <DropdownMenuSubTrigger>
-                {translate('auto.components.automations.AutomationsPage.tableHost', 'Host')}
+                {translate('auto.components.automations.AutomationsPage.tableHost', 'Computer')}
               </DropdownMenuSubTrigger>
               <DropdownMenuSubContent className="max-h-80 overflow-y-auto scrollbar-sleek">
                 <DropdownMenuCheckboxItem
@@ -209,7 +209,7 @@ export function AutomationListFilterMenu({
                   onCheckedChange={() => onChange({ ...filter, hostStableKeys: [] })}
                   onSelect={(event) => event.preventDefault()}
                 >
-                  {translate('auto.components.automations.hostPicker.allHosts', 'All hosts')}
+                  {translate('auto.components.automations.hostPicker.allHosts', 'All Computers')}
                 </DropdownMenuCheckboxItem>
                 {hostEntries.map((entry) => (
                   <DropdownMenuCheckboxItem

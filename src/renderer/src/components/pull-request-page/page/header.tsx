@@ -102,7 +102,7 @@ export function PullRequestPageHeader({
                   onClick={onCopyLink}
                   aria-label={translate(
                     'auto.components.PullRequestPage.347034903a',
-                    'Copy GitHub link'
+                    'Copy review link'
                   )}
                 >
                   {linkCopied ? (
@@ -115,7 +115,7 @@ export function PullRequestPageHeader({
               <TooltipContent side="bottom" sideOffset={6}>
                 {linkCopied
                   ? translate('auto.components.PullRequestPage.3b6886b2ee', 'Copied')
-                  : translate('auto.components.PullRequestPage.347034903a', 'Copy GitHub link')}
+                  : translate('auto.components.PullRequestPage.347034903a', 'Copy review link')}
               </TooltipContent>
             </Tooltip>
             <Tooltip>

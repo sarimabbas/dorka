@@ -73,6 +73,7 @@ describe('AutomationListEmptyView', () => {
     render()
     const state = container.querySelector('[data-empty-state="host-empty"]')
     expect(state?.textContent).toContain('No automations on web-01')
+    expect(state?.textContent).toContain('Automations schedule Agent launches on this Computer.')
   })
 
   it('never renders an empty claim for a disconnected host', () => {

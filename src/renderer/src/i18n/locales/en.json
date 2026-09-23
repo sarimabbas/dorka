@@ -1771,11 +1771,12 @@
         "57c13a5aa4": "More PR workspace actions",
         "25690a3855": "Start workspace from PR",
         "a459866967": "Resume workspace attached to PR",
-        "347034903a": "Copy GitHub link",
+        "347034903a": "Copy review link",
         "5a01ca7253": "Failed to sync viewed state with GitHub.",
         "996a1897d2": "Unable to sync viewed state for this pull request.",
-        "e0b15c793f": "Failed to copy GitHub link",
-        "992e799227": "GitHub link copied",
+        "e0b15c793f": "Failed to copy review link",
+        "992e799227": "Review link copied",
+        "repositoryAccessComputer": "Repository credentials and tools are managed inside the selected Computer.",
         "61bfc81ada": "Unable to open the workspace attached to this pull request.",
         "161d91ef02": "Send comment",
         "d2030fc8cd": "Add a comment…",
@@ -15922,7 +15923,7 @@
           "showMore": "Show more"
         },
         "AutomationDetail": {
-          "host": "Host",
+          "host": "Computer",
           "007c8ad874": "Prompt",
           "a1d52c2189": "Usage coverage",
           "449fc83bf7": "Tokens",
@@ -15967,7 +15968,7 @@
           "e46c1aa9ad": "Create",
           "a9d9dccf77": "Save",
           "777548c2d6": "Save Changes",
-          "e8c2a14f70": "Once saved, runs automatically until paused.",
+          "e8c2a14f70": "The selected Computer launches scheduled Agent work until this automation is paused.",
           "ff5db28639": "existing"
         },
         "AutomationEditorDialogHeader": {
@@ -16137,7 +16138,7 @@
           "backToList": "All automations",
           "tableName": "Name",
           "tableProject": "Project",
-          "tableHost": "Host",
+          "tableHost": "Computer",
           "tableStatus": "Status",
           "tableActions": "Actions",
           "newAutomation": "New Automation",
@@ -16321,9 +16322,11 @@
           "hostNotConnected": "{{hostLabel}} is not connected",
           "hostNotConnectedDetail": "Connect to this host to see the automations stored for it.",
           "hostEmpty": "No automations on {{hostLabel}}",
+          "hostEmptyDetail": "Automations schedule Agent launches on this Computer.",
           "searchNoMatch": "No automations match your search",
           "filtersNoMatch": "No automations match your filters",
-          "allHostsEmpty": "No automations across loaded hosts"
+          "allHostsEmpty": "No automations across loaded hosts",
+          "allHostsEmptyDetail": "Create an automation to schedule an Agent launch on a Computer."
         },
         "hostNotice": {
           "loading": "Loading host…",
@@ -16332,7 +16335,7 @@
           "removed": "The selected host is no longer available. Showing all hosts."
         },
         "hostPicker": {
-          "allHosts": "All hosts",
+          "allHosts": "All Computers",
           "loadingHost": "Loading host…"
         },
         "ownerConflict": {
@@ -16400,15 +16403,15 @@
           "occurrences": "{{times}} times"
         },
         "createDestination": {
-          "label": "Host",
-          "placeholder": "Select a host",
+          "label": "Computer",
+          "placeholder": "Select a Computer",
           "storedOn": "Stored and scheduled by {authority}.",
-          "unselected": "Choose the host that stores and schedules this automation.",
+          "unselected": "Choose the Computer that stores and schedules this automation.",
           "orphan": "Automations with no host cannot hold new ones. Choose a host to create this automation on.",
           "unavailable": "That host cannot hold a new automation yet. Choose another host to create this one on.",
           "stale": "{host} changed while this form was open. Choose it again before saving.",
           "projectMismatch": "That project is not on {host}. Choose a project on that host, or another host.",
-          "noProjects": "No projects are set up on {host}. Add one there, or choose another host.",
+          "noProjects": "No projects are set up on {host}. Add one there, or choose another Computer.",
           "updateRequired": "Update the Dorka server on {hosts} to store automations there.",
           "move": "Saving creates this automation on {host} and deletes the original and its run history."
         },
@@ -16418,7 +16421,7 @@
         "AutomationRunsDashboard": {
           "search": "Search runs…",
           "filters": "Filters",
-          "host": "Host",
+          "host": "Computer",
           "status": "Status",
           "refresh": "Refresh runs",
           "successful24h": "Successful · 24h",

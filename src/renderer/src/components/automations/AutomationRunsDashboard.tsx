@@ -145,14 +145,17 @@ export function AutomationRunsDashboard({
             <DropdownMenuContent align="start">
               <DropdownMenuSub>
                 <DropdownMenuSubTrigger>
-                  {translate('auto.components.automations.AutomationRunsDashboard.host', 'Host')}
+                  {translate(
+                    'auto.components.automations.AutomationRunsDashboard.host',
+                    'Computer'
+                  )}
                 </DropdownMenuSubTrigger>
                 <DropdownMenuSubContent className="scrollbar-sleek max-h-80 overflow-y-auto">
                   <DropdownMenuCheckboxItem
                     checked={hostKeys.length === 0}
                     onCheckedChange={() => setHostKeys([])}
                   >
-                    {translate('auto.components.automations.hostPicker.allHosts', 'All hosts')}
+                    {translate('auto.components.automations.hostPicker.allHosts', 'All Computers')}
                   </DropdownMenuCheckboxItem>
                   {hostOptions.map((host) => (
                     <DropdownMenuCheckboxItem

@@ -39,7 +39,7 @@ export default function PullRequestPage({
   repoId,
   sourceContext,
   initialTab,
-  backLabel = 'Pull requests',
+  backLabel = 'Reviews',
   projectOrigin,
   onUse,
   onReviewRequestsChange,
@@ -254,10 +254,10 @@ export default function PullRequestPage({
         linkCopiedResetTimerRef.current = null
         setLinkCopyState((current) => clearGitHubLinkCopied(current, copiedWorkItemId))
       }, 1500)
-      toast.success(translate('auto.components.PullRequestPage.992e799227', 'GitHub link copied'))
+      toast.success(translate('auto.components.PullRequestPage.992e799227', 'Review link copied'))
     } catch {
       toast.error(
-        translate('auto.components.PullRequestPage.e0b15c793f', 'Failed to copy GitHub link')
+        translate('auto.components.PullRequestPage.e0b15c793f', 'Failed to copy review link')
       )
     }
   }, [clearLinkCopiedResetTimer, workItem])
@@ -347,7 +347,15 @@ export default function PullRequestPage({
 
       <div className="min-h-0 flex-1">
         {error ? (
-          <div className="px-4 py-6 text-[12px] text-destructive">{error}</div>
+          <div className="px-4 py-6 text-[12px] text-destructive">
+            <p>{error}</p>
+            <p className="mt-1 text-muted-foreground">
+              {translate(
+                'auto.components.PullRequestPage.repositoryAccessComputer',
+                'Repository credentials and tools are managed inside the selected Computer.'
+              )}
+            </p>
+          </div>
         ) : (
           <PullRequestPageTabs
             tab={tab}

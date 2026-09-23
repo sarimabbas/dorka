@@ -73,7 +73,9 @@ export function AutomationRunsTable({
           <div>
             {translate('auto.components.automations.AutomationRunsDashboard.trigger', 'Trigger')}
           </div>
-          <div>{translate('auto.components.automations.AutomationRunsDashboard.host', 'Host')}</div>
+          <div>
+            {translate('auto.components.automations.AutomationRunsDashboard.host', 'Computer')}
+          </div>
           <div>
             {translate('auto.components.automations.AutomationRunsDashboard.status', 'Status')}
           </div>

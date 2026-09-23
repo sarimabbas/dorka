@@ -37,7 +37,7 @@ export function AutomationDestinationField({
     control.entries.filter(automationCreateHostOffered)
   )
   const updateRequiredAuthorities = automationCreateUpdateRequiredAuthorityLabels(control.entries)
-  const label = translate('auto.components.automations.createDestination.label', 'Host')
+  const label = translate('auto.components.automations.createDestination.label', 'Computer')
 
   return (
     <Field label={label} labelClassName={labelClassName}>
@@ -46,7 +46,7 @@ export function AutomationDestinationField({
           <SelectValue
             placeholder={translate(
               'auto.components.automations.createDestination.placeholder',
-              'Select a host'
+              'Select a Computer'
             )}
           />
         </SelectTrigger>
@@ -76,7 +76,7 @@ export function AutomationDestinationField({
         <p className="text-xs text-destructive" data-testid="automation-create-no-projects">
           {translate(
             'auto.components.automations.createDestination.noProjects',
-            'No projects are set up on {host}. Add one there, or choose another host.'
+            'No projects are set up on {host}. Add one there, or choose another Computer.'
           ).replace('{host}', selected.label)}
         </p>
       ) : control.moveWarning ? (
@@ -94,7 +94,7 @@ export function AutomationDestinationField({
               ).replace('{authority}', selected.authorityLabel)
             : translate(
                 'auto.components.automations.createDestination.unselected',
-                'Choose the host that stores and schedules this automation.'
+                'Choose the Computer that stores and schedules this automation.'
               )}
         </p>
       )}

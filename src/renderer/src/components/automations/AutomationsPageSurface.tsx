@@ -195,7 +195,6 @@ export function AutomationsPageSurface({
               : destinationForm.automationDialogTarget.kind === 'local'
             : destinationForm.automationDialogTarget.kind === 'local')
         }
-        onCreateTargetChange={draftEffects.handleCreateTargetChange}
         onOpenChange={(open) => {
           setCreateOpen(open)
           if (!open) {

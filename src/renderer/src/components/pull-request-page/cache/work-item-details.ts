@@ -9,7 +9,7 @@ import { onGitHubWorkItemDetailsCacheMutation } from '@/lib/github-work-item-det
 // SWR cache: reopening a drawer paints cached data instantly while a background refetch reconciles. See docs/gh-work-item-drawer-cache.md.
 const WORK_ITEM_DETAILS_CACHE_MAX = 50
 export const WORK_ITEM_DETAILS_FRESH_MS = 30_000
-export const WORK_ITEM_DETAILS_UNAVAILABLE_MESSAGE = 'Unable to load details for this GitHub item.'
+export const WORK_ITEM_DETAILS_UNAVAILABLE_MESSAGE = 'Unable to load review details.'
 export type WorkItemDetailsCacheEntry = {
   details: GitHubWorkItemDetails | null
   fetchedAt: number

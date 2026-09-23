@@ -85,7 +85,6 @@ type AutomationEditorDialogProps = {
   onProjectChange: (projectId: string) => void
   getRepoHostLabel?: (repo: Repo) => string | null | undefined
   allowAddProject?: boolean
-  onCreateTargetChange: (target: AutomationCreateTarget) => void
   onOpenChange: (open: boolean) => void
   onDraftChange: (updater: (current: AutomationDraft) => AutomationDraft) => void
   onSetupDecisionTouched: () => void
@@ -116,7 +115,6 @@ export function AutomationEditorDialog({
   onProjectChange,
   getRepoHostLabel,
   allowAddProject,
-  onCreateTargetChange,
   onOpenChange,
   onDraftChange,
   onSetupDecisionTouched,
@@ -173,12 +171,8 @@ export function AutomationEditorDialog({
           isEditingExternal={isEditingExternal}
           isHermesCreate={isHermesCreate}
           isCreateMode={isCreateMode}
-          createTarget={createTarget}
           templateOpen={templateOpen}
           templates={getAutomationTemplates()}
-          segmentedGroupClassName={AUTOMATION_EDITOR_SEGMENTED_GROUP_CLASS}
-          segmentedItemClassName={AUTOMATION_EDITOR_SEGMENTED_ITEM_CLASS}
-          onCreateTargetChange={onCreateTargetChange}
           onTemplateOpenChange={setTemplateOpen}
           onApplyTemplate={(template) => {
             onApplyTemplate(template)

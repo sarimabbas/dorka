@@ -406,7 +406,8 @@ describe('automation target availability', () => {
     ).toMatchObject({
       canRunNow: false,
       reason: 'source-auth-needed',
-      message: 'Connect the saved GitHub source account before running manually.'
+      message:
+        'Configure the saved GitHub source credentials inside the selected Computer before running manually.'
     })
   })
 

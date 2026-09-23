@@ -37,7 +37,7 @@ export function AutomationEditorDialogFooter({
         <span className="truncate">
           {translate(
             'auto.components.automations.AutomationEditorDialog.e8c2a14f70',
-            'Once saved, runs automatically until paused.'
+            'The selected Computer launches scheduled Agent work until this automation is paused.'
           )}
         </span>
       </p>

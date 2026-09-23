@@ -18,7 +18,7 @@ describe('AutomationListTableHeader', () => {
     expect(screen.getByText('Name')).toBeDefined()
     expect(screen.getByText('Schedule')).toBeDefined()
     expect(screen.getByText('Project')).toBeDefined()
-    expect(screen.getByText('Host')).toBeDefined()
+    expect(screen.getByText('Computer')).toBeDefined()
     expect(screen.getByText('Next run')).toBeDefined()
     expect(screen.getByText('Last run')).toBeDefined()
     expect(screen.getByText('Status')).toBeDefined()

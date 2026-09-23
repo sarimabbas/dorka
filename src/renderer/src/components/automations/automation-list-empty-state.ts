@@ -141,7 +141,10 @@ function resolveSelectedHostState(input: AutomationListEmptyStateInput): Automat
       'No automations on {{hostLabel}}',
       { hostLabel: label }
     ),
-    null,
+    translate(
+      'auto.components.automations.emptyState.hostEmptyDetail',
+      'Automations schedule Agent launches on this Computer.'
+    ),
     input
   )
 }
@@ -208,7 +211,10 @@ export function resolveAutomationListEmptyState(
         'auto.components.automations.emptyState.allHostsEmpty',
         'No automations across loaded hosts'
       ),
-      null,
+      translate(
+        'auto.components.automations.emptyState.allHostsEmptyDetail',
+        'Create an automation to schedule an Agent launch on a Computer.'
+      ),
       input
     )
   }

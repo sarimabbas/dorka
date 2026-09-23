@@ -31,7 +31,7 @@ const COLUMNS: readonly HeaderColumn[] = [
   },
   {
     key: 'auto.components.automations.AutomationsPage.tableHost',
-    fallback: 'Host'
+    fallback: 'Computer'
   },
   {
     key: 'auto.components.automations.AutomationDetail.578ff46987',

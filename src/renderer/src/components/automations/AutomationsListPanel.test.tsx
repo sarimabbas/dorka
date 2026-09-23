@@ -193,7 +193,7 @@ describe('AutomationsListPanel unchecked hosts', () => {
 })
 
 describe('AutomationsListPanel flat table layout', () => {
-  it('renders table headers including Host column and displays row with host cell', () => {
+  it('renders table headers including Computer column and displays row with its computer', () => {
     const row = makeAutomationListRow({
       hostLabel: 'Remote Linux',
       automation: makeAutomation({
@@ -211,7 +211,7 @@ describe('AutomationsListPanel flat table layout', () => {
     expect(container.textContent).toContain('Name')
     expect(container.textContent).toContain('Schedule')
     expect(container.textContent).toContain('Project')
-    expect(container.textContent).toContain('Host')
+    expect(container.textContent).toContain('Computer')
     expect(container.textContent).toContain('Nightly Sync')
     expect(container.textContent).toContain('Remote Linux')
   })

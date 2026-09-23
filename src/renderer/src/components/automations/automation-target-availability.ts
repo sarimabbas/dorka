@@ -202,12 +202,12 @@ function getAutomationSourceAvailability(
     case 'missing-provider-auth':
       return unavailable(
         'source-auth-needed',
-        `Connect the saved ${providerLabel} source account before running manually.`
+        `Configure the saved ${providerLabel} source credentials inside the selected Computer before running manually.`
       )
     case 'unavailable-source-tool':
       return unavailable(
         'source-tool-unavailable',
-        `Install or configure the ${providerLabel} source tool before running manually.`
+        `Install or configure the ${providerLabel} source tool inside the selected Computer before running manually.`
       )
     case 'unsupported-provider':
     case 'missing-task-source-capability':

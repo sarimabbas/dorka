@@ -249,7 +249,7 @@ export function AutomationDetail({
           }
         />
         <DetailMetric
-          label={translate('auto.components.automations.AutomationDetail.host', 'Host')}
+          label={translate('auto.components.automations.AutomationDetail.host', 'Computer')}
           value={hostDisplay.label}
           title={hostDisplay.title}
         />

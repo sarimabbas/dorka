@@ -140,7 +140,7 @@ describe('AutomationDestinationField', () => {
 
     // The same field serves both modes; create-only wording would misread on an
     // existing record, whose save moves it rather than creating it.
-    expect(container.querySelector('[aria-label="Host"]')).not.toBeNull()
+    expect(container.querySelector('[aria-label="Computer"]')).not.toBeNull()
     expect(container.textContent).not.toContain('created')
   })
 })

@@ -2,8 +2,6 @@ import { Sparkles } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
-import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
-import type { AutomationCreateTarget } from './AutomationEditorDialog'
 import type { AutomationTemplate } from './automation-templates'
 import { translate } from '@/i18n/i18n'
 
@@ -12,12 +10,8 @@ type AutomationEditorDialogHeaderProps = {
   isEditingExternal: boolean
   isHermesCreate: boolean
   isCreateMode: boolean
-  createTarget: AutomationCreateTarget
   templateOpen: boolean
   templates: AutomationTemplate[]
-  segmentedGroupClassName: string
-  segmentedItemClassName: string
-  onCreateTargetChange: (target: AutomationCreateTarget) => void
   onTemplateOpenChange: (open: boolean) => void
   onApplyTemplate: (template: AutomationTemplate) => void
 }
@@ -78,12 +72,8 @@ export function AutomationEditorDialogHeader({
   isEditingExternal,
   isHermesCreate,
   isCreateMode,
-  createTarget,
   templateOpen,
   templates,
-  segmentedGroupClassName,
-  segmentedItemClassName,
-  onCreateTargetChange,
   onTemplateOpenChange,
   onApplyTemplate
 }: AutomationEditorDialogHeaderProps): React.JSX.Element {
@@ -94,29 +84,6 @@ export function AutomationEditorDialogHeader({
       <DialogTitle className="min-w-0 truncate text-sm font-medium">{title}</DialogTitle>
       {isCreateMode ? (
         <div className="flex shrink-0 items-center gap-2">
-          <ToggleGroup
-            type="single"
-            spacing={1}
-            value={createTarget}
-            onValueChange={(value) =>
-              value && onCreateTargetChange(value as AutomationCreateTarget)
-            }
-            size="sm"
-            className={segmentedGroupClassName}
-          >
-            <ToggleGroupItem value="dorka" className={segmentedItemClassName}>
-              {translate(
-                'auto.components.automations.AutomationEditorDialogHeader.6f309eef8d',
-                'Dorka'
-              )}
-            </ToggleGroupItem>
-            <ToggleGroupItem value="hermes" className={segmentedItemClassName}>
-              {translate(
-                'auto.components.automations.AutomationEditorDialogHeader.7e35393632',
-                'Hermes'
-              )}
-            </ToggleGroupItem>
-          </ToggleGroup>
           <Popover open={templateOpen} onOpenChange={onTemplateOpenChange}>
             <PopoverTrigger asChild>
               <Button type="button" variant="ghost" size="sm">
