@@ -12,6 +12,7 @@ if [[ -z "$token" ]]; then
   exit 64
 fi
 
+printf '%s\n' "$token" >> /workspace/.dorka-agent-shim-launches
 printf 'DORKA_NATIVE_AGENT_READY %s\n' "$token"
 while [[ ! -e "/workspace/$token.exit" ]]; do sleep 0.2; done
 printf 'DORKA_NATIVE_AGENT_EXIT %s\n' "$token"

@@ -1,3 +1,5 @@
+import { verifyAgentRequirements } from './native-linux-agent-requirements-acceptance.mjs'
+
 const MAIN_ID = 'main'
 const SECONDARY_ID = 'secondary'
 const MAIN = `dorka-computer-${MAIN_ID}`
@@ -171,4 +173,5 @@ export function verifyTwoComputerIsolation(context) {
     generations: { secondary: secondaryGeneration },
     movedRunId: movedRun.id
   })
+  verifyAgentRequirements(context)
 }

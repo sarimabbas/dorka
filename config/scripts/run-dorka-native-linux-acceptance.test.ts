@@ -13,6 +13,7 @@ import {
   redactArtifact
 } from './run-dorka-native-linux-acceptance'
 import { managedPtyExitCertificateId } from '../../src/shared/managed-pty-exit-evidence'
+import { assertPreSpawnFailure } from '../../tests/e2e/fixtures/dorka-native-linux-computer/native-linux-agent-requirements-acceptance.mjs'
 
 function fixture() {
   const computerExecutionGeneration = randomUUID()
@@ -132,6 +133,49 @@ describe('native Linux acceptance contracts', () => {
       'dorka-runtimes',
       names.controlNetwork
     ])
+  })
+
+  it('proves requirement failures stop before terminal spawn', () => {
+    const evidence = {
+      beforeHandles: ['term-existing'],
+      afterHandles: ['term-existing'],
+      beforeMarkers: ['run-existing'],
+      afterMarkers: ['run-existing'],
+      expectedError: 'missing required skill',
+      expectedRevision: 4,
+      failure: new Error('Computer is missing required skill: native-acceptance'),
+      run: { id: 'run-failed', status: 'failed', agentRevision: 4 }
+    }
+
+    expect(() => assertPreSpawnFailure(evidence)).not.toThrow()
+    expect(() =>
+      assertPreSpawnFailure({
+        ...evidence,
+        run: { ...evidence.run, terminalSessionId: 'term-spawned' }
+      })
+    ).toThrow(/crossed the terminal spawn boundary/)
+    expect(() =>
+      assertPreSpawnFailure({ ...evidence, afterHandles: ['term-existing', 'term-spawned'] })
+    ).toThrow(/created a terminal/)
+    expect(() =>
+      assertPreSpawnFailure({ ...evidence, afterMarkers: ['run-existing', 'run-spawned'] })
+    ).toThrow(/launched the Agent shim/)
+  })
+
+  it('uses the existing image and runtime RPC client for Agent requirements', () => {
+    const fixture = readFileSync(
+      resolve(
+        import.meta.dirname,
+        '../../tests/e2e/fixtures/dorka-native-linux-computer/native-linux-agent-requirements-acceptance.mjs'
+      ),
+      'utf8'
+    )
+
+    expect(fixture).toContain("rpc(pairing, 'agents.references.update'")
+    expect(fixture).toContain("rpc(pairing, 'terminal.list', {})")
+    expect(fixture).toContain('repositoryCreated: false')
+    expect(fixture).not.toContain("'build'")
+    expect(fixture).not.toContain("'computers.create'")
   })
 
   it('redacts pairing credentials, tokens, and private keys', () => {

@@ -415,7 +415,7 @@ function runAcceptance() {
       waitFor,
       waitForComputerHealth
     })
-    record('two-computer-isolation-persistence-and-agent-move', isolated)
+    record('two-computer-isolation-move-and-agent-requirements', isolated)
     const supervisor = selkiesServiceStatus(engine, MAIN)
     artifact(artifacts, 'selkies-supervisor.txt', supervisor)
     artifact(artifacts, 'computer-processes.txt', engine(['exec', MAIN, 'ps', '-ef']))
