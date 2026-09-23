@@ -65,7 +65,7 @@ only after P0 evidence is green.
 | ✅ | Tested Agent execution seam and durable Run placement/session/process identity | `src/main/agents/agent-execution-service.ts`; its tests; `agents.run` RPC; stable Run launch identity; commits `b31581377`, `9802a6006` |
 | ✅ | Safe ordinary environment injection and exact operator-allowlisted premounts | Computer command/manager tests; deployment docs; commit `37b4a5fdf` |
 | ✅ | Persistent Computer home matches the image's actual `/home/ubuntu` user | command construction and rejection tests; commit `98397f367` |
-| ✅ | Per-Computer server-owned Ed25519 control key with public-key-only injection and password SSH disabled | key-store, command, manager, and image-entrypoint tests; commit `3df2d3e08` |
+| ✅ | Per-Computer server-owned Ed25519 control key, persistent host-key volume, public-key-only injection, and password SSH disabled | key-store, command, manager, and image-entrypoint tests; commits `3df2d3e08` and the current architecture checkpoint |
 | ✅ | `dorkad` omits unconfigured artifact/account/plugin RPC families and their bundle graph | manifest/capability tests plus `build:dorkad`; commit `294cbb766` |
 | ✅ | Retained Settings exposes durable Agent presets and Computer start/stop state | focused renderer tests; commits `54d861ad2`, `edb8d33ad` |
 | ✅ | Isolated retained-shell QA for project add, Settings, tabs, local terminal, local Diff, and Automations | `/tmp/dorka-computer-use-qa.md` and ten screenshots; hidden Playwright/Electron CDP against a throwaway `/tmp` repository |
@@ -82,9 +82,9 @@ only after P0 evidence is green.
   service account. Rootless operation reduces impact but is not a security boundary by itself.
 - **Image availability:** the pinned Selkies base is currently `linux/amd64`; arm64 development may
   require emulation and can hide native-Linux defects.
-- **SSH host identity:** Computer host keys currently live in the container layer. Container
-  replacement must create an explicit target generation; silently accepting a changed key is not
-  allowed.
+- **SSH host identity:** the dedicated `/etc/ssh` volume preserves host keys across normal
+  replacement. Recovery that loses this volume must still establish an explicit target generation;
+  silently accepting a changed key is not allowed.
 - **Wire compatibility:** clients and Servers update independently. Add optional RPC fields and
   capability-negotiate new stream behavior.
 - **Review portability:** Computer-local review must support GitLab and other providers, not only

@@ -150,8 +150,10 @@ docker build --platform linux/amd64 -f docker/computer/Dockerfile \
 ```
 
 Dorka attaches Computers to `dorka-runtimes` and mounts persistent storage at
-`/home/ubuntu` and `/workspace`. SSH listens only inside the private network on
-2222. Selkies listens there on 8080. Do not publish either port on the host.
+`/home/ubuntu`, `/workspace`, and `/etc/ssh`. The last volume preserves each
+Computer's SSH host identity across container replacement. SSH listens only inside
+the private network on 2222. Selkies listens there on 8080. Do not publish either
+port on the host.
 The image inherits Selkies variables such as `PASSWD`, display sizing, TLS, and
 GPU configuration. It must not run privileged; follow the upstream Selkies GPU
 device instructions when acceleration is required.

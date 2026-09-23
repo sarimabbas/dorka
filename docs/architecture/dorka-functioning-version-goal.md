@@ -97,8 +97,8 @@ the server container must start and accept remote client connections.
   Computers now receive a server-owned public control key. The Node-safe SSH host-session adapter,
   direct remote terminal launch seam, and production composition are still missing, so this is not
   yet an end-to-end Agent launch.
-- Computer SSH host keys survive stop/start but not container replacement. Recreate/reconcile must
-  establish an explicit replacement generation instead of silently accepting a changed host key.
+- Computer SSH host keys now live in a dedicated managed volume, preserving host identity across
+  normal container replacement without exposing host or user SSH material.
 - Existing Project and Workspace language still needs a careful Dorka terminology pass. This must
   not erase useful git/worktree distinctions.
 - Browser-hosted graphical Computer desktops remain a post-MVP runtime integration.

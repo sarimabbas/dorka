@@ -38,6 +38,7 @@ const FORBIDDEN_MOUNT_TARGETS = [
   '/',
   '/home/dorka',
   '/home/ubuntu',
+  '/etc/ssh',
   '/workspace',
   '/var/run/docker.sock',
   '/run/docker.sock'
@@ -148,7 +149,9 @@ export function createComputerArgs(
     '--mount',
     `type=volume,source=${name}-home,target=/home/ubuntu`,
     '--mount',
-    `type=volume,source=${name}-workspace,target=/workspace`
+    `type=volume,source=${name}-workspace,target=/workspace`,
+    '--mount',
+    `type=volume,source=${name}-ssh-host-keys,target=/etc/ssh`
   ]
   for (const key of Object.keys(validated.environment).sort()) {
     args.push('--env', `${key}=${validated.environment[key]}`)

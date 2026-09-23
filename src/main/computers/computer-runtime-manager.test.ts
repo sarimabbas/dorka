@@ -80,6 +80,8 @@ describe('ComputerRuntimeManager', () => {
         'type=volume,source=dorka-computer-alpha-home,target=/home/ubuntu',
         '--mount',
         'type=volume,source=dorka-computer-alpha-workspace,target=/workspace',
+        '--mount',
+        'type=volume,source=dorka-computer-alpha-ssh-host-keys,target=/etc/ssh',
         '--env',
         `DORKA_SSH_PUBLIC_KEY=${publicKey}`,
         '--workdir',
@@ -245,6 +247,11 @@ describe('ComputerRuntimeManager', () => {
       id: 'safe',
       image: 'safe/image:tag',
       mounts: [{ source: '/srv/dorka/shared', target: '/home/ubuntu' }]
+    },
+    {
+      id: 'safe',
+      image: 'safe/image:tag',
+      mounts: [{ source: '/srv/dorka/shared', target: '/etc/ssh' }]
     }
   ])('rejects invalid create input without executing: $id $image', async (spec) => {
     const execute = vi.fn<ComputerCommandExecutor>()

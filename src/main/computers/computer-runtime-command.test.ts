@@ -18,6 +18,12 @@ describe('createComputerArgs', () => {
       '/workspace',
       'safe/image:tag'
     ])
+    expect(args).toEqual(
+      expect.arrayContaining([
+        '--mount',
+        'type=volume,source=dorka-computer-alpha-ssh-host-keys,target=/etc/ssh'
+      ])
+    )
     expect(args.join(' ')).not.toContain('PRIVATE KEY')
   })
 
