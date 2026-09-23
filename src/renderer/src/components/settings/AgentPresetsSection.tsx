@@ -5,7 +5,8 @@ import { getAgentCatalog } from '@/lib/agent-catalog'
 import {
   AgentRosterUnsupportedError,
   createRuntimeAgentPreset,
-  listRuntimeAgentPresets
+  listRuntimeAgentPresets,
+  runtimeSupportsAgentReferences
 } from '@/runtime/runtime-agent-roster-client'
 import type { RuntimeClientTarget } from '@/runtime/runtime-rpc-client'
 import { Button } from '../ui/button'
@@ -63,6 +64,7 @@ export function AgentPresetsSection({
   const [presets, setPresets] = useState<Agent[] | null>(null)
   const [loadError, setLoadError] = useState<string | null>(null)
   const [unsupported, setUnsupported] = useState(false)
+  const [requirementsSupported, setRequirementsSupported] = useState(false)
   const [draft, setDraft] = useState<AgentPresetDraft | null>(null)
   const [saving, setSaving] = useState(false)
   const [saveError, setSaveError] = useState<string | null>(null)
@@ -72,15 +74,30 @@ export function AgentPresetsSection({
     setLoadError(null)
     setUnsupported(false)
     try {
-      const loaded = await listRuntimeAgentPresets(
-        environmentId ? { kind: 'environment', environmentId } : { kind: 'local' }
-      )
+      const runtimeTarget: RuntimeClientTarget = environmentId
+        ? { kind: 'environment', environmentId }
+        : { kind: 'local' }
+      const [loaded, supportsRequirements] = await Promise.all([
+        listRuntimeAgentPresets(runtimeTarget),
+        runtimeSupportsAgentReferences(runtimeTarget)
+      ])
+      setRequirementsSupported(supportsRequirements)
       setPresets(loaded)
     } catch (error) {
+      setRequirementsSupported(false)
       setPresets(null)
       setUnsupported(error instanceof AgentRosterUnsupportedError)
       setLoadError(errorMessage(error))
     }
+  }
+
+  const reloadPreset = async (agentId: string): Promise<Agent | undefined> => {
+    const runtimeTarget: RuntimeClientTarget = environmentId
+      ? { kind: 'environment', environmentId }
+      : { kind: 'local' }
+    const loaded = await listRuntimeAgentPresets(runtimeTarget)
+    setPresets(loaded)
+    return loaded.find((agent) => agent.id === agentId)
   }
 
   useEffect(() => {
@@ -89,12 +106,18 @@ export function AgentPresetsSection({
     setDraft(null)
     setLoadError(null)
     setUnsupported(false)
-    void listRuntimeAgentPresets(
-      environmentId ? { kind: 'environment', environmentId } : { kind: 'local' }
-    )
-      .then((loaded) => {
+    setRequirementsSupported(false)
+    const runtimeTarget: RuntimeClientTarget = environmentId
+      ? { kind: 'environment', environmentId }
+      : { kind: 'local' }
+    void Promise.all([
+      listRuntimeAgentPresets(runtimeTarget),
+      runtimeSupportsAgentReferences(runtimeTarget)
+    ])
+      .then(([loaded, supportsRequirements]) => {
         if (active) {
           setPresets(loaded)
+          setRequirementsSupported(supportsRequirements)
         }
       })
       .catch((error: unknown) => {
@@ -269,7 +292,19 @@ export function AgentPresetsSection({
       ) : presets && presets.length > 0 ? (
         <div className="divide-y divide-border rounded-xl border border-border">
           {presets.map((preset) => (
-            <AgentPresetRow key={preset.id} preset={preset} target={target} />
+            <AgentPresetRow
+              key={preset.id}
+              preset={preset}
+              target={target}
+              requirementsSupported={requirementsSupported}
+              onPresetUpdated={(updated) =>
+                setPresets(
+                  (current) =>
+                    current?.map((agent) => (agent.id === updated.id ? updated : agent)) ?? null
+                )
+              }
+              onReloadPreset={() => reloadPreset(preset.id)}
+            />
           ))}
         </div>
       ) : null}

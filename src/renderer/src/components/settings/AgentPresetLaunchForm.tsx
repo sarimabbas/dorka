@@ -12,6 +12,7 @@ import { Label } from '../ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select'
 import { Textarea } from '../ui/textarea'
 import { AgentRunHistory } from './AgentRunHistory'
+import { AgentRequirementsEditor } from './AgentRequirementsEditor'
 
 type ComputerLoadState =
   | { kind: 'loading' }
@@ -26,12 +27,19 @@ function errorMessage(error: unknown): string {
 
 export function AgentPresetRow({
   preset,
-  target
+  target,
+  requirementsSupported = false,
+  onPresetUpdated,
+  onReloadPreset
 }: {
   preset: Agent
   target: RuntimeClientTarget
+  requirementsSupported?: boolean
+  onPresetUpdated?: (agent: Agent) => void
+  onReloadPreset?: () => Promise<Agent | undefined>
 }): React.JSX.Element {
   const [launchOpen, setLaunchOpen] = useState(false)
+  const [requirementsOpen, setRequirementsOpen] = useState(false)
   const [runHistoryVersion, setRunHistoryVersion] = useState(0)
   const environmentId = target.kind === 'environment' ? target.environmentId : null
   const runtimeTarget = useMemo<RuntimeClientTarget>(
@@ -50,17 +58,44 @@ export function AgentPresetRow({
             {preset.harnessId}
             {preset.model ? ` · ${preset.model}` : ''}
           </span>
+          {requirementsSupported && onPresetUpdated && onReloadPreset ? (
+            <Button
+              type="button"
+              variant="ghost"
+              size="xs"
+              aria-expanded={requirementsOpen}
+              onClick={() => {
+                setLaunchOpen(false)
+                setRequirementsOpen((current) => !current)
+              }}
+            >
+              Requirements
+              {preset.references.items.length ? ` · ${preset.references.items.length}` : ''}
+            </Button>
+          ) : null}
           <Button
             type="button"
             variant="outline"
             size="xs"
             aria-expanded={launchOpen}
-            onClick={() => setLaunchOpen((current) => !current)}
+            onClick={() => {
+              setRequirementsOpen(false)
+              setLaunchOpen((current) => !current)
+            }}
           >
             Launch
           </Button>
         </div>
       </div>
+      {requirementsOpen && onPresetUpdated && onReloadPreset ? (
+        <AgentRequirementsEditor
+          preset={preset}
+          target={runtimeTarget}
+          onClose={() => setRequirementsOpen(false)}
+          onUpdated={onPresetUpdated}
+          onReload={onReloadPreset}
+        />
+      ) : null}
       {launchOpen ? (
         <AgentPresetLaunchForm
           preset={preset}

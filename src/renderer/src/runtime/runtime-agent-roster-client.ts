@@ -1,7 +1,8 @@
-import type { Agent, AgentCreate, Run } from '../../../shared/agent-roster'
+import type { Agent, AgentCreate, AgentUpdateResult, Run } from '../../../shared/agent-roster'
 import type { ComputerRuntimeInfo } from '../../../shared/computer-runtime'
 import {
   AGENT_EXECUTION_RUNTIME_CAPABILITY,
+  AGENT_REFERENCES_RUNTIME_CAPABILITY,
   AGENT_ROSTER_RUNTIME_CAPABILITY,
   AGENT_RUN_HISTORY_RUNTIME_CAPABILITY,
   COMPUTER_LIFECYCLE_RUNTIME_CAPABILITY,
@@ -9,7 +10,8 @@ import {
 } from '../../../shared/protocol-version'
 import type {
   ListRunsRequest,
-  RunAgentRequest
+  RunAgentRequest,
+  UpdateAgentReferencesRequest
 } from '../../../shared/rpc-contract/agent-roster-params'
 import { ensureLocalRuntimeCapabilities } from './local-runtime-capabilities'
 import {
@@ -101,6 +103,27 @@ export async function listRuntimeAgentRuns(
     'Could not verify Run history support.'
   )
   return callRuntimeRpc<Run[]>(target, 'agents.runs.list', filter)
+}
+
+export async function runtimeSupportsAgentReferences(
+  target: RuntimeClientTarget
+): Promise<boolean> {
+  try {
+    return (await supportsCapability(target, AGENT_REFERENCES_RUNTIME_CAPABILITY)) === true
+  } catch {
+    return false
+  }
+}
+
+export async function updateRuntimeAgentReferences(
+  target: RuntimeClientTarget,
+  request: UpdateAgentReferencesRequest
+): Promise<AgentUpdateResult> {
+  const supported = await supportsCapability(target, AGENT_REFERENCES_RUNTIME_CAPABILITY)
+  if (supported !== true) {
+    throw new Error('Agent requirements require a newer Dorka runtime.')
+  }
+  return callRuntimeRpc<AgentUpdateResult>(target, 'agents.references.update', request)
 }
 
 export async function createRuntimeAgentPreset(

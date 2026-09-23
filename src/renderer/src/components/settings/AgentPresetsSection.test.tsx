@@ -9,7 +9,9 @@ import {
   listRuntimeAgentComputers,
   listRuntimeAgentPresets,
   listRuntimeAgentRuns,
-  runRuntimeAgentPreset
+  runRuntimeAgentPreset,
+  runtimeSupportsAgentReferences,
+  updateRuntimeAgentReferences
 } from '@/runtime/runtime-agent-roster-client'
 import type * as RuntimeAgentRosterClient from '@/runtime/runtime-agent-roster-client'
 import { AgentPresetsSection } from './AgentPresetsSection'
@@ -22,7 +24,9 @@ vi.mock('@/runtime/runtime-agent-roster-client', async (importOriginal) => {
     listRuntimeAgentComputers: vi.fn(),
     listRuntimeAgentPresets: vi.fn(),
     listRuntimeAgentRuns: vi.fn(),
-    runRuntimeAgentPreset: vi.fn()
+    runRuntimeAgentPreset: vi.fn(),
+    runtimeSupportsAgentReferences: vi.fn(),
+    updateRuntimeAgentReferences: vi.fn()
   }
 })
 
@@ -31,6 +35,8 @@ const listComputers = vi.mocked(listRuntimeAgentComputers)
 const listRuns = vi.mocked(listRuntimeAgentRuns)
 const createPreset = vi.mocked(createRuntimeAgentPreset)
 const runPreset = vi.mocked(runRuntimeAgentPreset)
+const supportsReferences = vi.mocked(runtimeSupportsAgentReferences)
+const updateReferences = vi.mocked(updateRuntimeAgentReferences)
 const preset: Agent = {
   id: 'agent-1',
   name: 'Release reviewer',
@@ -58,6 +64,9 @@ describe('AgentPresetsSection', () => {
     listRuns.mockResolvedValue([])
     createPreset.mockReset()
     runPreset.mockReset()
+    supportsReferences.mockReset()
+    supportsReferences.mockResolvedValue(false)
+    updateReferences.mockReset()
   })
 
   it('lists saved presets from the selected runtime', async () => {
@@ -149,6 +158,43 @@ describe('AgentPresetsSection', () => {
     expect(await screen.findByText('Run status: running')).toBeTruthy()
     expect(screen.getByText('Terminal: term-1')).toBeTruthy()
     expect(screen.getByText('Process: pty-1:inc-1')).toBeTruthy()
+  })
+
+  it('edits portable requirements when the runtime advertises support', async () => {
+    const user = userEvent.setup()
+    listPresets.mockResolvedValue([preset])
+    supportsReferences.mockResolvedValue(true)
+    updateReferences.mockResolvedValue({
+      outcome: 'updated',
+      agent: {
+        ...preset,
+        revision: 2,
+        references: {
+          version: 1,
+          items: [{ kind: 'skill', name: 'code-review', scope: 'either' }]
+        }
+      }
+    })
+
+    renderSection()
+    await user.click(await screen.findByRole('button', { name: 'Requirements' }))
+    await user.type(screen.getByLabelText('Requirement name'), 'code-review')
+    await user.click(screen.getByRole('button', { name: 'Add' }))
+    await user.click(screen.getByRole('button', { name: 'Save' }))
+
+    await waitFor(() => expect(updateReferences).toHaveBeenCalledOnce())
+    expect(updateReferences).toHaveBeenCalledWith(
+      { kind: 'local' },
+      {
+        agentId: preset.id,
+        expectedRevision: 1,
+        references: {
+          version: 1,
+          items: [{ kind: 'skill', name: 'code-review', scope: 'either' }]
+        }
+      }
+    )
+    expect(await screen.findByRole('button', { name: 'Requirements · 1' })).toBeTruthy()
   })
 
   it('shows the empty state after a successful list', async () => {
