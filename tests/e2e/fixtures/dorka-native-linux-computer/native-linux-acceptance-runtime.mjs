@@ -3,6 +3,7 @@ import { availableParallelism, tmpdir, totalmem } from 'node:os'
 import { basename, resolve } from 'node:path'
 import { spawnSync } from 'node:child_process'
 import {
+  acceptanceEngineFacts,
   acceptanceNames,
   assertUnverifiable,
   redactArtifact
@@ -64,18 +65,27 @@ function preflight(names) {
     availableParallelism() >= 4 && totalmem() >= 16 * 1024 ** 3,
     'requires 4 CPUs and 16 GiB RAM'
   )
-  requireValue(process.getuid?.() !== 0, 'requires an unprivileged rootless-engine user')
+  requireValue(process.getuid?.() !== 0, 'requires an unprivileged acceptance user')
   const socket = process.env.DOCKER_HOST?.replace(/^unix:\/\//, '')
-  requireValue(socket, 'DOCKER_HOST must name the ephemeral rootless engine socket')
+  requireValue(socket, 'DOCKER_HOST must name the disposable engine socket')
   const info = JSON.parse(engine(['info', '--format', 'json']))
-  requireValue(info.host?.security?.rootless === true, 'engine must be rootless')
-  requireValue(
-    info.host?.os === 'linux' && info.host?.arch === 'amd64',
-    'engine must be native linux/amd64'
-  )
+  const facts = acceptanceEngineFacts(info)
+  requireValue(facts.os === 'linux' && facts.arch === 'amd64', 'engine must be native linux/amd64')
+  if (!facts.rootless) {
+    requireValue(
+      process.env.DORKA_ACCEPTANCE_ALLOW_ROOTFUL === '1',
+      'engine must be rootless unless an isolated rootful engine is explicitly allowed'
+    )
+    requireValue(engine(['ps', '-aq']) === '', 'rootful acceptance engine is not disposable')
+    requireValue(engine(['volume', 'ls', '-q']) === '', 'rootful acceptance engine has volumes')
+    const customNetworks = engine(['network', 'ls', '--format', '{{.Name}}'])
+      .split('\n')
+      .filter((name) => name && !['bridge', 'host', 'none'].includes(name))
+    requireValue(customNetworks.length === 0, 'rootful acceptance engine has custom networks')
+  }
   requireValue(
     Number(
-      command('df', ['-Pk', info.store?.graphRoot ?? '.'])
+      command('df', ['-Pk', facts.storeRoot ?? '.'])
         .split(/\s+/)
         .at(-3)
     ) >= 62914560,
@@ -100,6 +110,7 @@ function preflight(names) {
     )
   }
   requireValue(names.run.length <= 80, 'acceptance resource token is unexpectedly long')
+  return facts
 }
 function cleanup(names, artifacts) {
   const failures = []
@@ -259,8 +270,9 @@ function runAcceptance() {
     cases.push({ id, status: 'passed', durationMs: Date.now() - started })
   let failure
   let imageIds = {}
+  let engineFacts
   try {
-    preflight(names)
+    engineFacts = preflight(names)
     const built = Date.now()
     build(names, artifacts)
     imageIds = {
@@ -517,7 +529,7 @@ function runAcceptance() {
       engine: {
         kind: basename(process.env.DORKA_ENGINE ?? 'podman'),
         version: engine(['version', '--format', '{{.Client.Version}}'], { allowFailure: true }),
-        rootless: true
+        rootless: engineFacts?.rootless ?? null
       },
       images: imageIds,
       cases,

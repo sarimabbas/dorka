@@ -20,6 +20,28 @@ type Run = {
 }
 type Names = ReturnType<typeof acceptanceNames>
 
+type AcceptanceEngineInfo = {
+  host?: { arch?: string; os?: string; security?: { rootless?: boolean } }
+  store?: { graphRoot?: string }
+  Architecture?: string
+  OSType?: string
+  SecurityOptions?: string[]
+  DockerRootDir?: string
+}
+
+export function acceptanceEngineFacts(value: AcceptanceEngineInfo) {
+  const podman = value.host
+  const architecture = podman?.arch ?? value.Architecture
+  return {
+    arch: architecture === 'x86_64' ? 'amd64' : architecture,
+    os: podman?.os ?? value.OSType,
+    rootless:
+      podman?.security?.rootless === true ||
+      value.SecurityOptions?.some((option: string) => option.includes('rootless')) === true,
+    storeRoot: podman ? value.store?.graphRoot : value.DockerRootDir
+  }
+}
+
 export function acceptanceNames(env = process.env, now = new Date(), pid = process.pid) {
   const raw = `dna-${env.GITHUB_RUN_ID ?? 'manual'}-${env.GITHUB_RUN_ATTEMPT ?? '1'}-${now.toISOString().replaceAll(/\D/g, '')}-${pid}`
   const run = raw

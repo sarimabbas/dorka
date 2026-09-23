@@ -4,6 +4,7 @@ import { resolve } from 'node:path'
 import { describe, expect, it } from 'vitest'
 import { parse } from 'yaml'
 import {
+  acceptanceEngineFacts,
   acceptanceNames,
   assertUnverifiable,
   certificateMatchesRun,
@@ -40,6 +41,28 @@ function fixture() {
 }
 
 describe('native Linux acceptance contracts', () => {
+  it('normalizes rootless Podman and isolated Docker engine facts', () => {
+    expect(
+      acceptanceEngineFacts({
+        host: { arch: 'amd64', os: 'linux', security: { rootless: true } },
+        store: { graphRoot: '/home/user/.local/share/containers/storage' }
+      })
+    ).toEqual({
+      arch: 'amd64',
+      os: 'linux',
+      rootless: true,
+      storeRoot: '/home/user/.local/share/containers/storage'
+    })
+    expect(
+      acceptanceEngineFacts({
+        Architecture: 'x86_64',
+        OSType: 'linux',
+        SecurityOptions: ['name=seccomp,profile=builtin'],
+        DockerRootDir: '/var/lib/docker'
+      })
+    ).toEqual({ arch: 'amd64', os: 'linux', rootless: false, storeRoot: '/var/lib/docker' })
+  })
+
   it('uses bounded disposable names and exact cleanup targets', () => {
     const names = acceptanceNames(
       { GITHUB_RUN_ID: '42', GITHUB_RUN_ATTEMPT: '3' },
