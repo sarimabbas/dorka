@@ -47,7 +47,11 @@ const FORBIDDEN_MOUNT_TARGETS = [
   '/run/docker.sock'
 ]
 
-type ValidatedComputerCreateSpec = Omit<Required<ComputerCreateSpec>, 'mounts'> & {
+export type ValidatedComputerCreateSpec = Omit<
+  Required<ComputerCreateSpec>,
+  'resources' | 'mounts'
+> & {
+  resources: Required<NonNullable<ComputerCreateSpec['resources']>>
   mounts: Required<ComputerMountSpec>[]
 }
 
@@ -107,6 +111,20 @@ export function validateAllowedMountSources(sources: readonly string[]): string[
   return validated
 }
 
+export function validateComputerSpecWithAllowedMountSources(
+  spec: ComputerCreateSpec,
+  allowedMountSources: readonly string[]
+): ValidatedComputerCreateSpec {
+  const validated = validateComputerSpec(spec)
+  const allowedSources = new Set(validateAllowedMountSources(allowedMountSources))
+  for (const mount of validated.mounts) {
+    if (!allowedSources.has(mount.source)) {
+      throw new Error(`Computer mount source is not allowlisted: ${mount.source}`)
+    }
+  }
+  return validated
+}
+
 export function computerName(id: string): string {
   validateComputerId(id)
   return `dorka-computer-${id}`
@@ -126,13 +144,7 @@ export function createComputerArgs(
   if (!SSH_PUBLIC_KEY_PATTERN.test(sshPublicKey)) {
     throw new Error('Computer SSH public key is invalid')
   }
-  const validated = validateComputerSpec(spec)
-  const allowedSources = new Set(validateAllowedMountSources(allowedMountSources))
-  for (const mount of validated.mounts) {
-    if (!allowedSources.has(mount.source)) {
-      throw new Error(`Computer mount source is not allowlisted: ${mount.source}`)
-    }
-  }
+  const validated = validateComputerSpecWithAllowedMountSources(spec, allowedMountSources)
 
   const name = computerName(validated.id)
   const args = [

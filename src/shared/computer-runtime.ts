@@ -30,6 +30,43 @@ export type ComputerCreateSpec = {
   mounts?: ComputerMountSpec[]
 }
 
+export type ComputerConfigurationInput = {
+  resources: Required<ComputerResourceLimits>
+  environment: {
+    preserve: string[]
+    set: Record<string, string>
+  }
+  premounts: ComputerMountSpec[]
+}
+
+export type RedactedComputerConfiguration = {
+  resources: Required<ComputerResourceLimits>
+  environment: string[]
+  premounts: Required<ComputerMountSpec>[]
+}
+
+export type ComputerConfigurationSnapshot = {
+  id: string
+  revision: string
+  configuration: RedactedComputerConfiguration
+}
+
+export type ComputerConfigurationChanges = {
+  resources: (keyof ComputerResourceLimits)[]
+  environment: {
+    added: string[]
+    changed: string[]
+    removed: string[]
+  }
+  premountsChanged: boolean
+}
+
+export type ComputerConfigurationPlan = ComputerConfigurationSnapshot & {
+  replacementRequired: boolean
+  interruption: 'none' | 'restart'
+  changes: ComputerConfigurationChanges
+}
+
 export type ComputerDesiredState = 'stopped' | 'running'
 export type ComputerRuntimeState = 'created' | 'running' | 'stopped'
 
