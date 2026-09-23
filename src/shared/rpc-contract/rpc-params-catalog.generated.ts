@@ -36,6 +36,7 @@ import {
 } from './accounts-params'
 import { PrepareCodexForWslPaneParams } from './agent-hooks-params'
 import { AgentLaunch, AgentLaunchReplay } from './agent-launch-params'
+import { CreateAgentParams, ListAgentsParams, MoveAgentParams } from './agent-roster-params'
 import { CreateAgentSessionParams, EnsureAgentSessionParams } from './agent-session-params'
 import {
   AiVaultListSessionsParams,
@@ -121,6 +122,11 @@ import {
   SaveImageAsTempFile,
   StartImageUpload
 } from './clipboard-params'
+import {
+  ComputerIdParams,
+  CreateComputerParams,
+  ListComputersParams
+} from './computer-lifecycle-params'
 import { ComputerCapabilitiesParams, ComputerPermissionsStatusParams } from './computer-params'
 import {
   Click,
@@ -592,6 +598,9 @@ export const RPC_PARAMS_BY_METHOD = {
   'agentSession.unsubscribe': UnsubscribeParams,
   'agentTeams.prepareLaunch': AgentTeamsPrepareLaunch,
   'agentTeams.tmuxCompat': AgentTeamsTmuxCompat,
+  'agents.create': CreateAgentParams,
+  'agents.list': ListAgentsParams,
+  'agents.move': MoveAgentParams,
   'aiVault.listSessions': AiVaultListSessionsParams,
   'aiVault.prepareSessionResume': AiVaultPrepareSessionResumeParams,
   'aiVault.resolveSessionTitles': AiVaultSessionTitlesParams,
@@ -723,6 +732,11 @@ export const RPC_PARAMS_BY_METHOD = {
   'computer.scroll': ScrollOfComputerSchemasParams,
   'computer.setValue': SetValue,
   'computer.typeText': TypeText,
+  'computers.create': CreateComputerParams,
+  'computers.list': ListComputersParams,
+  'computers.remove': ComputerIdParams,
+  'computers.start': ComputerIdParams,
+  'computers.stop': ComputerIdParams,
   'diagnostics.memory': null,
   'emulator.attach': AttachParamsOfEmulatorParams,
   'emulator.availability': EmulatorAvailabilityParams,

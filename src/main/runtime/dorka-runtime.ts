@@ -3,15 +3,104 @@ import { DorkaRuntimeWithResolveWaiter } from './dorka-runtime-resolve-waiter'
 import type { RuntimeCommandSurfaceHost } from './dorka-runtime-core'
 import { registerWorktreeChangeInvalidator } from '../ipc/worktree-change-invalidators'
 import { registerDetectedWorktreeScanInvalidation } from '../ipc/worktrees/listing/register-detected-worktree-scan-invalidation'
+import type { AgentCreate } from '../../shared/agent-roster'
+import type { ComputerCreateSpec } from '../../shared/computer-runtime'
+import type { AgentRosterStore } from '../agents/agent-roster-store'
+import type { ComputerRuntimeManager } from '../computers/computer-runtime-manager'
+
+type BaseRuntimeConstructorParams = ConstructorParameters<typeof DorkaRuntimeWithResolveWaiter>
+type BaseRuntimeDependencies = NonNullable<BaseRuntimeConstructorParams[2]>
+
+export type DorkaLifecycleRpcDependencies = {
+  agentRosterStore?: AgentRosterStore
+  computerRuntimeManager?: ComputerRuntimeManager
+}
+
+type DorkaRuntimeDependencies = BaseRuntimeDependencies & DorkaLifecycleRpcDependencies
 
 class DorkaRuntimeService extends DorkaRuntimeWithResolveWaiter {
-  constructor(...args: ConstructorParameters<typeof DorkaRuntimeWithResolveWaiter>) {
-    super(...args)
+  private readonly agentRosterStore?: AgentRosterStore
+  private readonly computerRuntimeManager?: ComputerRuntimeManager
+  private computerMutationQueue = Promise.resolve()
+
+  constructor(
+    store: BaseRuntimeConstructorParams[0] = null,
+    stats?: BaseRuntimeConstructorParams[1],
+    deps?: DorkaRuntimeDependencies
+  ) {
+    super(store, stats, deps)
+    this.agentRosterStore = deps?.agentRosterStore
+    this.computerRuntimeManager = deps?.computerRuntimeManager
     // Why: the runtime listing re-runs a scan the worktree-change generation overtook and re-lists
     // through this runtime's scan cache, so a worktree change must reach both. The desktop IPC
     // module registers the generation bump at load; a headless host never loads it.
     registerDetectedWorktreeScanInvalidation()
     registerWorktreeChangeInvalidator((repoId) => this.invalidateWorktreeCatalog(repoId))
+  }
+
+  listRosterAgents() {
+    return this.requireAgentRosterStore().listAgents()
+  }
+
+  createRosterAgent(input: AgentCreate) {
+    return this.requireAgentRosterStore().createAgent(input)
+  }
+
+  moveRosterAgent(agentId: string, computerId: string) {
+    return this.runComputerMutation(async (manager) => {
+      const computers = await manager.list()
+      if (!computers.some((computer) => computer.id === computerId)) {
+        throw new Error(`Computer not found: ${computerId}`)
+      }
+      return this.requireAgentRosterStore().moveAgent(agentId, computerId)
+    })
+  }
+
+  listRuntimeComputers() {
+    return this.requireComputerRuntimeManager().list()
+  }
+
+  createRuntimeComputer(spec: ComputerCreateSpec) {
+    return this.runComputerMutation((manager) => manager.create(spec))
+  }
+
+  startRuntimeComputer(id: string) {
+    return this.runComputerMutation((manager) => manager.start(id))
+  }
+
+  stopRuntimeComputer(id: string) {
+    return this.runComputerMutation((manager) => manager.stop(id))
+  }
+
+  removeRuntimeComputer(id: string) {
+    return this.runComputerMutation((manager) => manager.remove(id))
+  }
+
+  private requireAgentRosterStore(): AgentRosterStore {
+    if (!this.agentRosterStore) {
+      throw new Error('Agent roster is unavailable')
+    }
+    return this.agentRosterStore
+  }
+
+  private requireComputerRuntimeManager(): ComputerRuntimeManager {
+    if (!this.computerRuntimeManager) {
+      throw new Error('Computer runtime is unavailable')
+    }
+    return this.computerRuntimeManager
+  }
+
+  private runComputerMutation<T>(
+    operation: (manager: ComputerRuntimeManager) => Promise<T>
+  ): Promise<T> {
+    const pending = this.computerMutationQueue.then(() =>
+      operation(this.requireComputerRuntimeManager())
+    )
+    this.computerMutationQueue = pending.then(
+      () => undefined,
+      () => undefined
+    )
+    return pending
   }
 }
 type DorkaRuntimeServiceExport = RuntimeCommandSurfaceHost<DorkaRuntimeService>
