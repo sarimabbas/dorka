@@ -1,0 +1,55 @@
+{
+  "schemaVersion": 1,
+  "commit": "d1967b2ec2da5e184a32e6fe7a4b9219ce0fe8cb",
+  "kernel": "Linux 6.12.92-122.166.amzn2023.x86_64 #1 SMP PREEMPT_DYNAMIC Tue Jun 16 23:32:44 UTC 2026 x86_64",
+  "engine": {
+    "kind": "docker",
+    "version": "28.3.3",
+    "rootless": false
+  },
+  "images": {
+    "server": "sha256:7d7ce6a422e518171ca783f5dbadfe54c2a9c9e9aa139b227ee5870b0ee852bd",
+    "computer": "sha256:6a2a0f33d23582263d96bb6a3c066b3f3a85ce62dfe5b35eaaf3cf590a30aab7"
+  },
+  "cases": [
+    {
+      "id": "native-builds",
+      "status": "passed",
+      "durationMs": 35627
+    },
+    {
+      "id": "missing-image-recovery",
+      "status": "passed",
+      "durationMs": 3629
+    },
+    {
+      "id": "two-computer-isolation-persistence-and-agent-move",
+      "status": "passed",
+      "durationMs": 43129
+    },
+    {
+      "id": "selkies-ssh-private-ports",
+      "status": "passed",
+      "durationMs": 49638
+    },
+    {
+      "id": "live-replacement-and-disconnect",
+      "status": "passed",
+      "durationMs": 64850
+    },
+    {
+      "id": "offline-exit-replay",
+      "status": "passed",
+      "durationMs": 6612
+    },
+    {
+      "id": "projection-before-ack-replay",
+      "status": "passed",
+      "durationMs": 12392
+    }
+  ],
+  "cleanup": {
+    "attempted": true,
+    "residue": []
+  }
+}

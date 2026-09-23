@@ -118,8 +118,15 @@ accept remote client connections.
   certificate publication, exact `running → waiting`, projection-before-ack, failed-ack replay,
   acknowledgement cleanup, negative disconnect behavior, and zero engine residue. Redacted evidence
   is tracked under `docs/architecture/evidence/native-linux-acceptance-20260923/`.
-- Agent skill and MCP references are not yet versioned or resolved at launch. They must remain
-  separate from Computer-owned credentials, provider homes, packages, and filesystems.
+- A second clean native amd64 campaign proved `Main`/`Secondary` home, workspace, SSH-host-key, and
+  Git-identity isolation across restart, then moved the durable Agent's next Run to `Secondary` and
+  verified its exact generation, SSH process identity, terminal output, and completion marker. The
+  campaign left zero engine residue. Redacted evidence is tracked under
+  `docs/architecture/evidence/native-linux-two-computer-20260923/`.
+- Agent skill and MCP references now have a strict versioned names-only model, v1→v2 roster migration,
+  Agent revision, and Run revision snapshot. CAS editing, Computer-local resolution, capability
+  negotiation, and UI remain. References must stay separate from Computer-owned credentials,
+  provider homes, packages, and filesystems.
 - Existing Project and Workspace language still needs a careful Dorka terminology pass. This must
   not erase useful Git/worktree distinctions.
 - Browser-hosted graphical Computer desktop proxying and scoped access tickets remain post-MVP

@@ -1,0 +1,41 @@
+[
+  {
+    "id": "9b8a4724-65f8-4a2e-bdca-7aa3f53ce32f",
+    "agentId": "a4a4fdad-d060-4738-b120-d632cae11c86",
+    "computerId": "secondary",
+    "computerExecutionGeneration": "4f487070-bdd6-443f-9a41-476ad01b5929",
+    "status": "waiting",
+    "prompt": "Dorka native Linux acceptance agent.\n\nrun-dna-manual-1-20260923185154785-494070-secondary",
+    "sourceDirectory": "/workspace",
+    "terminalSessionId": "term_3823cc19-858f-4902-95f8-b80ca644e798",
+    "processIdentity": "ssh:runtime-ssh-computer-secondary@@pty2:8c28f6b5-ebf4-4d02-b0bf-c2b710c23b7b:1:67a23b90-788a-4d09-9c43-20e0b6febfd1",
+    "createdAt": 1790189603553,
+    "startedAt": 1790189603555
+  },
+  {
+    "id": "f8803deb-0487-4308-870a-151d448058c6",
+    "agentId": "a4a4fdad-d060-4738-b120-d632cae11c86",
+    "computerId": "main",
+    "computerExecutionGeneration": "b68fe006-f42e-4322-9f4c-53fa30b1e09b",
+    "status": "waiting",
+    "prompt": "Dorka native Linux acceptance agent.\n\nrun-dna-manual-1-20260923185154785-494070-a",
+    "sourceDirectory": "/workspace",
+    "terminalSessionId": "term_d4104b73-b901-4638-88c2-6d39c6aef82e",
+    "processIdentity": "ssh:runtime-ssh-computer-main@@pty2:a1810b1c-0a36-4842-bcfa-32e5f0ea5cb7:1:3653ae2c-7bcf-40d3-adea-ecb419368a74",
+    "createdAt": 1790189604271,
+    "startedAt": 1790189604272
+  },
+  {
+    "id": "5ba35d21-edd5-44d7-a482-b265e3a7e15b",
+    "agentId": "a4a4fdad-d060-4738-b120-d632cae11c86",
+    "computerId": "main",
+    "computerExecutionGeneration": "b68fe006-f42e-4322-9f4c-53fa30b1e09b",
+    "status": "waiting",
+    "prompt": "Dorka native Linux acceptance agent.\n\nrun-dna-manual-1-20260923185154785-494070-b",
+    "sourceDirectory": "/workspace",
+    "terminalSessionId": "term_ef38af64-5759-4d10-b177-af5788473bea",
+    "processIdentity": "ssh:runtime-ssh-computer-main@@pty2:a1810b1c-0a36-4842-bcfa-32e5f0ea5cb7:2:4285f2a9-e36c-4b8b-8cbf-fcaef519e275",
+    "createdAt": 1790189626084,
+    "startedAt": 1790189626086
+  }
+]
