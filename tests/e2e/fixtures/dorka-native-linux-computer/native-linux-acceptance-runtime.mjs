@@ -48,6 +48,11 @@ function requireValue(condition, message) {
 function engine(args, options) {
   return command(process.env.DORKA_ENGINE ?? 'podman', args, options)
 }
+function journalCount(directory) {
+  return Number(
+    engine(['exec', MAIN, 'bash', '-lc', `find '${directory}' -maxdepth 1 -name '*.json' | wc -l`])
+  )
+}
 function waitFor(label, timeoutMs, probe) {
   const deadline = Date.now() + timeoutMs
   while (Date.now() < deadline) {
@@ -461,19 +466,7 @@ function runAcceptance() {
     const offline = Date.now()
     engine(['stop', '--time', '20', names.server])
     engine(['exec', MAIN, 'touch', `/workspace/${token}.exit`])
-    waitFor('pending certificate', 3e4, () =>
-      Number(
-        engine([
-          'exec',
-          MAIN,
-          'bash',
-          '-lc',
-          `find '${PENDING}' -maxdepth 1 -name '*.json' | wc -l`
-        ])
-      ) === 1
-        ? true
-        : void 0
-    )
+    waitFor('pending certificate', 3e4, () => (journalCount(PENDING) === 1 ? true : void 0))
     engine(['rm', names.server])
     startServer(names, port, names.computerImage)
     current = ready(names, artifacts, 'offline-replay')
@@ -490,31 +483,14 @@ function runAcceptance() {
         projected.finishedAt === void 0,
       'exit projection changed immutable Run identity'
     )
-    requireValue(
-      Number(
-        engine(['exec', MAIN, 'bash', '-lc', `find '${ACKED}' -maxdepth 1 -name '*.json' | wc -l`])
-      ) === 1,
-      'certificate was not acknowledged'
-    )
+    waitFor('certificate acknowledgement', 3e4, () => (journalCount(ACKED) === 1 ? true : void 0))
     record('offline-exit-replay', offline)
     const blocked = Date.now()
     const token2 = `run-${names.run}-b`
     const run2 = launch(current.pairing, agentId, MAIN_ID, token2)
     engine(['stop', '--time', '20', names.server])
     engine(['exec', MAIN, 'touch', `/workspace/${token2}.exit`])
-    waitFor('second pending certificate', 3e4, () =>
-      Number(
-        engine([
-          'exec',
-          MAIN,
-          'bash',
-          '-lc',
-          `find '${PENDING}' -maxdepth 1 -name '*.json' | wc -l`
-        ])
-      ) === 1
-        ? true
-        : void 0
-    )
+    waitFor('second pending certificate', 3e4, () => (journalCount(PENDING) === 1 ? true : void 0))
     engine(['exec', '-u', '0', MAIN, 'chmod', '0500', ACKED])
     engine(['rm', names.server])
     startServer(names, port, names.computerImage)
@@ -522,39 +498,14 @@ function runAcceptance() {
     waitFor('projection before acknowledgement', 3e4, () =>
       findRun(current.pairing, agentId, run2.id).status === 'waiting' ? true : void 0
     )
-    requireValue(
-      Number(
-        engine([
-          'exec',
-          MAIN,
-          'bash',
-          '-lc',
-          `find '${PENDING}' -maxdepth 1 -name '*.json' | wc -l`
-        ])
-      ) === 1,
-      'blocked acknowledgement lost certificate'
-    )
+    requireValue(journalCount(PENDING) === 1, 'blocked acknowledgement lost certificate')
     engine(['exec', '-u', '0', MAIN, 'chmod', '0700', ACKED])
     engine(['rm', '-f', names.server])
     startServer(names, port, names.computerImage)
     current = ready(names, artifacts, 'ack-replay')
-    waitFor('ack replay', 3e4, () =>
-      Number(
-        engine([
-          'exec',
-          MAIN,
-          'bash',
-          '-lc',
-          `find '${PENDING}' -maxdepth 1 -name '*.json' | wc -l`
-        ])
-      ) === 0
-        ? true
-        : void 0
-    )
+    waitFor('ack replay', 3e4, () => (journalCount(PENDING) === 0 ? true : void 0))
     requireValue(
-      Number(
-        engine(['exec', MAIN, 'bash', '-lc', `find '${ACKED}' -maxdepth 1 -name '*.json' | wc -l`])
-      ) === 2,
+      journalCount(ACKED) === 2,
       'ack replay did not settle exactly one certificate per Run'
     )
     record('projection-before-ack-replay', blocked)
