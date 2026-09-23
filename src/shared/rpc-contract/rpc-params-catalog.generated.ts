@@ -36,7 +36,12 @@ import {
 } from './accounts-params'
 import { PrepareCodexForWslPaneParams } from './agent-hooks-params'
 import { AgentLaunch, AgentLaunchReplay } from './agent-launch-params'
-import { CreateAgentParams, ListAgentsParams, MoveAgentParams } from './agent-roster-params'
+import {
+  CreateAgentParams,
+  ListAgentsParams,
+  MoveAgentParams,
+  RunAgentParams
+} from './agent-roster-params'
 import { CreateAgentSessionParams, EnsureAgentSessionParams } from './agent-session-params'
 import {
   AiVaultListSessionsParams,
@@ -601,6 +606,7 @@ export const RPC_PARAMS_BY_METHOD = {
   'agents.create': CreateAgentParams,
   'agents.list': ListAgentsParams,
   'agents.move': MoveAgentParams,
+  'agents.run': RunAgentParams,
   'aiVault.listSessions': AiVaultListSessionsParams,
   'aiVault.prepareSessionResume': AiVaultPrepareSessionResumeParams,
   'aiVault.resolveSessionTitles': AiVaultSessionTitlesParams,

@@ -2,7 +2,8 @@ import { defineMethod } from '../core'
 import {
   CreateAgentParams,
   ListAgentsParams,
-  MoveAgentParams
+  MoveAgentParams,
+  RunAgentParams
 } from '../../../../shared/rpc-contract/agent-roster-params'
 
 export const AGENT_ROSTER_METHODS = [
@@ -21,5 +22,10 @@ export const AGENT_ROSTER_METHODS = [
     params: MoveAgentParams,
     handler: async (params, { runtime }) =>
       runtime.moveRosterAgent(params.agentId, params.computerId)
+  }),
+  defineMethod({
+    name: 'agents.run',
+    params: RunAgentParams,
+    handler: async (params, { runtime }) => runtime.runRosterAgent(params)
   })
 ]

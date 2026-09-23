@@ -1,0 +1,107 @@
+import { mkdtemp, rm } from 'node:fs/promises'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
+import { afterEach, describe, expect, it, vi } from 'vitest'
+import type { ComputerRuntimeInfo } from '../../shared/computer-runtime'
+import { AgentExecutionService } from './agent-execution-service'
+import { AgentRosterStore } from './agent-roster-store'
+
+const directories: string[] = []
+
+afterEach(async () => {
+  await Promise.all(directories.splice(0).map((directory) => rm(directory, { recursive: true })))
+})
+
+async function fixture(state: ComputerRuntimeInfo['state'] = 'running') {
+  const directory = await mkdtemp(join(tmpdir(), 'dorka-agent-execution-'))
+  directories.push(directory)
+  const roster = await AgentRosterStore.open(directory)
+  const agent = await roster.createAgent({
+    name: 'Planner',
+    character: { color: 'blue', variant: 'owl' },
+    job: 'Plan work',
+    harnessId: 'codex',
+    promptTemplate: 'Plan carefully'
+  })
+  const computer: ComputerRuntimeInfo = {
+    id: 'computer-a',
+    name: 'dorka-computer-computer-a',
+    image: 'dorka-computer:test',
+    state
+  }
+  const inspect = vi.fn(async () => computer)
+  const start = vi.fn(async () => ({ ...computer, state: 'running' as const }))
+  const launch = vi.fn(async () => ({
+    terminalSessionId: 'terminal-session-1',
+    processIdentity: 'pty-incarnation-1'
+  }))
+  const service = new AgentExecutionService(roster, { inspect, start }, launch)
+  return { agent, computer, directory, inspect, launch, roster, service, start }
+}
+
+describe('AgentExecutionService', () => {
+  it('delegates the resolved preset and Computer, then durably records placement and identity', async () => {
+    const h = await fixture('stopped')
+
+    const run = await h.service.run({
+      agentId: h.agent.id,
+      computerId: h.computer.id,
+      prompt: 'Review the change'
+    })
+
+    expect(h.start).toHaveBeenCalledWith('computer-a')
+    expect(h.launch).toHaveBeenCalledWith({
+      agent: h.agent,
+      computer: { ...h.computer, state: 'running' },
+      prompt: 'Review the change'
+    })
+    expect(run).toMatchObject({
+      agentId: h.agent.id,
+      computerId: 'computer-a',
+      prompt: 'Review the change',
+      status: 'running',
+      terminalSessionId: 'terminal-session-1',
+      processIdentity: 'pty-incarnation-1'
+    })
+    expect((await AgentRosterStore.open(h.directory)).getRun(run.id)).toMatchObject({
+      computerId: 'computer-a',
+      terminalSessionId: 'terminal-session-1',
+      processIdentity: 'pty-incarnation-1'
+    })
+  })
+
+  it('records a failed Run when terminal delegation fails', async () => {
+    const h = await fixture()
+    h.launch.mockRejectedValueOnce(new Error('SSH terminal unavailable'))
+
+    await expect(
+      h.service.run({
+        agentId: h.agent.id,
+        computerId: h.computer.id,
+        prompt: 'Review the change'
+      })
+    ).rejects.toThrow('SSH terminal unavailable')
+
+    expect(h.roster.listRuns()).toHaveLength(1)
+    expect(h.roster.listRuns()[0]).toMatchObject({
+      computerId: 'computer-a',
+      status: 'failed',
+      error: 'SSH terminal unavailable'
+    })
+    expect(h.roster.listRuns()[0]?.finishedAt).toEqual(expect.any(Number))
+  })
+
+  it('does not create a Run when the Agent or Computer cannot be resolved', async () => {
+    const h = await fixture()
+    await expect(
+      h.service.run({ agentId: 'missing', computerId: h.computer.id, prompt: 'work' })
+    ).rejects.toThrow('Agent not found')
+    h.inspect.mockRejectedValueOnce(new Error('Computer not found: missing'))
+    await expect(
+      h.service.run({ agentId: h.agent.id, computerId: 'missing', prompt: 'work' })
+    ).rejects.toThrow('Computer not found')
+
+    expect(h.roster.listRuns()).toEqual([])
+    expect(h.launch).not.toHaveBeenCalled()
+  })
+})

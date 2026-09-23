@@ -2,6 +2,7 @@ import { mkdtemp, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, describe, expect, it } from 'vitest'
+import { AgentExecutionService } from '../../../agents/agent-execution-service'
 import { AgentRosterStore } from '../../../agents/agent-roster-store'
 import {
   ComputerRuntimeManager,
@@ -9,6 +10,7 @@ import {
 } from '../../../computers/computer-runtime-manager'
 import { DorkaRuntimeService } from '../../dorka-runtime'
 import {
+  AGENT_EXECUTION_RUNTIME_CAPABILITY,
   AGENT_ROSTER_RUNTIME_CAPABILITY,
   COMPUTER_LIFECYCLE_RUNTIME_CAPABILITY,
   RUNTIME_CAPABILITIES
@@ -29,6 +31,7 @@ describe('Agent and Computer lifecycle RPC', () => {
       'agents.list',
       'agents.create',
       'agents.move',
+      'agents.run',
       'computers.list',
       'computers.create',
       'computers.start',
@@ -39,23 +42,43 @@ describe('Agent and Computer lifecycle RPC', () => {
     expect(expected.every((name) => methods.has(name))).toBe(true)
     expect(methods.get('agents.list')?.params?.safeParse({ extra: true }).success).toBe(false)
     expect(
+      methods.get('agents.run')?.params?.safeParse({
+        agentId: 'agent-1',
+        computerId: 'worker-1',
+        prompt: 'work',
+        extra: true
+      }).success
+    ).toBe(false)
+    expect(
       methods.get('computers.create')?.params?.safeParse({ id: 'UPPER', image: 'ubuntu:24.04' })
         .success
     ).toBe(false)
     expect(RUNTIME_CAPABILITIES).toContain(AGENT_ROSTER_RUNTIME_CAPABILITY)
+    expect(RUNTIME_CAPABILITIES).toContain(AGENT_EXECUTION_RUNTIME_CAPABILITY)
     expect(RUNTIME_CAPABILITIES).toContain(COMPUTER_LIFECYCLE_RUNTIME_CAPABILITY)
   })
 
   it('routes lifecycle calls and refuses to move an Agent to a missing Computer', async () => {
     const directory = await temporaryDirectory()
     const engine = new FakeComputerEngine()
-    const runtime = new DorkaRuntimeService(null, undefined, {
-      agentRosterStore: await AgentRosterStore.open(directory),
-      computerRuntimeManager: new ComputerRuntimeManager({
-        dataDirectory: directory,
-        serverId: 'server-1',
-        execute: engine.execute
+    const agentRosterStore = await AgentRosterStore.open(directory)
+    const computerRuntimeManager = new ComputerRuntimeManager({
+      dataDirectory: directory,
+      serverId: 'server-1',
+      execute: engine.execute
+    })
+    const agentExecutionService = new AgentExecutionService(
+      agentRosterStore,
+      computerRuntimeManager,
+      async () => ({
+        terminalSessionId: 'session-1',
+        processIdentity: 'process-1'
       })
+    )
+    const runtime = new DorkaRuntimeService(null, undefined, {
+      agentRosterStore,
+      agentExecutionService,
+      computerRuntimeManager
     })
     const dispatcher = new RpcDispatcher({ runtime })
 
@@ -89,6 +112,21 @@ describe('Agent and Computer lifecycle RPC', () => {
     expect(await dispatch(dispatcher, 'computers.start', { id: 'worker-1' })).toMatchObject({
       ok: true,
       result: { state: 'running' }
+    })
+    expect(
+      await dispatch(dispatcher, 'agents.run', {
+        agentId: resultId(createdAgent),
+        computerId: 'worker-1',
+        prompt: 'Review the change'
+      })
+    ).toMatchObject({
+      ok: true,
+      result: {
+        computerId: 'worker-1',
+        status: 'running',
+        terminalSessionId: 'session-1',
+        processIdentity: 'process-1'
+      }
     })
     expect(await dispatch(dispatcher, 'computers.stop', { id: 'worker-1' })).toMatchObject({
       ok: true,

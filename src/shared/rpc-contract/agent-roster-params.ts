@@ -24,3 +24,13 @@ export const MoveAgentParams = z
     computerId: Id
   })
   .strict()
+
+export const RunAgentParams = z
+  .object({
+    agentId: Id,
+    computerId: Id,
+    prompt: Text
+  })
+  .strict()
+
+export type RunAgentRequest = z.infer<typeof RunAgentParams>
