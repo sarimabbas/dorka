@@ -1,0 +1,17 @@
+.dorka-roster-desktop {
+  display: none;
+}
+
+.dorka-mobile-only {
+  display: inline-flex;
+}
+
+@media (min-width: 768px) {
+  .dorka-roster-desktop {
+    display: block;
+  }
+
+  .dorka-mobile-only {
+    display: none;
+  }
+}

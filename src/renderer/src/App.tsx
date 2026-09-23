@@ -1,4 +1,5 @@
 import { useCallback, useEffect } from 'react'
+import { DorkaAgentShell } from './components/dorka-shell/DorkaAgentShell'
 import { Toaster } from '@/components/ui/sonner'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import { ConfirmationDialogProvider } from './components/confirmation-dialog'
@@ -114,4 +115,11 @@ function App(): React.JSX.Element {
   )
 }
 
-export default App
+function AppEntry(): React.JSX.Element {
+  if (new URLSearchParams(window.location.search).get('dorkaShell') === '1') {
+    return <DorkaAgentShell />
+  }
+  return <App />
+}
+
+export default AppEntry
