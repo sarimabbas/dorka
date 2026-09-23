@@ -11,6 +11,7 @@ import { callRuntimeRpc, getActiveRuntimeTarget } from '@/runtime/runtime-rpc-cl
 import { ComputerSettingsRow } from './ComputerSettingsRow'
 import { Button } from '@/components/ui/button'
 import { translate } from '@/i18n/i18n'
+import { useAppStore } from '@/store'
 
 type ComputersLoadState =
   | { kind: 'loading' }
@@ -35,6 +36,13 @@ export function ComputersSettingsPane({
   const [state, setState] = useState<ComputersLoadState>({ kind: 'loading' })
   const [pendingComputerId, setPendingComputerId] = useState<string | null>(null)
   const [actionError, setActionError] = useState<string | null>(null)
+  const openSettingsPage = useAppStore((store) => store.openSettingsPage)
+  const openSettingsTarget = useAppStore((store) => store.openSettingsTarget)
+  const activeTarget = getActiveRuntimeTarget(settings)
+  const openServerSettings = (): void => {
+    openSettingsTarget({ pane: 'servers', repoId: null, intent: 'add-remote-dorka-server' })
+    openSettingsPage()
+  }
 
   const load = useCallback(
     async (signal?: AbortSignal): Promise<void> => {
@@ -123,40 +131,67 @@ export function ComputersSettingsPane({
   }
 
   if (state.kind === 'unsupported') {
+    const local = activeTarget.kind === 'local'
     return (
-      <div className="space-y-1 py-4">
-        <p className="text-sm font-medium">
-          {translate(
-            'auto.components.settings.ComputersSettingsPane.unsupportedTitle',
-            'Computers are not supported by this runtime.'
-          )}
-        </p>
-        <p className="text-xs leading-relaxed text-muted-foreground">
-          {translate(
-            'auto.components.settings.ComputersSettingsPane.unsupportedDescription',
-            'Update the selected Dorka server to manage computers here.'
-          )}
-        </p>
+      <div className="flex min-h-28 flex-col items-start justify-center gap-3 py-4">
+        <div className="space-y-1">
+          <p className="text-sm font-medium">
+            {local
+              ? translate(
+                  'dorka.computers.connectServerTitle',
+                  'Connect a Dorka Server to manage Computers.'
+                )
+              : translate(
+                  'auto.components.settings.ComputersSettingsPane.unsupportedTitle',
+                  'Computers are not supported by this runtime.'
+                )}
+          </p>
+          <p className="text-xs leading-relaxed text-muted-foreground">
+            {local
+              ? translate(
+                  'dorka.computers.connectServerDescription',
+                  'Computers run on a Dorka Server. Pair this app with a Server, then select it as active.'
+                )
+              : translate(
+                  'auto.components.settings.ComputersSettingsPane.unsupportedDescription',
+                  'Update the selected Dorka server to manage computers here.'
+                )}
+          </p>
+        </div>
+        <Button type="button" size="sm" variant="outline" onClick={openServerSettings}>
+          {translate('dorka.computers.serverSettings', 'Server settings')}
+        </Button>
       </div>
     )
   }
 
   if (state.kind === 'degraded') {
+    const local = activeTarget.kind === 'local'
     return (
       <div className="flex min-h-28 flex-col items-start justify-center gap-3">
         <div className="space-y-1" role="alert">
           <p className="text-sm font-medium">
-            {translate(
-              'auto.components.settings.ComputersSettingsPane.degradedTitle',
-              'Computers are temporarily unavailable.'
-            )}
+            {local
+              ? translate(
+                  'dorka.computers.connectServerTitle',
+                  'Connect a Dorka Server to manage Computers.'
+                )
+              : translate(
+                  'dorka.computers.serverUnreachableTitle',
+                  'Cannot reach the selected Dorka Server.'
+                )}
           </p>
           <p className="text-xs leading-relaxed text-muted-foreground">{state.message}</p>
         </div>
-        <Button type="button" size="sm" variant="outline" onClick={() => void load()}>
-          <RefreshCw />
-          {translate('auto.components.settings.ComputersSettingsPane.retry', 'Retry')}
-        </Button>
+        <div className="flex gap-2">
+          <Button type="button" size="sm" variant="outline" onClick={openServerSettings}>
+            {translate('dorka.computers.serverSettings', 'Server settings')}
+          </Button>
+          <Button type="button" size="sm" variant="outline" onClick={() => void load()}>
+            <RefreshCw />
+            {translate('auto.components.settings.ComputersSettingsPane.retry', 'Retry')}
+          </Button>
+        </div>
       </div>
     )
   }

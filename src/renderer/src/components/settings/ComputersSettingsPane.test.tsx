@@ -13,7 +13,9 @@ import {
 
 const mocks = vi.hoisted(() => ({
   callRuntimeRpc: vi.fn(),
-  getActiveRuntimeTarget: vi.fn<() => RuntimeClientTarget>(() => ({ kind: 'local' }))
+  getActiveRuntimeTarget: vi.fn<() => RuntimeClientTarget>(() => ({ kind: 'local' })),
+  openSettingsPage: vi.fn(),
+  openSettingsTarget: vi.fn()
 }))
 
 vi.mock('@/i18n/i18n', () => ({
@@ -23,6 +25,14 @@ vi.mock('@/i18n/i18n', () => ({
 vi.mock('@/runtime/runtime-rpc-client', () => ({
   callRuntimeRpc: mocks.callRuntimeRpc,
   getActiveRuntimeTarget: mocks.getActiveRuntimeTarget
+}))
+
+vi.mock('@/store', () => ({
+  useAppStore: (selector: (state: Record<string, unknown>) => unknown) =>
+    selector({
+      openSettingsPage: mocks.openSettingsPage,
+      openSettingsTarget: mocks.openSettingsTarget
+    })
 }))
 
 import { ComputersSettingsPane } from './ComputersSettingsPane'
@@ -57,6 +67,8 @@ describe('ComputersSettingsPane', () => {
     mocks.callRuntimeRpc.mockReset()
     mocks.getActiveRuntimeTarget.mockReset()
     mocks.getActiveRuntimeTarget.mockReturnValue({ kind: 'local' })
+    mocks.openSettingsPage.mockReset()
+    mocks.openSettingsTarget.mockReset()
   })
 
   afterEach(cleanup)
@@ -107,9 +119,10 @@ describe('ComputersSettingsPane', () => {
     render(<ComputersSettingsPane settings={settings} />)
 
     expect(await screen.findByRole('alert')).toHaveTextContent(
-      'Computers are temporarily unavailable.'
+      'Connect a Dorka Server to manage Computers.'
     )
     expect(screen.getByText('Runtime is offline')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Server settings' })).toBeEnabled()
     expect(screen.getByRole('button', { name: 'Retry' })).toBeEnabled()
   })
 
@@ -119,7 +132,7 @@ describe('ComputersSettingsPane', () => {
     render(<ComputersSettingsPane settings={settings} />)
 
     expect(
-      await screen.findByText('Computers are not supported by this runtime.')
+      await screen.findByText('Connect a Dorka Server to manage Computers.')
     ).toBeInTheDocument()
     expect(mocks.callRuntimeRpc).toHaveBeenCalledOnce()
     expect(mocks.callRuntimeRpc).not.toHaveBeenCalledWith(

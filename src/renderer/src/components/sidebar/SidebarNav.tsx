@@ -1,5 +1,5 @@
 import React from 'react'
-import { CalendarClock, Search } from 'lucide-react'
+import { Bot, CalendarClock, MonitorCog, Search } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { useAppStore } from '@/store'
 import { cn } from '@/lib/utils'
@@ -24,6 +24,8 @@ const SidebarNav = React.memo(function SidebarNav() {
   const worktreePaletteShortcutCombos = useShortcutKeyComboDetails('worktree.palette')
   const openAutomationsPage = useAppStore((s) => s.openAutomationsPage)
   const openModal = useAppStore((s) => s.openModal)
+  const openSettingsPage = useAppStore((s) => s.openSettingsPage)
+  const openSettingsTarget = useAppStore((s) => s.openSettingsTarget)
   const activeView = useAppStore((s) => s.activeView)
   const showAgentDashboardButton = useAppStore((s) => shouldShowAgentDashboardButton(s.settings))
   const automationsActive = activeView === 'automations'
@@ -61,6 +63,31 @@ const SidebarNav = React.memo(function SidebarNav() {
             />
           ))}
         </span>
+      </button>
+      <button
+        type="button"
+        onClick={() => {
+          openSettingsTarget({ pane: 'agents', repoId: null })
+          openSettingsPage()
+        }}
+        className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-[13px] font-medium tracking-tight text-worktree-sidebar-foreground/60 transition-colors hover:bg-worktree-sidebar-foreground/8"
+      >
+        <Bot className="size-4 shrink-0 text-worktree-sidebar-foreground/30" strokeWidth={1.75} />
+        <span className="flex-1">{translate('dorka.sidebar.agents', 'Agents')}</span>
+      </button>
+      <button
+        type="button"
+        onClick={() => {
+          openSettingsTarget({ pane: 'computers', repoId: null })
+          openSettingsPage()
+        }}
+        className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-[13px] font-medium tracking-tight text-worktree-sidebar-foreground/60 transition-colors hover:bg-worktree-sidebar-foreground/8"
+      >
+        <MonitorCog
+          className="size-4 shrink-0 text-worktree-sidebar-foreground/30"
+          strokeWidth={1.75}
+        />
+        <span className="flex-1">{translate('dorka.sidebar.computers', 'Computers')}</span>
       </button>
       <button
         type="button"
