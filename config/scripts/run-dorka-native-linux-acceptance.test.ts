@@ -4,6 +4,7 @@ import { resolve } from 'node:path'
 import { describe, expect, it } from 'vitest'
 import { parse } from 'yaml'
 import {
+  acceptanceBuildArgs,
   acceptanceEngineFacts,
   acceptanceNames,
   assertUnverifiable,
@@ -41,6 +42,20 @@ function fixture() {
 }
 
 describe('native Linux acceptance contracts', () => {
+  it('pulls registry bases without trying to pull the local fixture base', () => {
+    const common = { tag: 'acceptance:latest', label: 'dev.dorka.acceptance-run=test' }
+    expect(acceptanceBuildArgs({ ...common, file: 'docker/computer/Dockerfile' })).toContain(
+      '--pull'
+    )
+    expect(
+      acceptanceBuildArgs({
+        ...common,
+        file: 'tests/e2e/fixtures/dorka-native-linux-computer/Dockerfile',
+        pull: false
+      })
+    ).not.toContain('--pull')
+  })
+
   it('normalizes rootless Podman and isolated Docker engine facts', () => {
     expect(
       acceptanceEngineFacts({

@@ -3,6 +3,7 @@ import { availableParallelism, tmpdir, totalmem } from 'node:os'
 import { basename, resolve } from 'node:path'
 import { spawnSync } from 'node:child_process'
 import {
+  acceptanceBuildArgs,
   acceptanceEngineFacts,
   acceptanceNames,
   assertUnverifiable,
@@ -149,21 +150,8 @@ function cleanup(names, artifacts) {
   return [...failures, ...residue]
 }
 function build(names, artifacts) {
-  const build2 = (tag, file, extra = []) => {
-    const output = engine([
-      'build',
-      '--pull',
-      '--platform',
-      'linux/amd64',
-      '--label',
-      names.label,
-      ...extra,
-      '-f',
-      file,
-      '-t',
-      tag,
-      '.'
-    ])
+  const build2 = (tag, file, extra = [], pull = true) => {
+    const output = engine(acceptanceBuildArgs({ tag, file, label: names.label, extra, pull }))
     appendFileSync(resolve(artifacts, 'build.log'), redactArtifact(output))
     requireValue(
       engine(['image', 'inspect', tag, '--format', '{{.Os}}/{{.Architecture}}']) === 'linux/amd64',
@@ -171,10 +159,12 @@ function build(names, artifacts) {
     )
   }
   build2(names.computerBaseImage, 'docker/computer/Dockerfile')
-  build2(names.computerImage, 'tests/e2e/fixtures/dorka-native-linux-computer/Dockerfile', [
-    '--build-arg',
-    `BASE_IMAGE=${names.computerBaseImage}`
-  ])
+  build2(
+    names.computerImage,
+    'tests/e2e/fixtures/dorka-native-linux-computer/Dockerfile',
+    ['--build-arg', `BASE_IMAGE=${names.computerBaseImage}`],
+    false
+  )
   build2(names.serverImage, 'Dockerfile')
   artifact(
     artifacts,

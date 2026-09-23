@@ -42,6 +42,29 @@ export function acceptanceEngineFacts(value: AcceptanceEngineInfo) {
   }
 }
 
+export function acceptanceBuildArgs(options: {
+  tag: string
+  file: string
+  label: string
+  extra?: string[]
+  pull?: boolean
+}) {
+  return [
+    'build',
+    ...(options.pull === false ? [] : ['--pull']),
+    '--platform',
+    'linux/amd64',
+    '--label',
+    options.label,
+    ...(options.extra ?? []),
+    '-f',
+    options.file,
+    '-t',
+    options.tag,
+    '.'
+  ]
+}
+
 export function acceptanceNames(env = process.env, now = new Date(), pid = process.pid) {
   const raw = `dna-${env.GITHUB_RUN_ID ?? 'manual'}-${env.GITHUB_RUN_ATTEMPT ?? '1'}-${now.toISOString().replaceAll(/\D/g, '')}-${pid}`
   const run = raw
