@@ -3,11 +3,11 @@ import type { RuntimeTerminalCreate } from '../../shared/runtime-types'
 import type { TerminalWorkspaceLaunchScope } from '../runtime/runtime-legacy-worker-terminal-recovery-types'
 import type { TerminalCreateOptions } from '../runtime/runtime-terminal-contracts'
 import type { AgentTerminalLaunch } from './agent-execution-service'
+import { createManagedComputerAgentTerminalLauncher } from './managed-computer-agent-terminal-launcher'
 import {
-  createManagedComputerAgentTerminalLauncher,
-  resolveComputerCwd
-} from './managed-computer-agent-terminal-launcher'
-import { createManagedComputerHostProjector } from './managed-computer-host-projector'
+  createManagedComputerHostProjector,
+  resolveComputerSourceDirectory
+} from './managed-computer-host-projector'
 
 function launch(overrides: Partial<AgentTerminalLaunch> = {}): AgentTerminalLaunch {
   return {
@@ -31,6 +31,7 @@ function launch(overrides: Partial<AgentTerminalLaunch> = {}): AgentTerminalLaun
       state: 'running'
     },
     prompt: 'Review carefully.\n\nInspect this change.',
+    sourceDirectory: '/workspace/repo',
     ...overrides
   }
 }
@@ -152,10 +153,10 @@ describe('managed Computer agent terminal launcher', () => {
   })
 })
 
-describe('resolveComputerCwd', () => {
+describe('resolveComputerSourceDirectory', () => {
   it('defaults to and accepts normalized paths inside /workspace', () => {
-    expect(resolveComputerCwd(undefined)).toBe('/workspace')
-    expect(resolveComputerCwd('/workspace/repo')).toBe('/workspace/repo')
+    expect(resolveComputerSourceDirectory(undefined)).toBe('/workspace')
+    expect(resolveComputerSourceDirectory('/workspace/repo')).toBe('/workspace/repo')
   })
 
   it.each([
@@ -167,6 +168,6 @@ describe('resolveComputerCwd', () => {
     '/workspace\\repo',
     '/workspace/repo\0escape'
   ])('rejects %j', (cwd) => {
-    expect(() => resolveComputerCwd(cwd)).toThrow()
+    expect(() => resolveComputerSourceDirectory(cwd)).toThrow()
   })
 })

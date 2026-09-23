@@ -4,8 +4,7 @@ import type { DorkaRuntimeService } from '../runtime/dorka-runtime'
 import { deterministicAgentSessionUuid } from '../runtime/runtime-agent-launch-resolution'
 import {
   COMPUTER_WORKSPACE,
-  type ManagedComputerHostProjector,
-  resolveComputerSourceDirectory
+  type ManagedComputerHostProjector
 } from './managed-computer-host-projector'
 import {
   AgentTerminalLaunchOutcomeUnknownError,
@@ -31,7 +30,6 @@ async function launchManagedComputerAgentTerminal(
   launch: AgentTerminalLaunch
 ): Promise<AgentTerminalIdentity> {
   const harness = resolveHarness(launch.agent.harnessId)
-  const cwd = resolveComputerSourceDirectory(launch.agent.workingDirectory)
   const target = await options.host.connect(launch.computer.id)
 
   const operationId = createHash('sha256').update(launch.runId).digest('base64url')
@@ -55,7 +53,7 @@ async function launchManagedComputerAgentTerminal(
         startupAgent: harness,
         startupPrompt: launch.prompt,
         ...(launch.agent.model ? { launchPreferences: { model: launch.agent.model } } : {}),
-        cwd,
+        cwd: launch.sourceDirectory,
         presentation: 'background',
         title: launch.agent.name,
         preAllocatedHandle: handle,
@@ -94,5 +92,3 @@ function resolveHarness(value: string): ManagedHarness {
   }
   throw new Error(`Computer agent harness is unsupported: ${value}`)
 }
-
-export { resolveComputerSourceDirectory as resolveComputerCwd }

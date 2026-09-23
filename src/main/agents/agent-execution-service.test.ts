@@ -59,7 +59,8 @@ describe('AgentExecutionService', () => {
       runId: run.id,
       agent: h.agent,
       computer: { ...h.computer, state: 'running' },
-      prompt: 'Plan carefully\n\nReview the change'
+      prompt: 'Plan carefully\n\nReview the change',
+      sourceDirectory: '/workspace/repo'
     })
     expect(run).toMatchObject({
       agentId: h.agent.id,
