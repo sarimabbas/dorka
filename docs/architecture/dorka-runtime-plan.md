@@ -638,7 +638,7 @@ Tailscale/WireGuard/private ingress
   └── Dorka mobile client
 ```
 
-Do not rely on the current control-plane container's PID namespace to preserve terminal processes. The repository docs correctly note that restarting a container kills every process in that container. Agent PTYs and runner processes must live in sibling Computer containers so they survive Dorka Server replacement; the Server reattaches after reconciliation.
+Do not claim that provider processes survive replacement of the control-plane container. The existing persistent local PTY daemon preserves Server-local Agent processes across an ordinary `dorkad` process restart, but replacing the container kills processes in its PID namespace. A replacement must recover exact terminal identity when the daemon survives, or preserve the Run as waiting/unverifiable unless host-certified process death is available. Never move provider processes into Computers merely to obtain restart continuity; Computers remain execution targets, not credential-bearing provider hosts.
 
 Use one host model per machine. Do not register the same server both as a direct SSH host and as a paired Dorka Server.
 
