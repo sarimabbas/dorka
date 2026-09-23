@@ -1233,6 +1233,7 @@ export class PtyHandler {
       ...(this.durableExitEvidence
         ? {
             durableExitEvidenceVersion: 1,
+            managedPtySpawnGenerationFenceVersion: 1,
             computerExecutionGeneration: this.durableExitEvidence.computerExecutionGeneration
           }
         : {})
@@ -1821,6 +1822,17 @@ export class PtyHandler {
     params: Record<string, unknown>,
     context?: RequestContext
   ): Promise<RelayAgentSessionCreateResult> {
+    const expectedComputerExecutionGeneration = params.expectedComputerExecutionGeneration
+    if (expectedComputerExecutionGeneration !== undefined) {
+      if (
+        !isComputerExecutionGeneration(expectedComputerExecutionGeneration) ||
+        params.agentSessionCreateOperationId === undefined ||
+        !this.durableExitEvidence ||
+        this.durableExitEvidence.computerExecutionGeneration !== expectedComputerExecutionGeneration
+      ) {
+        throw new Error('managed_computer_generation_mismatch')
+      }
+    }
     const operationId = params.agentSessionCreateOperationId
     if (operationId === undefined) {
       return await this.spawnOnce(params, context)

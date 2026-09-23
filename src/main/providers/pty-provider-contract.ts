@@ -107,6 +107,8 @@ export type PtySpawnOptions = {
   }
   /** Host-scoped structured-create identity used only for lower-owner replay. */
   agentSessionCreateOperationId?: string
+  /** Managed Computer generation the relay must atomically verify before physical spawn. */
+  expectedComputerExecutionGeneration?: string
   /** Signals that the native process exists even if later publication fails. */
   onPtySpawnCommitted?: () => void
   /** Cancels only before physical dispatch; operation identity fences later ambiguity. */

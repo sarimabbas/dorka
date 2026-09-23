@@ -60,6 +60,7 @@ async function launchManagedComputerAgentTerminal(
         title: launch.agent.name,
         preAllocatedHandle: handle,
         agentSessionCreateOperationId: operationId,
+        expectedComputerExecutionGeneration: launch.computerExecutionGeneration,
         onPtySpawnCommitted: () => {
           spawnCommitted = true
         }

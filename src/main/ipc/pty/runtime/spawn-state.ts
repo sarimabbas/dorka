@@ -113,6 +113,7 @@ export type RuntimePtySpawnArgs = {
     surface: AgentSessionSurfaceBinding
   }
   agentSessionCreateOperationId?: string
+  expectedComputerExecutionGeneration?: string
   signal?: AbortSignal
   onPtySpawnCommitted?: () => void
   adoptedStablePane?: {

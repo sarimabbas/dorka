@@ -165,9 +165,8 @@ export class DorkaRuntimeWithCreateTerminal extends DorkaRuntimeWithTerminalCrea
                 }
               }
             : {}),
-          ...(launchOpts.agentSessionCreateOperationId
-            ? { agentSessionCreateOperationId: launchOpts.agentSessionCreateOperationId }
-            : {}),
+          agentSessionCreateOperationId: launchOpts.agentSessionCreateOperationId,
+          expectedComputerExecutionGeneration: launchOpts.expectedComputerExecutionGeneration,
           ...(launchOpts.signal ? { signal: launchOpts.signal } : {}),
           ...(launchOpts.onPtySpawnCommitted
             ? { onPtySpawnCommitted: reportPtySpawnCommitted }

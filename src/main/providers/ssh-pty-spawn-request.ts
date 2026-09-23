@@ -46,6 +46,9 @@ export function buildSshPtySpawnRequest(args: {
     ...(options.agentSessionEnsure ? { agentSessionEnsure: options.agentSessionEnsure } : {}),
     ...(args.supportsCreateOperation
       ? { agentSessionCreateOperationId: options.agentSessionCreateOperationId }
+      : {}),
+    ...(options.expectedComputerExecutionGeneration
+      ? { expectedComputerExecutionGeneration: options.expectedComputerExecutionGeneration }
       : {})
   }
 }

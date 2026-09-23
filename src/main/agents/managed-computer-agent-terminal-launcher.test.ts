@@ -114,7 +114,8 @@ describe('managed Computer agent terminal launcher', () => {
         presentation: 'background',
         title: 'Reviewer',
         preAllocatedHandle: expect.stringMatching(/^term_/),
-        agentSessionCreateOperationId: expect.stringMatching(/^[A-Za-z0-9_-]{43}$/)
+        agentSessionCreateOperationId: expect.stringMatching(/^[A-Za-z0-9_-]{43}$/),
+        expectedComputerExecutionGeneration: COMPUTER_GENERATION
       })
     )
   })

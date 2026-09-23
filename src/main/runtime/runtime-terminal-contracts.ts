@@ -75,6 +75,7 @@ export type TerminalCreateOptions = {
   persistHostSessionBinding?: boolean
   agentSessionClaim?: AgentSessionExecutionClaim
   agentSessionCreateOperationId?: string
+  expectedComputerExecutionGeneration?: string
   structuredAgentSessionId?: string
   signal?: AbortSignal
   onPtySpawnCommitted?: () => void

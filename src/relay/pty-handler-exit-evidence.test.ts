@@ -70,7 +70,10 @@ describe.skipIf(process.platform === 'win32')('PtyHandler durable exit evidence'
     rmSync(root, { recursive: true, force: true })
   })
 
-  async function spawnWithExit(pid = process.pid): Promise<{
+  async function spawnWithExit(
+    pid = process.pid,
+    params: Record<string, unknown> = {}
+  ): Promise<{
     incarnationId: string
     exit: (event: { exitCode: number }) => void
   }> {
@@ -83,7 +86,7 @@ describe.skipIf(process.platform === 'win32')('PtyHandler durable exit evidence'
         exit = callback
       })
     })
-    const result = await dispatcher.callRequest('pty.spawn', {})
+    const result = await dispatcher.callRequest('pty.spawn', params)
     if (
       !exit ||
       typeof result !== 'object' ||
@@ -99,6 +102,7 @@ describe.skipIf(process.platform === 'win32')('PtyHandler durable exit evidence'
   it('advertises and registers the additive protocol only when configured', async () => {
     await expect(dispatcher.callRequest('pty.getCapabilities')).resolves.toMatchObject({
       durableExitEvidenceVersion: 1,
+      managedPtySpawnGenerationFenceVersion: 1,
       computerExecutionGeneration: COMPUTER_GENERATION
     })
     expect(dispatcher._requestHandlers.has('pty.listExitEvidenceV1')).toBe(true)
@@ -114,6 +118,31 @@ describe.skipIf(process.platform === 'win32')('PtyHandler durable exit evidence'
     )
     expect(legacyDispatcher._requestHandlers.has('pty.listExitEvidenceV1')).toBe(false)
     await legacyHandler.dispose({ waitForPhysicalExit: false })
+  })
+
+  it('atomically refuses a replaced Computer generation before physical spawn', async () => {
+    const operationId = 'a'.repeat(43)
+    mockPtySpawn.mockClear()
+
+    await expect(
+      dispatcher.callRequest('pty.spawn', {
+        agentSessionCreateOperationId: operationId,
+        expectedComputerExecutionGeneration: OTHER_GENERATION
+      })
+    ).rejects.toThrow('managed_computer_generation_mismatch')
+    expect(mockPtySpawn).not.toHaveBeenCalled()
+    await expect(
+      dispatcher.callRequest('pty.spawn', {
+        expectedComputerExecutionGeneration: COMPUTER_GENERATION
+      })
+    ).rejects.toThrow('managed_computer_generation_mismatch')
+    expect(mockPtySpawn).not.toHaveBeenCalled()
+
+    await spawnWithExit(process.pid, {
+      agentSessionCreateOperationId: operationId,
+      expectedComputerExecutionGeneration: COMPUTER_GENERATION
+    })
+    expect(mockPtySpawn).toHaveBeenCalledOnce()
   })
 
   it('records the physical node-pty exit before removing the record without changing pty.exit', async () => {

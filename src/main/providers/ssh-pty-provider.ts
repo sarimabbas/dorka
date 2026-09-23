@@ -25,6 +25,7 @@ import { SshAgentSessionCapabilities } from './ssh-agent-session-capabilities'
 import type { PtyProcessInspection } from './pty-process-inspection'
 import { spawnWithTerminalRuntimeRepair, type TerminalRepairHook } from './ssh-pty-spawn-repair'
 import { createSshPtyProviderRpcOperations } from './ssh-pty-provider-rpc-operations'
+import { assertSshManagedComputerSpawnGeneration } from './ssh-managed-computer-spawn-generation'
 
 // Why: sequential relay teardown calls share one absolute budget; convert to the mux-relative timeout only at dispatch.
 function relayTimeoutOptions(deadlineMs: number | undefined): { timeoutMs: number } | undefined {
@@ -166,6 +167,19 @@ export class SshPtyProvider implements IPtyProvider {
     if (opts.agentSessionCreateOperationId && !supportsCreateOperation) {
       // Why: host routing owns legacy selection; a changed relay must not downgrade after dispatch.
       throw new Error('execution_owner_unavailable')
+    }
+    if (opts.expectedComputerExecutionGeneration) {
+      if (!opts.agentSessionCreateOperationId) {
+        throw new Error('Computer relay execution generation is unverifiable')
+      }
+      await assertSshManagedComputerSpawnGeneration({
+        mux: this.mux,
+        expectedGeneration: opts.expectedComputerExecutionGeneration,
+        signal: opts.signal
+      })
+      if (opts.signal?.aborted) {
+        throw new Error('client_disconnected')
+      }
     }
     return await spawnFreshSshPty({
       mux: this.mux,

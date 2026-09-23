@@ -44,7 +44,9 @@ describe('DorkaRuntimeService resolved terminal launch scope', () => {
       startupPrompt: 'inspect the remote workspace',
       launchPreferences: { model: 'remote-model' },
       presentation: 'background',
-      title: 'remote agent'
+      title: 'remote agent',
+      agentSessionCreateOperationId: 'a'.repeat(43),
+      expectedComputerExecutionGeneration: '10000000-0000-4000-8000-000000000001'
     })
 
     expect(spawn).toHaveBeenCalledWith(
@@ -53,7 +55,9 @@ describe('DorkaRuntimeService resolved terminal launch scope', () => {
         cwd: '/workspace',
         worktreeId: REMOTE_SCOPE.id,
         launchAgent: 'codex',
-        command: expect.stringContaining('inspect the remote workspace')
+        command: expect.stringContaining('inspect the remote workspace'),
+        agentSessionCreateOperationId: 'a'.repeat(43),
+        expectedComputerExecutionGeneration: '10000000-0000-4000-8000-000000000001'
       })
     )
     expect(spawn.mock.calls[0]?.[0]?.command).toContain('remote-model')
