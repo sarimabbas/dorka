@@ -243,6 +243,105 @@ describe('ComputerRuntimeManager', () => {
     expect(args.at(-1)).toBe('safe/image:tag')
   })
 
+  it('gets and plans redacted configuration with revision conflicts free of engine effects', async () => {
+    const directory = await dataDirectory()
+    const execute = vi
+      .fn<ComputerCommandExecutor>()
+      .mockResolvedValueOnce(processResult())
+      .mockResolvedValueOnce(processResult(JSON.stringify([inspection('alpha')])))
+    const manager = new ComputerRuntimeManager({
+      dataDirectory: directory,
+      serverId,
+      allowedMountSources: ['/srv/dorka/shared'],
+      execute
+    })
+    await manager.create({
+      id: 'alpha',
+      image: 'safe/image:tag',
+      environment: { TOKEN: 'never-return-this' }
+    })
+    execute.mockClear()
+
+    const snapshot = await manager.getConfiguration('alpha')
+    const conflict = await manager.planConfiguration('alpha', replacementGeneration, {
+      resources: { cpus: 2, memoryMb: 4096, pids: 512 },
+      environment: { preserve: ['TOKEN'], set: {} },
+      premounts: []
+    })
+    const planned = await manager.planConfiguration('alpha', executionGeneration, {
+      resources: { cpus: 4, memoryMb: 4096, pids: 512 },
+      environment: { preserve: [], set: { MODE: 'new-private-value' } },
+      premounts: [{ source: '/srv/dorka/shared', target: '/shared' }]
+    })
+
+    expect(snapshot.configuration.environment).toEqual(['TOKEN'])
+    expect(conflict).toEqual({ outcome: 'conflict', currentRevision: executionGeneration })
+    expect(planned).toMatchObject({
+      outcome: 'planned',
+      plan: { replacementRequired: true, changes: { resources: ['cpus'] } }
+    })
+    expect(JSON.stringify({ snapshot, conflict, planned })).not.toContain('never-return-this')
+    expect(JSON.stringify({ snapshot, conflict, planned })).not.toContain('new-private-value')
+    expect(execute).not.toHaveBeenCalled()
+  })
+
+  it('replaces a stopped Computer configuration with a new fenced incarnation', async () => {
+    randomUUIDMock
+      .mockReturnValueOnce(executionGeneration)
+      .mockReturnValueOnce(replacementGeneration)
+    let activeGeneration = executionGeneration
+    const execute = vi.fn<ComputerCommandExecutor>(async ({ args = [] }) => {
+      if (args[0] === 'inspect') {
+        return processResult(
+          JSON.stringify([inspection('alpha', 'created', false, serverId, activeGeneration)])
+        )
+      }
+      if (args[0] === 'create') {
+        const label = args.find((arg) => arg.startsWith(`${DORKA_EXECUTION_GENERATION_LABEL}=`))
+        activeGeneration = label?.split('=')[1] ?? activeGeneration
+      }
+      return processResult()
+    })
+    const directory = await dataDirectory()
+    const manager = new ComputerRuntimeManager({ dataDirectory: directory, serverId, execute })
+    await manager.create({
+      id: 'alpha',
+      image: 'safe/image:tag',
+      environment: { TOKEN: 'preserved-value', OLD: 'removed-value' }
+    })
+    execute.mockClear()
+
+    const result = await manager.replaceConfiguration('alpha', executionGeneration, {
+      resources: { cpus: 4, memoryMb: 8192, pids: 256 },
+      environment: { preserve: ['TOKEN'], set: { MODE: 'replacement-value' } },
+      premounts: []
+    })
+
+    expect(result).toMatchObject({
+      outcome: 'replaced',
+      snapshot: {
+        revision: replacementGeneration,
+        configuration: { environment: ['MODE', 'TOKEN'] }
+      }
+    })
+    expect(JSON.stringify(result)).not.toContain('preserved-value')
+    expect(JSON.stringify(result)).not.toContain('replacement-value')
+    expect(execute.mock.calls.map(([call]) => call.args?.[0])).toEqual([
+      'inspect',
+      'rm',
+      'create',
+      'inspect'
+    ])
+    const stored = JSON.parse(await readFile(join(directory, 'computers.json'), 'utf8'))
+    expect(stored.computers[0]).toMatchObject({
+      executionGeneration: replacementGeneration,
+      spec: {
+        resources: { cpus: 4, memoryMb: 8192, pids: 256 },
+        environment: { TOKEN: 'preserved-value', MODE: 'replacement-value' }
+      }
+    })
+  })
+
   it.each<ComputerCreateSpec>([
     { id: '../escape', image: 'safe/image:tag' },
     { id: 'UPPER', image: 'safe/image:tag' },

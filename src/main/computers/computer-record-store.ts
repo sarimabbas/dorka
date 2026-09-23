@@ -46,6 +46,16 @@ type RecordCommit<T> = {
   afterCommit: (record: ComputerRecord) => Promise<T>
 }
 
+type RecordReplacementCommit<T> = {
+  beforeCommit: (current: ComputerRecord, next: ComputerRecord) => Promise<void>
+  afterCommit: (next: ComputerRecord) => Promise<T>
+}
+
+export type ComputerRecordReplacement<T> =
+  | { kind: 'conflict'; currentRevision: string }
+  | { kind: 'unchanged'; record: ComputerRecord }
+  | { kind: 'replaced'; record: ComputerRecord; value: T }
+
 /** Transaction callbacks run under the cross-process lock and must not re-enter this store. */
 export class ComputerRecordStore {
   private readonly path: string
@@ -98,6 +108,36 @@ export class ComputerRecordStore {
       const record = requireRecord(records, id)
       await apply(structuredClone(record))
       await this.persist(records.filter((candidate) => candidate.spec.id !== id))
+    })
+  }
+
+  replaceSpec<T>(
+    id: string,
+    expectedRevision: string,
+    prepare: (current: ComputerRecord) => ComputerRecord['spec'] | null,
+    commit: RecordReplacementCommit<T>
+  ): Promise<ComputerRecordReplacement<T>> {
+    return this.withRecords(async (records) => {
+      const current = requireRecord(records, id)
+      if (current.executionGeneration !== expectedRevision) {
+        return { kind: 'conflict', currentRevision: current.executionGeneration }
+      }
+      const spec = prepare(structuredClone(current))
+      if (!spec) {
+        return { kind: 'unchanged', record: structuredClone(current) }
+      }
+      const next: ComputerRecord = {
+        ...current,
+        spec,
+        executionGeneration: randomUUID()
+      }
+      await commit.beforeCommit(structuredClone(current), structuredClone(next))
+      await this.persist(records.map((candidate) => (candidate.spec.id === id ? next : candidate)))
+      return {
+        kind: 'replaced',
+        record: structuredClone(next),
+        value: await commit.afterCommit(structuredClone(next))
+      }
     })
   }
 

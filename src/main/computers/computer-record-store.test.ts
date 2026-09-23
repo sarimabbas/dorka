@@ -122,6 +122,69 @@ describe('ComputerRecordStore', () => {
     expect((await readdir(directory)).filter((name) => name.endsWith('.tmp'))).toEqual([])
   })
 
+  it('fences spec replacement by execution generation without effects on conflict', async () => {
+    const directory = await temporaryDirectory()
+    await writeRecords(directory, [record('alpha')])
+    const store = new ComputerRecordStore(directory)
+    let prepared = false
+    let applied = false
+
+    const result = await store.replaceSpec(
+      'alpha',
+      '40000000-0000-4000-8000-000000000004',
+      () => {
+        prepared = true
+        return { id: 'alpha', image: 'replacement:test' }
+      },
+      {
+        beforeCommit: async () => {
+          applied = true
+        },
+        afterCommit: async () => undefined
+      }
+    )
+
+    expect(result).toEqual({ kind: 'conflict', currentRevision: executionGeneration })
+    expect(prepared).toBe(false)
+    expect(applied).toBe(false)
+    await expect(store.get('alpha')).resolves.toEqual(record('alpha'))
+  })
+
+  it('rotates generation only for a changed spec replacement', async () => {
+    const directory = await temporaryDirectory()
+    await writeRecords(directory, [record('alpha')])
+    const store = new ComputerRecordStore(directory)
+
+    const unchanged = await store.replaceSpec('alpha', executionGeneration, () => null, {
+      beforeCommit: async () => {
+        throw new Error('unexpected effect')
+      },
+      afterCommit: async () => undefined
+    })
+    expect(unchanged).toMatchObject({ kind: 'unchanged', record: record('alpha') })
+
+    const replaced = await store.replaceSpec(
+      'alpha',
+      executionGeneration,
+      () => ({ id: 'alpha', image: 'replacement:test' }),
+      {
+        beforeCommit: async (current, next) => {
+          expect(current.executionGeneration).toBe(executionGeneration)
+          expect(next.executionGeneration).not.toBe(executionGeneration)
+        },
+        afterCommit: async (next) => next.executionGeneration
+      }
+    )
+    expect(replaced).toMatchObject({
+      kind: 'replaced',
+      record: { spec: { image: 'replacement:test' } }
+    })
+    if (replaced.kind === 'replaced') {
+      expect(replaced.value).toBe(replaced.record.executionGeneration)
+      expect(replaced.record.executionGeneration).not.toBe(executionGeneration)
+    }
+  })
+
   it('reports a directory sync failure after publishing a valid record', async () => {
     const directory = await temporaryDirectory()
     await writeRecords(directory, [record('alpha')])

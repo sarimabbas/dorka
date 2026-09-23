@@ -9,6 +9,10 @@ import {
   DORKA_EXECUTION_GENERATION_LABEL,
   DORKA_MANAGED_LABEL,
   DORKA_SERVER_LABEL,
+  type ComputerConfigurationInput,
+  type ComputerConfigurationPlanResult,
+  type ComputerConfigurationReplaceResult,
+  type ComputerConfigurationSnapshot,
   type ComputerCreateSpec,
   type ComputerReconcileResult,
   type ComputerRecord,
@@ -19,7 +23,9 @@ import {
   isComputerEngineInspection,
   type ComputerEngineInspection
 } from './computer-engine-inspection'
+import { ComputerConfigurationService } from './computer-configuration-service'
 import { ComputerRecordStore } from './computer-record-store'
+import { reconcileComputerState, type OwnedComputer } from './computer-runtime-reconciler'
 import { ComputerSshKeyStore } from './computer-ssh-key-store'
 import {
   computerName,
@@ -45,6 +51,7 @@ export class ComputerRuntimeManager {
   private readonly enginePath: string
   private readonly execute: ComputerCommandExecutor
   private readonly store: ComputerRecordStore
+  private readonly configuration: ComputerConfigurationService
   private readonly sshKeys: ComputerSshKeyStore
   private readonly allowedMountSources: readonly string[]
   private mutationQueue = Promise.resolve()
@@ -56,6 +63,20 @@ export class ComputerRuntimeManager {
     this.allowedMountSources = validateAllowedMountSources(options.allowedMountSources ?? [])
     this.store = new ComputerRecordStore(options.dataDirectory)
     this.sshKeys = new ComputerSshKeyStore(options.dataDirectory)
+    this.configuration = new ComputerConfigurationService({
+      store: this.store,
+      allowedMountSources: this.allowedMountSources,
+      runMutation: (operation) => this.runMutation(operation),
+      replaceContainer: async (current, next) => {
+        await this.inspectRecord(current)
+        await this.run(['rm', '--force', computerName(current.spec.id)])
+        await this.createContainer(next)
+        if (next.desiredState === 'running') {
+          await this.run(['start', computerName(next.spec.id)])
+        }
+        await this.inspectRecord(next)
+      }
+    })
   }
 
   create(spec: ComputerCreateSpec): Promise<ComputerRuntimeInfo> {
@@ -129,6 +150,26 @@ export class ComputerRuntimeManager {
     return this.sshKeys.resolvePrivateKeyPath(id)
   }
 
+  getConfiguration(id: string): Promise<ComputerConfigurationSnapshot> {
+    return this.configuration.get(id)
+  }
+
+  planConfiguration(
+    id: string,
+    expectedRevision: string,
+    configuration: ComputerConfigurationInput
+  ): Promise<ComputerConfigurationPlanResult> {
+    return this.configuration.plan(id, expectedRevision, configuration)
+  }
+
+  replaceConfiguration(
+    id: string,
+    expectedRevision: string,
+    configuration: ComputerConfigurationInput
+  ): Promise<ComputerConfigurationReplaceResult> {
+    return this.configuration.replace(id, expectedRevision, configuration)
+  }
+
   async list(): Promise<ComputerRuntimeInfo[]> {
     const records = await this.store.list()
     const desiredById = new Map(records.map((record) => [record.spec.id, record]))
@@ -143,49 +184,16 @@ export class ComputerRuntimeManager {
   }
 
   private async reconcileNow(): Promise<ComputerReconcileResult> {
-    return this.store.withSnapshot(async (desired) => {
-      const actual = await this.listOwnedComputers()
-      const actualById = new Map(actual.map((computer) => [computer.info.id, computer]))
-      const desiredById = new Map(desired.map((record) => [record.spec.id, record]))
-      const result: ComputerReconcileResult = { created: [], started: [], stopped: [], removed: [] }
-
-      for (const record of desired) {
-        let current = actualById.get(record.spec.id)
-        if (current && current.executionGeneration !== record.executionGeneration) {
-          await this.run(['rm', '--force', current.info.name])
-          current = undefined
-        }
-        if (!current) {
-          await this.createContainer(record)
-          result.created.push(record.spec.id)
-          current = {
-            info: {
-              id: record.spec.id,
-              name: computerName(record.spec.id),
-              image: record.spec.image,
-              state: 'created'
-            },
-            executionGeneration: record.executionGeneration
-          }
-        }
-        if (record.desiredState === 'running' && current.info.state !== 'running') {
-          await this.run(['start', current.info.name])
-          result.started.push(record.spec.id)
-        } else if (record.desiredState === 'stopped' && current.info.state === 'running') {
-          await this.run(['stop', current.info.name])
-          result.stopped.push(record.spec.id)
-        }
-      }
-
-      for (const computer of actual) {
-        if (desiredById.has(computer.info.id)) {
-          continue
-        }
-        await this.run(['rm', '--force', computer.info.name])
-        result.removed.push(computer.info.id)
-      }
-      return result
-    })
+    return this.store.withSnapshot(async (desired) =>
+      reconcileComputerState({
+        desired,
+        actual: await this.listOwnedComputers(),
+        remove: (name) => this.run(['rm', '--force', name]).then(() => undefined),
+        create: (record) => this.createContainer(record),
+        start: (name) => this.run(['start', name]).then(() => undefined),
+        stop: (name) => this.run(['stop', name]).then(() => undefined)
+      })
+    )
   }
 
   private async createContainer(record: ComputerRecord): Promise<void> {
@@ -232,9 +240,7 @@ export class ComputerRuntimeManager {
     return value
   }
 
-  private async listOwnedComputers(): Promise<
-    { info: ComputerRuntimeInfo; executionGeneration: string | undefined }[]
-  > {
+  private async listOwnedComputers(): Promise<OwnedComputer[]> {
     const result = await this.run(listComputerIdsArgs(this.options.serverId))
     const engineIds = result.stdout.split(/\s+/).filter(Boolean)
     if (engineIds.length === 0) {

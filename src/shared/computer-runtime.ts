@@ -67,6 +67,22 @@ export type ComputerConfigurationPlan = ComputerConfigurationSnapshot & {
   changes: ComputerConfigurationChanges
 }
 
+export type ComputerConfigurationConflict = {
+  outcome: 'conflict'
+  currentRevision: string
+}
+
+export type ComputerConfigurationPlanResult =
+  | ComputerConfigurationConflict
+  | { outcome: 'planned'; plan: ComputerConfigurationPlan }
+
+export type ComputerConfigurationReplaceResult =
+  | ComputerConfigurationConflict
+  | {
+      outcome: 'unchanged' | 'replaced'
+      snapshot: ComputerConfigurationSnapshot
+    }
+
 export type ComputerDesiredState = 'stopped' | 'running'
 export type ComputerRuntimeState = 'created' | 'running' | 'stopped'
 
