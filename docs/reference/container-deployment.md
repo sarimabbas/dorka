@@ -17,6 +17,15 @@ modules into the runtime image. It does not download an Orca release or start
 Electron. The server runs as the unprivileged `dorka` user. `/data` holds the
 server profile and must remain persistent.
 
+Build or pull the Computer image before the first server start if you want Dorka
+to provision `Main` immediately. A missing image no longer stops the server, but
+Computer provisioning remains degraded until the image exists:
+
+```bash
+docker build --platform linux/amd64 -f docker/computer/Dockerfile \
+  -t dorka-computer:selkies .
+```
+
 ### Docker
 
 Rootful Docker uses the default socket. Build and start the current checkout:
@@ -58,7 +67,10 @@ DORKA_ENGINE_SOCKET="${XDG_RUNTIME_DIR}/podman/podman.sock" podman compose up -d
 ```
 
 On macOS or Windows, use the socket path reported by `podman machine inspect`
-and make sure that path is shareable by the Compose provider.
+and make sure that path is shareable by the Compose provider. Compose disables
+SELinux labeling for the server container so rootless Podman can access its
+mounted API socket. This does not make the container privileged; the socket still
+grants authority over resources owned by that rootless engine user.
 
 `DORKA_SERVER_PORT` changes the published server port. The container listens on
 `0.0.0.0:6768`; device pairing still authenticates clients before exposing runtime

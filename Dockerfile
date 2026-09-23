@@ -2,7 +2,7 @@
 FROM node:24-bookworm-slim AS build
 WORKDIR /src
 RUN apt-get update && apt-get install --no-install-recommends -y \
-      g++ make python3 && \
+      g++ make python3 unzip && \
     rm -rf /var/lib/apt/lists/* && \
     corepack enable
 COPY . .
