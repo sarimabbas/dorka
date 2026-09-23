@@ -268,6 +268,22 @@ function captureFailureDiagnostics(names, artifacts, failure) {
       engine(['logs', container], { allowFailure: true, includeStderr: true })
     )
     artifact(artifacts, `${container}-inspect.json`, engine(['inspect', container]))
+    if (container === MAIN) {
+      artifact(
+        artifacts,
+        `${container}-processes-and-service-logs.txt`,
+        engine(
+          [
+            'exec',
+            container,
+            'bash',
+            '-lc',
+            'ps auxww; ss -lntp || true; find /var/log -maxdepth 3 -type f -print -exec tail -n 120 {} \\;'
+          ],
+          { allowFailure: true, includeStderr: true }
+        )
+      )
+    }
   }
 }
 
