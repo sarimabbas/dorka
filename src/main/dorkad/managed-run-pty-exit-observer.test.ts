@@ -68,6 +68,23 @@ describe('managed Run PTY exit observation', () => {
     expect(h.runtime.subscribeToPtyExit).toHaveBeenCalledWith('pty-exact', expect.any(Function))
   })
 
+  it('accepts certified exit evidence delivered synchronously while re-arming', async () => {
+    const { roster, runId } = await createRun()
+    const runtime = {
+      subscribeToPtyExit: vi.fn(
+        (_ptyId: string, listener: (event: PtyExitNotification) => void) => {
+          listener({ processDeathCertified: true })
+          return vi.fn()
+        }
+      )
+    }
+    const observer = new ManagedRunPtyExitObserver(roster, runtime)
+
+    observer.observe(runId, 'pty-exact')
+
+    await vi.waitFor(() => expect(roster.getRun(runId)?.status).toBe('waiting'))
+  })
+
   it('keeps an unverifiable exit running and waits for later host evidence', async () => {
     const { roster, runId } = await createRun()
     const h = exitRuntime()

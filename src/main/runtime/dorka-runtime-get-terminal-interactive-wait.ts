@@ -119,6 +119,15 @@ export class DorkaRuntimeWithGetTerminalInteractiveWait extends DorkaRuntimeWith
     }
   }
 
+  // Relay PTY ids contain colons, so verify the identity by reconstruction instead of splitting it.
+  getExactTerminalPtyId(handle: string, processIdentity: string): string | null {
+    const pty = this.getLivePtyForHandle(handle)?.pty
+    if (!pty?.incarnationId || `${pty.ptyId}:${pty.incarnationId}` !== processIdentity) {
+      return null
+    }
+    return pty.ptyId
+  }
+
   getTerminalProcessIncarnation(handle: string): string | null {
     const structured = resolveStructuredWorkerAuthority(
       handle,

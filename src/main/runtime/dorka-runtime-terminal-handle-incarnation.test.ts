@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { DorkaRuntimeService } from './dorka-runtime'
 import { makePaneKey } from '../../shared/stable-pane-id'
 
-const PTY_ID = 'ssh:target@@relay-pty'
+const PTY_ID = 'ssh:target@@pty2:11111111-1111-4111-8111-111111111111:2'
 const WORKTREE_ID = 'repo::/worktree'
 const TAB_ID = 'tab-terminal'
 const LEAF_ID = '11111111-1111-4111-8111-111111111111'
@@ -57,6 +57,16 @@ function register(runtime: DorkaRuntimeService, incarnationId: string): void {
 }
 
 describe('runtime terminal handle incarnation fencing', () => {
+  it('resolves a colon-bearing PTY only through its exact handle and process identity', () => {
+    const { runtime } = makeRuntime()
+    const handle = runtime.preAllocateHandleForPty(PTY_ID)
+    register(runtime, 'incarnation-1')
+
+    expect(runtime.getExactTerminalPtyId(handle, `${PTY_ID}:incarnation-1`)).toBe(PTY_ID)
+    expect(runtime.getExactTerminalPtyId(handle, `${PTY_ID}:incarnation-other`)).toBeNull()
+    expect(runtime.getExactTerminalPtyId('term-other', `${PTY_ID}:incarnation-1`)).toBeNull()
+  })
+
   it('inspects the retained SSH PTY during renderer reload without an input write', async () => {
     const { runtime } = makeRuntime()
     const handle = runtime.preAllocateHandleForPty(PTY_ID)
