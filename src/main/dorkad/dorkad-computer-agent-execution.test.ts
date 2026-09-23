@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import type { Run } from '../../shared/agent-roster'
 import type { ComputerRuntimeInfo } from '../../shared/computer-runtime'
+import type { ManagedComputerConnection } from '../agents/managed-computer-host-projector'
 import { recoverPersistedManagedComputerRunHosts } from './dorkad-computer-agent-execution'
 
 function ptyId(id: string, computerId: string): string {
@@ -26,14 +27,11 @@ function computer(id: string, state: ComputerRuntimeInfo['state']): ComputerRunt
   return { id, name: `dorka-${id}`, image: 'computer:latest', state }
 }
 
-function target(computerId: string) {
+function connection(computerId: string): ManagedComputerConnection {
   return {
-    id: `runtime-ssh-computer-${computerId}`,
-    label: computerId,
-    source: 'manual' as const,
-    host: computerId,
-    port: 2222,
-    username: 'ubuntu'
+    connectionId: `runtime-ssh-computer-${computerId}`,
+    executionHostId: `ssh:runtime-ssh-computer-${computerId}`,
+    git: undefined
   }
 }
 
@@ -47,7 +45,7 @@ describe('persisted managed Computer Run recovery', () => {
       run('run-5', 'computer-2', 'succeeded')
     ]
     const before = structuredClone(runs)
-    const connect = vi.fn(async (computerId: string) => target(computerId))
+    const connect = vi.fn(async (computerId: string) => connection(computerId))
     const start = vi.fn()
     const computers = {
       list: async () => [
@@ -77,7 +75,7 @@ describe('persisted managed Computer Run recovery', () => {
 
   it('re-arms every exact Run with realistic colon-bearing relay PTY IDs', async () => {
     const runs = [run('run-1', 'computer-1', 'running'), run('run-2', 'computer-1', 'waiting')]
-    const connect = vi.fn(async (computerId: string) => target(computerId))
+    const connect = vi.fn(async (computerId: string) => connection(computerId))
     const observe = vi.fn()
     const getExactTerminalPtyId = vi.fn((handle: string, processIdentity: string) => {
       const candidate = runs.find(
@@ -113,7 +111,7 @@ describe('persisted managed Computer Run recovery', () => {
     await recoverPersistedManagedComputerRunHosts({
       agents: { listRuns: () => [persisted] },
       computers: { list: async () => [computer('computer-1', 'running')] },
-      host: { connect: vi.fn(async (computerId: string) => target(computerId)) },
+      host: { connect: vi.fn(async (computerId: string) => connection(computerId)) },
       runExitObserver: { observe },
       runtime: {
         getExactTerminalPtyId: () =>
@@ -130,7 +128,7 @@ describe('persisted managed Computer Run recovery', () => {
     await recoverPersistedManagedComputerRunHosts({
       agents: { listRuns: () => [run('run-1', 'computer-1', 'running')] },
       computers: { list: async () => [computer('computer-1', 'running')] },
-      host: { connect: vi.fn(async (computerId: string) => target(computerId)) },
+      host: { connect: vi.fn(async (computerId: string) => connection(computerId)) },
       runExitObserver: { observe },
       runtime: { getExactTerminalPtyId: () => null }
     })
@@ -145,7 +143,7 @@ describe('persisted managed Computer Run recovery', () => {
       await recoverPersistedManagedComputerRunHosts({
         agents: { listRuns: () => [run('run-1', 'computer-1', status)] },
         computers: { list: async () => [computer('computer-1', 'running')] },
-        host: { connect: vi.fn(async (computerId: string) => target(computerId)) },
+        host: { connect: vi.fn(async (computerId: string) => connection(computerId)) },
         runExitObserver: { observe },
         runtime: { getExactTerminalPtyId: vi.fn() }
       })

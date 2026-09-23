@@ -3,8 +3,11 @@ import type { Run } from '../../shared/agent-roster'
 import type { ComputerRuntimeInfo } from '../../shared/computer-runtime'
 import type { GitBranchCompareResult, GitDiffResult } from '../../shared/git-diff-compare-types'
 import type { GitStatusResult } from '../../shared/git-status-types'
-import type { IGitProvider } from '../providers/types'
 import { ComputerRunSourceControl } from './computer-run-source-control'
+import type {
+  ManagedComputerConnection,
+  ManagedComputerGitCapability
+} from './managed-computer-host-projector'
 
 function run(overrides: Partial<Run> = {}): Run {
   return {
@@ -19,10 +22,7 @@ function run(overrides: Partial<Run> = {}): Run {
   }
 }
 
-type Provider = Pick<
-  IGitProvider,
-  'getStatus' | 'getDiff' | 'getBranchCompare' | 'getBranchDiff' | 'isGitRepoAsync'
->
+type Provider = ManagedComputerGitCapability
 
 function fixture(runRecord: Run | null = run()) {
   const diff: GitDiffResult = {
@@ -52,7 +52,17 @@ function fixture(runRecord: Run | null = run()) {
   const getBranchCompare = vi.fn(async (): Promise<GitBranchCompareResult> => compare)
   const getBranchDiff = vi.fn(async (): Promise<GitDiffResult[]> => [])
   const isGitRepoAsync = vi.fn(async () => ({ isRepo: true, rootPath: '/workspace/original' }))
-  const provider = { getStatus, getDiff, getBranchCompare, getBranchDiff, isGitRepoAsync }
+  const getComputerGitIdentity = vi.fn(async () => ({ name: null, email: null }))
+  const setComputerGitIdentity = vi.fn(async () => ({ name: null, email: null }))
+  const provider: Provider = {
+    getStatus,
+    getDiff,
+    getBranchCompare,
+    getBranchDiff,
+    isGitRepoAsync,
+    getComputerGitIdentity,
+    setComputerGitIdentity
+  }
   const inspect = vi.fn(async (id: string): Promise<ComputerRuntimeInfo> => ({
     id,
     name: `dorka-computer-${id}`,
@@ -65,21 +75,16 @@ function fixture(runRecord: Run | null = run()) {
     image: 'test',
     state: 'running'
   }))
-  const connect = vi.fn(async (computerId: string) => ({
-    id: `runtime-ssh-computer-${computerId}`,
-    label: computerId,
-    source: 'manual' as const,
-    host: computerId,
-    port: 2222,
-    username: 'ubuntu'
+  const connect = vi.fn(async (computerId: string): Promise<ManagedComputerConnection> => ({
+    connectionId: `runtime-ssh-computer-${computerId}`,
+    executionHostId: `ssh:runtime-ssh-computer-${computerId}`,
+    git: provider
   }))
   const getRun = vi.fn((_runId: string) => runRecord)
-  const getGitProvider = vi.fn<(targetId: string) => Provider | undefined>(() => provider)
   const authority = new ComputerRunSourceControl({
     roster: { getRun },
     computers: { inspect, start },
-    host: { connect },
-    getGitProvider
+    host: { connect }
   })
   return {
     authority,
@@ -87,7 +92,6 @@ function fixture(runRecord: Run | null = run()) {
     getBranchCompare,
     getBranchDiff,
     getDiff,
-    getGitProvider,
     getRun,
     getStatus,
     inspect,
@@ -105,7 +109,6 @@ describe('ComputerRunSourceControl', () => {
 
     expect(h.inspect).toHaveBeenCalledWith('computer-a')
     expect(h.connect).toHaveBeenCalledWith('computer-a')
-    expect(h.getGitProvider).toHaveBeenCalledWith('runtime-ssh-computer-computer-a')
     expect(h.isGitRepoAsync).toHaveBeenCalledWith('/workspace/original')
     expect(h.getStatus).toHaveBeenCalledWith('/workspace/original')
   })
@@ -156,7 +159,11 @@ describe('ComputerRunSourceControl', () => {
 
   it('refuses missing providers and repository roots outside /workspace', async () => {
     const unavailable = fixture()
-    unavailable.getGitProvider.mockReturnValueOnce(undefined)
+    unavailable.connect.mockResolvedValueOnce({
+      connectionId: 'runtime-ssh-computer-computer-a',
+      executionHostId: 'ssh:runtime-ssh-computer-computer-a',
+      git: undefined
+    })
     await expect(unavailable.authority.status('run-1')).rejects.toThrow('unverifiable')
     expect(unavailable.getStatus).not.toHaveBeenCalled()
 
@@ -176,9 +183,11 @@ describe('ComputerRunSourceControl', () => {
     h.getRun.mockImplementation((runId) =>
       run({ id: runId, computerId: runId === 'run-a' ? 'computer-a' : 'computer-b' })
     )
-    h.getGitProvider.mockImplementation((targetId) =>
-      targetId.endsWith('computer-b') ? providerB : h.provider
-    )
+    h.connect.mockImplementation(async (computerId) => ({
+      connectionId: `runtime-ssh-computer-${computerId}`,
+      executionHostId: `ssh:runtime-ssh-computer-${computerId}`,
+      git: computerId === 'computer-b' ? providerB : h.provider
+    }))
 
     await h.authority.status('run-a')
     await h.authority.status('run-b')

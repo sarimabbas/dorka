@@ -1,15 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
+import type { ManagedComputerConnection } from '../agents/managed-computer-host-projector'
 import { ComputerGitIdentityManager } from './computer-git-identity'
-
-const target = {
-  id: 'runtime-ssh-computer-dev-box',
-  label: 'Computer dev-box',
-  owner: { type: 'on-demand-runtime' as const, runtimeId: 'computer-dev-box' },
-  source: 'manual' as const,
-  host: 'dorka-computer-dev-box',
-  port: 2222,
-  username: 'ubuntu'
-}
 
 function harness(state: 'running' | 'stopped' = 'running') {
   const inspect = vi.fn().mockResolvedValue({
@@ -18,15 +9,27 @@ function harness(state: 'running' | 'stopped' = 'running') {
     image: 'dorka/computer:latest',
     state
   })
-  const connect = vi.fn().mockResolvedValue(target)
   const getComputerGitIdentity = vi
     .fn()
     .mockResolvedValue({ name: 'Ada Lovelace', email: 'ada@example.com' })
   const setComputerGitIdentity = vi.fn().mockImplementation(async (identity) => identity)
+  const git = {
+    getStatus: vi.fn(),
+    getDiff: vi.fn(),
+    getBranchCompare: vi.fn(),
+    getBranchDiff: vi.fn(),
+    isGitRepoAsync: vi.fn(),
+    getComputerGitIdentity,
+    setComputerGitIdentity
+  }
+  const connect = vi.fn(async (): Promise<ManagedComputerConnection> => ({
+    connectionId: 'runtime-ssh-computer-dev-box',
+    executionHostId: 'ssh:runtime-ssh-computer-dev-box',
+    git
+  }))
   const manager = new ComputerGitIdentityManager({
     computers: { inspect },
-    host: { connect },
-    getGitProvider: () => ({ getComputerGitIdentity, setComputerGitIdentity })
+    host: { connect }
   })
   return { connect, getComputerGitIdentity, inspect, manager, setComputerGitIdentity }
 }
@@ -48,6 +51,19 @@ describe('ComputerGitIdentityManager', () => {
 
     await expect(manager.get('dev-box')).rejects.toThrow('Start this Computer')
     expect(connect).not.toHaveBeenCalled()
+  })
+
+  it('fails safely when the managed connection has no Git capability', async () => {
+    const { connect, manager } = harness()
+    connect.mockResolvedValueOnce({
+      connectionId: 'runtime-ssh-computer-dev-box',
+      executionHostId: 'ssh:runtime-ssh-computer-dev-box',
+      git: undefined
+    })
+
+    await expect(manager.get('dev-box')).rejects.toThrow(
+      'Could not access this Computer’s Git identity.'
+    )
   })
 
   it('validates identity before connecting', async () => {

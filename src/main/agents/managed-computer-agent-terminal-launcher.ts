@@ -1,5 +1,4 @@
 import { createHash } from 'node:crypto'
-import { toSshExecutionHostId } from '../../shared/execution-host'
 import type { DorkaRuntimeService } from '../runtime/dorka-runtime'
 import { deterministicAgentSessionUuid } from '../runtime/runtime-agent-launch-resolution'
 import {
@@ -30,7 +29,7 @@ async function launchManagedComputerAgentTerminal(
   launch: AgentTerminalLaunch
 ): Promise<AgentTerminalIdentity> {
   const harness = resolveHarness(launch.agent.harnessId)
-  const target = await options.host.connect(launch.computer.id)
+  const connection = await options.host.connect(launch.computer.id)
 
   const operationId = createHash('sha256').update(launch.runId).digest('base64url')
   const handle = `term_${deterministicAgentSessionUuid(`${operationId}:handle`)}`
@@ -45,7 +44,7 @@ async function launchManagedComputerAgentTerminal(
       {
         id: `computer-${launch.computer.id}`,
         path: COMPUTER_WORKSPACE,
-        connectionId: target.id,
+        connectionId: connection.connectionId,
         repo: null,
         folderWorkspace: null
       },
@@ -70,9 +69,8 @@ async function launchManagedComputerAgentTerminal(
     throw error
   }
 
-  const expectedHost = toSshExecutionHostId(target.id)
   if (
-    terminal.executionHostId !== expectedHost ||
+    terminal.executionHostId !== connection.executionHostId ||
     !terminal.handle ||
     !terminal.ptyId ||
     !terminal.incarnationId

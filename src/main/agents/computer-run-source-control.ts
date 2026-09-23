@@ -7,16 +7,15 @@ import type {
 import type { AgentRosterStore } from './agent-roster-store'
 import {
   COMPUTER_WORKSPACE,
+  type ManagedComputerGitCapability,
   type ManagedComputerHostProjector
 } from './managed-computer-host-projector'
 import type { ComputerRuntimeManager } from '../computers/computer-runtime-manager'
-import { getSshGitProvider } from '../providers/ssh-git-dispatch'
-import type { IGitProvider } from '../providers/types'
 
 const SOURCE_CONTROL_UNVERIFIABLE = 'Computer source control is unverifiable'
 
 type ComputerSourceControlGitProvider = Pick<
-  IGitProvider,
+  ManagedComputerGitCapability,
   'getStatus' | 'getDiff' | 'getBranchCompare' | 'getBranchDiff' | 'isGitRepoAsync'
 >
 
@@ -24,7 +23,6 @@ type ComputerRunSourceControlOptions = {
   roster: Pick<AgentRosterStore, 'getRun'>
   computers: Pick<ComputerRuntimeManager, 'inspect' | 'start'>
   host: ManagedComputerHostProjector
-  getGitProvider?: (targetId: string) => ComputerSourceControlGitProvider | undefined
 }
 
 export type ComputerRunSourceControlService = Pick<
@@ -33,13 +31,7 @@ export type ComputerRunSourceControlService = Pick<
 >
 
 export class ComputerRunSourceControl {
-  private readonly getGitProvider: (
-    targetId: string
-  ) => ComputerSourceControlGitProvider | undefined
-
-  constructor(private readonly options: ComputerRunSourceControlOptions) {
-    this.getGitProvider = options.getGitProvider ?? getSshGitProvider
-  }
+  constructor(private readonly options: ComputerRunSourceControlOptions) {}
 
   async status(runId: string) {
     const { provider, repoRoot } = await this.resolve(runId)
@@ -91,8 +83,8 @@ export class ComputerRunSourceControl {
       throw new Error(SOURCE_CONTROL_UNVERIFIABLE)
     }
 
-    const target = await this.options.host.connect(run.computerId)
-    const provider = this.getGitProvider(target.id)
+    const connection = await this.options.host.connect(run.computerId)
+    const provider = connection.git
     if (!provider) {
       throw new Error(`${SOURCE_CONTROL_UNVERIFIABLE}: managed Git provider is unavailable`)
     }

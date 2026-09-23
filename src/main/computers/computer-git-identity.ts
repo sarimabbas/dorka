@@ -3,32 +3,28 @@ import type {
   ComputerGitIdentityInput
 } from '../../shared/computer-git-identity'
 import { assertValidComputerGitIdentity } from '../../shared/computer-git-identity'
-import type { ManagedComputerHostProjector } from '../agents/managed-computer-host-projector'
-import { getSshGitProvider } from '../providers/ssh-git-dispatch'
-import type { SshGitProvider } from '../providers/ssh-git-provider'
+import type {
+  ManagedComputerGitCapability,
+  ManagedComputerHostProjector
+} from '../agents/managed-computer-host-projector'
 import type { ComputerRuntimeManager } from './computer-runtime-manager'
 
 const RUNNING_REQUIRED = 'Start this Computer before managing its Git identity.'
 
 type ComputerIdentityGitProvider = Pick<
-  SshGitProvider,
+  ManagedComputerGitCapability,
   'getComputerGitIdentity' | 'setComputerGitIdentity'
 >
 
 type ComputerGitIdentityOptions = {
   computers: Pick<ComputerRuntimeManager, 'inspect'>
   host: ManagedComputerHostProjector
-  getGitProvider?: (targetId: string) => ComputerIdentityGitProvider | undefined
 }
 
 export type ComputerGitIdentityService = Pick<ComputerGitIdentityManager, 'get' | 'set'>
 
 export class ComputerGitIdentityManager {
-  private readonly getGitProvider: (targetId: string) => ComputerIdentityGitProvider | undefined
-
-  constructor(private readonly options: ComputerGitIdentityOptions) {
-    this.getGitProvider = options.getGitProvider ?? getSshGitProvider
-  }
+  constructor(private readonly options: ComputerGitIdentityOptions) {}
 
   async get(computerId: string): Promise<ComputerGitIdentity> {
     const provider = await this.resolveProvider(computerId)
@@ -61,8 +57,8 @@ export class ComputerGitIdentityManager {
     }
 
     try {
-      const target = await this.options.host.connect(computerId)
-      const provider = this.getGitProvider(target.id)
+      const connection = await this.options.host.connect(computerId)
+      const provider = connection.git
       if (!provider) {
         throw new Error('provider unavailable')
       }
