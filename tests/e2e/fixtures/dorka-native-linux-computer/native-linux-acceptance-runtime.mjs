@@ -463,6 +463,7 @@ function runAcceptance() {
     assertUnverifiable(launched, disconnected)
     engine(['network', 'connect', 'dorka-runtimes', MAIN])
     record('live-replacement-and-disconnect', first)
+    const acknowledgedBeforeOffline = journalCount(ACKED)
     const offline = Date.now()
     engine(['stop', '--time', '20', names.server])
     engine(['exec', MAIN, 'touch', `/workspace/${token}.exit`])
@@ -483,7 +484,9 @@ function runAcceptance() {
         projected.finishedAt === void 0,
       'exit projection changed immutable Run identity'
     )
-    waitFor('certificate acknowledgement', 3e4, () => (journalCount(ACKED) === 1 ? true : void 0))
+    waitFor('certificate acknowledgement', 3e4, () =>
+      journalCount(ACKED) === acknowledgedBeforeOffline + 1 ? true : void 0
+    )
     record('offline-exit-replay', offline)
     const blocked = Date.now()
     const token2 = `run-${names.run}-b`
@@ -505,7 +508,7 @@ function runAcceptance() {
     current = ready(names, artifacts, 'ack-replay')
     waitFor('ack replay', 3e4, () => (journalCount(PENDING) === 0 ? true : void 0))
     requireValue(
-      journalCount(ACKED) === 2,
+      journalCount(ACKED) === acknowledgedBeforeOffline + 2,
       'ack replay did not settle exactly one certificate per Run'
     )
     record('projection-before-ack-replay', blocked)
