@@ -2,7 +2,6 @@ import type {
   AgentActivityDisplayMode,
   WorktreeCardProperty
 } from '../../../../shared/ui-chrome-types'
-import { TASK_WORKTREE_CARD_PROPERTIES } from '../../../../shared/constants'
 import { translate } from '@/i18n/i18n'
 
 export const GROUP_BY_OPTIONS = [
@@ -135,47 +134,6 @@ const BASE_WORKTREE_CARD_PROPERTY_OPTIONS: WorktreeCardPropertyOption[] = [
   }
 ]
 
-const TASK_WORKTREE_CARD_PROPERTY_OPTION: WorktreeCardPropertyOption = {
-  id: 'tasks',
-  properties: TASK_WORKTREE_CARD_PROPERTIES,
-  get label() {
-    return translate('auto.components.sidebar.SidebarWorkspaceOptionsMenu.b5536d5a88', 'Tasks')
-  }
-}
-
-const ISSUE_WORKTREE_CARD_PROPERTY_OPTIONS: WorktreeCardPropertyOption[] = [
-  {
-    id: 'issue',
-    properties: ['issue'],
-    get label() {
-      return translate(
-        'auto.components.sidebar.SidebarWorkspaceOptionsMenu.bdd23b4e07',
-        'GitHub issues'
-      )
-    }
-  },
-  {
-    id: 'linear-issue',
-    properties: ['linear-issue'],
-    get label() {
-      return translate(
-        'auto.components.sidebar.SidebarWorkspaceOptionsMenu.44713a5d04',
-        'Linear issues'
-      )
-    }
-  },
-  {
-    id: 'jira-issue',
-    properties: ['jira-issue'],
-    get label() {
-      return translate(
-        'auto.components.sidebar.SidebarWorkspaceOptionsMenu.jiraIssues',
-        'Jira issues'
-      )
-    }
-  }
-]
-
 type WorktreeCardPropertyOptionsInput = {
   newCardStyle?: boolean
   hasProjectGroups?: boolean
@@ -185,9 +143,6 @@ export function getWorktreeCardPropertyOptions({
   newCardStyle = false,
   hasProjectGroups = false
 }: WorktreeCardPropertyOptionsInput = {}): WorktreeCardPropertyOption[] {
-  const issueOptions = newCardStyle
-    ? ISSUE_WORKTREE_CARD_PROPERTY_OPTIONS
-    : [TASK_WORKTREE_CARD_PROPERTY_OPTION]
   const branchOption: WorktreeCardPropertyOption = {
     id: 'branch',
     properties: ['branch'],
@@ -203,14 +158,9 @@ export function getWorktreeCardPropertyOptions({
     }
   }
   if (newCardStyle) {
-    return [...issueOptions, ...BASE_WORKTREE_CARD_PROPERTY_OPTIONS.slice(1, -1), branchOption]
+    return [...BASE_WORKTREE_CARD_PROPERTY_OPTIONS.slice(1, -1), branchOption]
   }
-  return [
-    BASE_WORKTREE_CARD_PROPERTY_OPTIONS[0],
-    ...issueOptions,
-    ...BASE_WORKTREE_CARD_PROPERTY_OPTIONS.slice(1, -1),
-    branchOption
-  ]
+  return [...BASE_WORKTREE_CARD_PROPERTY_OPTIONS.slice(0, -1), branchOption]
 }
 
 export const WORKTREE_CARD_PROPERTY_OPTIONS = getWorktreeCardPropertyOptions()

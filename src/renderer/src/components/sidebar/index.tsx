@@ -7,13 +7,11 @@ import SidebarNav from './SidebarNav'
 import SetupScriptPromptCard from './SetupScriptPromptCard'
 import WorktreeList from './WorktreeList'
 import SidebarToolbar from './SidebarToolbar'
-import WorkspaceKanbanDrawer from './WorkspaceKanbanDrawer'
 import type { VirtualizedScrollAnchor } from '@/hooks/useVirtualizedScrollAnchor'
 import { cn } from '@/lib/utils'
 import { FolderPlus, Loader2 } from 'lucide-react'
 import { ActivityThreadCollapseContext } from '@/components/activity/activity-thread-collapse-context'
 import { useSidebarProjectDrop } from './useSidebarProjectDrop'
-import { useWorkspaceBoardPanel } from './useWorkspaceBoardPanel'
 import { useWorkspaceRevealBodyRedirect } from './use-workspace-reveal-body-redirect'
 import { resolveLeftSidebarStyleVariables } from '@/lib/left-sidebar-appearance'
 import { useSystemPrefersDark } from '@/components/terminal-pane/use-system-prefers-dark'
@@ -32,6 +30,7 @@ const AgentDashboardSidebarHost = lazyWithRetry(() => import('./AgentDashboardSi
 
 const MIN_WIDTH = 220
 const MAX_WIDTH = 500
+const NOOP = (): void => {}
 // Why: straddle the sidebar/terminal seam so the divider sits on the border-l
 // instead of leaving a blank strip between the hover target and the edge.
 export const WORKTREE_SIDEBAR_RESIZE_HANDLE_CLASS_NAME =
@@ -95,20 +94,6 @@ function Sidebar({
     [settings, systemPrefersDark]
   ) as React.CSSProperties | undefined
   const { nativeDropTarget, dropHandlers, affordance } = useSidebarProjectDrop()
-  const {
-    workspaceBoardOpen,
-    workspaceBoardRenderedOpen,
-    workspaceBoardDragPreviewOpen,
-    workspaceBoardMenuOpen,
-    toggleWorkspaceBoard,
-    handleWorkspaceBoardOpenChange,
-    setWorkspaceBoardMenuOpen,
-    closeWorkspaceBoard,
-    previewWorkspaceBoardFromDrag,
-    solidifyWorkspaceBoardFromDrag,
-    cancelWorkspaceBoardDragPreview
-  } = useWorkspaceBoardPanel()
-
   const setLiveSidebarWidth = React.useCallback((width: number) => {
     document.documentElement.style.setProperty('--workspace-sidebar-live-width', `${width}px`)
   }, [])
@@ -123,12 +108,6 @@ function Sidebar({
       void fetchAllWorktrees()
     }
   }, [repoCount, startupWorktreeRefreshCompleted, fetchAllWorktrees])
-
-  useEffect(() => {
-    if (!sidebarOpen && workspaceBoardRenderedOpen) {
-      closeWorkspaceBoard()
-    }
-  }, [closeWorkspaceBoard, sidebarOpen, workspaceBoardRenderedOpen])
 
   useEffect(() => {
     if (!showAgentDashboard && agentDashboardDrawerOpen) {
@@ -161,10 +140,7 @@ function Sidebar({
           <>
             {/* Fixed controls */}
             <SidebarNav />
-            <SidebarHeader
-              onWorkspaceBoardMenuOpenChange={setWorkspaceBoardMenuOpen}
-              activityOptionsTarget={setAgentOptionsTarget}
-            />
+            <SidebarHeader activityOptionsTarget={setAgentOptionsTarget} />
             {sidebarBody === 'agents' ? (
               <React.Suspense fallback={<div className="min-h-0 flex-1" />}>
                 <ActivityThreadCollapseContext.Provider value={agentsCollapseState}>
@@ -184,11 +160,6 @@ function Sidebar({
               <WorktreeList
                 scrollOffsetRef={worktreeScrollOffsetRef}
                 scrollAnchorRef={worktreeScrollAnchorRef}
-                workspaceBoardOpen={workspaceBoardOpen}
-                onWorktreeCardClick={closeWorkspaceBoard}
-                onWorkspaceBoardDragPreviewStart={previewWorkspaceBoardFromDrag}
-                onWorkspaceBoardDragPreviewCommit={solidifyWorkspaceBoardFromDrag}
-                onWorkspaceBoardDragPreviewCancel={cancelWorkspaceBoardDragPreview}
               />
             )}
 
@@ -196,11 +167,7 @@ function Sidebar({
               <SetupScriptPromptCard />
 
               {/* Fixed bottom toolbar */}
-              <SidebarToolbar
-                workspaceBoardOpen={workspaceBoardOpen}
-                workspaceBoardDragPreviewOpen={workspaceBoardDragPreviewOpen}
-                onWorkspaceBoardToggle={toggleWorkspaceBoard}
-              />
+              <SidebarToolbar />
             </div>
           </>
         )}
@@ -250,23 +217,12 @@ function Sidebar({
         {activeModal === 'confirm-dorka-yaml-hooks' ? <DorkaYamlTrustDialog /> : null}
         {activeModal === 'forget-ssh-workspace' ? <ForgetSshWorkspaceDialog /> : null}
       </React.Suspense>
-      {sidebarOpen ? (
-        <WorkspaceKanbanDrawer
-          leftSidebarStyle={leftSidebarStyle}
-          open={workspaceBoardRenderedOpen}
-          statusBarVisible={statusBarVisible}
-          dragPreview={workspaceBoardDragPreviewOpen}
-          preserveOpenForMenu={workspaceBoardMenuOpen}
-          onOpenChange={handleWorkspaceBoardOpenChange}
-          onMenuOpenChange={setWorkspaceBoardMenuOpen}
-        />
-      ) : null}
       {showAgentDashboard ? (
         <React.Suspense fallback={null}>
           <AgentDashboardSidebarHost
             sidebarOpen={sidebarOpen}
-            workspaceBoardOpen={workspaceBoardOpen}
-            closeWorkspaceBoard={closeWorkspaceBoard}
+            workspaceBoardOpen={false}
+            closeWorkspaceBoard={NOOP}
             leftSidebarStyle={leftSidebarStyle}
             statusBarVisible={statusBarVisible}
           />

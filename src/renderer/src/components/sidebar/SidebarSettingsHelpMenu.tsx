@@ -3,18 +3,15 @@ import {
   BookOpen,
   CircleHelp,
   ExternalLink,
-  Github,
   Keyboard,
   Loader2,
   MessageSquareText,
   RefreshCw,
   RotateCw,
-  School,
   ScrollText,
   Settings
 } from 'lucide-react'
 import { toast } from 'sonner'
-import logo from '../../../../../resources/app-icons/dorka-geek-app-icon.png'
 import { useAppStore } from '@/store'
 import { Button } from '@/components/ui/button'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
@@ -28,9 +25,6 @@ import {
 import { useMountedRef } from '@/hooks/useMountedRef'
 import { useShortcutKeyDetails } from '@/hooks/useShortcutLabel'
 import { ShortcutKeyCombo } from '@/components/ShortcutKeyCombo'
-import { showOnboardingFromRenderer } from '../onboarding/show-onboarding-event'
-import { SetupGuideProgressRing } from '../setup-guide/SetupGuideProgressRing'
-import { useSetupGuideProgress } from '../setup-guide/use-setup-guide-progress'
 import { lazyWithRetry } from '@/lib/lazy-with-retry'
 import type * as SidebarFeedbackDialogModule from './SidebarFeedbackDialog'
 import { translate } from '@/i18n/i18n'
@@ -49,7 +43,6 @@ const SidebarFeedbackDialog = lazyWithRetry(
 
 const DOCS_URL = 'https://www.ondorka.dev/docs'
 const CHANGELOG_URL = 'https://ondorka.dev/changelog'
-const GITHUB_URL = 'https://github.com/stablyai/orca'
 const DISCORD_URL = 'https://discord.gg/fzjDKHxv8Q'
 const X_URL = 'https://x.com/dorka_build'
 const NO_UPDATE_CHECK_MODIFIERS = {
@@ -98,25 +91,18 @@ function ExternalMenuItem({
 }
 
 export function SidebarSettingsHelpMenu(): React.JSX.Element {
-  const openModal = useAppStore((s) => s.openModal)
   const openSettingsPage = useAppStore((s) => s.openSettingsPage)
   const openSettingsTarget = useAppStore((s) => s.openSettingsTarget)
   const updateStatus = useAppStore((s) => s.updateStatus)
-  const setupProgress = useSetupGuideProgress(true, false, false)
-
   const settingsShortcut = useShortcutKeyDetails('app.settings')
   const [menuOpen, setMenuOpen] = useState(false)
   const [feedbackOpen, setFeedbackOpen] = useState(false)
   // Why sticky: the dialog animates itself closed off `open`, so unmounting on close cuts that short.
   const [feedbackDialogMounted, setFeedbackDialogMounted] = useState(false)
   const [isRestartingDorka, setIsRestartingDorka] = useState(false)
-  const lastShowOnboardingAtRef = React.useRef(0)
   const updateCheckModifiersRef = React.useRef(NO_UPDATE_CHECK_MODIFIERS)
   const mountedRef = useMountedRef()
   const updateCheckHint = getUpdateCheckHint()
-
-  const showMilestones =
-    setupProgress.ready && setupProgress.coreDoneCount < setupProgress.coreTotal
 
   const handleMenuOpenChange = (open: boolean): void => {
     setMenuOpen(open)
@@ -131,15 +117,6 @@ export function SidebarSettingsHelpMenu(): React.JSX.Element {
   const handleOpenFeedback = (): void => {
     setFeedbackDialogMounted(true)
     setFeedbackOpen(true)
-  }
-
-  const handleShowOnboarding = (): void => {
-    const now = Date.now()
-    if (now - lastShowOnboardingAtRef.current < 500) {
-      return
-    }
-    lastShowOnboardingAtRef.current = now
-    void showOnboardingFromRenderer()
   }
 
   const handleRestartDorka = (): void => {
@@ -184,10 +161,6 @@ export function SidebarSettingsHelpMenu(): React.JSX.Element {
     const modifiers = updateCheckModifiersRef.current
     updateCheckModifiersRef.current = NO_UPDATE_CHECK_MODIFIERS
     void window.api.updater.check(getUpdateCheckClickOptions(modifiers))
-  }
-
-  const openMilestones = (): void => {
-    openModal('setup-guide', { telemetrySource: 'help_menu' })
   }
 
   return (
@@ -260,37 +233,6 @@ export function SidebarSettingsHelpMenu(): React.JSX.Element {
                 'Send Feedback'
               )}
             </DropdownMenuItem>
-            {showMilestones ? (
-              <DropdownMenuItem onSelect={openMilestones}>
-                <img
-                  src={logo}
-                  alt=""
-                  aria-hidden="true"
-                  className="size-3.5 rounded-sm object-cover"
-                />
-                {translate(
-                  'auto.components.sidebar.SidebarSettingsHelpMenu.f8a2c91d4e',
-                  'Milestones'
-                )}
-                <SetupGuideProgressRing
-                  done={setupProgress.coreDoneCount}
-                  total={setupProgress.coreTotal}
-                  sizeClassName="size-4"
-                  className="ml-auto"
-                />
-              </DropdownMenuItem>
-            ) : null}
-            <DropdownMenuItem
-              className="whitespace-nowrap"
-              onClick={handleShowOnboarding}
-              onSelect={handleShowOnboarding}
-            >
-              <School className="size-3.5" />
-              {translate(
-                'auto.components.sidebar.SidebarSettingsHelpMenu.b7e4d2a19c',
-                'Onboarding'
-              )}
-            </DropdownMenuItem>
             <ExternalMenuItem
               label={translate(
                 'auto.components.sidebar.SidebarSettingsHelpMenu.cdc87f897e',
@@ -308,14 +250,6 @@ export function SidebarSettingsHelpMenu(): React.JSX.Element {
               icon={<ScrollText className="size-3.5" />}
             />
             <DropdownMenuSeparator />
-            <ExternalMenuItem
-              label={translate(
-                'auto.components.sidebar.SidebarSettingsHelpMenu.5687ab246a',
-                'GitHub'
-              )}
-              url={GITHUB_URL}
-              icon={<Github className="size-3.5" />}
-            />
             <DropdownMenuItem onSelect={() => openExternalUrl(DISCORD_URL)}>
               <DiscordIcon />
               {translate('auto.components.sidebar.SidebarSettingsHelpMenu.eb9884e55b', 'Discord')}
