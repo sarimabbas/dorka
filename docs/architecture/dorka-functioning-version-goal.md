@@ -45,7 +45,7 @@ the server container must start and accept remote client connections.
 ### Recompose the existing application
 
 - [x] Remove the temporary parallel Dorka shell entry path.
-- [ ] Preserve the existing application shell and tab behavior.
+- [x] Preserve the existing application shell and tab behavior.
 - [x] Keep the existing Settings experience with only supported sections visible.
 - [ ] Keep the existing local diff viewer.
 - [ ] Keep PR Review using credentials and tools inside the selected Computer.
@@ -56,15 +56,15 @@ the server container must start and accept remote client connections.
 
 - [x] Remove the bottom status bar.
 - [ ] Remove Commands and Quick Commands product surfaces.
-- [ ] Remove Tasks and Kanban navigation.
+- [x] Remove Tasks and Kanban navigation.
 - [ ] Remove relay setup, status, and navigation.
 - [ ] Remove dedicated GitHub integration and sign-in surfaces.
 - [ ] Remove dedicated Linear integration and sign-in surfaces.
 
 ### Runtime integration
 
-- [ ] Compose `AgentRosterStore` during `dorkad` startup.
-- [ ] Compose `ComputerRuntimeManager` during `dorkad` startup.
+- [x] Compose `AgentRosterStore` during `dorkad` startup.
+- [x] Compose `ComputerRuntimeManager` during `dorkad` startup.
 - [ ] Expose the minimal authenticated Agent and Computer control-plane operations.
 - [ ] Provision an idempotent `Main` Computer and first Agent.
 - [ ] Connect an Agent preset to the existing launcher and PTY/session path.
