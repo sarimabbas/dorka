@@ -228,7 +228,7 @@ describe('managed Run PTY exit observation', () => {
     expect(h.current.status).toBe('waiting')
     expect(h.order).toEqual(['persist', 'ack'])
     expect(h.listExact).toHaveBeenCalledWith([
-      { relayPtyId: RELAY_PTY_ID, ptyIncarnationId: INCARNATION, relayGeneration: RELAY_GENERATION }
+      { relayPtyId: RELAY_PTY_ID, ptyIncarnationId: INCARNATION }
     ])
   })
 
