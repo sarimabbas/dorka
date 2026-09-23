@@ -25,16 +25,12 @@ export function verifyDesktopReadiness(engine, main, server) {
 }
 
 export function selkiesServiceStatus(engine, main) {
-  const status = engine([
-    'exec',
-    main,
-    's6-svstat',
-    '/etc/service/dbus',
-    '/etc/service/xvfb',
-    '/etc/service/selkies',
-    '/etc/service/plasma'
-  ])
-  if (!status.split('\n').every((line) => /^(?:.*: )?up \(pid \d+\)/.test(line))) {
+  const status = ['dbus', 'xvfb', 'selkies', 'plasma']
+    .map(
+      (service) => `${service}: ${engine(['exec', main, 's6-svstat', `/etc/service/${service}`])}`
+    )
+    .join('\n')
+  if (!status.split('\n').every((line) => /^.*: up \(pid \d+(?: pgid \d+)?\)/.test(line))) {
     throw new Error(`Selkies supervisor is degraded: ${JSON.stringify(status)}`)
   }
   return status
