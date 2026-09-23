@@ -15,6 +15,7 @@ import type { AgentRosterStore } from '../agents/agent-roster-store'
 import type { AgentExecutionService } from '../agents/agent-execution-service'
 import type { ComputerRuntimeManager } from '../computers/computer-runtime-manager'
 import type { ComputerRunSourceControlService } from '../agents/computer-run-source-control'
+import type { ComputerGitIdentityService } from '../computers/computer-git-identity'
 
 type BaseRuntimeConstructorParams = ConstructorParameters<typeof DorkaRuntimeWithResolveWaiter>
 type BaseRuntimeDependencies = NonNullable<BaseRuntimeConstructorParams[2]>
@@ -24,6 +25,7 @@ export type DorkaLifecycleRpcDependencies = {
   agentExecutionService?: AgentExecutionService
   computerRuntimeManager?: ComputerRuntimeManager
   computerRunSourceControl?: ComputerRunSourceControlService
+  computerGitIdentity?: ComputerGitIdentityService
 }
 
 type DorkaRuntimeDependencies = BaseRuntimeDependencies & DorkaLifecycleRpcDependencies
@@ -33,6 +35,7 @@ class DorkaRuntimeService extends DorkaRuntimeWithResolveWaiter {
   private readonly agentExecutionService?: AgentExecutionService
   private readonly computerRuntimeManager?: ComputerRuntimeManager
   private readonly computerRunSourceControl?: ComputerRunSourceControlService
+  private readonly computerGitIdentity?: ComputerGitIdentityService
 
   constructor(
     store: BaseRuntimeConstructorParams[0] = null,
@@ -44,6 +47,7 @@ class DorkaRuntimeService extends DorkaRuntimeWithResolveWaiter {
     this.agentExecutionService = deps?.agentExecutionService
     this.computerRuntimeManager = deps?.computerRuntimeManager
     this.computerRunSourceControl = deps?.computerRunSourceControl
+    this.computerGitIdentity = deps?.computerGitIdentity
     // Why: the runtime listing re-runs a scan the worktree-change generation overtook and re-lists
     // through this runtime's scan cache, so a worktree change must reach both. The desktop IPC
     // module registers the generation bump at load; a headless host never loads it.
@@ -108,6 +112,21 @@ class DorkaRuntimeService extends DorkaRuntimeWithResolveWaiter {
 
   removeRuntimeComputer(id: string) {
     return this.requireComputerRuntimeManager().remove(id)
+  }
+
+  getComputerGitIdentity(id: string) {
+    return this.requireComputerGitIdentity().get(id)
+  }
+
+  setComputerGitIdentity(id: string, name: string, email: string) {
+    return this.requireComputerGitIdentity().set(id, { name, email })
+  }
+
+  private requireComputerGitIdentity(): ComputerGitIdentityService {
+    if (!this.computerGitIdentity) {
+      throw new Error('Computer Git identity is unavailable')
+    }
+    return this.computerGitIdentity
   }
 
   private requireComputerRunSourceControl(): ComputerRunSourceControlService {

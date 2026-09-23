@@ -6,7 +6,10 @@ import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { getDefaultSettings } from '../../../../shared/constants'
 import type { RuntimeClientTarget } from '@/runtime/runtime-client-target'
-import { COMPUTER_LIFECYCLE_RUNTIME_CAPABILITY } from '../../../../shared/protocol-version'
+import {
+  COMPUTER_GIT_IDENTITY_RUNTIME_CAPABILITY,
+  COMPUTER_LIFECYCLE_RUNTIME_CAPABILITY
+} from '../../../../shared/protocol-version'
 
 const mocks = vi.hoisted(() => ({
   callRuntimeRpc: vi.fn(),
@@ -41,6 +44,12 @@ const createdComputer = {
 
 function supportedStatus(): { capabilities: string[] } {
   return { capabilities: [COMPUTER_LIFECYCLE_RUNTIME_CAPABILITY] }
+}
+
+function identitySupportedStatus(): { capabilities: string[] } {
+  return {
+    capabilities: [COMPUTER_LIFECYCLE_RUNTIME_CAPABILITY, COMPUTER_GIT_IDENTITY_RUNTIME_CAPABILITY]
+  }
 }
 
 describe('ComputersSettingsPane', () => {
@@ -119,6 +128,50 @@ describe('ComputersSettingsPane', () => {
       expect.anything(),
       expect.anything()
     )
+  })
+
+  it('edits and saves a running Computer Git identity inline', async () => {
+    const user = userEvent.setup()
+    mocks.callRuntimeRpc
+      .mockResolvedValueOnce(identitySupportedStatus())
+      .mockResolvedValueOnce([runningComputer])
+      .mockResolvedValueOnce({ name: 'Ada Lovelace', email: 'ada@example.com' })
+      .mockResolvedValueOnce({ name: 'Grace Hopper', email: 'grace@example.com' })
+
+    render(<ComputersSettingsPane settings={settings} />)
+
+    const name = await screen.findByLabelText('Git display name')
+    const email = screen.getByLabelText('Git email')
+    await waitFor(() => expect(name).toHaveValue('Ada Lovelace'))
+    expect(email).toHaveValue('ada@example.com')
+
+    await user.clear(name)
+    await user.type(name, 'Grace Hopper')
+    await user.clear(email)
+    await user.type(email, 'grace@example.com')
+    await user.click(screen.getByRole('button', { name: 'Save' }))
+
+    expect(mocks.callRuntimeRpc).toHaveBeenNthCalledWith(
+      4,
+      { kind: 'local' },
+      'computers.gitIdentity.set',
+      { id: 'dev-box', name: 'Grace Hopper', email: 'grace@example.com' }
+    )
+    expect(await screen.findByText('Saved')).toBeInTheDocument()
+  })
+
+  it('does not read identity or silently start a stopped Computer', async () => {
+    mocks.callRuntimeRpc
+      .mockResolvedValueOnce(identitySupportedStatus())
+      .mockResolvedValueOnce([stoppedComputer])
+
+    render(<ComputersSettingsPane settings={settings} />)
+
+    expect(
+      await screen.findByText('Start this Computer to edit its Git identity.')
+    ).toBeInTheDocument()
+    expect(mocks.callRuntimeRpc).toHaveBeenCalledTimes(2)
+    expect(screen.getByLabelText('Git display name')).toBeDisabled()
   })
 
   it('starts a stopped computer and stops the updated running computer', async () => {

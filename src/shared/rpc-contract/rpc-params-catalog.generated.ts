@@ -134,9 +134,10 @@ import {
   StartImageUpload
 } from './clipboard-params'
 import {
-  ComputerIdParams,
+  ComputerGitIdentityParams,
   CreateComputerParams,
-  ListComputersParams
+  ListComputersParams,
+  SetComputerGitIdentityParams
 } from './computer-lifecycle-params'
 import { ComputerCapabilitiesParams, ComputerPermissionsStatusParams } from './computer-params'
 import {
@@ -749,10 +750,12 @@ export const RPC_PARAMS_BY_METHOD = {
   'computer.setValue': SetValue,
   'computer.typeText': TypeText,
   'computers.create': CreateComputerParams,
+  'computers.gitIdentity.get': ComputerGitIdentityParams,
+  'computers.gitIdentity.set': SetComputerGitIdentityParams,
   'computers.list': ListComputersParams,
-  'computers.remove': ComputerIdParams,
-  'computers.start': ComputerIdParams,
-  'computers.stop': ComputerIdParams,
+  'computers.remove': ComputerGitIdentityParams,
+  'computers.start': ComputerGitIdentityParams,
+  'computers.stop': ComputerGitIdentityParams,
   'diagnostics.memory': null,
   'emulator.attach': AttachParamsOfEmulatorParams,
   'emulator.availability': EmulatorAvailabilityParams,

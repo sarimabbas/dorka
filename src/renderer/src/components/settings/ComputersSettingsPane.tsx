@@ -2,10 +2,13 @@ import { useCallback, useEffect, useState } from 'react'
 import { Loader2, RefreshCw } from 'lucide-react'
 import type { ComputerRuntimeInfo } from '../../../../shared/computer-runtime'
 import type { GlobalSettings } from '../../../../shared/global-settings-types'
-import { COMPUTER_LIFECYCLE_RUNTIME_CAPABILITY } from '../../../../shared/protocol-version'
+import {
+  COMPUTER_GIT_IDENTITY_RUNTIME_CAPABILITY,
+  COMPUTER_LIFECYCLE_RUNTIME_CAPABILITY
+} from '../../../../shared/protocol-version'
 import type { RuntimeStatus } from '../../../../shared/runtime-types'
 import { callRuntimeRpc, getActiveRuntimeTarget } from '@/runtime/runtime-rpc-client'
-import { Badge } from '@/components/ui/badge'
+import { ComputerSettingsRow } from './ComputerSettingsRow'
 import { Button } from '@/components/ui/button'
 import { translate } from '@/i18n/i18n'
 
@@ -13,7 +16,7 @@ type ComputersLoadState =
   | { kind: 'loading' }
   | { kind: 'unsupported' }
   | { kind: 'degraded'; message: string }
-  | { kind: 'ready'; computers: ComputerRuntimeInfo[] }
+  | { kind: 'ready'; computers: ComputerRuntimeInfo[]; supportsGitIdentity: boolean }
 
 function errorMessage(error: unknown): string {
   return error instanceof Error
@@ -58,7 +61,13 @@ export function ComputersSettingsPane({
           }
         )
         if (!signal?.aborted) {
-          setState({ kind: 'ready', computers })
+          setState({
+            kind: 'ready',
+            computers,
+            supportsGitIdentity: status.capabilities.includes(
+              COMPUTER_GIT_IDENTITY_RUNTIME_CAPABILITY
+            )
+          })
         }
       } catch (error) {
         if (!signal?.aborted) {
@@ -90,7 +99,7 @@ export function ComputersSettingsPane({
       setState((current) =>
         current.kind === 'ready'
           ? {
-              kind: 'ready',
+              ...current,
               computers: current.computers.map((entry) =>
                 entry.id === updated.id ? updated : entry
               )
@@ -175,35 +184,16 @@ export function ComputersSettingsPane({
           </p>
         </div>
       ) : (
-        state.computers.map((computer) => {
-          const isRunning = computer.state === 'running'
-          const isPending = pendingComputerId === computer.id
-          return (
-            <div key={computer.id} className="flex items-center gap-4 py-4 first:pt-0 last:pb-0">
-              <div className="min-w-0 flex-1 space-y-1">
-                <div className="flex flex-wrap items-center gap-2">
-                  <p className="truncate text-sm font-medium text-foreground">{computer.name}</p>
-                  <Badge variant="outline" className="capitalize text-muted-foreground">
-                    {computer.state}
-                  </Badge>
-                </div>
-                <p className="truncate font-mono text-xs text-muted-foreground">{computer.id}</p>
-              </div>
-              <Button
-                type="button"
-                size="sm"
-                variant="outline"
-                disabled={isPending}
-                onClick={() => void setComputerRunning(computer, !isRunning)}
-              >
-                {isPending ? <Loader2 className="animate-spin" /> : null}
-                {isRunning
-                  ? translate('auto.components.settings.ComputersSettingsPane.stop', 'Stop')
-                  : translate('auto.components.settings.ComputersSettingsPane.start', 'Start')}
-              </Button>
-            </div>
-          )
-        })
+        state.computers.map((computer) => (
+          <ComputerSettingsRow
+            key={computer.id}
+            computer={computer}
+            settings={settings}
+            supportsGitIdentity={state.supportsGitIdentity}
+            lifecyclePending={pendingComputerId === computer.id}
+            onToggleRunning={() => void setComputerRunning(computer, computer.state !== 'running')}
+          />
+        ))
       )}
     </div>
   )

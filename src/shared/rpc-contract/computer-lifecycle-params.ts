@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { isValidGitDisplayName, isValidGitEmail } from '../computer-git-identity'
 
 const ComputerId = z
   .string()
@@ -54,3 +55,13 @@ export const CreateComputerParams = z
   .strict()
 
 export const ComputerIdParams = z.object({ id: ComputerId }).strict()
+
+export const ComputerGitIdentityParams = ComputerIdParams
+
+export const SetComputerGitIdentityParams = z
+  .object({
+    id: ComputerId,
+    name: z.string().refine(isValidGitDisplayName, 'Invalid Git display name'),
+    email: z.string().refine(isValidGitEmail, 'Invalid Git email')
+  })
+  .strict()

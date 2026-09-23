@@ -51,12 +51,15 @@ describe('dorkad RPC manifest', () => {
 
     expect(DORKAD_DISABLED_RUNTIME_CAPABILITIES).not.toContain('agents.execution.v1')
     expect(entry).toContain('createDorkadComputerAgentExecution(')
-    expect(entry).toContain('agentExecutionService: computerAgentExecution.service')
-    expect(entry).toContain('computerRunSourceControl: computerAgentExecution.sourceControl')
+    expect(entry).toContain('...computerAgentExecution.runtimeDependencies')
+    expect(composition).toContain('agentExecutionService: service')
+    expect(composition).toContain('computerRunSourceControl: sourceControl')
+    expect(composition).toContain('computerGitIdentity: gitIdentity')
     expect(entry).toContain('computerAgentExecution?.disconnectAll()')
     expect(composition.match(/createManagedComputerHostProjector\(/g)).toHaveLength(1)
     expect(composition).toContain('createManagedComputerAgentTerminalLauncher({ host, runtime })')
     expect(composition).toContain('new ComputerRunSourceControl({')
+    expect(composition).toContain('new ComputerGitIdentityManager({ computers, host })')
     expect(composition).toContain('host\n      })')
   })
 

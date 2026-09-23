@@ -12,6 +12,7 @@ import { DorkaRuntimeService } from '../../dorka-runtime'
 import {
   AGENT_EXECUTION_RUNTIME_CAPABILITY,
   AGENT_ROSTER_RUNTIME_CAPABILITY,
+  COMPUTER_GIT_IDENTITY_RUNTIME_CAPABILITY,
   COMPUTER_LIFECYCLE_RUNTIME_CAPABILITY,
   RUNTIME_CAPABILITIES
 } from '../../../../shared/protocol-version'
@@ -36,7 +37,9 @@ describe('Agent and Computer lifecycle RPC', () => {
       'computers.create',
       'computers.start',
       'computers.stop',
-      'computers.remove'
+      'computers.remove',
+      'computers.gitIdentity.get',
+      'computers.gitIdentity.set'
     ] as const
 
     expect(expected.every((name) => methods.has(name))).toBe(true)
@@ -55,7 +58,30 @@ describe('Agent and Computer lifecycle RPC', () => {
     ).toBe(false)
     expect(RUNTIME_CAPABILITIES).toContain(AGENT_ROSTER_RUNTIME_CAPABILITY)
     expect(RUNTIME_CAPABILITIES).toContain(AGENT_EXECUTION_RUNTIME_CAPABILITY)
+    expect(
+      methods.get('computers.gitIdentity.set')?.params?.safeParse({
+        id: 'worker-1',
+        name: 'Ada\nInjected',
+        email: 'ada@example.com'
+      }).success
+    ).toBe(false)
+    expect(
+      methods.get('computers.gitIdentity.set')?.params?.safeParse({
+        id: 'worker-1',
+        name: '-c credential.helper=evil',
+        email: 'ada@example.com'
+      }).success
+    ).toBe(false)
+    expect(
+      methods.get('computers.gitIdentity.set')?.params?.safeParse({
+        id: 'worker-1',
+        name: 'Ada Lovelace',
+        email: 'ada@example.com',
+        target: 'ssh-1'
+      }).success
+    ).toBe(false)
     expect(RUNTIME_CAPABILITIES).toContain(COMPUTER_LIFECYCLE_RUNTIME_CAPABILITY)
+    expect(RUNTIME_CAPABILITIES).toContain(COMPUTER_GIT_IDENTITY_RUNTIME_CAPABILITY)
   })
 
   it('routes lifecycle calls and refuses to move an Agent to a missing Computer', async () => {

@@ -1,4 +1,8 @@
 import type { CommitMessageDraftContext } from '../../shared/commit-message-generation'
+import type {
+  ComputerGitIdentity,
+  ComputerGitIdentityInput
+} from '../../shared/computer-git-identity'
 import { gitExecMutatesRepository } from '../../shared/git-exec-mutation'
 import { buildHostedRemoteCommitUrl, buildHostedRemoteFileUrl } from '../git/hosted-remote-url'
 import {
@@ -11,6 +15,14 @@ import { isJsonRpcMethodNotFoundError } from './ssh-git-relay-errors'
 import { SshGitWorktreeProvider } from './ssh-git-worktree-provider'
 
 export class SshGitProvider extends SshGitWorktreeProvider implements IGitProvider {
+  async getComputerGitIdentity(): Promise<ComputerGitIdentity> {
+    return parseComputerGitIdentity(await this.mux.request('git.getComputerIdentity', {}))
+  }
+
+  async setComputerGitIdentity(identity: ComputerGitIdentityInput): Promise<ComputerGitIdentity> {
+    return parseComputerGitIdentity(await this.mux.request('git.setComputerIdentity', identity))
+  }
+
   async getStagedCommitContext(worktreePath: string): Promise<CommitMessageDraftContext | null> {
     const branchPromise = this.exec(['branch', '--show-current'], worktreePath).catch(() => ({
       stdout: ''
@@ -159,4 +171,19 @@ export class SshGitProvider extends SshGitWorktreeProvider implements IGitProvid
     }
     return buildHostedRemoteCommitUrl(remoteUrl, sha)
   }
+}
+
+function parseComputerGitIdentity(value: unknown): ComputerGitIdentity {
+  if (!value || typeof value !== 'object') {
+    throw new Error('Computer Git identity response was invalid.')
+  }
+  const name = Reflect.get(value, 'name')
+  const email = Reflect.get(value, 'email')
+  if (
+    (name !== null && typeof name !== 'string') ||
+    (email !== null && typeof email !== 'string')
+  ) {
+    throw new Error('Computer Git identity response was invalid.')
+  }
+  return { name, email }
 }

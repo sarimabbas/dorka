@@ -206,7 +206,6 @@ async function startDorkadRuntime(
   if (isAgentStatusHooksEnabled(store.getSettings())) {
     await agentHookServer.start({ env: 'production', userDataPath: runtimeUserDataPath })
   }
-
   // Why before the runtime and the PTY handlers: `setLocalPtyProvider` installs the daemon
   // adapter as THE local provider, and the registry's contract is that it lands before
   // registerPtyHandlers so the IPC layer routes through the daemon from the first call.
@@ -222,8 +221,7 @@ async function startDorkadRuntime(
   )
   const runtime = new DorkaRuntimeService(store, undefined, {
     agentRosterStore: controlPlane.agents,
-    agentExecutionService: computerAgentExecution.service,
-    computerRunSourceControl: computerAgentExecution.sourceControl,
+    ...computerAgentExecution.runtimeDependencies,
     computerRuntimeManager: controlPlane.computers,
     disabledRuntimeCapabilities: DorkadRpc.DORKAD_DISABLED_RUNTIME_CAPABILITIES,
     // Why lazy: a daemon swap replaces the provider after construction, so an eager

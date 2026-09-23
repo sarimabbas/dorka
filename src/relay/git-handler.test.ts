@@ -73,6 +73,8 @@ describe('GitHandler', () => {
     expect(methods).toContain('git.removeWorktree')
     expect(methods).toContain('git.worktreeIsClean')
     expect(methods).toContain('git.refreshLocalBaseRefForWorktreeCreate')
+    expect(methods).toContain('git.getComputerIdentity')
+    expect(methods).toContain('git.setComputerIdentity')
     expect(methods).toContain('git.markRemoteDorkaCreated')
     expect(methods).toContain('git.renameCurrentBranch')
     expect(methods).toContain('git.forceDeletePreservedBranch')

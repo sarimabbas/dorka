@@ -4,6 +4,7 @@ import { createManagedComputerAgentTerminalLauncher } from '../agents/managed-co
 import { ComputerRunSourceControl } from '../agents/computer-run-source-control'
 import { createManagedComputerHostProjector } from '../agents/managed-computer-host-projector'
 import type { AgentRosterStore } from '../agents/agent-roster-store'
+import { ComputerGitIdentityManager } from '../computers/computer-git-identity'
 import type { ComputerRuntimeManager } from '../computers/computer-runtime-manager'
 import type { DorkaRuntimeService } from '../runtime/dorka-runtime'
 import { ManagedSshHostSessions } from '../ssh/managed-ssh-host-sessions'
@@ -15,6 +16,7 @@ export function createDorkadComputerAgentExecution(
   let sessions: ManagedSshHostSessions | null = null
   let launch = createUnavailableLauncher()
   let sourceControlAuthority: ComputerRunSourceControl | null = null
+  let gitIdentityAuthority: ComputerGitIdentityManager | null = null
   const service = new AgentExecutionService(agents, computers, (request) => launch(request))
   const sourceControl = {
     status: (runId: string) => requireSourceControl(sourceControlAuthority).status(runId),
@@ -26,9 +28,18 @@ export function createDorkadComputerAgentExecution(
       requireSourceControl(sourceControlAuthority).reviewDiff(request)
   }
 
+  const gitIdentity = {
+    get: (computerId: string) => requireGitIdentity(gitIdentityAuthority).get(computerId),
+    set: (computerId: string, identity: Parameters<ComputerGitIdentityManager['set']>[1]) =>
+      requireGitIdentity(gitIdentityAuthority).set(computerId, identity)
+  }
+
   return {
-    service,
-    sourceControl,
+    runtimeDependencies: {
+      agentExecutionService: service,
+      computerRunSourceControl: sourceControl,
+      computerGitIdentity: gitIdentity
+    },
     attach(store: Store, runtime: DorkaRuntimeService): void {
       sessions = new ManagedSshHostSessions({ store, runtime })
       const host = createManagedComputerHostProjector({ computers, sessions })
@@ -38,11 +49,21 @@ export function createDorkadComputerAgentExecution(
         computers,
         host
       })
+      gitIdentityAuthority = new ComputerGitIdentityManager({ computers, host })
     },
     async disconnectAll(): Promise<void> {
       await sessions?.disconnectAll()
     }
   }
+}
+
+function requireGitIdentity(
+  authority: ComputerGitIdentityManager | null
+): ComputerGitIdentityManager {
+  if (!authority) {
+    throw new Error('Computer Git identity is unavailable')
+  }
+  return authority
 }
 
 function requireSourceControl(

@@ -65,6 +65,8 @@ export function registerGitHandlers(
   dispatcher.onRequest('git.refreshLocalBaseRefForWorktreeCreate', (p) =>
     handlers.worktree.refreshLocalBaseRefForWorktreeCreate(p)
   )
+  dispatcher.onRequest('git.getComputerIdentity', () => handlers.exec.getComputerIdentity())
+  dispatcher.onRequest('git.setComputerIdentity', (p) => handlers.exec.setComputerIdentity(p))
   dispatcher.onRequest('git.markRemoteDorkaCreated', (p) => handlers.exec.markRemoteDorkaCreated(p))
   dispatcher.onRequest('git.renameCurrentBranch', (p) => handlers.exec.renameCurrentBranch(p))
   dispatcher.onRequest('git.forceDeletePreservedBranch', (p) =>

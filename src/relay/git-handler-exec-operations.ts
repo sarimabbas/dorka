@@ -4,8 +4,64 @@ import { validateGitExecArgs } from './git-handler-ops'
 import { gitExecMutatesRepository } from '../shared/git-exec-mutation'
 import { normalizeGitErrorMessage } from '../shared/git-remote-error'
 import { forceDeletePreservedRelayBranch } from './git-handler-branch-cleanup'
+import {
+  assertValidComputerGitIdentity,
+  isValidGitDisplayName,
+  isValidGitEmail,
+  type ComputerGitIdentity,
+  type ComputerGitIdentityInput
+} from '../shared/computer-git-identity'
+
+const COMPUTER_GIT_CONFIG = '/home/ubuntu/.gitconfig'
 
 export class GitHandlerExecOperations extends GitHandlerOperationContext {
+  async getComputerIdentity(): Promise<ComputerGitIdentity> {
+    const [name, email] = await Promise.all([
+      this.readComputerIdentityValue('user.name'),
+      this.readComputerIdentityValue('user.email')
+    ])
+    if (
+      (name !== null && !isValidGitDisplayName(name)) ||
+      (email !== null && !isValidGitEmail(email))
+    ) {
+      throw new Error('Computer Git identity contains invalid values.')
+    }
+    return { name, email }
+  }
+
+  async setComputerIdentity(params: Record<string, unknown>): Promise<ComputerGitIdentity> {
+    const { name, email } = params
+    if (typeof name !== 'string' || typeof email !== 'string') {
+      throw new Error('Invalid Computer Git identity request.')
+    }
+    const identity: ComputerGitIdentityInput = { name, email }
+    assertValidComputerGitIdentity(identity)
+    await this.git(
+      ['config', '--file', COMPUTER_GIT_CONFIG, '--replace-all', 'user.name', identity.name],
+      '/home/ubuntu'
+    )
+    await this.git(
+      ['config', '--file', COMPUTER_GIT_CONFIG, '--replace-all', 'user.email', identity.email],
+      '/home/ubuntu'
+    )
+    return identity
+  }
+
+  private async readComputerIdentityValue(key: 'user.name' | 'user.email'): Promise<string | null> {
+    try {
+      const { stdout } = await this.git(
+        ['config', '--file', COMPUTER_GIT_CONFIG, '--get', key],
+        '/home/ubuntu'
+      )
+      return stdout.replace(/\r?\n$/, '') || null
+    } catch (error) {
+      if (isExitCodeOne(error)) {
+        return null
+      }
+      throw error
+    }
+  }
+
   async exec(params: Record<string, unknown>, context?: RequestContext) {
     const args = params.args as string[]
     const cwd = params.cwd as string
@@ -88,4 +144,8 @@ export class GitHandlerExecOperations extends GitHandlerOperationContext {
       forceDeletePreservedRelayBranch(this.git.bind(this), repoPath, branchName, expectedHead)
     )
   }
+}
+
+function isExitCodeOne(error: unknown): boolean {
+  return !!error && typeof error === 'object' && 'code' in error && error.code === 1
 }
