@@ -42,6 +42,20 @@ function fixture() {
 }
 
 describe('native Linux acceptance contracts', () => {
+  it('makes the fake agent terminate its owning PTY after the offline trigger', () => {
+    const shim = readFileSync(
+      resolve(
+        import.meta.dirname,
+        '../../tests/e2e/fixtures/dorka-native-linux-computer/agent-shim.sh'
+      ),
+      'utf8'
+    )
+
+    expect(shim.indexOf('while [[ ! -e "/workspace/$token.exit" ]]')).toBeLessThan(
+      shim.indexOf('kill -TERM "$PPID"')
+    )
+  })
+
   it('pulls registry bases without trying to pull the local fixture base', () => {
     const common = { tag: 'acceptance:latest', label: 'dev.dorka.acceptance-run=test' }
     expect(acceptanceBuildArgs({ ...common, file: 'docker/computer/Dockerfile' })).toContain(
