@@ -155,6 +155,8 @@ export function createComputerArgs(
     `${validated.resources.memoryMb}m`,
     '--pids-limit',
     String(validated.resources.pids),
+    '--shm-size',
+    '2g',
     '--mount',
     `type=volume,source=${name}-home,target=/home/ubuntu`,
     '--mount',

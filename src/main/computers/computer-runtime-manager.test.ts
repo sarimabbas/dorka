@@ -99,6 +99,8 @@ describe('ComputerRuntimeManager', () => {
         '4096m',
         '--pids-limit',
         '512',
+        '--shm-size',
+        '2g',
         '--mount',
         'type=volume,source=dorka-computer-alpha-home,target=/home/ubuntu',
         '--mount',

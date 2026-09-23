@@ -5,11 +5,20 @@ set -euo pipefail
 : "${DORKA_EXECUTION_GENERATION:?DORKA_EXECUTION_GENERATION is required}"
 
 mkdir -p /run/sshd /workspace /home/ubuntu/.ssh
-chown ubuntu:ubuntu /workspace /home/ubuntu/.ssh
+chown ubuntu:ubuntu /home/ubuntu /workspace /home/ubuntu/.ssh
 chmod 0700 /home/ubuntu/.ssh
 
 install -d -o root -g root -m 0755 /home/ubuntu/.dorka
 install -d -o ubuntu -g ubuntu -m 0700 /home/ubuntu/.dorka/managed-pty-exits/v1
+password_file=/home/ubuntu/.dorka/desktop-password
+if [[ ! -s "$password_file" ]]; then
+  umask 077
+  printf '%s' "${PASSWD:-$(openssl rand -base64 24)}" > "$password_file"
+fi
+chown ubuntu:ubuntu "$password_file"
+chmod 0600 "$password_file"
+export PASSWD
+PASSWD=$(<"$password_file")
 generation_marker=$(mktemp /home/ubuntu/.dorka/execution-generation.XXXXXX)
 printf '%s\n' "$DORKA_EXECUTION_GENERATION" > "$generation_marker"
 chmod 0444 "$generation_marker"
@@ -32,14 +41,7 @@ ssh-keygen -A
   -o PasswordAuthentication=no \
   -o KbdInteractiveAuthentication=no \
   -o PermitRootLogin=no &
-sshd_pid=$!
 
-shutdown() {
-  kill -TERM "$sshd_pid" "$desktop_pid" 2>/dev/null || true
-  wait "$sshd_pid" "$desktop_pid" 2>/dev/null || true
-}
-trap shutdown INT TERM EXIT
-
-setpriv --reuid=1000 --regid=1000 --init-groups /usr/bin/supervisord "$@" &
-desktop_pid=$!
-wait -n "$sshd_pid" "$desktop_pid"
+# Selkies' rootless s6 init remains PID 1 while sshd serves as a private-network
+# sidecar process. Container teardown terminates every remaining process.
+exec setpriv --reuid=1000 --regid=1000 --init-groups /init "$@"

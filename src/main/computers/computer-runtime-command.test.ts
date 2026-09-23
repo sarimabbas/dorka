@@ -26,6 +26,7 @@ describe('createComputerArgs', () => {
       '/workspace',
       'safe/image:tag'
     ])
+    expect(args).toEqual(expect.arrayContaining(['--shm-size', '2g']))
     expect(args).toEqual(
       expect.arrayContaining([
         '--mount',
