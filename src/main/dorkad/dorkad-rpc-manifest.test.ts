@@ -27,6 +27,7 @@ describe('dorkad RPC manifest', () => {
     expect([...dorkadNames].filter((name) => omittedNames.has(name))).toEqual([])
     expect(DORKAD_DISABLED_RUNTIME_CAPABILITIES).toEqual([
       'accounts.import-host-credentials.v1',
+      'agents.execution.v1',
       'accounts.codex-reset-credit.v1'
     ])
     expect([...dorkadNames]).toEqual(

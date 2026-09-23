@@ -1,5 +1,6 @@
 import {
   ACCOUNT_IMPORT_RUNTIME_CAPABILITY,
+  AGENT_EXECUTION_RUNTIME_CAPABILITY,
   CODEX_RESET_CREDIT_RUNTIME_CAPABILITY
 } from '../../../../shared/protocol-version'
 import { STATUS_METHODS } from './status'
@@ -56,6 +57,7 @@ import { COMPUTER_LIFECYCLE_METHODS } from './computer-lifecycle'
 // out of this module also keeps their implementation graphs out of the Node-only bundle.
 export const DORKAD_DISABLED_RUNTIME_CAPABILITIES = [
   ACCOUNT_IMPORT_RUNTIME_CAPABILITY,
+  AGENT_EXECUTION_RUNTIME_CAPABILITY,
   CODEX_RESET_CREDIT_RUNTIME_CAPABILITY
 ] as const
 
