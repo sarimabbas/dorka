@@ -74,7 +74,7 @@ describe('ComputerRuntimeManager', () => {
         '--pids-limit',
         '512',
         '--mount',
-        'type=volume,source=dorka-computer-alpha-home,target=/home/dorka',
+        'type=volume,source=dorka-computer-alpha-home,target=/home/ubuntu',
         '--mount',
         'type=volume,source=dorka-computer-alpha-workspace,target=/workspace',
         '--workdir',
@@ -167,6 +167,11 @@ describe('ComputerRuntimeManager', () => {
       id: 'safe',
       image: 'safe/image:tag',
       mounts: [{ source: '/srv/dorka/shared', target: '/var/run/docker.sock' }]
+    },
+    {
+      id: 'safe',
+      image: 'safe/image:tag',
+      mounts: [{ source: '/srv/dorka/shared', target: '/home/ubuntu' }]
     }
   ])('rejects invalid create input without executing: $id $image', async (spec) => {
     const execute = vi.fn<ComputerCommandExecutor>()

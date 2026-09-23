@@ -34,6 +34,7 @@ const FORBIDDEN_MOUNT_SOURCES = [
 const FORBIDDEN_MOUNT_TARGETS = [
   '/',
   '/home/dorka',
+  '/home/ubuntu',
   '/workspace',
   '/var/run/docker.sock',
   '/run/docker.sock'
@@ -138,7 +139,7 @@ export function createComputerArgs(
     '--pids-limit',
     String(validated.resources.pids),
     '--mount',
-    `type=volume,source=${name}-home,target=/home/dorka`,
+    `type=volume,source=${name}-home,target=/home/ubuntu`,
     '--mount',
     `type=volume,source=${name}-workspace,target=/workspace`
   ]
