@@ -226,6 +226,28 @@ describe('AgentRosterStore', () => {
     expect(store.getRun(run.id)?.status).toBe('running')
   })
 
+  it('does not start a file transaction for a late exit notification on a terminal Run', async () => {
+    const syncDirectory = vi.fn(async () => undefined)
+    const directory = await mkdtemp(join(tmpdir(), 'orca-agent-roster-'))
+    directories.push(directory)
+    const store = await AgentRosterStore.open(directory, { syncDirectory })
+    const agent = await createAgent(store)
+    const identity = {
+      computerId: 'computer-a',
+      terminalSessionId: 'terminal-a',
+      processIdentity: 'process-a'
+    }
+    const run = await store.createRun({ agentId: agent.id, prompt: 'Finish', ...identity })
+    await store.transitionRun(run.id, { status: 'running' })
+    await store.transitionRun(run.id, { status: 'failed', error: 'Stopped' })
+    syncDirectory.mockClear()
+
+    await expect(
+      store.transitionRunningRunToWaitingIfIdentity(run.id, identity)
+    ).resolves.toMatchObject({ status: 'failed' })
+    expect(syncDirectory).not.toHaveBeenCalled()
+  })
+
   it('changes a running Run only when its complete persisted identity matches', async () => {
     const { store } = await openStore()
     const agent = await createAgent(store)

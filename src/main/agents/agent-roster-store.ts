@@ -247,6 +247,15 @@ export class AgentRosterStore {
       'computerId' | 'computerExecutionGeneration' | 'terminalSessionId' | 'processIdentity'
     >
   ): Promise<Run> {
+    const known = this.getRun(id)
+    if (!known) {
+      return Promise.reject(new Error(`Run not found: ${id}`))
+    }
+    // Terminal states cannot transition back to running. Avoid an unnecessary file transaction for
+    // late duplicate exit notifications; callers deliberately do not await live PTY callbacks.
+    if (known.status !== 'running') {
+      return Promise.resolve(known)
+    }
     return this.mutate((roster) => {
       const index = roster.runs.findIndex((run) => run.id === id)
       if (index === -1) {
