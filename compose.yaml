@@ -1,0 +1,29 @@
+services:
+  dorka-server:
+    image: dorka-server:local
+    build:
+      context: .
+      dockerfile: Dockerfile
+    init: true
+    restart: unless-stopped
+    environment:
+      DOCKER_HOST: unix:///var/run/docker.sock
+    ports:
+      - "${DORKA_SERVER_PORT:-6768}:6768"
+    volumes:
+      - dorka-data:/data
+      - "${DORKA_ENGINE_SOCKET:-/var/run/docker.sock}:/var/run/docker.sock"
+    networks:
+      - dorka-control
+      - dorka-runtimes
+
+volumes:
+  dorka-data:
+    name: dorka-data
+
+networks:
+  dorka-control:
+    name: dorka-control
+  dorka-runtimes:
+    name: dorka-runtimes
+    internal: true
