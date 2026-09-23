@@ -4,18 +4,16 @@
 
 Build Dorka as a **single-user, terminal-first agent roster** backed by multiple durable, isolated **Computers**. Dorka remains a terminal wrapper, not a new chat runtime.
 
-The remote Linux server owns all state and execution. macOS and mobile are thin clients. Agents are durable launch presets around an existing CLI harness, independent of compute. An Agent can be launched on a Computer for a Run, then launched on another Computer later. A Computer may host many Agent Runs concurrently. Agents on the same Computer deliberately share its filesystem and credentials; Agents on different Computers share neither.
+The remote Linux server owns the control plane. macOS and mobile are thin clients. Agent provider processes run on the control plane with provider credentials and global skills/MCP. Each Run selects a Computer whose workspace, packages, Git/SSH identity, environment, secrets, and desktop are available only through a managed execution adapter. Agents remain durable launch presets independent of Computer placement.
 
 ```text
 MacBook client ─┐
                 ├── direct encrypted connection ──> Dorka Server
-Mobile client ──┘                                  │
-                                                   ├── Computer A
-                         Agent 1 ── assign/run ────>│    shared Git identity A
-                         Agent 2 ── assign/run ────>│
-                                                   │
-                                                   └── Computer B
-                         Agent 1 ── later move ────>     separate Git identity B
+Mobile client ──┘                                  ├── Agent/provider processes
+                                                   ├── provider credentials + global skills/MCP
+                                                   └── managed execution adapter
+                                                         ├── Computer A: workspace/packages/identity/env/secrets/desktop
+                                                         └── Computer B: workspace/packages/identity/env/secrets/desktop
 ```
 
 Deploy the Dorka Server itself as a container. Give it access to a **Docker-compatible engine socket** so it creates and manages sibling Computer containers. Prefer a rootless Docker or Podman engine on Linux. Do not use Docker-in-Docker, Firecracker, Kubernetes, or a provider-neutral runtime framework for the MVP.
@@ -24,14 +22,13 @@ Deploy the Dorka Server itself as a container. Give it access to a **Docker-comp
 
 Grok Bot gets its simplicity from a small product vocabulary. Its current hosted architecture uses a dedicated Firecracker microVM per user, while all Bots for that user share the computer. Its own documentation warns that files, browser sessions, and command-line credentials are therefore shared across the Bot roster.
 
-Dorka should preserve the simple roster while keeping its terminal-first execution model and making the credential boundary an explicit Computer:
+Dorka should preserve the simple roster while keeping ownership explicit:
 
 ```text
-Grok Bot:  User ──> one Computer ──> many Bots
-Dorka:     Server ──> many Computers ⇄ movable Agents
+Dorka: control-plane Agents ── managed execution ──> selected Computers
 ```
 
-This directly handles separate Git identities. Put Git config, SSH keys, `gh` auth, browser profiles, repositories, installed apps, startup programs, and the visual desktop inside the Computer. Keep Agent launch presets and Run records in the Server so they survive moves. Existing PTYs and restored terminal sessions remain authoritative for transcripts and harness-owned context. Never model Git identity as a per-terminal toggle.
+Put provider credentials, provider processes, and global skills/MCP on the Server. Put Git config, SSH keys, `gh` auth, workspace packages, environment, secrets, browser profiles, repositories, installed apps, startup programs, and the visual desktop inside each Computer. Keep Agent presets and Run records on the Server. Existing control-plane PTYs remain authoritative for provider transcripts. Never model Git identity as a per-terminal toggle or copy Computer secrets into the control plane.
 
 ## Product objects
 
@@ -39,7 +36,7 @@ Keep four first-class objects.
 
 ### 1. Server
 
-The always-on Dorka control plane. It owns pairing, persistence, runtime lifecycle, scheduling, and routing. There is normally one Server.
+The always-on Dorka control plane. It owns pairing, persistence, runtime lifecycle, scheduling, routing, Agent/provider processes, provider credentials, and global skills/MCP. There is normally one Server.
 
 ### 2. Computer
 
@@ -50,23 +47,24 @@ A Computer owns:
 - one container root filesystem;
 - one persistent home volume;
 - one persistent workspace volume;
-- Git and tool credentials;
+- workspace-local packages;
+- Git and SSH identity;
+- workspace environment and secrets;
 - installed applications and startup programs;
 - one persistent graphical Linux desktop;
-- resource limits and network policy;
-- zero or more active Agent Runs.
+- resource limits and network policy.
 
-A Computer is the **credential and filesystem trust boundary**. Multiple Agents assigned to one Computer can see one another's files and credentials. The UI must say this plainly.
+A Computer is the **workspace execution boundary**. It does not host the provider process, provider credentials, or global skills/MCP. Multiple Agents assigned to one Computer can reach the same workspace-owned state through the managed execution adapter. The UI must say this plainly.
 
 ### 3. Agent
 
-A durable launch preset around an existing CLI harness. It stores identity, character, name, job, `harnessId`, an optional model, a prompt template, an optional working directory, and an optional `lastComputerId`. Provider, tools, memory, and behavioral boundaries are not separate Agent fields; the selected harness and prompt template express them when needed.
+A durable launch preset around an existing CLI harness. It stores identity, character, name, job, `harnessId`, an optional model, a prompt template, an optional working directory, and an optional `lastComputerId`. The selected harness launches on the control plane and uses control-plane provider credentials and global skills/MCP.
 
-An Agent does not own compute and has no permanent `computerId`. A Run records the assigned `computerId`. `lastComputerId` is only a launch convenience. Moving an Agent changes where its next Run executes; it does not copy credentials, files, processes, terminal history, or browser sessions between Computers.
+An Agent does not own a Computer and has no permanent `computerId`. A Run records the assigned `computerId`. `lastComputerId` is only a launch convenience. Moving an Agent changes the Computer reached by its managed execution adapter; it does not copy workspace state, Git/SSH identity, environment, secrets, packages, or desktop sessions.
 
 ### 4. Run
 
-One active or completed launch. A Run records status, timestamps, `agentId`, `computerId`, prompt, and optional terminal-session and process identity. Placement belongs to the Run. It is not a sidebar object.
+One active or completed launch. A Run records status, timestamps, `agentId`, `computerId`, prompt, and optional control-plane terminal-session and provider-process identity. The `computerId` selects the managed workspace execution target; it does not place the provider process in that Computer. Placement belongs to the Run. It is not a sidebar object.
 
 Conversation is not a durable domain object. The existing PTY or restored terminal session owns the transcript. Structured chat is an optional projection of that session, and raw Terminal is always available. Projects, repositories, branches, worktrees, panes, and PTYs remain execution details below this interface.
 
@@ -169,11 +167,12 @@ Agent inspector, only when opened
 
 The screenshots make inline capability discovery valuable, but a public marketplace is unnecessary for the first product.
 
-- Represent built-in Git, shell, files, browser, and installed MCP/tool connections as **Capabilities**.
+- Represent built-in Git, shell, files, browser, and MCP/tool connections as **Capabilities**.
 - Let an Agent request a missing Capability inline at the moment it is needed.
-- Route OAuth or browser login through the selected Computer when the credential must remain in that trust boundary.
+- Keep provider OAuth, provider credentials, and global skills/MCP on the control plane.
+- Route Git/SSH identity, workspace secrets, and interactive workspace login through the selected Computer.
 - Provide one settings list of installed Capabilities and accounts. Do not build ratings, sharing, publishing, recommendations, or third-party Bot templates in the MVP.
-- Treat startup programs and desktop applications as Computer configuration, not Agent plugins.
+- Treat workspace packages, startup programs, and desktop applications as Computer configuration, not Agent plugins.
 
 ## Direct client connectivity; no proprietary relay
 
@@ -200,11 +199,11 @@ The fork already contains most of the hard distributed-systems plumbing.
 ### Keep and deepen
 
 - **Node-only headless server:** `src/main/orcad/` and `docs/reference/orcad-operations.md` already define a plain-Node control plane plus a detached terminal daemon.
-- **Execution core:** existing launchers create the CLI harness processes, durable PTYs own their streams, and session restoration reconnects clients after restart. Extend this path rather than building a separate chat executor.
+- **Execution core:** existing launchers create CLI harness processes and durable PTYs own their streams. Keep those provider processes on the control plane and extend the path rather than building a separate chat executor.
 - **Paired clients and versioned RPC:** use the existing runtime pairing and mixed-version compatibility contracts.
 - **Mobile transport and projections:** keep session status, transcript, questions, and basic source review.
 - **Agent launch/status:** retain supported CLI launchers, hooks, and status. Structured chat remains an optional presentation of terminal activity.
-- **Remote execution seam:** reuse runtime-owned SSH targets and the existing SSH file/Git/PTY adapters for the first container vertical slice.
+- **Managed execution seam:** reuse the existing SSH file/Git/PTY adapters behind one adapter through which control-plane Agents operate on the selected Computer.
 - **Environment lifecycle ideas:** generalize the useful lifecycle pieces under `ephemeral-vm-*`; do not keep the current project/workspace-coupled product model.
 
 ### Rename concepts
@@ -289,7 +288,7 @@ Each Computer container should receive:
 - no host filesystem bind mounts by default;
 - a private-network alias derived from the Computer ID.
 
-Store the private client key and desired Computer records in the Server's `/data` volume. Store Git/provider credentials only inside each Computer's home volume. On startup, reconcile desired records with engine containers by immutable labels. Never infer ownership from a human-readable container name alone.
+Store the private client key, desired Computer records, provider credentials, and global skills/MCP in the Server's `/data` volume. Store Git/SSH identity, workspace environment and secrets, packages, and desktop state only inside each Computer's volumes. On startup, reconcile desired records with engine containers by immutable labels. Never infer ownership from a human-readable container name alone.
 
 ### Visual desktop: Selkies inside each Computer
 
@@ -321,7 +320,7 @@ If Selkies fails the first vertical slice on mobile Safari/WebView, use noVNC as
 
 ### Computer image and startup model
 
-Ship one curated `dorka-computer` image first. It contains a lightweight desktop, browser, terminal, Git, SSH server, agent launchers, and Selkies. A Computer definition stores:
+Ship one curated `dorka-computer` image first. It contains a lightweight desktop, browser, terminal, Git, SSH server, the managed execution endpoint, and Selkies. It does not contain provider launchers or global skills/MCP. A Computer definition stores:
 
 - immutable base image digest;
 - CPU, memory, and disk limits;
@@ -342,13 +341,13 @@ Firecracker is credible later: its official site documents KVM-based microVMs, s
 
 ## Container versus VM decision
 
-| Option | Startup/cost | Isolation | Fit now | Decision |
-| --- | --- | --- | --- | --- |
-| Rootless Docker or Podman sibling container | Fast and cheap; shares Linux kernel | Good process/filesystem boundary, not hostile multi-tenant VM isolation | Excellent; Server itself is also a container | **MVP** |
-| Docker-in-Docker | Extra daemon, storage, networking, and privileged-mode complexity | Misleading unless heavily privileged | Solves no requirement here; sibling containers survive control-plane replacement better | Reject |
-| Firecracker microVM | Fast for a VM; own kernel | Stronger hardware-backed boundary | Requires substantial host and image machinery | Later tier |
-| Full cloud VM per Agent | Slowest and costs money while running | Strong | Useful only for BYO-cloud expansion | Later provider |
-| macOS per-container VM | Useful for local demos | VM-backed on macOS | Not relevant to the primary Linux deployment | Dev fallback only |
+| Option                                      | Startup/cost                                                      | Isolation                                                               | Fit now                                                                                 | Decision          |
+| ------------------------------------------- | ----------------------------------------------------------------- | ----------------------------------------------------------------------- | --------------------------------------------------------------------------------------- | ----------------- |
+| Rootless Docker or Podman sibling container | Fast and cheap; shares Linux kernel                               | Good process/filesystem boundary, not hostile multi-tenant VM isolation | Excellent; Server itself is also a container                                            | **MVP**           |
+| Docker-in-Docker                            | Extra daemon, storage, networking, and privileged-mode complexity | Misleading unless heavily privileged                                    | Solves no requirement here; sibling containers survive control-plane replacement better | Reject            |
+| Firecracker microVM                         | Fast for a VM; own kernel                                         | Stronger hardware-backed boundary                                       | Requires substantial host and image machinery                                           | Later tier        |
+| Full cloud VM per Agent                     | Slowest and costs money while running                             | Strong                                                                  | Useful only for BYO-cloud expansion                                                     | Later provider    |
+| macOS per-container VM                      | Useful for local demos                                            | VM-backed on macOS                                                      | Not relevant to the primary Linux deployment                                            | Dev fallback only |
 
 On macOS, Podman itself runs Linux containers inside one managed Linux VM. That is sufficient for development. Production behavior must be validated on native Linux.
 
@@ -423,16 +422,16 @@ Acceptance:
 - Launch a shell inside it from MacBook and mobile.
 - No host home or repository path is mounted.
 
-### Phase 2 — Agent roster and movable placement
+### Phase 2 — Agent roster and managed Computer placement
 
-Add durable Agent records and make Agent the primary sidebar object. Keep placement on each Run, not on the Agent. Launch multiple Agent PTYs through the Computer's internal SSH target. Add “Run on…” and “Move next run to…” actions.
+Add durable Agent records and make Agent the primary sidebar object. Keep the provider process and its PTY on the control plane. Record the selected Computer on each Run and route workspace operations through the managed execution adapter. Add “Run on…” and “Move next run to…” actions.
 
 Acceptance:
 
-- Two Agents run concurrently on Computer A.
-- A third Agent runs on Computer B.
-- Agent 1 finishes on A, then starts its next Run on B with the same launch preset; each Run links to its own terminal session.
-- Files and credentials from A do not follow Agent 1 to B.
+- Multiple provider processes run concurrently on the control plane while targeting Computer A or B.
+- Provider credentials and global skills/MCP are identical across Computer moves because the Server owns them.
+- Moving Agent 1 from A to B changes the workspace, packages, Git/SSH identity, environment, secrets, and desktop available through tools.
+- Computer-owned state does not follow Agent 1 to B or leak into the control plane.
 - Closing MacBook does not stop any Agent.
 - Mobile reconnects and can answer an Agent question.
 
@@ -445,9 +444,10 @@ Build an end-to-end test with two Computers:
 - Each clones and commits to a different test repository.
 - Neither Computer can read the other's home or workspace volume.
 - Moving one Agent from A to B changes its effective Git identity from A to B.
-- The Server does not supply host Git config, SSH agent, or credentials.
+- The Server does not supply host Git config, SSH agent, workspace environment, or Computer secrets.
+- The Computer cannot read provider credentials or control-plane global skills/MCP.
 
-Also test the explicit shared boundary: two Agents on Computer A can read the same workspace and Git identity.
+Also test the explicit shared boundary: two control-plane Agents targeting Computer A can reach the same workspace and Git identity only through the managed execution adapter.
 
 ### Phase 4 — Visual desktop vertical slice
 
@@ -502,7 +502,9 @@ Run dead-code analysis after every deletion wave. Prefer ten reviewable deletion
 
 ## Current vertical-slice status
 
-The first managed-Computer control-plane slice is implemented and tested:
+The current slice proves the **old placement mechanics**, not the corrected ownership model. It launches the provider process inside the Computer. That path is transitional and is a controlled-beta blocker until provider launch, provider credentials, and global skills/MCP move to the control plane and Computer operations cross the managed execution adapter.
+
+The completed evidence remains useful for Computer lifecycle, isolation, reconnect, Git identity, PTY fencing, and UI mechanics:
 
 ```text
 paired client
@@ -522,8 +524,9 @@ No source-control request accepts a Computer ID, absolute repository path, SSH k
 
 Rootless Podman on macOS arm64 proved the real server image, persistent control/host keys, private SSH,
 managed relay launch identity, immutable prompts, restart without duplicate launch, Computer-local Git
-identity, working-tree Diff, and Git-ref Review. Hidden paired-client QA then proved visible launch,
-reload-persistent Run history, and both Diff modes without renderer errors. Because the Computer image
+identity, working-tree Diff, and Git-ref Review under the transitional Computer-local provider launch.
+Hidden paired-client QA then proved visible launch, reload-persistent Run history, and both Diff modes
+without renderer errors; it does not accept the corrected process-placement boundary. Because the Computer image
 is currently amd64, the full Selkies entrypoint timed out under emulation. The successful execution
 proof used the same image and volumes with a diagnostic headless `sshd` entrypoint. Native amd64 Linux
 remains the release gate for graphical startup. Evidence is in `/tmp/dorka-managed-computer-e2e.md` and
@@ -604,7 +607,7 @@ services:
       - control
       - runtimes
     ports:
-      - "6768:6768"
+      - '6768:6768'
 
 volumes:
   dorka-data:

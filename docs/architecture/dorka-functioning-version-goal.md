@@ -18,17 +18,20 @@ Existing Orca UI + terminal/PTY core
 - Preserve the existing Orca UI paradigm and user muscle memory.
 - Use Grok Bot only as restrained visual inspiration.
 - Keep terminal sessions and existing CLI harnesses as the execution core.
-- Treat an Agent as a durable CLI-harness launch preset plus prompt.
-- Treat a Computer as the credential, filesystem, application, and desktop boundary.
+- Run Agent/provider processes, provider credentials, and global skills/MCP on the control plane.
+- Treat an Agent as a durable control-plane CLI-harness launch preset plus prompt.
+- Treat a Computer as the workspace, packages, Git/SSH identity, environment, secrets, application, and desktop boundary.
+- Reach Computer-owned state only through the managed execution adapter.
 - Keep the server headless and remotely accessible.
 
 ## Definition of functioning
 
 A build is functioning when it launches locally and a tester can use the existing application shell
-to select a Server, inspect a Computer, launch an Agent Run, read its terminal output and history,
-and open Diff/Review and Automations without encountering visible navigation for eliminated product
-surfaces. Agent and Computer records must survive restart, and the server container must start and
-accept remote client connections.
+to select a Server, inspect a Computer, launch a control-plane Agent/provider process, read its terminal
+output and history, and operate on the selected Computer through the managed execution adapter. Provider
+credentials and global skills/MCP must remain on the control plane. Workspace, packages, Git/SSH identity,
+environment, secrets, and desktop must remain on the Computer. Agent and Computer records must survive
+restart, and the server container must start and accept remote client connections.
 
 ## Checklist
 
@@ -68,6 +71,13 @@ accept remote client connections.
 
 ### Runtime integration
 
+> The checked items below describe the existing transitional Computer-local launch path. They remain
+> evidence of lifecycle and isolation mechanics, not acceptance of the corrected ownership boundary.
+
+- [ ] Launch the Agent/provider process and its PTY on the control plane.
+- [ ] Keep provider credentials and global skills/MCP on the control plane.
+- [ ] Route workspace operations through one managed execution adapter without copying Computer-owned state.
+- [ ] Prove packages, Git/SSH identity, environment, secrets, and desktop remain Computer-owned.
 - [x] Compose `AgentRosterStore` during `dorkad` startup.
 - [x] Compose `ComputerRuntimeManager` during `dorkad` startup.
 - [x] Expose the minimal authenticated Agent and Computer control-plane operations.
@@ -94,6 +104,10 @@ accept remote client connections.
 
 ## Remaining functional gaps
 
+- **Controlled-beta blocker:** current code launches the provider process inside the Computer and resolves
+  skill/MCP requirements there. Move provider launch, provider credentials, and global skills/MCP to the
+  control plane. Preserve Computer ownership of workspace, packages, Git/SSH identity, environment,
+  secrets, and desktop behind the managed execution adapter. No existing acceptance run closes this gap.
 - Hidden Electron/CDP QA against `/tmp/dorka-computer-use-qa-repo` passed project add, Settings,
   tabs, local terminal execution, local Diff, and Automations with no renderer errors. A second
   isolated paired-Server pass proved visible Agent launch, durable Run history after reload,
@@ -124,9 +138,9 @@ accept remote client connections.
   campaign left zero engine residue. Redacted evidence is tracked under
   `docs/architecture/evidence/native-linux-two-computer-20260923/`.
 - Agent skill and MCP references now have a strict versioned names-only model, v1→v2 roster migration,
-  Agent revision, and Run revision snapshot. CAS editing, Computer-local resolution, capability
-  negotiation, and UI remain. References must stay separate from Computer-owned credentials,
-  provider homes, packages, and filesystems.
+  Agent revision, and Run revision snapshot. CAS editing, capability negotiation, and UI evidence remain.
+  Computer-local resolution is evidence of the transitional placement, not corrected acceptance; global
+  skill/MCP resolution and execution must move to the control plane.
 - Existing Project and Workspace language still needs a careful Dorka terminology pass. This must
   not erase useful Git/worktree distinctions.
 - Browser-hosted graphical Computer desktop proxying and scoped access tickets remain post-MVP

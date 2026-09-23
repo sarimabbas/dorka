@@ -6,33 +6,30 @@ This review covers the Agent, Run, Computer, and Server vertical slice through `
 Ousterhout's deep-module criteria: information hiding, interface leverage, temporal coupling, policy
 ownership, error vocabulary, and deletion opportunity.
 
-The core model is sound. `AgentExecutionService`, `ComputerRunSourceControl`,
-`ComputerRuntimeManager`, and `ManagedRunPtyExitObserver` are deep product modules. They hide
-meaningful policy behind small interfaces. Cross-instance Agent/Run roster writes now use the existing
-whole-file transaction lock. Exact Run execution identity, relay parsing, strict evidence-candidate
-projection, and certificate matching now live behind one internal module. Computer configuration now
-has a revision-fenced, redacted `get/plan/replace` seam for resources, ordinary environment, and
-operator-allowlisted premounts. The retained shell now presents that capability through a redacted
-Review → Apply flow. Apply is bound to the exact reviewed request, lifecycle state participates in the
-replacement fence, and ordinary replacement-command failures trigger reconciliation. The remaining
-debt is crash-recoverable replacement intent, canonical host-path policy, and a smaller renderer state
-machine.
+The lifecycle modules hide useful policy, but the top-level ownership is wrong for the target product.
+The current `AgentExecutionService` launches the provider process in the Computer and resolves skill/MCP
+requirements there. The corrected boundary keeps Agent/provider processes, provider credentials, and
+global skills/MCP on the control plane. The Computer owns workspace, packages, Git/SSH identity,
+environment, secrets, and desktop, reached only through a managed execution adapter. This is the
+controlled-beta blocker; existing tests prove transitional mechanics, not corrected acceptance.
 
 ```text
 Renderer domain clients
   -> authenticated runtime RPC
-  -> Server product authorities
+  -> control plane
        -> AgentRosterStore
+       -> provider process + PTY
+       -> provider credentials + global skills/MCP
        -> AgentExecutionService
+            -> managed execution adapter
+                 -> Computer workspace/packages/Git+SSH/env/secrets/desktop
        -> ComputerRuntimeManager
        -> ComputerRunSourceControl
-       -> ComputerGitIdentityManager
-  -> managed Computer host
-  -> incumbent SSH / PTY / Git adapters
 ```
 
-Do not create a second transport, store, Git adapter, or execution model to address the findings below.
-Deepen the existing seams instead.
+Do not create a second transport, store, Git adapter, or execution model. Deepen `AgentExecutionService`
+so provider ownership stays on the control plane and Computer work delegates through the existing
+managed connection seam.
 
 ## Completed during the review
 
@@ -96,19 +93,16 @@ running Computer. If a normal engine command fails after replacement starts, the
 durable record before returning the error. Environment output remains names-only and the UI labels the
 input as ordinary, non-secret configuration.
 
-### Agent references are portable and fail closed
+### Agent references are portable and fail closed under the transitional placement
 
 Commits `09c4e4384` through `e2ee00657` add a strict names-only reference set without storing paths,
 commands, URLs, environment, credentials, or package data on the Agent. Lazy v1→v2 migration,
 revision-fenced updates, and `createRunForAgent` atomically snapshot the latest durable revision.
-Preparation failures remain queued→failed; only the terminal-launch phase may project an unverifiable
-spawn to waiting.
 
-The composed resolver uses the managed Computer's incumbent SSH filesystem provider, generation-fences
-its evidence, reuses skill discovery, bounds MCP reads, and rejects unavailable or wrong-scope facts.
-Remote transport failures propagate instead of becoming evidence of absence. `agents.references.update`
-reuses the store CAS, while `agents.references.v1` is advertised only when both the roster and enforcing
-execution service are present. The compact inline editor hides itself from old or unverifiable runtimes.
+The composed resolver currently uses the Computer's SSH filesystem provider for skill discovery and MCP
+inspection. Its fencing, bounded reads, CAS, capability honesty, and failure semantics remain useful
+evidence. Computer-local resolution is not corrected acceptance. Global skill/MCP resolution and
+execution must move to the control plane, while workspace packages remain Computer-owned.
 
 ### Premount authorization has one honest policy boundary
 
@@ -119,13 +113,12 @@ The policy deliberately does not call Server-container `realpath()` authoritativ
 sources in the engine-host namespace. Operators must attest canonical paths with trusted, non-writable
 ancestors until enforcement moves to the engine host or a Dorka-owned staging tree.
 
-### Native requirements reuse the production composition
+### Native requirements preserve transitional evidence
 
-Commit `4c18dfe56` extends the existing native two-Computer campaign instead of creating a parallel
-runtime. It proves capability advertisement, a successful Computer-local skill/MCP launch, immutable
-Run revision snapshots, and missing-skill/disabled-MCP rejection before terminal, process identity, or
-Agent-shim launch. Commits `5d572a1a1` and `06e25b716` also removed the fixture's assumption that the
-exit journal began empty; acknowledgement assertions now compare against the exact pre-case baseline.
+Commit `4c18dfe56` proves capability advertisement, Computer-local skill/MCP launch, immutable Run
+revision snapshots, and fail-closed rejection under the old placement. Preserve that campaign as
+regression evidence for snapshot and failure mechanics. It does not prove the corrected control-plane
+provider/global-skill boundary and must not gate its acceptance.
 
 ### Agent and Run records no longer lose cross-instance writes
 
@@ -151,15 +144,15 @@ assertions and capability-negative behavior rather than adding a second mock app
 
 ## Ranked remaining findings
 
-| Rank | Verdict | Finding                                                                                                                          | Required direction                                                                                                                                               |
-| ---- | ------- | -------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1    | Next    | Replacement recovery still exposes a temporal store callback protocol and has no durable in-progress intent for process crashes. | Deepen the existing configuration/reconciler seam into one recoverable operation; persist intent and let startup reconciliation complete or roll it back.        |
-| 2    | Next    | Exact lexical premount authorization is centralized, but the Server container cannot canonicalize engine-host symlinks.          | Move enforcement to an engine-host authority or stage approved content in a Dorka-owned tree; do not present Server-container `realpath()` as authoritative.     |
-| 3    | Next    | Cross-entity Agent/Run/Computer/Server rules are split between `DorkaRuntimeService` pass-throughs and dorkad composition.       | Deepen the existing dorkad control plane and let `DorkaRuntimeService` remain the capability boundary that delegates to it. Do not add a facade or transport.    |
-| 4    | Next    | Managed skill discovery still carries an optional host bag and launch resolution reconnects before terminal launch.              | Deepen the existing host projector into one Computer execution-host lease; keep Orca SSH/filesystem/PTY adapters internal and avoid a second provider framework. |
-| 5    | Next    | The configuration renderer still combines remote state, editor state, validation, and most fields in one large component.        | Extract one reviewed-configuration state machine plus substantive environment and premount editors; avoid cosmetic wrappers.                                     |
-| 6    | Later   | Capability requirements and response parsing are duplicated between RPC method arrays and renderer clients.                      | Add lifecycle-operation descriptors with params, result schema, and capability metadata while preserving method strings and envelopes.                           |
-| 7    | Later   | Run and Computer UI behavior classifies some failures by matching prose.                                                         | Add an additive, allowlisted domain error vocabulary while retaining human messages and mixed-version fallback.                                                  |
+| Rank | Verdict | Finding                                                                                                                          | Required direction                                                                                                                                            |
+| ---- | ------- | -------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1    | Blocker | Provider processes, provider credentials, and global skills/MCP currently live in the Computer.                                  | Move them to the control plane. Keep Computer-owned workspace state behind one managed execution adapter and prove no ownership leakage.                      |
+| 2    | Next    | Replacement recovery still exposes a temporal store callback protocol and has no durable in-progress intent for process crashes. | Deepen the existing configuration/reconciler seam into one recoverable operation; persist intent and let startup reconciliation complete or roll it back.     |
+| 3    | Next    | Exact lexical premount authorization is centralized, but the Server container cannot canonicalize engine-host symlinks.          | Move enforcement to an engine-host authority or stage approved content in a Dorka-owned tree; do not present Server-container `realpath()` as authoritative.  |
+| 4    | Next    | Cross-entity Agent/Run/Computer/Server rules are split between `DorkaRuntimeService` pass-throughs and dorkad composition.       | Deepen the existing dorkad control plane and let `DorkaRuntimeService` remain the capability boundary that delegates to it. Do not add a facade or transport. |
+| 5    | Next    | The configuration renderer still combines remote state, editor state, validation, and most fields in one large component.        | Extract one reviewed-configuration state machine plus substantive environment and premount editors; avoid cosmetic wrappers.                                  |
+| 6    | Later   | Capability requirements and response parsing are duplicated between RPC method arrays and renderer clients.                      | Add lifecycle-operation descriptors with params, result schema, and capability metadata while preserving method strings and envelopes.                        |
+| 7    | Later   | Run and Computer UI behavior classifies some failures by matching prose.                                                         | Add an additive, allowlisted domain error vocabulary while retaining human messages and mixed-version fallback.                                               |
 
 ## Modules to preserve
 
@@ -189,7 +182,8 @@ and capability honesty at this boundary.
 
 ## Validation evidence
 
-The review's three implemented changes passed:
+The review's implemented changes passed the checks below under the transitional Computer-local provider
+placement. This evidence remains valid for those mechanics, but it does not close the ownership blocker:
 
 - 56 focused tests across execution, launcher, startup recovery, PTY observation, and runtime identity.
 - 39 focused tests across managed connection projection, Run source control, Git identity, and launch scope.
