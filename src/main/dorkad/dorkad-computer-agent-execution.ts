@@ -2,6 +2,7 @@ import type { Store } from '../persistence'
 import type { Run } from '../../shared/agent-roster'
 import { AgentExecutionService } from '../agents/agent-execution-service'
 import { createManagedComputerAgentTerminalLauncher } from '../agents/managed-computer-agent-terminal-launcher'
+import { createComputerAgentReferenceResolver } from '../agents/computer-agent-reference-resolver'
 import { ComputerRunSourceControl } from '../agents/computer-run-source-control'
 import {
   createManagedComputerHostProjector,
@@ -38,7 +39,13 @@ export function createDorkadComputerAgentExecution(
     agents,
     computers,
     (request) => launch(request),
-    (runId, ptyId) => runExitObserver?.observe(runId, ptyId)
+    (runId, ptyId) => runExitObserver?.observe(runId, ptyId),
+    async (request) => {
+      if (!host) {
+        throw new Error('Computer Agent requirements are unavailable')
+      }
+      await createComputerAgentReferenceResolver({ host })(request)
+    }
   )
   const sourceControl = {
     status: (runId: string) => requireSourceControl(sourceControlAuthority).status(runId),
