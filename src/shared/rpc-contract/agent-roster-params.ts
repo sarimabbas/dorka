@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { AgentCharacterSchema } from '../agent-roster'
+import { AgentCharacterSchema, AgentReferenceSetSchema } from '../agent-roster'
 
 const Id = z.string().trim().min(1)
 const Text = z.string().trim().min(1)
@@ -31,6 +31,14 @@ export const MoveAgentParams = z
   })
   .strict()
 
+export const UpdateAgentReferencesParams = z
+  .object({
+    agentId: Id,
+    expectedRevision: z.number().int().positive(),
+    references: AgentReferenceSetSchema
+  })
+  .strict()
+
 export const RunAgentParams = z
   .object({
     agentId: Id,
@@ -40,4 +48,5 @@ export const RunAgentParams = z
   .strict()
 
 export type ListRunsRequest = z.infer<typeof ListRunsParams>
+export type UpdateAgentReferencesRequest = z.infer<typeof UpdateAgentReferencesParams>
 export type RunAgentRequest = z.infer<typeof RunAgentParams>

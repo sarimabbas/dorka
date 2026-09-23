@@ -42,6 +42,10 @@ export class AgentExecutionService {
     private readonly resolveReferences?: AgentReferenceResolver
   ) {}
 
+  canResolveReferences(): boolean {
+    return this.resolveReferences !== undefined
+  }
+
   async run(request: RunAgentRequest): Promise<Run> {
     const validated = RunAgentParams.parse(request)
     if (!this.roster.getAgent(validated.agentId)) {

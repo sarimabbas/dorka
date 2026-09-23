@@ -4,7 +4,8 @@ import {
   ListAgentsParams,
   ListRunsParams,
   MoveAgentParams,
-  RunAgentParams
+  RunAgentParams,
+  UpdateAgentReferencesParams
 } from '../../../../shared/rpc-contract/agent-roster-params'
 
 export const AGENT_ROSTER_METHODS = [
@@ -28,6 +29,16 @@ export const AGENT_ROSTER_METHODS = [
     params: MoveAgentParams,
     handler: async (params, { runtime }) =>
       runtime.moveRosterAgent(params.agentId, params.computerId)
+  }),
+  defineMethod({
+    name: 'agents.references.update',
+    params: UpdateAgentReferencesParams,
+    handler: async (params, { runtime }) =>
+      runtime.updateRosterAgentReferences(
+        params.agentId,
+        params.expectedRevision,
+        params.references
+      )
   }),
   defineMethod({
     name: 'agents.run',

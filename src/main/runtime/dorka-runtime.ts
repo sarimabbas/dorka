@@ -3,7 +3,7 @@ import { DorkaRuntimeWithResolveWaiter } from './dorka-runtime-resolve-waiter'
 import type { RuntimeCommandSurfaceHost } from './dorka-runtime-core'
 import { registerWorktreeChangeInvalidator } from '../ipc/worktree-change-invalidators'
 import { registerDetectedWorktreeScanInvalidation } from '../ipc/worktrees/listing/register-detected-worktree-scan-invalidation'
-import type { AgentCreate } from '../../shared/agent-roster'
+import type { AgentCreate, AgentReferenceSet } from '../../shared/agent-roster'
 import type {
   ListRunsRequest,
   RunAgentRequest
@@ -25,6 +25,7 @@ import type { ComputerRunSourceControlService } from '../agents/computer-run-sou
 import type { ComputerGitIdentityService } from '../computers/computer-git-identity'
 import {
   AGENT_EXECUTION_RUNTIME_CAPABILITY,
+  AGENT_REFERENCES_RUNTIME_CAPABILITY,
   AGENT_ROSTER_RUNTIME_CAPABILITY,
   AGENT_RUN_HISTORY_RUNTIME_CAPABILITY,
   AGENT_SOURCE_CONTROL_RUNTIME_CAPABILITY,
@@ -57,6 +58,9 @@ function withLifecycleCapabilityHonesty(
   }
   if (!deps?.agentExecutionService) {
     disabled.add(AGENT_EXECUTION_RUNTIME_CAPABILITY)
+  }
+  if (!deps?.agentRosterStore || !deps.agentExecutionService?.canResolveReferences()) {
+    disabled.add(AGENT_REFERENCES_RUNTIME_CAPABILITY)
   }
   if (!deps?.computerRuntimeManager) {
     disabled.add(COMPUTER_LIFECYCLE_RUNTIME_CAPABILITY)
@@ -102,6 +106,14 @@ class DorkaRuntimeService extends DorkaRuntimeWithResolveWaiter {
 
   createRosterAgent(input: AgentCreate) {
     return this.requireAgentRosterStore().createAgent(input)
+  }
+
+  updateRosterAgentReferences(
+    agentId: string,
+    expectedRevision: number,
+    references: AgentReferenceSet
+  ) {
+    return this.requireAgentRosterStore().updateAgent(agentId, expectedRevision, { references })
   }
 
   listRosterRuns(filter: ListRunsRequest) {

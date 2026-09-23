@@ -41,7 +41,8 @@ import {
   ListAgentsParams,
   ListRunsParams,
   MoveAgentParams,
-  RunAgentParams
+  RunAgentParams,
+  UpdateAgentReferencesParams
 } from './agent-roster-params'
 import { CreateAgentSessionParams, EnsureAgentSessionParams } from './agent-session-params'
 import {
@@ -615,6 +616,7 @@ export const RPC_PARAMS_BY_METHOD = {
   'agents.create': CreateAgentParams,
   'agents.list': ListAgentsParams,
   'agents.move': MoveAgentParams,
+  'agents.references.update': UpdateAgentReferencesParams,
   'agents.run': RunAgentParams,
   'agents.runs.list': ListRunsParams,
   'agents.sourceControl.diff': AgentSourceControlDiffParams,

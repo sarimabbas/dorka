@@ -11,6 +11,7 @@ import {
 import { DorkaRuntimeService } from '../../dorka-runtime'
 import {
   AGENT_EXECUTION_RUNTIME_CAPABILITY,
+  AGENT_REFERENCES_RUNTIME_CAPABILITY,
   AGENT_ROSTER_RUNTIME_CAPABILITY,
   AGENT_RUN_HISTORY_RUNTIME_CAPABILITY,
   COMPUTER_CONFIGURATION_RUNTIME_CAPABILITY,
@@ -34,6 +35,7 @@ describe('Agent and Computer lifecycle RPC', () => {
       'agents.list',
       'agents.create',
       'agents.move',
+      'agents.references.update',
       'agents.run',
       'agents.runs.list',
       'computers.list',
@@ -68,6 +70,15 @@ describe('Agent and Computer lifecycle RPC', () => {
         .success
     ).toBe(false)
     expect(RUNTIME_CAPABILITIES).toContain(AGENT_ROSTER_RUNTIME_CAPABILITY)
+    expect(RUNTIME_CAPABILITIES).toContain(AGENT_REFERENCES_RUNTIME_CAPABILITY)
+    expect(
+      methods.get('agents.references.update')?.params?.safeParse({
+        agentId: 'agent-1',
+        expectedRevision: 1,
+        references: { version: 1, items: [] },
+        path: '/tmp'
+      }).success
+    ).toBe(false)
     expect(RUNTIME_CAPABILITIES).toContain(AGENT_RUN_HISTORY_RUNTIME_CAPABILITY)
     expect(RUNTIME_CAPABILITIES).toContain(AGENT_EXECUTION_RUNTIME_CAPABILITY)
     expect(
@@ -113,6 +124,7 @@ describe('Agent and Computer lifecycle RPC', () => {
     const capabilities = new DorkaRuntimeService().getStatus().capabilities
 
     expect(capabilities).not.toContain(AGENT_ROSTER_RUNTIME_CAPABILITY)
+    expect(capabilities).not.toContain(AGENT_REFERENCES_RUNTIME_CAPABILITY)
     expect(capabilities).not.toContain(AGENT_RUN_HISTORY_RUNTIME_CAPABILITY)
     expect(capabilities).not.toContain(AGENT_EXECUTION_RUNTIME_CAPABILITY)
     expect(capabilities).not.toContain(COMPUTER_LIFECYCLE_RUNTIME_CAPABILITY)
@@ -143,6 +155,21 @@ describe('Agent and Computer lifecycle RPC', () => {
       computerRuntimeManager
     })
     const dispatcher = new RpcDispatcher({ runtime, methods: ALL_RPC_METHODS })
+    expect(runtime.getStatus().capabilities).not.toContain(AGENT_REFERENCES_RUNTIME_CAPABILITY)
+    const resolvingService = new AgentExecutionService(
+      agentRosterStore,
+      computerRuntimeManager,
+      async () => ({ terminalSessionId: 'session-2', processIdentity: 'process-2' }),
+      undefined,
+      async () => undefined
+    )
+    expect(
+      new DorkaRuntimeService(null, undefined, {
+        agentRosterStore,
+        agentExecutionService: resolvingService,
+        computerRuntimeManager
+      }).getStatus().capabilities
+    ).toContain(AGENT_REFERENCES_RUNTIME_CAPABILITY)
 
     const createdAgent = await dispatch(dispatcher, 'agents.create', {
       name: 'Planner',
@@ -153,8 +180,34 @@ describe('Agent and Computer lifecycle RPC', () => {
     })
     expect(createdAgent.ok).toBe(true)
 
+    const agentId = resultId(createdAgent)
+    expect(
+      await dispatch(dispatcher, 'agents.references.update', {
+        agentId,
+        expectedRevision: 1,
+        references: {
+          version: 1,
+          items: [{ kind: 'skill', name: 'code-review', scope: 'either' }]
+        }
+      })
+    ).toMatchObject({ ok: true, result: { outcome: 'updated', agent: { revision: 2 } } })
+    expect(
+      await dispatch(dispatcher, 'agents.references.update', {
+        agentId,
+        expectedRevision: 1,
+        references: { version: 1, items: [] }
+      })
+    ).toMatchObject({ ok: true, result: { outcome: 'conflict', currentRevision: 2 } })
+    expect(
+      await dispatch(dispatcher, 'agents.references.update', {
+        agentId,
+        expectedRevision: 2,
+        references: { version: 1, items: [] }
+      })
+    ).toMatchObject({ ok: true, result: { outcome: 'updated', agent: { revision: 3 } } })
+
     const missingMove = await dispatch(dispatcher, 'agents.move', {
-      agentId: resultId(createdAgent),
+      agentId,
       computerId: 'missing'
     })
     expect(missingMove).toMatchObject({ ok: false })
@@ -167,7 +220,7 @@ describe('Agent and Computer lifecycle RPC', () => {
     ).toMatchObject({ ok: true, result: { id: 'worker-1', state: 'created' } })
     expect(
       await dispatch(dispatcher, 'agents.move', {
-        agentId: resultId(createdAgent),
+        agentId,
         computerId: 'worker-1'
       })
     ).toMatchObject({ ok: true, result: { lastComputerId: 'worker-1' } })
