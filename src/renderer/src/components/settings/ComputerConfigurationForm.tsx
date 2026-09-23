@@ -187,7 +187,7 @@ export function ComputerConfigurationForm({
         <div>
           <p className="text-xs font-medium text-foreground">Environment</p>
           <p className="text-[11px] text-muted-foreground">
-            Existing values stay hidden. Uncheck a name to remove it.
+            Existing values stay hidden. Uncheck a name to remove or replace it.
           </p>
         </div>
         {snapshot.configuration.environment.map((name) => (
@@ -286,7 +286,7 @@ export function ComputerConfigurationForm({
         </div>
         {draft.premounts.map((mount, index) => (
           <div
-            key={`${mount.source}-${mount.target}-${index}`}
+            key={`${computerId}-premount-${index}`}
             className="space-y-2 rounded-md border border-border/60 p-2"
           >
             <div className="grid grid-cols-[1fr_1fr_auto] gap-2">
