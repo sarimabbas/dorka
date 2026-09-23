@@ -1,11 +1,14 @@
 // @vitest-environment happy-dom
 
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { Agent } from '../../../../shared/agent-roster'
 import {
   createRuntimeAgentPreset,
-  listRuntimeAgentPresets
+  listRuntimeAgentComputers,
+  listRuntimeAgentPresets,
+  runRuntimeAgentPreset
 } from '@/runtime/runtime-agent-roster-client'
 import type * as RuntimeAgentRosterClient from '@/runtime/runtime-agent-roster-client'
 import { AgentPresetsSection } from './AgentPresetsSection'
@@ -15,12 +18,16 @@ vi.mock('@/runtime/runtime-agent-roster-client', async (importOriginal) => {
   return {
     ...actual,
     createRuntimeAgentPreset: vi.fn(),
-    listRuntimeAgentPresets: vi.fn()
+    listRuntimeAgentComputers: vi.fn(),
+    listRuntimeAgentPresets: vi.fn(),
+    runRuntimeAgentPreset: vi.fn()
   }
 })
 
 const listPresets = vi.mocked(listRuntimeAgentPresets)
+const listComputers = vi.mocked(listRuntimeAgentComputers)
 const createPreset = vi.mocked(createRuntimeAgentPreset)
+const runPreset = vi.mocked(runRuntimeAgentPreset)
 const preset: Agent = {
   id: 'agent-1',
   name: 'Release reviewer',
@@ -41,7 +48,9 @@ afterEach(cleanup)
 describe('AgentPresetsSection', () => {
   beforeEach(() => {
     listPresets.mockReset()
+    listComputers.mockReset()
     createPreset.mockReset()
+    runPreset.mockReset()
   })
 
   it('lists saved presets from the selected runtime', async () => {
@@ -52,6 +61,43 @@ describe('AgentPresetsSection', () => {
     expect(await screen.findByText('Release reviewer')).toBeTruthy()
     expect(screen.getByText('Review releases')).toBeTruthy()
     expect(listPresets).toHaveBeenCalledWith({ kind: 'local' })
+  })
+
+  it('launches inline on a selectable Computer and reports the returned identity', async () => {
+    const user = userEvent.setup()
+    listPresets.mockResolvedValue([preset])
+    listComputers.mockResolvedValue([
+      { id: 'runner-1', name: 'Runner', image: 'computer:test', state: 'stopped' },
+      { id: 'new-1', name: 'New Computer', image: 'computer:test', state: 'created' }
+    ])
+    runPreset.mockResolvedValue({
+      id: 'run-1',
+      agentId: preset.id,
+      computerId: 'runner-1',
+      status: 'running',
+      prompt: 'Review the release.\n\nCheck the release.',
+      terminalSessionId: 'term-1',
+      processIdentity: 'pty-1:inc-1',
+      createdAt: 1,
+      startedAt: 2
+    })
+
+    renderSection()
+    await user.click(await screen.findByRole('button', { name: 'Launch' }))
+    await user.click(await screen.findByRole('combobox', { name: 'Computer' }))
+    expect(screen.queryByRole('option', { name: 'New Computer · created' })).toBeNull()
+    await user.click(screen.getByRole('option', { name: 'Runner · stopped' }))
+    await user.type(screen.getByLabelText('Task prompt'), ' Check the release. ')
+    await user.click(screen.getByRole('button', { name: 'Launch agent' }))
+
+    await waitFor(() => expect(runPreset).toHaveBeenCalledOnce())
+    expect(runPreset).toHaveBeenCalledWith(
+      { kind: 'local' },
+      { agentId: preset.id, computerId: 'runner-1', prompt: 'Check the release.' }
+    )
+    expect(await screen.findByText('Run status: running')).toBeTruthy()
+    expect(screen.getByText('Terminal: term-1')).toBeTruthy()
+    expect(screen.getByText('Process: pty-1:inc-1')).toBeTruthy()
   })
 
   it('shows the empty state after a successful list', async () => {

@@ -53,7 +53,7 @@ async function launchManagedComputerAgentTerminal(
       },
       {
         startupAgent: harness,
-        startupPrompt: [launch.agent.promptTemplate, launch.prompt].join('\n\n'),
+        startupPrompt: launch.prompt,
         ...(launch.agent.model ? { launchPreferences: { model: launch.agent.model } } : {}),
         cwd,
         presentation: 'background',

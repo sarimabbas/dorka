@@ -30,7 +30,7 @@ function launch(overrides: Partial<AgentTerminalLaunch> = {}): AgentTerminalLaun
       image: 'dorka-computer:test',
       state: 'running'
     },
-    prompt: 'Inspect this change.',
+    prompt: 'Review carefully.\n\nInspect this change.',
     ...overrides
   }
 }

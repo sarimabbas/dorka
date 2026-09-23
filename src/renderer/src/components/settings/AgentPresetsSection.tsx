@@ -13,6 +13,7 @@ import { Input } from '../ui/input'
 import { Label } from '../ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select'
 import { Textarea } from '../ui/textarea'
+import { AgentPresetRow } from './AgentPresetLaunchForm'
 import { SettingsSubsectionHeader } from './SettingsFormControls'
 
 type AgentPresetDraft = {
@@ -141,7 +142,7 @@ export function AgentPresetsSection({
     <section className="space-y-4">
       <SettingsSubsectionHeader
         title="Agent Presets"
-        description="Save terminal harness instructions for repeated work. Launching presets is not available yet."
+        description="Save terminal harness instructions and launch them on a Computer."
         action={
           <Button
             type="button"
@@ -270,16 +271,7 @@ export function AgentPresetsSection({
       ) : presets && presets.length > 0 ? (
         <div className="divide-y divide-border rounded-xl border border-border">
           {presets.map((preset) => (
-            <div key={preset.id} className="flex items-start justify-between gap-4 px-3 py-2.5">
-              <div className="min-w-0 space-y-0.5">
-                <p className="text-sm font-medium">{preset.name}</p>
-                <p className="text-xs text-muted-foreground">{preset.job}</p>
-              </div>
-              <span className="shrink-0 font-mono text-[11px] text-muted-foreground">
-                {preset.harnessId}
-                {preset.model ? ` · ${preset.model}` : ''}
-              </span>
-            </div>
+            <AgentPresetRow key={preset.id} preset={preset} target={target} />
           ))}
         </div>
       ) : null}

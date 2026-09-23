@@ -189,7 +189,12 @@ export class AgentRosterStore {
       if (index === -1) {
         throw new Error(`Run not found: ${id}`)
       }
-      const run = RunSchema.parse({ ...roster.runs[index], ...update })
+      const current = roster.runs[index]
+      const run = RunSchema.parse({
+        ...current,
+        terminalSessionId: update.terminalSessionId ?? current.terminalSessionId,
+        processIdentity: update.processIdentity ?? current.processIdentity
+      })
       roster.runs[index] = run
       return run
     })

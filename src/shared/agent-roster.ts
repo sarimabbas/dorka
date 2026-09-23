@@ -72,7 +72,7 @@ export type AgentCreate = Omit<Agent, 'id' | 'createdAt' | 'updatedAt' | 'lastCo
 export type AgentUpdate = Partial<AgentCreate>
 export type RunCreate = Pick<Run, 'agentId' | 'computerId' | 'prompt' | 'sourceDirectory'> &
   Partial<Pick<Run, 'terminalSessionId' | 'processIdentity'>>
-export type RunUpdate = Partial<Pick<Run, 'prompt' | 'terminalSessionId' | 'processIdentity'>>
+export type RunUpdate = Partial<Pick<Run, 'terminalSessionId' | 'processIdentity'>>
 export type RunTransition = {
   status: RunStatus
   result?: string

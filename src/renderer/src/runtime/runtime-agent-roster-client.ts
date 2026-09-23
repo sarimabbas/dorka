@@ -1,5 +1,12 @@
-import type { Agent, AgentCreate } from '../../../shared/agent-roster'
-import { AGENT_ROSTER_RUNTIME_CAPABILITY } from '../../../shared/protocol-version'
+import type { Agent, AgentCreate, Run } from '../../../shared/agent-roster'
+import type { ComputerRuntimeInfo } from '../../../shared/computer-runtime'
+import {
+  AGENT_EXECUTION_RUNTIME_CAPABILITY,
+  AGENT_ROSTER_RUNTIME_CAPABILITY,
+  COMPUTER_LIFECYCLE_RUNTIME_CAPABILITY,
+  type RuntimeCapability
+} from '../../../shared/protocol-version'
+import type { RunAgentRequest } from '../../../shared/rpc-contract/agent-roster-params'
 import { ensureLocalRuntimeCapabilities } from './local-runtime-capabilities'
 import {
   callRuntimeRpc,
@@ -14,22 +21,54 @@ export class AgentRosterUnsupportedError extends Error {
   }
 }
 
-async function assertAgentRosterSupported(target: RuntimeClientTarget): Promise<void> {
-  const capabilities = target.kind === 'local' ? await ensureLocalRuntimeCapabilities() : null
-  const supported =
-    target.kind === 'local'
-      ? capabilities?.includes(AGENT_ROSTER_RUNTIME_CAPABILITY)
-      : await runtimeEnvironmentSupportsCapability(
-          target.environmentId,
-          AGENT_ROSTER_RUNTIME_CAPABILITY
-        )
+export class AgentExecutionUnsupportedError extends Error {
+  constructor() {
+    super('Launching agent presets requires a newer Dorka runtime.')
+    this.name = 'AgentExecutionUnsupportedError'
+  }
+}
 
+async function supportsCapability(
+  target: RuntimeClientTarget,
+  capability: RuntimeCapability
+): Promise<boolean | null> {
+  if (target.kind === 'environment') {
+    return runtimeEnvironmentSupportsCapability(target.environmentId, capability)
+  }
+  return (await ensureLocalRuntimeCapabilities())?.includes(capability) ?? null
+}
+
+async function assertCapability(
+  target: RuntimeClientTarget,
+  capability: RuntimeCapability,
+  UnsupportedError: typeof AgentRosterUnsupportedError | typeof AgentExecutionUnsupportedError,
+  verificationMessage: string
+): Promise<void> {
+  const supported = await supportsCapability(target, capability)
   if (supported === false) {
-    throw new AgentRosterUnsupportedError()
+    throw new UnsupportedError()
   }
   if (supported == null) {
-    throw new Error('Could not verify agent preset support.')
+    throw new Error(verificationMessage)
   }
+}
+
+async function assertAgentRosterSupported(target: RuntimeClientTarget): Promise<void> {
+  await assertCapability(
+    target,
+    AGENT_ROSTER_RUNTIME_CAPABILITY,
+    AgentRosterUnsupportedError,
+    'Could not verify agent preset support.'
+  )
+}
+
+async function assertAgentExecutionSupported(target: RuntimeClientTarget): Promise<void> {
+  await assertCapability(
+    target,
+    AGENT_EXECUTION_RUNTIME_CAPABILITY,
+    AgentExecutionUnsupportedError,
+    'Could not verify agent preset launch support.'
+  )
 }
 
 export async function listRuntimeAgentPresets(target: RuntimeClientTarget): Promise<Agent[]> {
@@ -43,4 +82,25 @@ export async function createRuntimeAgentPreset(
 ): Promise<Agent> {
   await assertAgentRosterSupported(target)
   return callRuntimeRpc<Agent>(target, 'agents.create', preset)
+}
+
+export async function listRuntimeAgentComputers(
+  target: RuntimeClientTarget
+): Promise<ComputerRuntimeInfo[]> {
+  await assertAgentExecutionSupported(target)
+  await assertCapability(
+    target,
+    COMPUTER_LIFECYCLE_RUNTIME_CAPABILITY,
+    AgentExecutionUnsupportedError,
+    'Could not verify Computer support.'
+  )
+  return callRuntimeRpc<ComputerRuntimeInfo[]>(target, 'computers.list', {})
+}
+
+export async function runRuntimeAgentPreset(
+  target: RuntimeClientTarget,
+  request: RunAgentRequest
+): Promise<Run> {
+  await assertAgentExecutionSupported(target)
+  return callRuntimeRpc<Run>(target, 'agents.run', request)
 }

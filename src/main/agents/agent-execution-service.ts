@@ -41,10 +41,11 @@ export class AgentExecutionService {
     }
 
     let computer = await this.computers.inspect(validated.computerId)
+    const effectivePrompt = `${agent.promptTemplate}\n\n${validated.prompt}`
     const run = await this.roster.createRun({
       agentId: agent.id,
       computerId: computer.id,
-      prompt: validated.prompt,
+      prompt: effectivePrompt,
       sourceDirectory: resolveComputerSourceDirectory(agent.workingDirectory)
     })
     await this.roster.transitionRun(run.id, { status: 'running' })
@@ -58,7 +59,7 @@ export class AgentExecutionService {
         runId: run.id,
         agent,
         computer,
-        prompt: validated.prompt
+        prompt: effectivePrompt
       })
     } catch (error) {
       if (error instanceof AgentTerminalLaunchOutcomeUnknownError) {

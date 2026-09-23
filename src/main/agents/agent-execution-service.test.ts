@@ -44,7 +44,7 @@ async function fixture(state: ComputerRuntimeInfo['state'] = 'running') {
 }
 
 describe('AgentExecutionService', () => {
-  it('delegates the resolved preset and Computer, then durably records placement and identity', async () => {
+  it('launches and durably records one deterministic effective prompt with placement and identity', async () => {
     const h = await fixture('stopped')
 
     const run = await h.service.run({
@@ -58,12 +58,12 @@ describe('AgentExecutionService', () => {
       runId: run.id,
       agent: h.agent,
       computer: { ...h.computer, state: 'running' },
-      prompt: 'Review the change'
+      prompt: 'Plan carefully\n\nReview the change'
     })
     expect(run).toMatchObject({
       agentId: h.agent.id,
       computerId: 'computer-a',
-      prompt: 'Review the change',
+      prompt: 'Plan carefully\n\nReview the change',
       sourceDirectory: '/workspace/repo',
       status: 'running',
       terminalSessionId: 'terminal-session-1',
@@ -71,6 +71,7 @@ describe('AgentExecutionService', () => {
     })
     expect((await AgentRosterStore.open(h.directory)).getRun(run.id)).toMatchObject({
       computerId: 'computer-a',
+      prompt: 'Plan carefully\n\nReview the change',
       sourceDirectory: '/workspace/repo',
       terminalSessionId: 'terminal-session-1',
       processIdentity: 'pty-incarnation-1'
@@ -110,7 +111,10 @@ describe('AgentExecutionService', () => {
       })
     ).resolves.toMatchObject({ status: 'waiting' })
 
-    expect(h.roster.listRuns()[0]).toMatchObject({ status: 'waiting' })
+    expect(h.roster.listRuns()[0]).toMatchObject({
+      status: 'waiting',
+      prompt: 'Plan carefully\n\nReview the change'
+    })
     expect(h.roster.listRuns()[0]).not.toHaveProperty('error')
     expect(h.roster.listRuns()[0]?.finishedAt).toBeUndefined()
   })

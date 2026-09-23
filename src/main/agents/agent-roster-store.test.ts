@@ -92,12 +92,19 @@ describe('AgentRosterStore', () => {
       prompt: 'Try it'
     })
 
-    const linked = await store.updateRun(run.id, {
-      terminalSessionId: 'terminal-a',
-      processIdentity: 'process-a'
-    })
+    const linked = await store.updateRun(
+      run.id,
+      Object.assign(
+        {
+          terminalSessionId: 'terminal-a',
+          processIdentity: 'process-a'
+        },
+        { prompt: 'Replace the immutable prompt' }
+      )
+    )
 
     expect(linked).toMatchObject({
+      prompt: 'Try it',
       terminalSessionId: 'terminal-a',
       processIdentity: 'process-a'
     })
