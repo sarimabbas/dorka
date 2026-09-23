@@ -54,6 +54,15 @@ const CAPABILITIES: RuntimeCapability[] = [
   COMPUTER_CONFIGURATION_RUNTIME_CAPABILITY,
   COMPUTER_GIT_IDENTITY_RUNTIME_CAPABILITY
 ]
+const UPDATED_REFERENCES = {
+  version: 1 as const,
+  items: [{ kind: 'skill' as const, name: 'code-review', scope: 'either' as const }]
+}
+const CONFIGURATION_REQUEST = {
+  resources: { cpus: 4, memoryMb: 4096, pids: 256 },
+  environment: { preserve: ['DORKA_QA_TOKEN'], set: {} },
+  premounts: []
+}
 
 test.use({
   seedTestRepo: false,
@@ -62,7 +71,8 @@ test.use({
 
 async function installFailClosedRuntime(
   electronApp: ElectronApplication,
-  userDataDir: string
+  userDataDir: string,
+  capabilities: RuntimeCapability[] = CAPABILITIES
 ): Promise<void> {
   await electronApp.evaluate(
     ({ ipcMain }, fixture) => {
@@ -110,6 +120,37 @@ async function installFailClosedRuntime(
                 premounts: []
               }
             })
+          case 'computers.configuration.plan':
+            return success({
+              outcome: 'planned',
+              plan: {
+                id: fixture.computer.id,
+                revision: 'qa-revision',
+                desiredState: computerState,
+                configuration: fixture.configurationRequest,
+                replacementRequired: true,
+                interruption: 'restart',
+                changes: {
+                  resources: ['cpus'],
+                  environment: { added: [], changed: [], removed: [] },
+                  premountsChanged: false
+                }
+              }
+            })
+          case 'computers.configuration.replace':
+            return success({
+              outcome: 'replaced',
+              snapshot: {
+                id: fixture.computer.id,
+                revision: 'qa-replaced-revision',
+                desiredState: computerState,
+                configuration: {
+                  resources: fixture.configurationRequest.resources,
+                  environment: ['DORKA_QA_TOKEN'],
+                  premounts: []
+                }
+              }
+            })
           case 'computers.gitIdentity.get':
             return success({ name: 'QA Reviewer', email: 'qa@example.test' })
           case 'computers.stop':
@@ -117,6 +158,11 @@ async function installFailClosedRuntime(
             return success({ ...fixture.computer, state: computerState })
           case 'agents.list':
             return success([fixture.agent])
+          case 'agents.references.update':
+            return success({
+              outcome: 'updated',
+              agent: { ...fixture.agent, revision: 4, references: fixture.updatedReferences }
+            })
           case 'agents.runs.list':
             return success([])
           default:
@@ -138,10 +184,12 @@ async function installFailClosedRuntime(
     },
     {
       agent: AGENT,
-      capabilities: CAPABILITIES,
+      capabilities,
       computer: COMPUTER,
+      configurationRequest: CONFIGURATION_REQUEST,
       metadataPath: path.join(ARTIFACT_DIR, 'launch.json'),
       rpcLogPath: RPC_LOG_PATH,
+      updatedReferences: UPDATED_REFERENCES,
       userDataDir
     }
   )
@@ -155,17 +203,30 @@ async function openSettings(page: Page, pane: 'agents' | 'computers'): Promise<v
   }, pane)
 }
 
-function readRpcMethods(): string[] {
+type RpcLogEntry = { method: string; params: unknown }
+
+function readRpcLog(): RpcLogEntry[] {
   return readFileSync(RPC_LOG_PATH, 'utf8')
     .trim()
     .split('\n')
     .filter(Boolean)
     .map((line) => JSON.parse(line))
-    .map((entry: unknown) =>
-      typeof entry === 'object' && entry !== null && 'method' in entry
-        ? String(entry.method)
-        : 'invalid-log-entry'
+}
+
+async function expectWindowsHidden(electronApp: ElectronApplication): Promise<void> {
+  await expect
+    .poll(() =>
+      electronApp.evaluate(({ BrowserWindow }) => {
+        const windows = BrowserWindow.getAllWindows()
+        return (
+          windows.length > 0 &&
+          windows.every(
+            (window) => !window.isVisible() && !window.isFocused() && !window.isDestroyed()
+          )
+        )
+      })
     )
+    .toBe(true)
 }
 
 test('captures hidden Computer setup, Stop, and Agent requirements without real runtime work', async ({
@@ -197,51 +258,79 @@ test('captures hidden Computer setup, Stop, and Agent requirements without real 
     expect(cleanup.userDataRemoved).toBe(true)
   })
 
-  await expect
-    .poll(() =>
-      electronApp.evaluate(({ BrowserWindow }) => {
-        const windows = BrowserWindow.getAllWindows()
-        return (
-          windows.length > 0 &&
-          windows.every(
-            (window) => !window.isVisible() && !window.isFocused() && !window.isDestroyed()
-          )
-        )
-      })
-    )
-    .toBe(true)
+  await expectWindowsHidden(electronApp)
+
+  await openSettings(dorkaPage, 'agents')
+  let agents = dorkaPage.locator('[data-settings-section="agents"]')
+  await expect(agents.getByText('Release reviewer')).toBeVisible()
+  await agents.getByRole('button', { name: 'Requirements · 2' }).click()
+  await expect(agents.getByText('Names are checked on the selected Computer.')).toBeVisible()
+  await agents.getByRole('button', { name: 'Remove linear' }).click()
+  await dorkaPage.screenshot({ path: path.join(ARTIFACT_DIR, 'agent-requirements.png') })
+  await agents.getByRole('button', { name: 'Save', exact: true }).click()
+  await expect(agents.getByRole('button', { name: 'Requirements · 1' })).toBeVisible()
 
   await openSettings(dorkaPage, 'computers')
   const computers = dorkaPage.locator('[data-settings-section="computers"]')
   await expect(computers.getByText('QA Computer')).toBeVisible()
   await computers.getByText('Setup', { exact: true }).click()
   await expect(computers.getByText('DORKA_QA_TOKEN')).toBeVisible()
-  await computers.screenshot({ path: path.join(ARTIFACT_DIR, 'computer-setup.png') })
+  const cpus = computers.getByLabel('CPUs')
+  await cpus.fill('4')
+  await computers.getByRole('button', { name: 'Review changes' }).click()
+  await expect(computers.getByText('Ready to apply')).toBeVisible()
+  await computers.screenshot({ path: path.join(ARTIFACT_DIR, 'computer-setup-review.png') })
+  await computers.getByRole('button', { name: 'Apply & restart' }).click()
+  await expect(cpus).toHaveValue('4')
 
   await computers.getByRole('button', { name: 'Stop', exact: true }).click()
-  const stopDialog = dorkaPage.getByRole('dialog', { name: 'Stop QA Computer?' })
+  let stopDialog = dorkaPage.getByRole('dialog', { name: 'Stop QA Computer?' })
   await expect(stopDialog).toBeVisible()
+  await stopDialog.getByRole('button', { name: 'Cancel' }).click()
+  expect(readRpcLog().filter(({ method }) => method === 'computers.stop')).toEqual([])
+
+  await computers.getByRole('button', { name: 'Stop', exact: true }).click()
+  stopDialog = dorkaPage.getByRole('dialog', { name: 'Stop QA Computer?' })
   await stopDialog.screenshot({ path: path.join(ARTIFACT_DIR, 'computer-stop.png') })
   await stopDialog.getByRole('button', { name: 'Stop Computer' }).click()
   await expect(computers.getByRole('button', { name: 'Start', exact: true })).toBeVisible()
 
-  await openSettings(dorkaPage, 'agents')
-  const agents = dorkaPage.locator('[data-settings-section="agents"]')
-  await expect(agents.getByText('Release reviewer')).toBeVisible()
-  await agents.getByRole('button', { name: 'Requirements · 2' }).click()
-  await expect(agents.getByText('Names are checked on the selected Computer.')).toBeVisible()
-  await dorkaPage.screenshot({ path: path.join(ARTIFACT_DIR, 'agent-requirements.png') })
+  const expectedConfigurationParams = {
+    id: COMPUTER.id,
+    expectedRevision: 'qa-revision',
+    expectedDesiredState: 'running',
+    configuration: CONFIGURATION_REQUEST
+  }
+  const log = readRpcLog()
+  expect(log.filter(({ method }) => method === 'agents.references.update')).toEqual([
+    {
+      method: 'agents.references.update',
+      params: { agentId: AGENT.id, expectedRevision: 3, references: UPDATED_REFERENCES }
+    }
+  ])
+  expect(log.filter(({ method }) => method === 'computers.configuration.plan')).toEqual([
+    { method: 'computers.configuration.plan', params: expectedConfigurationParams }
+  ])
+  expect(log.filter(({ method }) => method === 'computers.configuration.replace')).toEqual([
+    { method: 'computers.configuration.replace', params: expectedConfigurationParams }
+  ])
+  expect(log.filter(({ method }) => method === 'computers.stop')).toEqual([
+    { method: 'computers.stop', params: { id: COMPUTER.id } }
+  ])
+  expect(log.map(({ method }) => method)).not.toContain('computers.start')
 
-  expect(readRpcMethods()).toEqual(
-    expect.arrayContaining([
-      'status.get',
-      'computers.list',
-      'computers.configuration.get',
-      'computers.gitIdentity.get',
-      'computers.stop',
-      'agents.list',
-      'agents.runs.list'
-    ])
+  await installFailClosedRuntime(
+    electronApp,
+    userDataDir,
+    CAPABILITIES.filter((capability) => capability !== AGENT_REFERENCES_RUNTIME_CAPABILITY)
   )
-  expect(readRpcMethods()).not.toContain('computers.start')
+  await dorkaPage.reload()
+  await dorkaPage.waitForFunction(() => Boolean(window.__store))
+  await openSettings(dorkaPage, 'agents')
+  agents = dorkaPage.locator('[data-settings-section="agents"]')
+  await expect(agents.getByText('Release reviewer')).toBeVisible()
+  await expect(agents.getByRole('button', { name: /Requirements/ })).toHaveCount(0)
+  await agents.screenshot({ path: path.join(ARTIFACT_DIR, 'agent-requirements-unsupported.png') })
+  expect(readRpcLog().filter(({ method }) => method === 'agents.references.update')).toHaveLength(1)
+  await expectWindowsHidden(electronApp)
 })
