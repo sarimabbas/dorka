@@ -24,7 +24,7 @@ import {
 export const AGENT_ROSTER_FILE_NAME = 'agent-roster.json'
 
 const transitions: Readonly<Record<RunStatus, readonly RunStatus[]>> = {
-  queued: ['running', 'cancelled'],
+  queued: ['running', 'failed', 'cancelled'],
   running: ['waiting', 'succeeded', 'failed', 'cancelled'],
   waiting: ['running', 'failed', 'cancelled'],
   succeeded: [],

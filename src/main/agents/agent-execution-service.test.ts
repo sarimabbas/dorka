@@ -155,6 +155,34 @@ describe('AgentExecutionService', () => {
     await expect(pending).resolves.toMatchObject({ computerExecutionGeneration })
   })
 
+  it('fails before spawn when non-empty Agent requirements have no resolver', async () => {
+    const h = await fixture()
+    await h.roster.updateAgent(h.agent.id, h.agent.revision, {
+      references: {
+        version: 1,
+        items: [{ kind: 'skill', name: 'code-review', scope: 'either' }]
+      }
+    })
+
+    await expect(
+      h.service.run({
+        agentId: h.agent.id,
+        computerId: h.computer.id,
+        prompt: 'Review the change'
+      })
+    ).rejects.toThrow('requirements cannot be resolved')
+
+    expect(h.launch).not.toHaveBeenCalled()
+    expect(h.roster.listRuns({ agentId: h.agent.id })).toEqual([
+      expect.objectContaining({
+        agentRevision: 2,
+        status: 'failed',
+        error: 'Agent requirements cannot be resolved by this Dorka Server',
+        startedAt: undefined
+      })
+    ])
+  })
+
   it('records a failed Run when terminal delegation fails', async () => {
     const h = await fixture()
     h.launch.mockRejectedValueOnce(new Error('SSH terminal unavailable'))

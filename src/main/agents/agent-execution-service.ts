@@ -21,6 +21,7 @@ export type AgentTerminalIdentity = {
 }
 
 export type AgentTerminalLauncher = (launch: AgentTerminalLaunch) => Promise<AgentTerminalIdentity>
+export type AgentReferenceResolver = (launch: AgentTerminalLaunch) => Promise<void>
 
 export class AgentTerminalLaunchOutcomeUnknownError extends Error {
   constructor() {
@@ -37,7 +38,8 @@ export class AgentExecutionService {
       'getExecutionGeneration' | 'inspect' | 'start'
     >,
     private readonly launchTerminal: AgentTerminalLauncher,
-    private readonly onTerminalCommitted?: (runId: string, ptyId: string) => void
+    private readonly onTerminalCommitted?: (runId: string, ptyId: string) => void,
+    private readonly resolveReferences?: AgentReferenceResolver
   ) {}
 
   async run(request: RunAgentRequest): Promise<Run> {
@@ -59,21 +61,27 @@ export class AgentExecutionService {
       prompt: effectivePrompt,
       sourceDirectory
     })
-    await this.roster.transitionRun(run.id, { status: 'running' })
-
     let identity: AgentTerminalIdentity
     try {
       if (computer.state !== 'running') {
         computer = await this.computers.start(computer.id)
       }
-      identity = await this.launchTerminal({
+      const launch = {
         runId: run.id,
         agent,
         computer,
         computerExecutionGeneration,
         prompt: effectivePrompt,
         sourceDirectory
-      })
+      }
+      if (agent.references.items.length > 0) {
+        if (!this.resolveReferences) {
+          throw new Error('Agent requirements cannot be resolved by this Dorka Server')
+        }
+        await this.resolveReferences(launch)
+      }
+      await this.roster.transitionRun(run.id, { status: 'running' })
+      identity = await this.launchTerminal(launch)
     } catch (error) {
       if (error instanceof AgentTerminalLaunchOutcomeUnknownError) {
         return this.roster.transitionRun(run.id, { status: 'waiting' })
