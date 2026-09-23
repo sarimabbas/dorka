@@ -7,7 +7,7 @@ import { readOrchestrationCompatibilityEvidence } from '../../shared/orchestrati
 import { ORCHESTRATION_CONTRACT_VERSION } from '../../shared/protocol-version'
 import type { RpcResponse } from '../runtime/rpc/core'
 import { RpcDispatcher } from '../runtime/rpc/dispatcher'
-import { ALL_RPC_METHODS } from '../runtime/rpc/methods'
+import { SSH_REMOTE_RPC_METHODS } from './ssh-remote-rpc-methods'
 import type { DorkaRuntimeService } from '../runtime/dorka-runtime'
 import {
   HostCliUnavailableError,
@@ -104,7 +104,7 @@ async function runLegacyRemoteDorkaCli(
   json: boolean,
   passthroughFailure: HostCliUnavailableError
 ): Promise<RemoteDorkaCliResult> {
-  const dispatcher = new RpcDispatcher({ runtime, methods: ALL_RPC_METHODS })
+  const dispatcher = new RpcDispatcher({ runtime, methods: SSH_REMOTE_RPC_METHODS })
   const help = getRemoteLinearHelp(parsed)
   if (help) {
     return { stdout: `${help}\n`, stderr: '', exitCode: 0 }

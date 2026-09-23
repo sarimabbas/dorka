@@ -4,7 +4,7 @@ import { ORCHESTRATION_CONTRACT_VERSION } from '../../shared/protocol-version'
 import type { DorkaRuntimeService } from '../runtime/dorka-runtime'
 import type { RpcResponse } from '../runtime/rpc/core'
 import { RpcDispatcher } from '../runtime/rpc/dispatcher'
-import { ALL_RPC_METHODS } from '../runtime/rpc/methods'
+import { SSH_REMOTE_RPC_METHODS } from './ssh-remote-rpc-methods'
 import type {
   RemoteDorkaCliPostOutput,
   RemoteDorkaCliRequest
@@ -40,7 +40,7 @@ export async function acknowledgeRemoteDorkaCliPostOutput(
             answerMessageId: args.postOutput.answerMessageId
           })
         }
-  const response = await new RpcDispatcher({ runtime, methods: ALL_RPC_METHODS }).dispatch({
+  const response = await new RpcDispatcher({ runtime, methods: SSH_REMOTE_RPC_METHODS }).dispatch({
     id: `remote-cli-post-output-${randomUUID()}`,
     authToken: 'remote-cli',
     method: 'orchestration.check',
