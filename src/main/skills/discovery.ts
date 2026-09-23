@@ -20,7 +20,11 @@ import {
 } from './skill-discovery-sources'
 import { rootMayContainSourceKind } from './skill-discovery-source-filter'
 import { discoverClaudePluginSkillSources } from './claude-plugin-skill-sources'
-import { findSkillFiles } from './skill-root-file-walk'
+import {
+  findSkillFiles,
+  findSkillFilesWithFilesystem,
+  type SkillDiscoveryHost
+} from './skill-root-file-walk'
 import { runSkillCandidateTasks } from './skill-candidate-concurrency'
 import {
   isSkillRootUnavailableError,
@@ -103,21 +107,39 @@ function readLastKnownRootScan(key: string): ScannedSkill[] {
   return retained.skills
 }
 
-async function pathExists(pathValue: string): Promise<boolean> {
+export type { SkillDiscoveryHost } from './skill-root-file-walk'
+
+async function pathExists(pathValue: string, host?: SkillDiscoveryHost): Promise<boolean> {
   try {
-    await stat(pathValue)
+    await (host ? host.filesystem.stat(pathValue) : stat(pathValue))
     return true
   } catch {
     return false
   }
 }
 
-async function readSkillSummary(skillFilePath: string): Promise<{
+async function readSkillSummary(
+  skillFilePath: string,
+  host?: SkillDiscoveryHost
+): Promise<{
   name: string | null
   description: string | null
   updatedAt: number | null
 } | null> {
   try {
+    if (host) {
+      const [fileStat, file] = await Promise.all([
+        host.filesystem.stat(skillFilePath),
+        host.filesystem.readFile(skillFilePath, { maxTextBytes: MAX_MARKDOWN_BYTES })
+      ])
+      if (file.isBinary) {
+        return null
+      }
+      return {
+        ...summarizeSkillMarkdown(file.content),
+        updatedAt: fileStat.mtimeMs ?? fileStat.mtime
+      }
+    }
     const fileStat = await stat(skillFilePath)
     const file = await open(skillFilePath, 'r')
     let content = ''
@@ -128,10 +150,7 @@ async function readSkillSummary(skillFilePath: string): Promise<{
     } finally {
       await file.close()
     }
-    return {
-      ...summarizeSkillMarkdown(content),
-      updatedAt: fileStat.mtimeMs
-    }
+    return { ...summarizeSkillMarkdown(content), updatedAt: fileStat.mtimeMs }
   } catch {
     return null
   }
@@ -139,9 +158,15 @@ async function readSkillSummary(skillFilePath: string): Promise<{
 
 type ScannedSkill = DiscoveredSkill & { canonicalSkillFilePath: string }
 
-async function scanRoot(root: SkillScanRoot, signal: AbortSignal): Promise<ScannedSkill[]> {
+async function scanRoot(
+  root: SkillScanRoot,
+  signal: AbortSignal,
+  host?: SkillDiscoveryHost
+): Promise<ScannedSkill[]> {
   const maxDepth = skillDirectoryMaxDepth(root.sourceKind)
-  const skillFiles = await findSkillFiles(root.path, maxDepth, signal)
+  const skillFiles = host
+    ? await findSkillFilesWithFilesystem(root.path, maxDepth, host.filesystem, host.pathApi, signal)
+    : await findSkillFiles(root.path, maxDepth, signal)
   // Why: a root can hold many packages and each one costs a summary read plus a
   // package walk. Unbounded fan-out here is what turned one scan into a burst of
   // filesystem-metadata work across every core.
@@ -152,16 +177,23 @@ async function scanRoot(root: SkillScanRoot, signal: AbortSignal): Promise<Scann
       signal.throwIfAborted()
       // Why: path identity belongs to the scanning host; canonicalizing before
       // returning prevents symlinked roots from becoming duplicate picker rows.
-      const canonicalSkillFilePath = await realpath(skillFilePath).catch(() => skillFilePath)
-      const directoryPath = dirname(skillFilePath)
-      const summary = await readSkillSummary(skillFilePath)
+      const canonicalSkillFilePath = await (
+        host ? host.filesystem.realpath(skillFilePath) : realpath(skillFilePath)
+      ).catch(() => skillFilePath)
+      const directoryPath = host ? host.pathApi.dirname(skillFilePath) : dirname(skillFilePath)
+      const summary = await readSkillSummary(skillFilePath, host)
       if (!summary) {
         return null
       }
-      const sourceKind = sourceKindForSkill(root, skillFilePath, { relative, sep })
+      const sourceKind = sourceKindForSkill(
+        root,
+        skillFilePath,
+        host ? host.pathApi : { relative, sep }
+      )
       return {
         id: stablePathId(canonicalSkillFilePath),
-        name: summary.name ?? basename(directoryPath),
+        name:
+          summary.name ?? (host ? host.pathApi.basename(directoryPath) : basename(directoryPath)),
         description: summary.description,
         // Copy: `root.providers` is shared across every skill/source from this
         // root, so the dedup merge below must not mutate the aliased array.
@@ -183,22 +215,23 @@ async function scanRoot(root: SkillScanRoot, signal: AbortSignal): Promise<Scann
 // Why: two roots can share a path (e.g. `~/.claude/skills` is both a home root
 // and a repo root when the home dir is the workspace), and their scan differs
 // only by depth, which `sourceKind` decides.
-function rootScanKey(root: SkillScanRoot): string {
-  return `${root.sourceKind}\0${root.path}`
+function rootScanKey(root: SkillScanRoot, namespace = 'local'): string {
+  return `${namespace}\0${root.sourceKind}\0${root.path}`
 }
 
 async function scanRootShared(
   root: SkillScanRoot,
-  refresh: boolean
+  refresh: boolean,
+  host?: SkillDiscoveryHost
 ): Promise<SkillScanOutcome<RootScan>> {
-  const key = rootScanKey(root)
+  const key = rootScanKey(root, host?.cacheNamespace)
   try {
     const outcome = await rootScans.run(
       key,
       { ttlMs: SKILL_ROOT_SCAN_TTL_MS, refresh },
       async (signal) => {
-        const exists = await pathExists(root.path)
-        return { exists, skills: exists ? await scanRoot(root, signal) : [] }
+        const exists = await pathExists(root.path, host)
+        return { exists, skills: exists ? await scanRoot(root, signal, host) : [] }
       }
     )
     recordLastKnownRootScan(key, outcome.value)
@@ -268,21 +301,29 @@ export async function discoverSkills(args: {
   refresh?: boolean
   names?: string[]
   sourceKinds?: SkillSourceKind[]
+  host?: SkillDiscoveryHost
 }): Promise<SkillDiscoveryResult> {
   const startedAt = Date.now()
   const homeDir = args.homeDir ?? homedir()
   const refresh = args.refresh === true
   const roots = [
-    ...buildSkillDiscoverySources({ ...args, homeDir }),
+    ...buildSkillDiscoverySources({
+      ...args,
+      homeDir,
+      pathApi: args.host
+        ? { basename: args.host.pathApi.basename, join: args.host.pathApi.join }
+        : undefined
+    }),
     // Why: plugin discovery is native-chat data keyed to an explicit workspace.
     // Untargeted scans (Settings) keep their pre-picker inventory and cost.
-    ...(args.cwd &&
+    ...(!args.host &&
+    args.cwd &&
     args.includeCwd !== false &&
     (!args.sourceKinds?.length || args.sourceKinds.includes('plugin'))
       ? await discoverClaudePluginSkillSources({ homeDir, cwd: args.cwd })
       : [])
   ].filter((root) => rootMayContainSourceKind(root, args.sourceKinds))
-  const scans = await Promise.all(roots.map((root) => scanRootShared(root, refresh)))
+  const scans = await Promise.all(roots.map((root) => scanRootShared(root, refresh, args.host)))
   const sources: SkillDiscoverySource[] = roots.map((root, index) => ({
     ...root,
     providers: [...root.providers],
@@ -304,7 +345,14 @@ export async function discoverSkills(args: {
       if (
         expectedNames &&
         !expectedNames.has(skill.name.trim().toLowerCase()) &&
-        !expectedNames.has(basename(skill.directoryPath).trim().toLowerCase())
+        !expectedNames.has(
+          (args.host
+            ? args.host.pathApi.basename(skill.directoryPath)
+            : basename(skill.directoryPath)
+          )
+            .trim()
+            .toLowerCase()
+        )
       ) {
         continue
       }

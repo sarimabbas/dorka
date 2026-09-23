@@ -13,6 +13,14 @@ export type SkillDiscoveryPathApi = {
   relative(from: string, to: string): string
   sep: string
 }
+export type SkillDiscoveryHost = {
+  filesystem: SkillDiscoveryFilesystem & Pick<IFilesystemProvider, 'readFile'>
+  cacheNamespace: string
+  pathApi: SkillDiscoveryPathApi & {
+    basename(path: string): string
+    dirname(path: string): string
+  }
+}
 
 function isWithinDepth(
   rootPath: string,
