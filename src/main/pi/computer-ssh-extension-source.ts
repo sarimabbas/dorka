@@ -14,6 +14,7 @@ import {
 
 const REMOTE_ROOT = '/workspace'
 const GENERATION_FILE = '$HOME/.dorka/execution-generation'
+const SSH_EXECUTABLE = '/usr/bin/ssh'
 const localRoot = resolve(process.cwd())
 
 function required(name) {
@@ -149,7 +150,7 @@ function sshArgs(command) {
 }
 
 function startSsh(command) {
-  return spawn('ssh', sshArgs(command), { stdio: ['pipe', 'pipe', 'pipe'] })
+  return spawn(SSH_EXECUTABLE, sshArgs(command), { stdio: ['pipe', 'pipe', 'pipe'] })
 }
 
 function sshCollect(cwd, command, input) {

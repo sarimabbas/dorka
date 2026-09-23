@@ -118,7 +118,7 @@ describe('getPiComputerSshExtensionSource', () => {
     const result = Promise.resolve(operation(tools.get('read'), 'readFile')(file))
     const call = spawned[0]
 
-    expect(call.command).toBe('ssh')
+    expect(call.command).toBe('/usr/bin/ssh')
     expect(call.args.slice(0, -1)).toEqual([
       '-o',
       'BatchMode=yes',
