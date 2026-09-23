@@ -52,6 +52,9 @@ describe('ComputerRuntimeManager', () => {
     })
 
     await manager.create({ id: 'alpha', image: 'ghcr.io/dorka/runtime:1.0' })
+    const publicKey = (
+      await readFile(join(directory, 'computer-ssh-keys', 'alpha', 'id_ed25519.pub'), 'utf8')
+    ).trim()
 
     expect(execute.mock.calls[0]?.[0]).toEqual({
       program: '/usr/bin/docker',
@@ -77,6 +80,8 @@ describe('ComputerRuntimeManager', () => {
         'type=volume,source=dorka-computer-alpha-home,target=/home/ubuntu',
         '--mount',
         'type=volume,source=dorka-computer-alpha-workspace,target=/workspace',
+        '--env',
+        `DORKA_SSH_PUBLIC_KEY=${publicKey}`,
         '--workdir',
         '/workspace',
         'ghcr.io/dorka/runtime:1.0'
@@ -194,8 +199,12 @@ describe('ComputerRuntimeManager', () => {
       '--mount',
       'type=bind,source=/srv/dorka/shared,target=/shared,readonly',
       '--mount',
-      'type=bind,source=/srv/dorka/shared,target=/imports'
+      'type=bind,source=/srv/dorka/shared,target=/imports',
+      '--env',
+      expect.stringMatching(/^DORKA_SSH_PUBLIC_KEY=ssh-ed25519 /)
     ])
+    expect(args.join(' ')).not.toContain('computer-ssh-keys')
+    expect(args.join(' ')).not.toContain('OPENSSH PRIVATE KEY')
     expect(args.at(-1)).toBe('safe/image:tag')
   })
 
@@ -207,6 +216,7 @@ describe('ComputerRuntimeManager', () => {
     { id: 'safe', image: 'safe/image:tag', resources: { memoryMb: 1 } },
     { id: 'safe', image: 'safe/image:tag', resources: { pids: 1 } },
     { id: 'safe', image: 'safe/image:tag', environment: { 'BAD-NAME': 'value' } },
+    { id: 'safe', image: 'safe/image:tag', environment: { DORKA_SSH_PUBLIC_KEY: 'value' } },
     { id: 'safe', image: 'safe/image:tag', environment: { SAFE: 'bad\0value' } },
     {
       id: 'safe',
@@ -311,6 +321,31 @@ describe('ComputerRuntimeManager', () => {
       '--force',
       'dorka-computer-foreign'
     ])
+  })
+
+  it('reuses the same public key when reconciliation recreates a Computer', async () => {
+    const directory = await dataDirectory()
+    await writeFile(
+      join(directory, 'computers.json'),
+      JSON.stringify({
+        version: 1,
+        computers: [{ spec: { id: 'alpha', image: 'safe/image:tag' }, desiredState: 'stopped' }]
+      })
+    )
+    const execute = vi.fn<ComputerCommandExecutor>(async ({ args = [] }) =>
+      args[0] === 'ps' ? processResult('') : processResult()
+    )
+    const manager = new ComputerRuntimeManager({ dataDirectory: directory, serverId, execute })
+
+    await manager.reconcile()
+    await manager.reconcile()
+
+    const createArgs = execute.mock.calls
+      .map(([spec]) => spec.args ?? [])
+      .filter(([command]) => command === 'create')
+    const injectedKeys = createArgs.map((args) => args[args.lastIndexOf('--env') + 1])
+    expect(injectedKeys).toHaveLength(2)
+    expect(injectedKeys[1]).toBe(injectedKeys[0])
   })
 
   it('refuses lifecycle operations when ownership labels do not match', async () => {

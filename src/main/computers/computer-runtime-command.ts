@@ -13,6 +13,9 @@ const SERVER_ID_PATTERN = /^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/
 const IMAGE_PATTERN =
   /^(?:[a-z0-9]+(?:[._-][a-z0-9]+)*(?::[0-9]+)?\/)*(?:[a-z0-9]+(?:[._-][a-z0-9]+)*)(?:(?::[A-Za-z0-9_][A-Za-z0-9_.-]{0,127})|(?:@sha256:[a-f0-9]{64}))?$/
 const ENVIRONMENT_NAME_PATTERN = /^[A-Za-z_][A-Za-z0-9_]{0,127}$/
+const SSH_PUBLIC_KEY_PATTERN = /^ssh-ed25519 [A-Za-z0-9+/]+={0,2}(?: [^\r\n]+)?$/
+
+export const DORKA_SSH_PUBLIC_KEY_ENV = 'DORKA_SSH_PUBLIC_KEY'
 
 const DEFAULT_CPUS = 2
 const DEFAULT_MEMORY_MB = 4096
@@ -108,9 +111,13 @@ export function computerName(id: string): string {
 export function createComputerArgs(
   spec: ComputerCreateSpec,
   serverId: string,
+  sshPublicKey: string,
   allowedMountSources: readonly string[] = []
 ): string[] {
   validateServerId(serverId)
+  if (!SSH_PUBLIC_KEY_PATTERN.test(sshPublicKey)) {
+    throw new Error('Computer SSH public key is invalid')
+  }
   const validated = validateComputerSpec(spec)
   const allowedSources = new Set(validateAllowedMountSources(allowedMountSources))
   for (const mount of validated.mounts) {
@@ -149,6 +156,7 @@ export function createComputerArgs(
   for (const mount of validated.mounts) {
     args.push('--mount', mountArgument(mount))
   }
+  args.push('--env', `${DORKA_SSH_PUBLIC_KEY_ENV}=${sshPublicKey}`)
   args.push('--workdir', '/workspace', validated.image)
   return args
 }
@@ -175,6 +183,9 @@ function validateEnvironment(environment: Record<string, string>): Record<string
     throw new Error(`Computer environment may contain at most ${MAX_ENVIRONMENT_ENTRIES} entries`)
   }
   for (const [name, value] of entries) {
+    if (name === DORKA_SSH_PUBLIC_KEY_ENV) {
+      throw new Error(`${DORKA_SSH_PUBLIC_KEY_ENV} is managed by Dorka`)
+    }
     if (!ENVIRONMENT_NAME_PATTERN.test(name)) {
       throw new Error(`Computer environment variable name is invalid: ${name}`)
     }

@@ -15,6 +15,7 @@ import {
   type ComputerRuntimeState
 } from '../../shared/computer-runtime'
 import { ComputerRecordStore } from './computer-record-store'
+import { ComputerSshKeyStore } from './computer-ssh-key-store'
 import {
   computerName,
   createComputerArgs,
@@ -46,6 +47,7 @@ export class ComputerRuntimeManager {
   private readonly enginePath: string
   private readonly execute: ComputerCommandExecutor
   private readonly store: ComputerRecordStore
+  private readonly sshKeys: ComputerSshKeyStore
   private readonly allowedMountSources: readonly string[]
   private mutationQueue = Promise.resolve()
 
@@ -55,6 +57,7 @@ export class ComputerRuntimeManager {
     this.execute = options.execute ?? runProcess
     this.allowedMountSources = validateAllowedMountSources(options.allowedMountSources ?? [])
     this.store = new ComputerRecordStore(options.dataDirectory)
+    this.sshKeys = new ComputerSshKeyStore(options.dataDirectory)
   }
 
   create(spec: ComputerCreateSpec): Promise<ComputerRuntimeInfo> {
@@ -68,7 +71,7 @@ export class ComputerRuntimeManager {
       throw new Error(`Computer already exists: ${validated.id}`)
     }
 
-    await this.run(createComputerArgs(validated, this.options.serverId, this.allowedMountSources))
+    await this.createContainer(validated)
     await this.store.save([...records, { spec: validated, desiredState: 'stopped' }])
     return this.inspect(validated.id)
   }
@@ -149,9 +152,7 @@ export class ComputerRuntimeManager {
     for (const record of desired) {
       let current = actualById.get(record.spec.id)
       if (!current) {
-        await this.run(
-          createComputerArgs(record.spec, this.options.serverId, this.allowedMountSources)
-        )
+        await this.createContainer(record.spec)
         result.created.push(record.spec.id)
         current = {
           id: record.spec.id,
@@ -177,6 +178,13 @@ export class ComputerRuntimeManager {
       result.removed.push(computer.id)
     }
     return result
+  }
+
+  private async createContainer(spec: ComputerCreateSpec): Promise<void> {
+    const publicKey = await this.sshKeys.loadOrCreatePublicKey(spec.id)
+    await this.run(
+      createComputerArgs(spec, this.options.serverId, publicKey, this.allowedMountSources)
+    )
   }
 
   private async requireDesired(id: string): Promise<ComputerRecord> {

@@ -117,6 +117,16 @@ engine socket, a host home, `/`, `/dev`, `/proc`, `/sys`, or `/run`. Computer
 containers never receive the engine socket or host home, never run privileged,
 and cannot request arbitrary engine flags or unconstrained host mounts.
 
+## Computer SSH keys
+
+Dorka creates one Ed25519 keypair per Computer under
+`/data/computer-ssh-keys/<computer-id>/`. The private key stays on the Server at
+mode `0600`. Reconciliation reuses it when recreating a missing container.
+
+Only the public key enters the Computer through `DORKA_SSH_PUBLIC_KEY`. The
+entrypoint preserves unrelated `authorized_keys` lines, deduplicates the managed
+key, and disables password and keyboard-interactive SSH authentication.
+
 ## Build the Computer image
 
 The curated Computer extends an official, persistent Selkies desktop tag. It

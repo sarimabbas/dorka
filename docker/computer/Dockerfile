@@ -19,6 +19,7 @@ COPY docker/computer/entrypoint.sh /usr/local/bin/dorka-computer-entrypoint
 RUN chmod 0755 /usr/local/bin/dorka-computer-entrypoint && \
     mkdir -p /run/sshd /workspace && chown ubuntu:ubuntu /workspace
 
+# DORKA_SSH_PUBLIC_KEY is required at runtime; the image never contains a private key.
 ENV DORKA_SSH_PORT=2222
 WORKDIR /workspace
 VOLUME ["/home/ubuntu", "/workspace"]
