@@ -195,7 +195,10 @@ async function startDorkadRuntime(
   const controlPlane = await createDorkadControlPlane({
     dataDirectory: dirname(profile.dataFile)
   })
-  await provisionDorkadFirstRun(controlPlane)
+  const firstRun = await provisionDorkadFirstRun(controlPlane)
+  if (firstRun.state === 'degraded') {
+    console.error(`[dorkad] First-run provisioning is degraded: ${firstRun.reason}`)
+  }
   const observedPaneIdentities = new AgentStatusObservedPaneIdentities()
   const observedStatusCapture = new AgentStatusObservedPaneIdentityCapture(observedPaneIdentities)
   // Why a real Store: without one every persistence-backed RPC throws `runtime_unavailable`
