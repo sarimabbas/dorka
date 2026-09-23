@@ -104,6 +104,33 @@ describe('AgentRosterStore', () => {
     expect(reloaded.listRuns()).toHaveLength(2)
   })
 
+  it('revision-fences Agent reference updates across store instances', async () => {
+    const { directory, store } = await openStore()
+    const agent = await createAgent(store)
+    const second = await AgentRosterStore.open(directory)
+    const references = {
+      version: 1 as const,
+      items: [{ kind: 'skill' as const, name: 'code-review', scope: 'either' as const }]
+    }
+
+    await expect(
+      store.updateAgent(agent.id, agent.revision, { references })
+    ).resolves.toMatchObject({
+      outcome: 'updated',
+      agent: { revision: 2, references }
+    })
+    await expect(
+      second.updateAgent(agent.id, agent.revision, {
+        references: { version: 1, items: [] }
+      })
+    ).resolves.toEqual({ outcome: 'conflict', currentRevision: 2 })
+    expect(second.getAgent(agent.id)?.revision).toBe(2)
+    expect((await AgentRosterStore.open(directory)).getAgent(agent.id)).toMatchObject({
+      revision: 2,
+      references
+    })
+  })
+
   it('keeps placement on each Run when an Agent preference changes', async () => {
     const { store } = await openStore()
     const agent = await createAgent(store)

@@ -140,6 +140,9 @@ export type AgentCreate = Omit<
   'id' | 'revision' | 'references' | 'createdAt' | 'updatedAt' | 'lastComputerId'
 > & { references?: AgentReferenceSet }
 export type AgentUpdate = Partial<AgentCreate>
+export type AgentUpdateResult =
+  | { outcome: 'updated'; agent: Agent }
+  | { outcome: 'conflict'; currentRevision: number }
 export type RunCreate = Pick<
   Run,
   'agentId' | 'agentRevision' | 'computerId' | 'prompt' | 'sourceDirectory'

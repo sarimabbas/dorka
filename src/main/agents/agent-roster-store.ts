@@ -7,6 +7,7 @@ import {
   type AgentCreate,
   type AgentRosterFile,
   type AgentUpdate,
+  type AgentUpdateResult,
   type Run,
   type RunCreate,
   type RunStatus,
@@ -80,20 +81,28 @@ export class AgentRosterStore {
     })
   }
 
-  updateAgent(id: string, update: AgentUpdate): Promise<Agent> {
+  updateAgent(
+    id: string,
+    expectedRevision: number,
+    update: AgentUpdate
+  ): Promise<AgentUpdateResult> {
     return this.mutate((roster) => {
       const index = roster.agents.findIndex((agent) => agent.id === id)
       if (index === -1) {
         throw new Error(`Agent not found: ${id}`)
       }
+      const current = roster.agents[index]
+      if (current.revision !== expectedRevision) {
+        return { outcome: 'conflict', currentRevision: current.revision }
+      }
       const agent = AgentSchema.parse({
-        ...roster.agents[index],
+        ...current,
         ...update,
-        revision: roster.agents[index].revision + 1,
+        revision: current.revision + 1,
         updatedAt: Date.now()
       })
       roster.agents[index] = agent
-      return agent
+      return { outcome: 'updated', agent }
     })
   }
 
