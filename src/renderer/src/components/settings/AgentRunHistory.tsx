@@ -1,14 +1,18 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import type { Run } from '../../../../shared/agent-roster'
 import {
   AgentRunHistoryUnsupportedError,
   listRuntimeAgentRuns
 } from '@/runtime/runtime-agent-roster-client'
 import type { RuntimeClientTarget } from '@/runtime/runtime-rpc-client'
+import { activateTabAndFocusPane } from '@/lib/activate-tab-and-focus-pane'
+import { activateAndRevealWorkspace } from '@/lib/worktree-activation'
+import { useAppStore } from '@/store'
 import { Badge } from '../ui/badge'
 import { Button } from '../ui/button'
 import { RunChangesPanel } from './RunChangesPanel'
 import { RunTerminalOutput } from './RunTerminalOutput'
+import { findAgentRunTerminalTarget } from './agent-run-terminal-target'
 
 const MAX_RECENT_RUNS = 5
 
@@ -42,6 +46,23 @@ export function AgentRunHistory({
   const [error, setError] = useState<string | null>(null)
   const [selectedRunId, setSelectedRunId] = useState<string | null>(null)
   const [terminalRunId, setTerminalRunId] = useState<string | null>(null)
+  const tabsByWorktree = useAppStore((state) => state.tabsByWorktree)
+  const terminalLayoutsByTabId = useAppStore((state) => state.terminalLayoutsByTabId)
+  const closeSettingsPage = useAppStore((state) => state.closeSettingsPage)
+  const terminalTargets = useMemo(
+    () =>
+      new Map(
+        (runs ?? []).flatMap((run) => {
+          const runTarget = findAgentRunTerminalTarget(
+            { tabsByWorktree, terminalLayoutsByTabId },
+            run,
+            target
+          )
+          return runTarget ? [[run.id, runTarget] as const] : []
+        })
+      ),
+    [runs, tabsByWorktree, target, terminalLayoutsByTabId]
+  )
 
   useEffect(() => {
     let active = true
@@ -109,6 +130,28 @@ export function AgentRunHistory({
                   </details>
                 </div>
                 <div className="flex shrink-0 gap-1.5">
+                  {terminalTargets.has(run.id) ? (
+                    <Button
+                      type="button"
+                      size="xs"
+                      onClick={() => {
+                        const runTarget = terminalTargets.get(run.id)
+                        if (
+                          !runTarget ||
+                          activateAndRevealWorkspace(runTarget.worktreeId) === false
+                        ) {
+                          return
+                        }
+                        activateTabAndFocusPane(runTarget.tabId, runTarget.leafId, {
+                          flashFocusedPane: true,
+                          scrollToBottomIfOutputSinceLastView: true
+                        })
+                        closeSettingsPage()
+                      }}
+                    >
+                      Open terminal
+                    </Button>
+                  ) : null}
                   <Button
                     type="button"
                     variant="outline"
@@ -116,7 +159,7 @@ export function AgentRunHistory({
                     disabled={!run.terminalSessionId}
                     onClick={() => setTerminalRunId(terminalRunId === run.id ? null : run.id)}
                   >
-                    {terminalRunId === run.id ? 'Hide Output' : 'View Output'}
+                    {terminalRunId === run.id ? 'Hide output' : 'View output'}
                   </Button>
                   <Button
                     type="button"

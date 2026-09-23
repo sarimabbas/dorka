@@ -4,7 +4,33 @@ import '@testing-library/jest-dom/vitest'
 import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-const mocks = vi.hoisted(() => ({ listRuntimeAgentRuns: vi.fn() }))
+const mocks = vi.hoisted(() => {
+  const tabsByWorktree: Record<string, { id: string; ptyId: string | null }[]> = {}
+  const terminalLayoutsByTabId: Record<
+    string,
+    { activeLeafId: string | null; ptyIdsByLeafId: Record<string, string> }
+  > = {}
+  return {
+    listRuntimeAgentRuns: vi.fn(),
+    activateAndRevealWorkspace: vi.fn(() => ({ primaryTabId: null })),
+    activateTabAndFocusPane: vi.fn(),
+    closeSettingsPage: vi.fn(),
+    tabsByWorktree,
+    terminalLayoutsByTabId
+  }
+})
+
+vi.mock('@/store', () => ({
+  useAppStore: <T,>(selector: (state: typeof mocks) => T): T => selector(mocks)
+}))
+
+vi.mock('@/lib/worktree-activation', () => ({
+  activateAndRevealWorkspace: mocks.activateAndRevealWorkspace
+}))
+
+vi.mock('@/lib/activate-tab-and-focus-pane', () => ({
+  activateTabAndFocusPane: mocks.activateTabAndFocusPane
+}))
 
 vi.mock('@/runtime/runtime-agent-roster-client', () => ({
   AgentRunHistoryUnsupportedError: class extends Error {},
@@ -24,6 +50,11 @@ import { AgentRunHistory } from './AgentRunHistory'
 describe('AgentRunHistory', () => {
   beforeEach(() => {
     mocks.listRuntimeAgentRuns.mockReset()
+    mocks.activateAndRevealWorkspace.mockClear()
+    mocks.activateTabAndFocusPane.mockClear()
+    mocks.closeSettingsPage.mockClear()
+    mocks.tabsByWorktree = {}
+    mocks.terminalLayoutsByTabId = {}
     mocks.listRuntimeAgentRuns.mockResolvedValue([
       {
         id: 'run-sensitive-id',
@@ -47,7 +78,7 @@ describe('AgentRunHistory', () => {
     expect(screen.getByText(/Main ·/)).toBeInTheDocument()
     const details = screen.getByText('Details').closest('details')
     expect(details).not.toHaveAttribute('open')
-    expect(screen.getByRole('button', { name: 'View Output' })).toBeEnabled()
+    expect(screen.getByRole('button', { name: 'View output' })).toBeEnabled()
     expect(screen.getByRole('button', { name: 'Changes' })).toBeEnabled()
 
     fireEvent.click(screen.getByText('Details'))
@@ -60,9 +91,49 @@ describe('AgentRunHistory', () => {
   it('labels the inline terminal tail as output rather than a live terminal', async () => {
     render(<AgentRunHistory agentId="agent-1" target={{ kind: 'local' }} refreshKey={0} />)
 
-    fireEvent.click(await screen.findByRole('button', { name: 'View Output' }))
+    fireEvent.click(await screen.findByRole('button', { name: 'View output' }))
 
     expect(screen.getByText('Output for term-sensitive-id')).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Hide Output' })).toBeEnabled()
+    expect(screen.getByRole('button', { name: 'Hide output' })).toBeEnabled()
+  })
+
+  it('opens an existing Run terminal with incumbent workspace activation', async () => {
+    mocks.tabsByWorktree = {
+      'workspace-1': [{ id: 'tab-1', ptyId: 'remote:server-1@@term-sensitive-id' }]
+    }
+    mocks.terminalLayoutsByTabId = {
+      'tab-1': {
+        activeLeafId: 'leaf-1',
+        ptyIdsByLeafId: { 'leaf-1': 'remote:server-1@@term-sensitive-id' }
+      }
+    }
+    mocks.listRuntimeAgentRuns.mockResolvedValueOnce([
+      {
+        id: 'run-1',
+        agentId: 'agent-1',
+        computerId: 'main',
+        prompt: 'Inspect the current workspace',
+        status: 'running',
+        terminalSessionId: 'term-sensitive-id',
+        processIdentity: 'pty-sensitive-id:incarnation-1',
+        createdAt: Date.now()
+      }
+    ])
+    render(
+      <AgentRunHistory
+        agentId="agent-1"
+        target={{ kind: 'environment', environmentId: 'server-1' }}
+        refreshKey={0}
+      />
+    )
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Open terminal' }))
+
+    expect(mocks.activateAndRevealWorkspace).toHaveBeenCalledWith('workspace-1')
+    expect(mocks.activateTabAndFocusPane).toHaveBeenCalledWith('tab-1', 'leaf-1', {
+      flashFocusedPane: true,
+      scrollToBottomIfOutputSinceLastView: true
+    })
+    expect(mocks.closeSettingsPage).toHaveBeenCalledOnce()
   })
 })
