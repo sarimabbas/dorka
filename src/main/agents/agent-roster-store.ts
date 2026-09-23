@@ -15,6 +15,7 @@ import {
   type RunTransition,
   type RunUpdate
 } from '../../shared/agent-roster'
+import { withFileTransactionLock } from '../file-transaction-lock'
 
 export const AGENT_ROSTER_FILE_NAME = 'agent-roster.json'
 
@@ -297,13 +298,18 @@ export class AgentRosterStore {
   }
 
   private mutate<T>(change: (roster: AgentRosterFile) => T): Promise<T> {
-    const operation = this.queue.then(async () => {
-      const next = structuredClone(this.roster)
-      const result = change(next)
-      await persistRoster(this.filePath, next, this.syncDirectory)
-      this.roster = next
-      return result
-    })
+    const operation = this.queue.then(() =>
+      withFileTransactionLock(this.filePath, async () => {
+        // Why: another dorkad process or store instance may have committed since this instance
+        // opened. Mutate the latest durable snapshot under the shared lock instead of overwriting it
+        // with this instance's stale in-memory copy.
+        const next = structuredClone(await readRoster(this.filePath))
+        const result = change(next)
+        await persistRoster(this.filePath, next, this.syncDirectory)
+        this.roster = next
+        return result
+      })
+    )
     this.queue = operation.then(
       () => undefined,
       () => undefined

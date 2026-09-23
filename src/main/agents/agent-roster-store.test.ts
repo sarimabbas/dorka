@@ -153,6 +153,32 @@ describe('AgentRosterStore', () => {
     })
   })
 
+  it('preserves concurrent mutations from separate store instances', async () => {
+    const { directory, store: first } = await openStore()
+    const second = await AgentRosterStore.open(directory)
+
+    const [builder, reviewer] = await Promise.all([
+      createAgent(first),
+      second.createAgent({
+        name: 'Reviewer',
+        character: { color: 'green', variant: 'orb' },
+        job: 'Review the requested change',
+        harnessId: 'claude',
+        promptTemplate: 'Review carefully.'
+      })
+    ])
+    await Promise.all([
+      first.createRun({ agentId: reviewer.id, computerId: 'computer-a', prompt: 'Review' }),
+      second.createRun({ agentId: builder.id, computerId: 'computer-b', prompt: 'Build' })
+    ])
+
+    const reloaded = await AgentRosterStore.open(directory)
+    expect(reloaded.listAgents().map((agent) => agent.id)).toEqual(
+      expect.arrayContaining([builder.id, reviewer.id])
+    )
+    expect(reloaded.listRuns()).toHaveLength(2)
+  })
+
   it('rejects invalid Run transitions without changing the persisted Run', async () => {
     const { directory, store } = await openStore()
     const agent = await createAgent(store)
