@@ -10,7 +10,7 @@ import { runProcess } from '../../shared/child-process/run-process'
 import type { ComputerCreateSpec, ComputerReconcileResult } from '../../shared/computer-runtime'
 
 const SERVER_ID_FILE = 'server-id'
-const DEFAULT_COMPUTER_IMAGE = 'dorka-computer:latest'
+const DEFAULT_COMPUTER_IMAGE = 'dorka-computer:selkies'
 const DEFAULT_ENGINE_PATH = 'docker'
 
 export type DorkadComputerEngineHealth =

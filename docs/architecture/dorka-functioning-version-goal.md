@@ -65,8 +65,8 @@ the server container must start and accept remote client connections.
 
 - [x] Compose `AgentRosterStore` during `dorkad` startup.
 - [x] Compose `ComputerRuntimeManager` during `dorkad` startup.
-- [ ] Expose the minimal authenticated Agent and Computer control-plane operations.
-- [ ] Provision an idempotent `Main` Computer and first Agent.
+- [x] Expose the minimal authenticated Agent and Computer control-plane operations.
+- [x] Provision an idempotent `Main` Computer and first Agent.
 - [ ] Connect an Agent preset to the existing launcher and PTY/session path.
 - [ ] Record the selected `computerId` and terminal session identity on each Run.
 

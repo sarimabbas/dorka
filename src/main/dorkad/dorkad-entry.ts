@@ -158,6 +158,7 @@ async function startDorkadRuntime(
   const { daemonOwnsFreshPersistentPtys } = await import('../daemon/daemon-init')
   const { collectDorkadHealth } = await import('./dorkad-health')
   const { createDorkadControlPlane } = await import('./dorkad-control-plane')
+  const { provisionDorkadFirstRun } = await import('./dorkad-first-run')
   // Why importable here: the singleton's module tree never reaches Electron, and dorkad supplies
   // its persistence and endpoint paths explicitly below.
   const { agentHookServer } = await import('../agent-hooks/server')
@@ -194,6 +195,7 @@ async function startDorkadRuntime(
   const controlPlane = await createDorkadControlPlane({
     dataDirectory: dirname(profile.dataFile)
   })
+  await provisionDorkadFirstRun(controlPlane)
   const observedPaneIdentities = new AgentStatusObservedPaneIdentities()
   const observedStatusCapture = new AgentStatusObservedPaneIdentityCapture(observedPaneIdentities)
   // Why a real Store: without one every persistence-backed RPC throws `runtime_unavailable`
@@ -223,6 +225,8 @@ async function startDorkadRuntime(
   let sessionSearch: { apply(settings: AiVaultSearchSettings): void; dispose(): void } | null = null
 
   const runtime = new DorkaRuntimeService(store, undefined, {
+    agentRosterStore: controlPlane.agents,
+    computerRuntimeManager: controlPlane.computers,
     // Why lazy: a daemon swap replaces the provider after construction, so an eager
     // reference would freeze the pre-daemon one.
     getLocalProvider: () => getLocalPtyProvider(),
