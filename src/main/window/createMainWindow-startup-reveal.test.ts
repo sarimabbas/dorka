@@ -63,6 +63,7 @@ describe('createMainWindow', () => {
       getSize: vi.fn(() => [1200, 800]),
       setSize: vi.fn(),
       setWindowButtonPosition: vi.fn(),
+      setMaxListeners: vi.fn(),
       maximize: vi.fn(),
       show: vi.fn(),
       loadFile: vi.fn(() => Promise.resolve()),
@@ -85,6 +86,14 @@ describe('createMainWindow', () => {
       updateUI: vi.fn()
     }
   }
+
+  it('uses the exact bounded macOS window cleanup listener budget', () => {
+    const { browserWindowInstance } = createStartupRevealWindowFixture()
+
+    withPlatform('darwin', () => createMainWindow(null))
+
+    expect(browserWindowInstance.setMaxListeners).toHaveBeenCalledWith(11)
+  })
 
   it.each(['darwin', 'linux', 'win32'] as const)(
     'keeps explicit background startup hidden through ready/load/fallback on %s',

@@ -139,6 +139,11 @@ export function createMainWindow(
       additionalArguments: [formatBrowserClientHostIdArgument(getBrowserClientHostId())]
     }
   })
+  if (process.platform === 'darwin' && typeof mainWindow.setMaxListeners === 'function') {
+    // Eleven independent window-lifetime cleanup owners are composed on a fresh macOS profile.
+    // Keep the budget exact so a twelfth listener still surfaces as a possible leak.
+    mainWindow.setMaxListeners(11)
+  }
   const rendererWebContentsId = mainWindow.webContents.id
   installWindowsPathRegistryChangeListener(mainWindow)
   // Why: native paste fallback is privileged IPC; only the top-level renderer may request it.
