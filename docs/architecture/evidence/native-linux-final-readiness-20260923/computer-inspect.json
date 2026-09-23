@@ -1,0 +1,323 @@
+[
+  {
+    "Id": "48ce5eb76dcd5b81252cdabe4946c090fdc20180bb5f81598dd5fc78ac2557b2",
+    "Created": "2026-09-23T21:59:48.004571232Z",
+    "Path": "/usr/local/bin/dorka-computer-entrypoint",
+    "Args": [],
+    "State": {
+      "Status": "running",
+      "Running": true,
+      "Paused": false,
+      "Restarting": false,
+      "OOMKilled": false,
+      "Dead": false,
+      "Pid": 685662,
+      "ExitCode": 0,
+      "Error": "",
+      "StartedAt": "2026-09-23T22:00:21.547687495Z",
+      "FinishedAt": "2026-09-23T22:00:21.287326302Z",
+      "Health": {
+        "Status": "healthy",
+        "FailingStreak": 0,
+        "Log": [
+          {
+            "Start": "2026-09-23T21:59:53.222283143Z",
+            "End": "2026-09-23T21:59:53.609991108Z",
+            "ExitCode": 0,
+            "Output": ""
+          },
+          {
+            "Start": "2026-09-23T22:00:08.611561553Z",
+            "End": "2026-09-23T22:00:08.724469633Z",
+            "ExitCode": 0,
+            "Output": ""
+          },
+          {
+            "Start": "2026-09-23T22:00:26.680452752Z",
+            "End": "2026-09-23T22:00:26.785830397Z",
+            "ExitCode": 0,
+            "Output": ""
+          }
+        ]
+      }
+    },
+    "Image": "sha256:ce2b6600eb4b4b8fb032c909c5d20e614e1402a2dc5ec8ce609f6741f80e771a",
+    "ResolvConfPath": "/scratch/var_lib_docker/containers/48ce5eb76dcd5b81252cdabe4946c090fdc20180bb5f81598dd5fc78ac2557b2/resolv.conf",
+    "HostnamePath": "/scratch/var_lib_docker/containers/48ce5eb76dcd5b81252cdabe4946c090fdc20180bb5f81598dd5fc78ac2557b2/hostname",
+    "HostsPath": "/scratch/var_lib_docker/containers/48ce5eb76dcd5b81252cdabe4946c090fdc20180bb5f81598dd5fc78ac2557b2/hosts",
+    "LogPath": "/scratch/var_lib_docker/containers/48ce5eb76dcd5b81252cdabe4946c090fdc20180bb5f81598dd5fc78ac2557b2/48ce5eb76dcd5b81252cdabe4946c090fdc20180bb5f81598dd5fc78ac2557b2-json.log",
+    "Name": "/dorka-computer-main",
+    "RestartCount": 0,
+    "Driver": "overlay2",
+    "Platform": "linux",
+    "MountLabel": "",
+    "ProcessLabel": "",
+    "AppArmorProfile": "",
+    "ExecIDs": null,
+    "HostConfig": {
+      "Binds": null,
+      "ContainerIDFile": "",
+      "LogConfig": {
+        "Type": "json-file",
+        "Config": {}
+      },
+      "NetworkMode": "dorka-runtimes",
+      "PortBindings": {},
+      "RestartPolicy": {
+        "Name": "no",
+        "MaximumRetryCount": 0
+      },
+      "AutoRemove": false,
+      "VolumeDriver": "",
+      "VolumesFrom": null,
+      "ConsoleSize": [0, 0],
+      "CapAdd": null,
+      "CapDrop": null,
+      "CgroupnsMode": "host",
+      "Dns": [],
+      "DnsOptions": [],
+      "DnsSearch": [],
+      "ExtraHosts": null,
+      "GroupAdd": null,
+      "IpcMode": "private",
+      "Cgroup": "",
+      "Links": null,
+      "OomScoreAdj": 0,
+      "PidMode": "",
+      "Privileged": false,
+      "PublishAllPorts": false,
+      "ReadonlyRootfs": false,
+      "SecurityOpt": null,
+      "UTSMode": "",
+      "UsernsMode": "",
+      "ShmSize": 2147483648,
+      "Runtime": "runc",
+      "Isolation": "",
+      "CpuShares": 0,
+      "Memory": 4294967296,
+      "NanoCpus": 2000000000,
+      "CgroupParent": "",
+      "BlkioWeight": 0,
+      "BlkioWeightDevice": [],
+      "BlkioDeviceReadBps": [],
+      "BlkioDeviceWriteBps": [],
+      "BlkioDeviceReadIOps": [],
+      "BlkioDeviceWriteIOps": [],
+      "CpuPeriod": 0,
+      "CpuQuota": 0,
+      "CpuRealtimePeriod": 0,
+      "CpuRealtimeRuntime": 0,
+      "CpusetCpus": "",
+      "CpusetMems": "",
+      "Devices": [],
+      "DeviceCgroupRules": null,
+      "DeviceRequests": null,
+      "MemoryReservation": 0,
+      "MemorySwap": 8589934592,
+      "MemorySwappiness": null,
+      "OomKillDisable": false,
+      "PidsLimit": 512,
+      "Ulimits": [],
+      "CpuCount": 0,
+      "CpuPercent": 0,
+      "IOMaximumIOps": 0,
+      "IOMaximumBandwidth": 0,
+      "Mounts": [
+        {
+          "Type": "volume",
+          "Source": "dorka-computer-main-home",
+          "Target": "/home/ubuntu"
+        },
+        {
+          "Type": "volume",
+          "Source": "dorka-computer-main-workspace",
+          "Target": "/workspace"
+        },
+        {
+          "Type": "volume",
+          "Source": "dorka-computer-main-ssh-host-keys",
+          "Target": "/etc/ssh"
+        }
+      ],
+      "MaskedPaths": [
+        "/proc/asound",
+        "/proc/acpi",
+        "/proc/interrupts",
+        "/proc/kcore",
+        "/proc/keys",
+        "/proc/latency_stats",
+        "/proc/timer_list",
+        "/proc/timer_stats",
+        "/proc/sched_debug",
+        "/proc/scsi",
+        "/sys/firmware",
+        "/sys/devices/virtual/powercap"
+      ],
+      "ReadonlyPaths": ["/proc/bus", "/proc/fs", "/proc/irq", "/proc/sys", "/proc/sysrq-trigger"]
+    },
+    "GraphDriver": {
+      "Data": {
+        "ID": "48ce5eb76dcd5b81252cdabe4946c090fdc20180bb5f81598dd5fc78ac2557b2",
+        "LowerDir": "/scratch/var_lib_docker/overlay2/32a3aff17696c462fb019070a13e576bf133706ade16261337712b598f172a3f-init/diff:/scratch/var_lib_docker/overlay2/g5obew1d6l6wxhchcplu6nh9i/diff:/scratch/var_lib_docker/overlay2/ij481j71iliwzkts7zrjouw2q/diff:/scratch/var_lib_docker/overlay2/s1e2mjjripfthrn9w2jktpx2n/diff:/scratch/var_lib_docker/overlay2/y2tydgtozsmwh0fh1h8l6rgow/diff:/scratch/var_lib_docker/overlay2/9akf9lfrlndz9mgn74qzmugk7/diff:/scratch/var_lib_docker/overlay2/o2zie5e8qxsd3jdo2dn46x4b8/diff:/scratch/var_lib_docker/overlay2/d81dad5551a4527ba6f774bdc2cd61d1d0a55cfcf0a645c6f6ebbd5a2a3823fe/diff:/scratch/var_lib_docker/overlay2/fd0c083f73f27ae8b4596b1eac7e89ffd79eac678d074c7843dee741b3150eb0/diff:/scratch/var_lib_docker/overlay2/822ec9f7bd1cfee2d110231bae9f6ece9962322bc523591a146cf87b4eefb374/diff:/scratch/var_lib_docker/overlay2/bd22b40d5af29e39b66027b2b72c0a27f60474289efa5ea369e58e9957cdcb4a/diff:/scratch/var_lib_docker/overlay2/7c89c58c2c648e3cd4a632a7c7c74fc3b7651d0292697a39007bd4e4705f1f2c/diff:/scratch/var_lib_docker/overlay2/acc6353875d9c0115220987d2f4e576bf64580dc579bbd9d51bbfd84f8a788c5/diff:/scratch/var_lib_docker/overlay2/2af49ac66aec4eaa064d172754b95ef784a1c3beb4a41a7f83dac4b1b40703bf/diff:/scratch/var_lib_docker/overlay2/29a4525f429590f8328e0fe9c303a420054b0ca830ffb97dec45322096adf564/diff:/scratch/var_lib_docker/overlay2/356fee442dafe8b098aea70e5d8029ea4491cc2e5ce33db5fb541aeff6fb4cde/diff:/scratch/var_lib_docker/overlay2/d4ac875c118fd0e2a7ad406befad6a8671d9a6d02ccc362ee24cbc9898347ec9/diff:/scratch/var_lib_docker/overlay2/c067a504f9e33566938245edcc59bc2e2b00597efdac62f18017e2054271648d/diff:/scratch/var_lib_docker/overlay2/ea8765469bc242d8b6bc226b35127ab3ecb477406a1c9a0f28307400cdb610ce/diff:/scratch/var_lib_docker/overlay2/df8b1368705fc5a4788cb6f5c17c7e355808cd1d7eb4d4a19731537e4c0b3a25/diff:/scratch/var_lib_docker/overlay2/0b46fd8c262a23fd9dc2333d2f83d45b98393828eeac47f71b35cac4ff46a5a5/diff:/scratch/var_lib_docker/overlay2/1a9219ed3ae14da6f12532a7b72316a6d559a568e085b5557f20d616be3c7647/diff:/scratch/var_lib_docker/overlay2/f86c9df77e87b621650235180962fb01706edb91b922c111cb9bfcab92bc097a/diff:/scratch/var_lib_docker/overlay2/0c57f86f4dd44f400d587bab25aa663e960ba831ab44d9c1e9bd648e6d59a298/diff:/scratch/var_lib_docker/overlay2/81d142b51739b9a761acfb0a234197647250d3797868adc93839be7ecf0968d5/diff:/scratch/var_lib_docker/overlay2/7abb623de2ea09a39b545e23031167ee54a3131e93c0f76fc9bfd6b27fca086c/diff:/scratch/var_lib_docker/overlay2/93007c7ddb142b00c61dad4bf7ef8335b7bbdd5dc8c0d3c4db5e893ee7e4c533/diff:/scratch/var_lib_docker/overlay2/ccab1893a70130206a2c3b0d25e8fdff153233b939bfc39d150ef2ace3871b4f/diff:/scratch/var_lib_docker/overlay2/a198b57d377f748b9176b282f9f70258c3551a3aec1c84d38777bce292f757d4/diff:/scratch/var_lib_docker/overlay2/6e0d8b8f293ea92ac0464eb26c48fdc5e3392cf69d7813a8adb1796659812678/diff:/scratch/var_lib_docker/overlay2/bb1d956704bdc72a895b5b4611167c2162818bd00a09c36fa12801bd68adbd04/diff:/scratch/var_lib_docker/overlay2/e8cfc6efe574642e3b94720beadd7d39a8fb829ce7c9c054e46932a778b643e8/diff:/scratch/var_lib_docker/overlay2/649d0674152455d2dcd91b9f147700b526b2ec462724020a6cf3069b51ba3193/diff:/scratch/var_lib_docker/overlay2/463885fac76e62ac9fc531371248f7326017766fe59328bc11b54f5317176d5e/diff:/scratch/var_lib_docker/overlay2/6a7a88c5d3d4e9b6f73144511cee3cc15dd71c5c98ca2f24b32de1fad21d314b/diff:/scratch/var_lib_docker/overlay2/1e7c5abb514b7ea16db1a5479401be6ddbdd371b599fbc650baafbc1f756657b/diff:/scratch/var_lib_docker/overlay2/2e79b0c1508f301fc77f793d5ca3540d2959fac78c1cdfaf19a75dd5d254dad6/diff:/scratch/var_lib_docker/overlay2/c59d39e2a37819bf920ca18081a2a1cad66d1bda7379ad659422198d63f7dca2/diff:/scratch/var_lib_docker/overlay2/f469ef788d686976a84af3556c6f6ba822c88f94db3aee5b5502603147b76251/diff:/scratch/var_lib_docker/overlay2/df919d452539e2869f0b0577d35cc1b68c935332238d210457db44f45d099f16/diff:/scratch/var_lib_docker/overlay2/1085c49a4671911adddbbab33aaaab4387dad3290ff9a49cfffd3f655124819e/diff:/scratch/var_lib_docker/overlay2/7d776c8657263c3e74d9d30610310e48c113e006df361132cc09507d3c739e64/diff:/scratch/var_lib_docker/overlay2/e70f74f3015a59bcc0690e95b8bf2431140544a96d1bcd11eb72aa92db413da4/diff:/scratch/var_lib_docker/overlay2/5b05b3fd58529f7b3d17f5dd0546f37fb653cde50b0911c215a10bdf5f2d30ce/diff:/scratch/var_lib_docker/overlay2/bd3f802905ad38914a5666cdc2beec1ad19ca037eada204ad8987282cdc6d9dd/diff:/scratch/var_lib_docker/overlay2/66f930edc50e27915e9ec811a9390cb1ce51968da788ed5ae9b12ecec115abfb/diff:/scratch/var_lib_docker/overlay2/7dd7f5da72f4de6acb1a56ee43163b1a4ee7b75d29e031efad843eeab7881279/diff:/scratch/var_lib_docker/overlay2/f113d645472b90ab6b496d836568a1ad4fd5c06335841baa2980c1f7e377fbae/diff:/scratch/var_lib_docker/overlay2/80668ac71920d631376453660e14dba2710c2fbde2c4cf5d2d2d9863271a580b/diff",
+        "MergedDir": "/scratch/var_lib_docker/overlay2/32a3aff17696c462fb019070a13e576bf133706ade16261337712b598f172a3f/merged",
+        "UpperDir": "/scratch/var_lib_docker/overlay2/32a3aff17696c462fb019070a13e576bf133706ade16261337712b598f172a3f/diff",
+        "WorkDir": "/scratch/var_lib_docker/overlay2/32a3aff17696c462fb019070a13e576bf133706ade16261337712b598f172a3f/work"
+      },
+      "Name": "overlay2"
+    },
+    "Mounts": [
+      {
+        "Type": "volume",
+        "Name": "dorka-computer-main-ssh-host-keys",
+        "Source": "/scratch/var_lib_docker/volumes/dorka-computer-main-ssh-host-keys/_data",
+        "Destination": "/etc/ssh",
+        "Driver": "local",
+        "Mode": "z",
+        "RW": true,
+        "Propagation": ""
+      },
+      {
+        "Type": "volume",
+        "Name": "dorka-computer-main-home",
+        "Source": "/scratch/var_lib_docker/volumes/dorka-computer-main-home/_data",
+        "Destination": "/home/ubuntu",
+        "Driver": "local",
+        "Mode": "z",
+        "RW": true,
+        "Propagation": ""
+      },
+      {
+        "Type": "volume",
+        "Name": "dorka-computer-main-workspace",
+        "Source": "/scratch/var_lib_docker/volumes/dorka-computer-main-workspace/_data",
+        "Destination": "/workspace",
+        "Driver": "local",
+        "Mode": "z",
+        "RW": true,
+        "Propagation": ""
+      }
+    ],
+    "Config": {
+      "Hostname": "48ce5eb76dcd",
+      "Domainname": "",
+      "User": "0",
+      "AttachStdin": false,
+      "AttachStdout": true,
+      "AttachStderr": true,
+      "ExposedPorts": {
+        "2222/tcp": {},
+        "8080/tcp": {}
+      },
+      "Tty": false,
+      "OpenStdin": false,
+      "StdinOnce": false,
+      "Env": [
+        "DORKA_SSH_PUBLIC_KEY=ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIA6MoDpvftP84JNpwkS0kvTSS5iUhAWY/FlwIdvQ3Gfu dorka-computer-main",
+        "DORKA_EXECUTION_GENERATION=1ab49150-c0ce-4cc1-af05-06e8747a0b2c",
+        "PATH=/usr/local/nvidia/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/local/games:/usr/games",
+        "PASSWD=mypasswd",
+        "LANG=en_US.UTF-8",
+        "LANGUAGE=en_US:en",
+        "LC_ALL=en_US.UTF-8",
+        "LD_LIBRARY_PATH=/usr/local/nvidia/lib:/usr/local/nvidia/lib64",
+        "NVIDIA_VISIBLE_DEVICES=all",
+        "NVIDIA_DRIVER_CAPABILITIES=all",
+        "__GL_SYNC_TO_VBLANK=0",
+        "PIPEWIRE_LATENCY=256/48000",
+        "XDG_RUNTIME_DIR=/tmp/runtime-ubuntu",
+        "PIPEWIRE_RUNTIME_DIR=/tmp/runtime-ubuntu",
+        "PULSE_RUNTIME_PATH=/tmp/runtime-ubuntu/pulse",
+        "PULSE_SERVER=unix:/tmp/runtime-ubuntu/pulse/native",
+        "DBUS_SYSTEM_BUS_ADDRESS=unix:path=/tmp/runtime-ubuntu/dbus-system-bus",
+        "SELKIES_WAYLAND_COMPOSITOR=selkies-kwin",
+        "SELKIES_WAYLAND_X11_FALLBACK=true",
+        "SELKIES_PORT=8080",
+        "SELKIES_ENABLE_HTTPS=true",
+        "APPIMAGE_EXTRACT_AND_RUN=1",
+        "DONT_PROMPT_WSL_INSTALL=1",
+        "SHELL=/bin/bash",
+        "USER=ubuntu",
+        "HOME=/home/ubuntu",
+        "SELKIES_COMMAND_ENABLED=true",
+        "START_PLASMA=true",
+        "XDG_MENU_PREFIX=plasma-",
+        "KWIN_WAYLAND_NO_PERMISSION_CHECKS=1",
+        "DORKA_SSH_PORT=2222"
+      ],
+      "Cmd": null,
+      "Healthcheck": {
+        "Test": [
+          "CMD-SHELL",
+          "bash -c 'exec 3<>/dev/tcp/127.0.0.1/${DORKA_SSH_PORT} && curl -ksS -o /dev/null https://127.0.0.1:8080/'"
+        ],
+        "Interval": 15000000000,
+        "Timeout": 5000000000,
+        "StartPeriod": 45000000000,
+        "Retries": 5
+      },
+      "Image": "dna-manual-1-20260923215903042-677205-computer-acceptance:selkies",
+      "Volumes": {
+        "/home/ubuntu": {},
+        "/workspace": {}
+      },
+      "WorkingDir": "/workspace",
+      "Entrypoint": ["/usr/local/bin/dorka-computer-entrypoint"],
+      "OnBuild": null,
+      "Labels": {
+        "dev.dorka.acceptance-run": "dna-manual-1-20260923215903042-677205",
+        "dev.dorka.computer": "main",
+        "dev.dorka.execution-generation": "1ab49150-c0ce-4cc1-af05-06e8747a0b2c",
+        "dev.dorka.managed": "true",
+        "dev.dorka.server": "0f9e4712-b375-40cd-958a-6d7c1ae93143",
+        "maintainer": "https://github.com/danisla,https://github.com/ehfd",
+        "org.opencontainers.image.created": "2026-09-12T10:25:59.825539+00:00",
+        "org.opencontainers.image.description": "KDE Plasma desktop on the Selkies base container: Plasma on X11 (Xvfb) by default and natively on headless Wayland (nested kwin) with SELKIES_WAYLAND=true, the GPU reached through EGL with no X.Org server of its own, s6 service supervision, embedded coTURN. Ubuntu 26.04 base only.",
+        "org.opencontainers.image.licenses": "MPL-2.0",
+        "org.opencontainers.image.source": "https://github.com/selkies-project/docker-selkies-egl-desktop",
+        "org.opencontainers.image.title": "Selkies EGL Desktop Container",
+        "org.opencontainers.image.version": "26.04"
+      }
+    },
+    "NetworkSettings": {
+      "Bridge": "",
+      "SandboxID": "68640b880407d8b672c6493a9dc319c162a3e2c59bf8552f74e422e7a2d54015",
+      "SandboxKey": "/var/run/docker/netns/68640b880407",
+      "Ports": {
+        "2222/tcp": null,
+        "8080/tcp": null
+      },
+      "HairpinMode": false,
+      "LinkLocalIPv6Address": "",
+      "LinkLocalIPv6PrefixLen": 0,
+      "SecondaryIPAddresses": null,
+      "SecondaryIPv6Addresses": null,
+      "EndpointID": "",
+      "Gateway": "",
+      "GlobalIPv6Address": "",
+      "GlobalIPv6PrefixLen": 0,
+      "IPAddress": "",
+      "IPPrefixLen": 0,
+      "IPv6Gateway": "",
+      "MacAddress": "",
+      "Networks": {
+        "dorka-runtimes": {
+          "IPAMConfig": null,
+          "Links": null,
+          "Aliases": null,
+          "MacAddress": "62:52:30:21:42:62",
+          "DriverOpts": null,
+          "GwPriority": 0,
+          "NetworkID": "2b118c7ee7477ef78a9ae9363c72a4787717753cd48f8e2ea55adccef244e29c",
+          "EndpointID": "0d5a72dabdf33659568163adcad34f052213fc57f5ff4ba4b52069a87c99926a",
+          "Gateway": "172.18.0.1",
+          "IPAddress": "172.18.0.3",
+          "IPPrefixLen": 16,
+          "IPv6Gateway": "",
+          "GlobalIPv6Address": "",
+          "GlobalIPv6PrefixLen": 0,
+          "DNSNames": ["dorka-computer-main", "48ce5eb76dcd"]
+        }
+      }
+    }
+  }
+]

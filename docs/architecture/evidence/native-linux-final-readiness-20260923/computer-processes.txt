@@ -1,0 +1,59 @@
+UID          PID    PPID  C STIME TTY          TIME CMD
+ubuntu         1       0  0 22:00 ?        00:00:00 s6-svscan -t5000 /etc/service
+root          25       1  0 22:00 ?        00:00:00 sshd: /usr/sbin/sshd -D -e -o Port=2222 -o AllowUsers=ubuntu -o PubkeyAuthentication=yes -o PasswordAuthentication=no -o KbdInteractiveAuthentication=no -o PermitRootLogin=no [listener] 0 of 10-100 startups
+root          34      25  0 22:00 ?        00:00:00 sshd-session: ubuntu [priv]
+ubuntu        46      34  0 22:00 ?        00:00:00 sshd-session: ubuntu@notty
+ubuntu       110       1  0 22:00 ?        00:00:00 s6-supervise coturn
+ubuntu       111       1  0 22:00 ?        00:00:00 s6-supervise dbus
+ubuntu       112       1  0 22:00 ?        00:00:00 s6-supervise pipewire
+ubuntu       113       1  0 22:00 ?        00:00:00 s6-supervise pipewire-pulse
+ubuntu       114       1  0 22:00 ?        00:00:00 s6-supervise selkies
+ubuntu       115       1  0 22:00 ?        00:00:00 s6-supervise wayland
+ubuntu       116       1  0 22:00 ?        00:00:00 s6-supervise wireplumber
+ubuntu       117       1  0 22:00 ?        00:00:00 s6-supervise xsettingsd
+ubuntu       118     110  0 22:00 ?        00:00:00 turnserver --verbose --listening-ip=0.0.0.0 --listening-ip=:: --listening-port=3478 --realm=example.com --external-ip=172.18.0.3 --min-port=49152 --max-port=65535 --channel-lifetime=-1 --lt-cred-mech --user=selkies:nAtdPvqpbYJhPFCWH9IxNWUK --no-cli --userdb=/tmp/runtime-ubuntu/turnserver-turndb --pidfile=/tmp/runtime-ubuntu/turnserver.pid --log-file=stdout --allow-loopback-peers
+ubuntu       119       1  0 22:00 ?        00:00:00 s6-supervise xvfb
+ubuntu       120     111  0 22:00 ?        00:00:00 dbus-daemon --system --nofork --nosyslog --nopidfile --address=unix:path=/tmp/runtime-ubuntu/dbus-system-bus
+ubuntu       121       1  0 22:00 ?        00:00:00 s6-supervise dbus-session
+ubuntu       122     112  0 22:00 ?        00:00:00 dbus-run-session -- /usr/bin/pipewire
+ubuntu       123       1  0 22:00 ?        00:00:00 s6-supervise plasma
+ubuntu       124     113  0 22:00 ?        00:00:00 dbus-run-session -- /usr/bin/pipewire-pulse
+ubuntu       126     114  3 22:00 ?        00:00:00 /usr/bin/python3 /usr/local/bin/selkies --public --port=8080
+ubuntu       128     119  0 22:00 ?        00:00:00 /bin/bash ./run xvfb
+ubuntu       129     117  0 22:00 ?        00:00:00 xsettingsd
+ubuntu       130     123  0 22:00 ?        00:00:00 startplasma-x11
+ubuntu       131     122  0 22:00 ?        00:00:00 dbus-daemon --nofork --print-address 4 --session
+ubuntu       133     121  0 22:00 ?        00:00:00 dbus-daemon --session --nofork --nosyslog --nopidfile --address=unix:path=/tmp/runtime-ubuntu/selkies-session-bus
+ubuntu       135     116  0 22:00 ?        00:00:00 dbus-run-session -- /usr/bin/wireplumber
+ubuntu       143     122  0 22:00 ?        00:00:00 /usr/bin/pipewire
+ubuntu       151     128  4 22:00 ?        00:00:00 /usr/bin/Xvfb :20 -verbose 1 +extension COMPOSITE +extension DAMAGE +extension GLX +extension RANDR +extension RENDER +extension MIT-SHM +extension XFIXES +extension XTEST +iglx +render -nolisten tcp -ac -noreset -shmem -s 0 -dpms
+ubuntu       174     130  0 22:00 ?        00:00:00 /bin/bash ./run plasma
+ubuntu       181     135  0 22:00 ?        00:00:00 dbus-daemon --nofork --print-address 4 --session
+ubuntu       182     135  0 22:00 ?        00:00:00 /usr/bin/wireplumber
+ubuntu       183     124  0 22:00 ?        00:00:00 dbus-daemon --nofork --print-address 4 --session
+ubuntu       184     124  0 22:00 ?        00:00:00 /usr/bin/pipewire-pulse
+ubuntu       217     130  0 22:00 ?        00:00:00 /usr/bin/plasma_session
+ubuntu       246       1  0 22:00 ?        00:00:00 /usr/libexec/xdg-desktop-portal
+ubuntu       254       1  0 22:00 ?        00:00:00 /usr/libexec/xdg-permission-store
+ubuntu       267       1  0 22:00 ?        00:00:00 /usr/lib/x86_64-linux-gnu/libexec/xdg-desktop-portal-kde
+ubuntu       277     217  1 22:00 ?        00:00:00 /usr/bin/kded6
+ubuntu       326       1  0 22:00 ?        00:00:00 /usr/bin/ksecretd
+ubuntu       327     217  1 22:00 ?        00:00:00 /usr/bin/kwin_x11
+ubuntu       335       1  0 22:00 ?        00:00:00 /usr/libexec/dconf-service
+ubuntu       415     217  0 22:00 ?        00:00:00 /usr/bin/ksmserver
+ubuntu       437     126  0 22:00 ?        00:00:00 /tmp/runtime-ubuntu/selkies-cups/cupsd -f -c /tmp/runtime-ubuntu/selkies-cups/cupsd.conf -s /tmp/runtime-ubuntu/selkies-cups/cups-files.conf
+ubuntu       459     217  0 22:00 ?        00:00:00 /usr/bin/kaccess
+ubuntu       460     217  0 22:00 ?        00:00:00 /usr/bin/xembedsniproxy
+ubuntu       467     217  0 22:00 ?        00:00:00 /usr/bin/gmenudbusmenuproxy
+ubuntu       470     217  1 22:00 ?        00:00:00 /usr/bin/kdeconnectd
+ubuntu       472     217  0 22:00 ?        00:00:00 /usr/libexec/geoclue-2.0/demos/agent
+ubuntu       475     217 12 22:00 ?        00:00:01 /usr/lib/x86_64-linux-gnu/libexec/kglobalacceld
+ubuntu       560     174 38 22:00 ?        00:00:05 plasmashell --replace
+ubuntu       583       1  0 22:00 ?        00:00:00 /usr/lib/x86_64-linux-gnu/libexec/kactivitymanagerd
+ubuntu       650       1  0 22:00 ?        00:00:00 /usr/lib/x86_64-linux-gnu/libexec/kf6/kioworker /usr/lib/x86_64-linux-gnu/qt6/plugins/kf6/kio/tags.so tags  local:/tmp/runtime-ubuntu/plasmashellzRyiNX.1.kioworker.socket
+ubuntu       655       1  0 22:00 ?        00:00:00 /usr/lib/x86_64-linux-gnu/libexec/kf6/kioworker /usr/lib/x86_64-linux-gnu/qt6/plugins/kf6/kio/desktop.so desktop  local:/tmp/runtime-ubuntu/plasmashellBSuZZv.4.kioworker.socket
+ubuntu       801       1  5 22:00 ?        00:00:00 /usr/bin/node relay.js --detached --grace-time 0 --sock-path /home/ubuntu/.dorka-remote/relay-0.1.0+f355e95d13ae/relay-1fdbc33bd6eea0f9.sock --credential-file /home/ubuntu/.dorka-remote/relay-0.1.0+f355e95d13ae/relay-1fdbc33bd6eea0f9.sock.credential --log-file /home/ubuntu/.dorka-remote/relay-0.1.0+f355e95d13ae/relay.log
+ubuntu       829      46  0 22:00 ?        00:00:00 /bin/sh -c cd '/home/ubuntu/.dorka-remote/relay-0.1.0+f355e95d13ae' && '/usr/bin/node' relay.js --connect --sock-path '/home/ubuntu/.dorka-remote/relay-0.1.0+f355e95d13ae/relay-1fdbc33bd6eea0f9.sock' --credential-file '/home/ubuntu/.dorka-remote/relay-0.1.0+f355e95d13ae/relay-1fdbc33bd6eea0f9.sock.credential'
+ubuntu       831     829  3 22:00 ?        00:00:00 /usr/bin/node relay.js --connect --sock-path /home/ubuntu/.dorka-remote/relay-0.1.0+f355e95d13ae/relay-1fdbc33bd6eea0f9.sock --credential-file /home/ubuntu/.dorka-remote/relay-0.1.0+f355e95d13ae/relay-1fdbc33bd6eea0f9.sock.credential
+ubuntu      1695     174  0 22:00 ?        00:00:00 sleep 2
+root        1750       0 99 22:00 ?        00:00:00 ps -ef

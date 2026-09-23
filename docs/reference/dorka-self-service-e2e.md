@@ -1,7 +1,7 @@
 # Dorka native Linux + macOS self-service E2E runbook
 
 This runbook defines two unambiguous gates. The **native release gate** is sections 0–3 and was last
-verified on 2026-09-23 at commit `06e25b716` on native amd64 Docker 28.3.3. The **controlled
+verified on 2026-09-23 at commit `1a3755ba6` on native amd64 Docker 28.3.3. The **controlled
 paired-client E2E gate** is the complete runbook: sections 0–9 are all required, including exact cleanup.
 
 ## Purpose and pass condition
@@ -160,8 +160,6 @@ a global CLI because neither is used by this gate.
 fixed-name resources because the run did not acquire ownership of them.
 
 ## 3. Verify the automated verdict
-
-For the rootful fallback, keep `DORKA_ACCEPTANCE_ALLOW_ROOTFUL=1` exported. The harness itself:
 
 For the rootful fallback, keep `DORKA_ACCEPTANCE_ALLOW_ROOTFUL=1` exported. The harness itself:
 

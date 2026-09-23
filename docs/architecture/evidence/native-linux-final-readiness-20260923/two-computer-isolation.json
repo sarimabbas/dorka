@@ -1,0 +1,38 @@
+{
+  "computers": [
+    {
+      "id": "main",
+      "state": "running"
+    },
+    {
+      "id": "secondary",
+      "state": "running"
+    }
+  ],
+  "volumes": {
+    "main": {
+      "/home/ubuntu": "dorka-computer-main-home",
+      "/workspace": "dorka-computer-main-workspace",
+      "/etc/ssh": "dorka-computer-main-ssh-host-keys"
+    },
+    "secondary": {
+      "/etc/ssh": "dorka-computer-secondary-ssh-host-keys",
+      "/home/ubuntu": "dorka-computer-secondary-home",
+      "/workspace": "dorka-computer-secondary-workspace"
+    }
+  },
+  "identities": {
+    "main": {
+      "name": "Main Acceptance",
+      "email": "main@acceptance.invalid"
+    },
+    "secondary": {
+      "name": "Secondary Acceptance",
+      "email": "secondary@acceptance.invalid"
+    }
+  },
+  "generations": {
+    "secondary": "663d8753-18bd-44ee-9526-84f9434891ea"
+  },
+  "movedRunId": "abfd9f1b-6806-422b-ad9f-8cd66b474266"
+}

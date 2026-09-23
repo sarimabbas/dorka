@@ -3,7 +3,7 @@
 ## Purpose and status
 
 This forecast turns the functioning-version goal into an ordered delivery plan. It reflects
-`feat/dorka-computers` through `06e25b716` and the evidence listed below. A checked item means the
+`feat/dorka-computers` through `1a3755ba6` and the evidence listed below. A checked item means the
 repository contains both implementation and named verification evidence, or the functioning-version
 goal records a completed live check.
 
@@ -16,8 +16,13 @@ recovery, first-run provisioning, and Server replacement without duplicate launc
 native campaign also proved host-certified offline exit publication, exact `running → waiting`,
 projection-before-ack, failed-ack replay, acknowledgement cleanup, and negative disconnect behavior.
 Exact Run execution identity is centralized, and strict evidence candidates satisfy the two-field wire
-contract. All native containers, volumes, images, and custom networks were removed after evidence was
-captured.
+contract. The final self-service gate passed all seven native cases at `1a3755ba6`, including portable
+Agent requirements, and removed every owned container, volume, image, and custom network. Hidden
+Electron QA now covers the exact Agent requirements Save and reviewed Computer plan/apply payloads,
+Stop cancel/confirm behavior, and missing-capability behavior. Recent Runs can reopen an incumbent
+terminal session without introducing a second terminal surface. The implementation is ready for the
+operator-driven paired-client extension in the self-service runbook; that manual current-head check is
+the remaining controlled-beta sign-off.
 
 ## Execution flow
 
@@ -50,10 +55,11 @@ gate, so acceptance supports an explicitly enabled, otherwise-empty isolated Doc
 | P0       | Done    | Validation  | Prove first-run `Main` provisioning on native Linux, including missing-image degradation, server replacement, Computer reconciliation, and no duplicate managed launch.                                                                                                                               | Built Computer image; isolated native Docker engine            | Completed 2026-09-23   |
 | P1       | Done    | Validation  | Prove two-Computer isolation: distinct persistent home/workspace/SSH volumes and Git identities, plus moving an Agent's next Run to the second Computer with exact generation and terminal evidence.                                                                                                  | Native-Linux P0 evidence; one immutable image                  | Completed 2026-09-23   |
 | P1       | Done    | Feature     | Expose honest Server connection/retry state and compact Agent/Computer selection in the retained shell, without reintroducing a parallel shell. Make Run terminal output and Diff/Review reachable from history.                                                                                      | Stable Run lifecycle; renderer state projection                | Completed 2026-09-23   |
-| P1       | Now     | Feature     | Turn Agents and Computers from settings-first administration into compact operational surfaces. Hide raw runtime identities under Details; reuse incumbent tab activation for real Open terminal/chat/desktop actions; keep output preview as fallback.                                               | Existing shell navigation and owned-session activation         | 3–5 days               |
+| P1       | Done    | Feature     | Make recent Runs operational without a parallel shell: hide raw identities under Details, reopen an existing terminal through incumbent workspace/pane activation, and retain Output plus Changes/Review fallbacks.                                                                                   | Existing shell navigation and owned-session activation         | Completed 2026-09-23   |
 | P1       | Done    | Feature     | Expose safe Computer resources, ordinary environment, and operator-allowlisted premounts through one redacted revisioned get/plan/replace seam and reviewed confirmation UI. Bind Apply to the exact reviewed request, fence lifecycle state, and reconcile ordinary replacement failure.             | Focused RPC, renderer-race, lifecycle-race, and recovery tests | Completed 2026-09-23   |
 | P1       | Next    | Hardening   | Add engine-host enforcement for operator-attested canonical premount sources. The Server-container policy now centralizes exact lexical authorization, but cannot authoritatively resolve engine-host symlinks; retain trusted, non-writable ancestors until a host-side or staged-tree design lands. | Engine-host policy or Dorka-owned staging tree                 | 2–4 days               |
 | P2       | Later   | Feature     | Add first-class secret references and injection without storing secrets in ordinary Computer environment or placing values in engine argv.                                                                                                                                                            | Threat model; secret backend; outbound substitution decision   | 1–2 weeks              |
+| P2       | Later   | Feature     | Add explicit Computer credential onboarding for user SSH keys and Git signing/authentication. Copy into the selected Computer through the managed connection, show fingerprints rather than secret material, and keep credentials out of Agent config and ordinary environment.                       | Secret channel; Computer filesystem authority; audit events    | 1–2 weeks              |
 | P1       | Done    | Hardening   | Centralize exact managed Run execution identity and certified-exit projection behind one internal module, then deepen the existing dorkad control plane instead of adding another facade.                                                                                                             | Exact identity and strict candidate tests                      | Completed 2026-09-23   |
 | P1       | Done    | Feature     | Add portable Agent skill/MCP requirements with atomic revision snapshots, generation-fenced Computer-local discovery/inspection, revision-CAS update RPC, honest capability negotiation, and a compact inline editor.                                                                                 | 52 resolver/discovery tests; 41 renderer tests                 | Completed 2026-09-23   |
 | P1       | Done    | Validation  | Run hidden Electron/CDP QA for Computer setup visibility, confirmed Stop, and Agent requirements against a fail-closed capability-honest RPC fixture; retain screenshots and prove hidden windows plus PID-scoped cleanup.                                                                            | Isolated HOME/user-data; hidden Electron helpers               | Completed 2026-09-23   |
@@ -111,7 +117,9 @@ planned only after the multi-Computer beta evidence is green.
 | ✅     | Server-offline exit replay and projection-before-ack native proof                                                                                                                                                       | Native amd64/Docker 28.3.3 run at `33ca26073`; all six cases passed, both Runs ended `waiting`, and cleanup left zero residue. Evidence: `docs/architecture/evidence/native-linux-acceptance-20260923/`.                                                                                                                                                       |
 | ✅     | Two-Computer filesystem/Git identity isolation, restart persistence, and Agent move to the next Run                                                                                                                     | Native amd64/Docker 28.3.3 run at `d1967b2ec`; all seven cases passed and cleanup left zero residue. Evidence: `docs/architecture/evidence/native-linux-two-computer-20260923/`.                                                                                                                                                                               |
 | ✅     | Versioned portable Agent skill/MCP requirements                                                                                                                                                                         | Strict names-only schema, migration, atomic snapshots, generation-fenced Computer-local discovery and bounded MCP inspection, CAS RPC, honest `agents.references.v1` capability, compact inline editor, and native pre-spawn proof; commits `09c4e4384` through `4c18dfe56`. Evidence: `docs/architecture/evidence/native-linux-agent-requirements-20260923/`. |
-| ✅     | Hidden Computer/Agent settings QA                                                                                                                                                                                       | Hidden Electron/CDP with isolated HOME/user-data, a fail-closed RPC dispatcher, capability-honest reload, screenshots, RPC log, hidden-window assertions, and PID-scoped cleanup; commit `0a988da48`; artifacts retained under `/private/tmp/dorka-hidden-electron-qa-66919`.                                                                                  |
+| ✅     | Hidden Computer/Agent settings QA                                                                                                                                                                                       | Hidden Electron/CDP with isolated HOME/user-data, a fail-closed RPC dispatcher, capability-honest reload, exact Agent Save and Computer plan/apply assertions, Stop cancel/confirm coverage, missing-capability coverage, hidden-window assertions, and PID-scoped cleanup; commits `0a988da48`, `1a3755ba6`.                                                  |
+| ✅     | Existing Run terminal reopening through the retained shell                                                                                                                                                              | `AgentRunHistory` resolves the exact local or remote PTY already represented in renderer state, activates the incumbent workspace/tab/pane, and closes Settings; focused renderer tests; commit `1150a8d71`.                                                                                                                                                   |
+| ✅     | Reproducible final native self-service release gate                                                                                                                                                                     | All seven native amd64/Docker 28.3.3 cases and 12 contract tests passed at `1a3755ba6`; cleanup reported zero residue. Evidence: `docs/architecture/evidence/native-linux-final-readiness-20260923/`.                                                                                                                                                          |
 
 ## Known risks
 
@@ -151,8 +159,9 @@ planned only after the multi-Computer beta evidence is green.
 2. **M1 — Functioning native loop (complete):** native graphical startup, managed launch, durable
    identity, terminal output, Run Diff/Review, Git identity, non-relaunching Server replacement,
    paired-client UI, and authoritative post-outage completion are proved.
-3. **M2 — Isolated multi-Computer beta (Next):** placement, moves, identity isolation, remote/mobile
-   reconnect, and mixed-version behavior pass end-to-end tests.
+3. **M2 — Isolated multi-Computer beta (in sign-off):** placement, moves, identity isolation, and the
+   automated native gate are complete. The operator-driven current-head macOS paired-client pass,
+   mobile reconnect, and mixed-version behavior remain.
 4. **M3 — Desktop and production hardening (Later):** scoped desktop access and operational controls
    satisfy security, recovery, and upgrade gates.
 

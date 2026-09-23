@@ -2,7 +2,7 @@
 
 ## Scope and verdict
 
-This review covers the Agent, Run, Computer, and Server vertical slice through `e2ee00657`. It applies
+This review covers the Agent, Run, Computer, and Server vertical slice through `1a3755ba6`. It applies
 Ousterhout's deep-module criteria: information hiding, interface leverage, temporal coupling, policy
 ownership, error vocabulary, and deletion opportunity.
 
@@ -133,6 +133,21 @@ Commit `ee8fffcb1` keeps the `AgentRosterStore` public interface unchanged but r
 snapshot under the existing cross-process file transaction lock before every mutation. Separate store
 instances can now create Agents and Runs concurrently without replacing each other's records. The
 change remains behind the existing store boundary and does not alter PTY ownership or exit evidence.
+
+### Recent Runs reuse incumbent terminal activation
+
+Commit `1150a8d71` adds one pure lookup from immutable Run identity plus existing renderer terminal
+state to a workspace/tab/leaf target. The UI then delegates to the established workspace and pane
+activation functions. It does not create a second terminal transport, session registry, or lifecycle
+owner. If no exact represented terminal exists, the action is absent and persisted output remains the
+fallback.
+
+### Final acceptance remains one gate, not a second harness
+
+Commit `78a8c8335` composes locked installation and contract checks around the existing native harness.
+It adds ownership-aware cleanup and one machine-readable verdict without duplicating container or Run
+lifecycle logic. Commit `1a3755ba6` extends the existing hidden Electron scenario with exact mutation
+assertions and capability-negative behavior rather than adding a second mock app.
 
 ## Ranked remaining findings
 

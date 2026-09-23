@@ -1,0 +1,4 @@
+dbus: up (pid 120 pgid 120) 16 seconds
+xvfb: up (pid 128 pgid 128) 16 seconds
+selkies: up (pid 126 pgid 126) 16 seconds
+plasma: up (pid 130 pgid 130) 17 seconds
