@@ -24,6 +24,15 @@ afterEach(() => {
 describe('mcp-config', () => {
   const workspaceCandidate = MCP_CONFIG_CANDIDATES[0]
 
+  it('assigns stable IDs to every known config location', () => {
+    expect(MCP_CONFIG_CANDIDATES.map(({ id, relativePath }) => [id, relativePath])).toEqual([
+      ['workspace', '.mcp.json'],
+      ['cursor', '.cursor/mcp.json'],
+      ['claude-root', '.claude.json'],
+      ['claude-workspace', '.claude/mcp.json']
+    ])
+  })
+
   it('reports missing configs', () => {
     expect(inspectMcpConfigContent(workspaceCandidate, null)).toMatchObject({
       exists: false,

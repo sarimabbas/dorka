@@ -8,8 +8,10 @@ import { summarizeMcpServer } from './mcp-server-inspection'
 export { maskMcpEnv } from './mcp-server-inspection'
 
 export type McpConfigFormat = 'workspace' | 'cursor' | 'claude'
+export type McpConfigId = 'workspace' | 'cursor' | 'claude-root' | 'claude-workspace'
 
 export type McpConfigCandidate = {
+  id: McpConfigId
   format: McpConfigFormat
   label: string
   relativePath: string
@@ -44,24 +46,28 @@ export type McpConfigInspection = {
 
 export const MCP_CONFIG_CANDIDATES: McpConfigCandidate[] = [
   {
+    id: 'workspace',
     format: 'workspace',
     label: 'Workspace',
     relativePath: '.mcp.json',
     serversPath: ['mcpServers']
   },
   {
+    id: 'cursor',
     format: 'cursor',
     label: 'Cursor',
     relativePath: '.cursor/mcp.json',
     serversPath: ['mcpServers']
   },
   {
+    id: 'claude-root',
     format: 'claude',
     label: 'Claude',
     relativePath: '.claude.json',
     serversPath: ['mcpServers']
   },
   {
+    id: 'claude-workspace',
     format: 'claude',
     label: 'Claude workspace',
     relativePath: '.claude/mcp.json',
