@@ -14,10 +14,16 @@ export function createPairedWebClientUrl(
     clientUrl.searchParams.set('dorkaE2EDisableRemoteTerminalStallRecovery', '1')
   }
   if (options.terminalParkingDelayMs !== undefined) {
-    clientUrl.searchParams.set('dorkaE2ETerminalParkingDelayMs', `${options.terminalParkingDelayMs}`)
+    clientUrl.searchParams.set(
+      'dorkaE2ETerminalParkingDelayMs',
+      `${options.terminalParkingDelayMs}`
+    )
   }
   if (options.terminalRetentionLimit !== undefined) {
-    clientUrl.searchParams.set('dorkaE2ETerminalRetentionLimit', `${options.terminalRetentionLimit}`)
+    clientUrl.searchParams.set(
+      'dorkaE2ETerminalRetentionLimit',
+      `${options.terminalRetentionLimit}`
+    )
   }
   return clientUrl.href
 }

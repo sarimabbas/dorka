@@ -129,7 +129,10 @@ function removeInheritedDevAgentHookEndpoint(
   env: Record<string, string>,
   explicitEnv: Record<string, string> | undefined
 ): void {
-  if (explicitEnv?.DORKA_AGENT_HOOK_ENV === 'development' && !explicitEnv.DORKA_AGENT_HOOK_ENDPOINT) {
+  if (
+    explicitEnv?.DORKA_AGENT_HOOK_ENV === 'development' &&
+    !explicitEnv.DORKA_AGENT_HOOK_ENDPOINT
+  ) {
     // Why: strip only stale inherited endpoints; a fresh explicit one is needed by hooks that scrub token-like env vars before exec.
     delete env.DORKA_AGENT_HOOK_ENDPOINT
   }

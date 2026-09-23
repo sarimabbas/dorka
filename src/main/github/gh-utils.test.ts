@@ -253,7 +253,10 @@ describe('github owner/repo resolution', () => {
     getSshGitProviderMock.mockReturnValue(sshProvider)
 
     await expect(getOwnerRepo('/repo')).resolves.toEqual({ owner: 'local', repo: 'dorka' })
-    await expect(getOwnerRepo('/repo', 'ssh-1')).resolves.toEqual({ owner: 'remote', repo: 'dorka' })
+    await expect(getOwnerRepo('/repo', 'ssh-1')).resolves.toEqual({
+      owner: 'remote',
+      repo: 'dorka'
+    })
   })
 
   it('keeps local host and local WSL owner/repo cache entries separate for the same path', async () => {

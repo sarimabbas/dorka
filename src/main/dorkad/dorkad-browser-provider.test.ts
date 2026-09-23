@@ -4,7 +4,10 @@ import { join } from 'node:path'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { runProcess, spawnProcess } from '../../shared/child-process/run-process'
 import { ExternalChromiumBrowserProcess } from './external-chromium-browser-process'
-import { installedElectronCandidates, resolveDorkadBrowserProvider } from './dorkad-browser-provider'
+import {
+  installedElectronCandidates,
+  resolveDorkadBrowserProvider
+} from './dorkad-browser-provider'
 import { dorkadAgentBrowserNativeName } from './dorkad-agent-browser-binary'
 import {
   runtimeBrowserUnavailableCause,

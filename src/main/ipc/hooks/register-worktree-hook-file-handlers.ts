@@ -58,7 +58,9 @@ export function registerWorktreeHookFileHandlers(context: WorktreeIpcContext): v
           }
         }
         try {
-          const result = await fsProvider.readFile(joinWorktreeRelativePath(repo.path, 'dorka.yaml'))
+          const result = await fsProvider.readFile(
+            joinWorktreeRelativePath(repo.path, 'dorka.yaml')
+          )
           sharedContent = result.isBinary
             ? null
             : parseDorkaYaml(result.content)?.issueCommand?.trim() || null

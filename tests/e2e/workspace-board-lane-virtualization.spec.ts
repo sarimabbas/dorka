@@ -18,7 +18,9 @@ test.describe('Workspace board lane virtualization', () => {
     await waitForActiveWorktree(dorkaPage)
   })
 
-  test('mounts a window of cards for a large lane and keeps lane indexes', async ({ dorkaPage }) => {
+  test('mounts a window of cards for a large lane and keeps lane indexes', async ({
+    dorkaPage
+  }) => {
     await dorkaPage.evaluate((count) => {
       const store = window.__store
       if (!store) {
@@ -287,7 +289,10 @@ test.describe('Workspace board lane virtualization', () => {
     if (!sourceId || !sourceBox || !targetBox) {
       throw new Error('Expected visible source card and final lane drop target')
     }
-    await dorkaPage.mouse.move(sourceBox.x + sourceBox.width / 2, sourceBox.y + sourceBox.height / 2)
+    await dorkaPage.mouse.move(
+      sourceBox.x + sourceBox.width / 2,
+      sourceBox.y + sourceBox.height / 2
+    )
     await dorkaPage.mouse.down()
     await dorkaPage.mouse.move(
       targetBox.x + targetBox.width / 2,

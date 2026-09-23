@@ -154,7 +154,8 @@ export const ghMutationsAndProjectsApi = {
     return () => ipcRenderer.removeListener('gh:workItemMutated', listener)
   },
   checkDorkaStarred: (): Promise<boolean | null> => ipcRenderer.invoke('gh:checkDorkaStarred'),
-  starDorka: (source: AppStarSource): Promise<boolean> => ipcRenderer.invoke('gh:starDorka', source),
+  starDorka: (source: AppStarSource): Promise<boolean> =>
+    ipcRenderer.invoke('gh:starDorka', source),
   rateLimit: (args?: { force?: boolean }): Promise<GetRateLimitResult> =>
     ipcRenderer.invoke('gh:rateLimit', args),
   diagnoseAuth: (args?: { host?: string }): Promise<GhAuthDiagnostic> =>

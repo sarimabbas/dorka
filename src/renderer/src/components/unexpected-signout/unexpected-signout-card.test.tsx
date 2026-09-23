@@ -176,7 +176,9 @@ describe('unexpected signout lifecycle', () => {
     } else {
       window.history.replaceState({}, '', '/?showSignoutCard=1')
     }
-    useAppStore.setState({ dorkaProfileAuthStatus: { ...status, state: 'local', cloud: undefined } })
+    useAppStore.setState({
+      dorkaProfileAuthStatus: { ...status, state: 'local', cloud: undefined }
+    })
     render(<UnexpectedSignoutCard />)
     await act(async () => {})
     expect(screen.queryByRole('complementary')).toBeNull()
@@ -186,7 +188,9 @@ describe('unexpected signout lifecycle', () => {
   it('dismisses a development preview without writing real dismissal state', async () => {
     vi.stubEnv('DEV', true)
     window.localStorage.setItem('dorka-debug-show-signout-card', '1')
-    useAppStore.setState({ dorkaProfileAuthStatus: { ...status, state: 'local', cloud: undefined } })
+    useAppStore.setState({
+      dorkaProfileAuthStatus: { ...status, state: 'local', cloud: undefined }
+    })
     await showCard()
     fireEvent.click(screen.getByRole('button', { name: 'Dismiss' }))
     expect(screen.queryByRole('complementary')).toBeNull()

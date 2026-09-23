@@ -16,7 +16,10 @@ describe('classifyDaemonSpawnerPath', () => {
       classifyDaemonSpawnerPath('/Applications/Dorka.app/Contents/MacOS/Dorka', alwaysExists)
     ).toBe('applications')
     expect(
-      classifyDaemonSpawnerPath('/private/Applications/Dorka.app/Contents/MacOS/Dorka', alwaysExists)
+      classifyDaemonSpawnerPath(
+        '/private/Applications/Dorka.app/Contents/MacOS/Dorka',
+        alwaysExists
+      )
     ).toBe('applications')
     expect(
       classifyDaemonSpawnerPath(
@@ -25,7 +28,10 @@ describe('classifyDaemonSpawnerPath', () => {
       )
     ).toBe('updater-cache')
     expect(
-      classifyDaemonSpawnerPath('/Users/a/Applications/Dorka.app/Contents/MacOS/Dorka', alwaysExists)
+      classifyDaemonSpawnerPath(
+        '/Users/a/Applications/Dorka.app/Contents/MacOS/Dorka',
+        alwaysExists
+      )
     ).toBe('other')
     expect(classifyDaemonSpawnerPath('/tmp/DorkaA.app/Contents/MacOS/Dorka', alwaysExists)).toBe(
       'other'

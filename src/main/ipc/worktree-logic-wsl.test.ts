@@ -190,7 +190,10 @@ describe('computeWorktreePath WSL layout', () => {
         repo.path,
         getWorktreePathSettings(repo, settings)
       )
-      const layouts = buildKnownDorkaWorkspaceLayouts({ ...settings, workspaceDirHistory: [] }, repo)
+      const layouts = buildKnownDorkaWorkspaceLayouts(
+        { ...settings, workspaceDirHistory: [] },
+        repo
+      )
       // Why containment, not just ownership: a regressed resolver lands in the
       // ~/dorka/workspaces mirror layout, which also classifies 'external'.
       // layouts[0] is the repo-base layout — it is always pushed first.

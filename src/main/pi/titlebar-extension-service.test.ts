@@ -156,9 +156,14 @@ describe('PiTitlebarExtensionService', () => {
     homedirOverride.current = fakeHome
     vi.stubEnv('PI_CONFIG_DIR', 'host-profile')
     try {
-      const env = new PiTitlebarExtensionService().buildPtyEnv('pty-ambient-root', undefined, 'omp', {
-        materializeDefaultHome: true
-      })
+      const env = new PiTitlebarExtensionService().buildPtyEnv(
+        'pty-ambient-root',
+        undefined,
+        'omp',
+        {
+          materializeDefaultHome: true
+        }
+      )
       expect(env.DORKA_OMP_SOURCE_AGENT_DIR).toBe(join(fakeHome, '.omp', 'agent'))
       expect(existsSync(join(fakeHome, 'host-profile'))).toBe(false)
     } finally {
@@ -298,7 +303,10 @@ describe('PiTitlebarExtensionService', () => {
     writeFileSync(join(overlayDir, 'auth.json'), 'legacy token should not overwrite')
     writeFileSync(join(overlayDir, 'settings.json'), '{"overlayOnly":true}')
     writeFileSync(join(overlayDir, '.dorka-pi-overlay-manifest.json'), '{}')
-    writeFileSync(join(overlayDir, 'extensions', 'dorka-agent-status.ts'), 'stale managed extension')
+    writeFileSync(
+      join(overlayDir, 'extensions', 'dorka-agent-status.ts'),
+      'stale managed extension'
+    )
     writeFileSync(join(overlayDir, 'extensions', 'legacy-user-ext.ts'), 'legacy user extension')
     mkdirSync(join(overlayDir, 'extensions', 'legacy-package'), { recursive: true })
     writeFileSync(

@@ -29,7 +29,9 @@ function getShellReadyWrapperBaseDir(): string {
   // reaches it -- DORKA_USER_DATA_PATH is seeded before anything spawns and the
   // daemon fork inherits it -- so this stays a documented trust boundary rather
   // than an ownership check on the spawn path.
-  return userDataPath ? join(userDataPath, 'shell-wrappers') : join(tmpdir(), 'dorka-shell-wrappers')
+  return userDataPath
+    ? join(userDataPath, 'shell-wrappers')
+    : join(tmpdir(), 'dorka-shell-wrappers')
 }
 
 // Why memoized: the digest is stable for a given base dir and every shell launch

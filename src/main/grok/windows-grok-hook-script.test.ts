@@ -66,7 +66,9 @@ describe('buildWindowsGrokHookScript', () => {
     )
 
     expect(appended).toBeGreaterThan(-1)
-    expect(lines[appended + 1]).toBe('if not "%DORKA_GROK_HOME:~4096,1%"=="" set "DORKA_GROK_HOME="')
+    expect(lines[appended + 1]).toBe(
+      'if not "%DORKA_GROK_HOME:~4096,1%"=="" set "DORKA_GROK_HOME="'
+    )
   })
 })
 

@@ -67,7 +67,12 @@ export type DorkadRollbackOptions = {
 }
 
 export type DorkadRollbackResult =
-  | { outcome: 'rolled-back'; target: string; discarded: string[]; verdict: DorkadActivationVerdict }
+  | {
+      outcome: 'rolled-back'
+      target: string
+      discarded: string[]
+      verdict: DorkadActivationVerdict
+    }
   | { outcome: 'refused'; code: string; reason: string }
   | { outcome: 'failed'; code: string; reason: string }
 
@@ -109,7 +114,9 @@ async function readStateWritesSinceActivation(
   return newest === null ? null : newest >= activatedAtSeconds
 }
 
-export async function rollbackDorkad(options: DorkadRollbackOptions): Promise<DorkadRollbackResult> {
+export async function rollbackDorkad(
+  options: DorkadRollbackOptions
+): Promise<DorkadRollbackResult> {
   const now = options.now ?? ((): Date => new Date())
   const snapshotPresent = options.record.snapshot
     ? (

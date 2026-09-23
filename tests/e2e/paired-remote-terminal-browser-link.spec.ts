@@ -236,7 +236,9 @@ test('opens a paired-runtime terminal link on its owning host', async ({
     await expect(
       actionPopover.getByRole('button').filter({ hasText: 'System Browser' })
     ).toBeVisible()
-    const dorkaBrowserAction = actionPopover.getByRole('button').filter({ hasText: 'Dorka Browser' })
+    const dorkaBrowserAction = actionPopover
+      .getByRole('button')
+      .filter({ hasText: 'Dorka Browser' })
     await expect(dorkaBrowserAction).toBeVisible()
     await dorkaBrowserAction.click()
 

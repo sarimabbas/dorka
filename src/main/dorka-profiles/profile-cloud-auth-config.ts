@@ -42,7 +42,9 @@ function endpoint(baseUrl: string, path: string): string {
 export function getDorkaCloudAuthConfig(
   env: NodeJS.ProcessEnv = process.env,
   packaged: boolean = isPackagedDorkaBuild()
-): { configured: true; config: DorkaCloudAuthConfig } | { configured: false; setupMessage: string } {
+):
+  | { configured: true; config: DorkaCloudAuthConfig }
+  | { configured: false; setupMessage: string } {
   // Why: loopback HTTP endpoints are a local-development convenience only;
   // packaged builds must not accept plain-HTTP token endpoints via env vars.
   const allowLoopbackHttp = !packaged
@@ -56,7 +58,8 @@ export function getDorkaCloudAuthConfig(
     : packaged
       ? PRODUCTION_API_BASE_URL
       : null
-  const clientId = env.DORKA_CLOUD_CLIENT_ID?.trim() || (packaged ? PRODUCTION_CLIENT_ID : undefined)
+  const clientId =
+    env.DORKA_CLOUD_CLIENT_ID?.trim() || (packaged ? PRODUCTION_CLIENT_ID : undefined)
   if (!apiBaseUrl || !clientId) {
     return {
       configured: false,

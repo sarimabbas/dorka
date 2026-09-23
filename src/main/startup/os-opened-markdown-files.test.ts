@@ -159,9 +159,9 @@ describe('OsOpenedMarkdownFileState', () => {
     const state = new OsOpenedMarkdownFileState()
     const publish = vi.fn()
 
-    expect(state.capture(['/Applications/Dorka.app/Contents/MacOS/Dorka', '--serve'], publish)).toBe(
-      false
-    )
+    expect(
+      state.capture(['/Applications/Dorka.app/Contents/MacOS/Dorka', '--serve'], publish)
+    ).toBe(false)
     expect(publish).not.toHaveBeenCalled()
     expect(state.consume()).toEqual([])
   })

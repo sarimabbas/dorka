@@ -175,7 +175,9 @@ describe('ArtifactsPage', () => {
 
     fireEvent.click(copyButton)
     await waitFor(() =>
-      expect(mocks.writeClipboardText).toHaveBeenCalledWith('https://share.ondorka.dev/a/report-123')
+      expect(mocks.writeClipboardText).toHaveBeenCalledWith(
+        'https://share.ondorka.dev/a/report-123'
+      )
     )
     expect(mocks.toastSuccess).toHaveBeenCalledWith('Artifact link copied')
 
@@ -356,7 +358,9 @@ describe('ArtifactsPage', () => {
     resolveRefresh()
 
     await waitFor(() =>
-      expect(screen.queryByText('Sign in to Dorka again to load artifacts.')).not.toBeInTheDocument()
+      expect(
+        screen.queryByText('Sign in to Dorka again to load artifacts.')
+      ).not.toBeInTheDocument()
     )
   })
 
@@ -396,7 +400,9 @@ describe('ArtifactsPage', () => {
     resolveRefresh()
 
     await waitFor(() =>
-      expect(screen.queryByText('Sign in to Dorka again to load artifacts.')).not.toBeInTheDocument()
+      expect(
+        screen.queryByText('Sign in to Dorka again to load artifacts.')
+      ).not.toBeInTheDocument()
     )
   })
 

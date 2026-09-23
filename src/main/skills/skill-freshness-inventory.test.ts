@@ -911,7 +911,11 @@ describe('read-only skill freshness inventory', () => {
       // Why: the truncated root is not evidence of a copy. Fabricating one per manifest name
       // is what pinned an unclearable "Needs attention" on every card in #10918.
       expect(inventory.installations).toEqual([
-        expect.objectContaining({ name: 'dorka-cli', status: 'current', topology: 'canonical-copy' })
+        expect.objectContaining({
+          name: 'dorka-cli',
+          status: 'current',
+          topology: 'canonical-copy'
+        })
       ])
     },
     90_000

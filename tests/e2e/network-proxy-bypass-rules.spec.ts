@@ -2,7 +2,9 @@ import { test, expect } from './helpers/dorka-app'
 import { waitForSessionReady } from './helpers/store'
 
 test.describe('network proxy bypass rules', () => {
-  test('preserves newline-separated hosts and canonicalizes them on blur', async ({ dorkaPage }) => {
+  test('preserves newline-separated hosts and canonicalizes them on blur', async ({
+    dorkaPage
+  }) => {
     await waitForSessionReady(dorkaPage)
 
     const original = await dorkaPage.evaluate(() => window.api.settings.get())

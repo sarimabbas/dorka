@@ -113,7 +113,10 @@ export function createAllHostRepoCatalogActions(
               s.setupScriptPromptDismissedRepoIds,
               validRepoHostIdentities
             ),
-            trustedDorkaHooks: filterTrustedDorkaHooksToValidRepos(s.trustedDorkaHooks, validRepoIds)
+            trustedDorkaHooks: filterTrustedDorkaHooksToValidRepos(
+              s.trustedDorkaHooks,
+              validRepoIds
+            )
           }
         })
       }

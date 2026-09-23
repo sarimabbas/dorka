@@ -9,7 +9,8 @@ vi.mock('../native-chat/agent-session-wire/structured-agent-session-registry', (
 }))
 
 const { readStructuredWorkerTerminal } = await import('./structured-worker-terminal-read')
-const { DorkaRuntimeWithResolveTerminalPane } = await import('./dorka-runtime-resolve-terminal-pane')
+const { DorkaRuntimeWithResolveTerminalPane } =
+  await import('./dorka-runtime-resolve-terminal-pane')
 const {
   mintStructuredWorkerHandle,
   mintStructuredWorkerPaneKey,

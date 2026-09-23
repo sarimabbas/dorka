@@ -33,7 +33,9 @@ describe('isBackgroundLaunch', () => {
   })
 
   it('keeps an explicit background request despite inherited foreground flags', () => {
-    expect(isBackgroundLaunch({ DORKA_BACKGROUND_LAUNCH: '1', DORKA_E2E_FOREGROUND: '1' })).toBe(true)
+    expect(isBackgroundLaunch({ DORKA_BACKGROUND_LAUNCH: '1', DORKA_E2E_FOREGROUND: '1' })).toBe(
+      true
+    )
   })
 
   it('lets native-focus specs opt back into the foreground', () => {

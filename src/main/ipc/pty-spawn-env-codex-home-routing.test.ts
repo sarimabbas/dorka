@@ -170,7 +170,8 @@ describe('registerPtyHandlers', () => {
         DORKA_AGENT_HOOK_ENV: 'production',
         DORKA_AGENT_HOOK_VERSION: 'stale-version',
         DORKA_AGENT_HOOK_ENDPOINT: '/tmp/stale-endpoint.env',
-        DORKA_CLAUDE_AGENT_STATUS_SETTINGS: '/tmp/dorka/agent-hooks/claude-agent-status-settings.json'
+        DORKA_CLAUDE_AGENT_STATUS_SETTINGS:
+          '/tmp/dorka/agent-hooks/claude-agent-status-settings.json'
       })
 
       expect(env.DORKA_AGENT_HOOK_PORT).toBe('5678')
@@ -189,7 +190,8 @@ describe('registerPtyHandlers', () => {
         DORKA_AGENT_HOOK_ENV: 'production',
         DORKA_AGENT_HOOK_VERSION: 'stale-version',
         DORKA_AGENT_HOOK_ENDPOINT: '/tmp/stale-endpoint.env',
-        DORKA_CLAUDE_AGENT_STATUS_SETTINGS: '/tmp/dorka/agent-hooks/claude-agent-status-settings.json'
+        DORKA_CLAUDE_AGENT_STATUS_SETTINGS:
+          '/tmp/dorka/agent-hooks/claude-agent-status-settings.json'
       })
 
       expect(env.DORKA_AGENT_HOOK_PORT).toBeUndefined()

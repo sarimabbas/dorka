@@ -21,7 +21,13 @@ let geditProcess: ChildProcess | null = null
 let notepadProcess: ChildProcess | null = null
 let notepadAppSelector: string | null = null
 
-export { ensureDorkaRuntimeLaunched, parseJsonOutput, runDorkaCli, stopDorkaRuntime, type CliResult }
+export {
+  ensureDorkaRuntimeLaunched,
+  parseJsonOutput,
+  runDorkaCli,
+  stopDorkaRuntime,
+  type CliResult
+}
 
 export async function ensureTextEditLaunched(): Promise<void> {
   await killTextEdit()

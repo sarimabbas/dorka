@@ -225,7 +225,9 @@ describe('isExplainedTerminalError', () => {
     ).toBe(true)
     expect(isExplainedTerminalError(LEGACY_HOST_GONE)).toBe(true)
     expect(
-      isExplainedTerminalError('connect ECONNREFUSED /tmp/dorka-terminal-host-v30-14cb7f94b511.sock')
+      isExplainedTerminalError(
+        'connect ECONNREFUSED /tmp/dorka-terminal-host-v30-14cb7f94b511.sock'
+      )
     ).toBe(true)
   })
 

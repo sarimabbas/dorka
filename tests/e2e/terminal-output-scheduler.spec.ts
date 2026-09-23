@@ -397,6 +397,8 @@ test.describe('Terminal output scheduler', () => {
       })
       .toBe(true)
 
-    expect(await getTerminalContent(dorkaPage)).not.toContain('Dorka skipped hidden terminal output')
+    expect(await getTerminalContent(dorkaPage)).not.toContain(
+      'Dorka skipped hidden terminal output'
+    )
   })
 })

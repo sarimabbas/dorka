@@ -157,7 +157,9 @@ describe('relay native-deps cache on the deploy path', () => {
     expect(commands.some((c) => c.includes('npm rebuild'))).toBe(false)
     // The bundle still gets its own directory; only the native tree is shared.
     expect(commands.some((c) => c.includes('.dorka-remote/relay-0.1.0+testhash'))).toBe(true)
-    expect(commands.some((c) => /\.dorka-remote\/native\/linux-x64-[0-9a-f]{16}/.test(c))).toBe(true)
+    expect(commands.some((c) => /\.dorka-remote\/native\/linux-x64-[0-9a-f]{16}/.test(c))).toBe(
+      true
+    )
   })
 
   it('still installs on the first deploy, then publishes the tree the probe loaded', async () => {

@@ -19,9 +19,9 @@ describe('extractBucketLeafCandidates', () => {
 
   it('does not treat the parent directory as a leaf when the workspace name is numeric', () => {
     // Real data: `-Users-x-dorka-workspaces-dorka-7474` must not retire `dorka`, which is in the pool.
-    expect(extractBucketLeafCandidates('-w-workspaces-dorka-7474', ['-w-workspaces-dorka'])).toEqual([
-      '7474'
-    ])
+    expect(
+      extractBucketLeafCandidates('-w-workspaces-dorka-7474', ['-w-workspaces-dorka'])
+    ).toEqual(['7474'])
   })
 
   it('offers the first segment too, so an agent run in a subdirectory still retires the leaf', () => {
@@ -149,7 +149,10 @@ describe('discoverRetiredWorktreeNames', () => {
 
   it('ignores buckets belonging to a sibling root with the same prefix', async () => {
     await withFakeHome(
-      [`-Users-ada-dorka-workspaces-dorkadyne-${FIRST}`, `-Users-ada-dorka-workspaces-dorka-${SECOND}`],
+      [
+        `-Users-ada-dorka-workspaces-dorkadyne-${FIRST}`,
+        `-Users-ada-dorka-workspaces-dorka-${SECOND}`
+      ],
       async (home) => {
         const retired = await discoverRetiredWorktreeNames({
           workspaceRoots: ['/Users/ada/dorka/workspaces/dorka'],
@@ -186,9 +189,12 @@ describe('discoverRetiredWorktreeNames', () => {
     const distroHome = await mkdtemp(join(tmpdir(), 'dorka-retirement-distro-'))
     await withFakeHome([], async (home) => {
       try {
-        await mkdir(join(distroHome, '.claude', 'projects', `-home-ada-dorka-workspaces-${FIRST}`), {
-          recursive: true
-        })
+        await mkdir(
+          join(distroHome, '.claude', 'projects', `-home-ada-dorka-workspaces-${FIRST}`),
+          {
+            recursive: true
+          }
+        )
         const retired = await discoverRetiredWorktreeNames({
           workspaceRoots: ['\\\\wsl.localhost\\Ubuntu\\home\\ada\\dorka\\workspaces'],
           home,

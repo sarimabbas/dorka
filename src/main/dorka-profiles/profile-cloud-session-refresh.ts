@@ -43,7 +43,8 @@ function shouldRefreshCloudSession(session: DorkaCloudSession, now = Date.now())
 
 export function isDorkaCloudAuthFailure(error: unknown): boolean {
   return (
-    error instanceof DorkaCloudRequestError && (error.statusCode === 401 || error.statusCode === 403)
+    error instanceof DorkaCloudRequestError &&
+    (error.statusCode === 401 || error.statusCode === 403)
   )
 }
 
@@ -205,7 +206,8 @@ async function refreshStoredCloudSession(
       capabilities: refreshed.capabilities
     }
     if (
-      saveDorkaCloudSessionIfCurrent(active.profile.id, userDataPath, nextSession, snapshot) === null
+      saveDorkaCloudSessionIfCurrent(active.profile.id, userDataPath, nextSession, snapshot) ===
+      null
     ) {
       throw new StaleCloudSessionMutationError()
     }

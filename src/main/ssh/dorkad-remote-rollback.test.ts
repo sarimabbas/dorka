@@ -13,7 +13,10 @@ vi.mock('./ssh-relay-install-transfers', () => ({
 import { execCommand } from './ssh-relay-deploy-helpers'
 import { writeRelayFile } from './ssh-relay-install-transfers'
 import { rollbackDorkad, type DorkadRollbackOptions } from './dorkad-remote-rollback'
-import { emptyDorkadActivationRecord, type DorkadActivationRecord } from './dorkad-activation-record'
+import {
+  emptyDorkadActivationRecord,
+  type DorkadActivationRecord
+} from './dorkad-activation-record'
 import { getRemoteHostPlatform } from './ssh-remote-platform'
 import type { SshConnection } from './ssh-connection'
 

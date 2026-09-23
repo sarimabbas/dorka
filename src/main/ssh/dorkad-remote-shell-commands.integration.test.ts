@@ -89,7 +89,9 @@ describe('state snapshot commands, run for real', () => {
     const emptyRoot = join(root, 'fresh')
     mkdirSync(emptyRoot)
     expect(
-      parseDorkadSnapshotCapture(sh(captureDorkadStateSnapshotCommand(host, emptyRoot, snapshotDir)))
+      parseDorkadSnapshotCapture(
+        sh(captureDorkadStateSnapshotCommand(host, emptyRoot, snapshotDir))
+      )
     ).toBe('empty')
     expect(sh(probeDorkadStateSnapshotCommand(host, snapshotDir)).trim()).toBe('ABSENT')
   })
@@ -176,14 +178,14 @@ describe('liveness and stop commands, run for real', () => {
   it('reports ALREADY_EXITED for a stale pid file rather than signalling a stranger', () => {
     const exited = Number(sh('sh -c "echo $$"').trim())
     writeFileSync(join(versionDir, DORKAD_PID_FILENAME), String(exited))
-    expect(parseDorkadStopOutcome(sh(stopDorkadCommand(host, versionDir, { waitSeconds: 1 })))).toBe(
-      'already-exited'
-    )
+    expect(
+      parseDorkadStopOutcome(sh(stopDorkadCommand(host, versionDir, { waitSeconds: 1 })))
+    ).toBe('already-exited')
   })
 
   it('reports NO_PID when the version dir was never launched', () => {
-    expect(parseDorkadStopOutcome(sh(stopDorkadCommand(host, versionDir, { waitSeconds: 1 })))).toBe(
-      'no-pid'
-    )
+    expect(
+      parseDorkadStopOutcome(sh(stopDorkadCommand(host, versionDir, { waitSeconds: 1 })))
+    ).toBe('no-pid')
   })
 })

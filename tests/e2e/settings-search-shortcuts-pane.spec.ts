@@ -2,7 +2,9 @@ import { test, expect } from './helpers/dorka-app'
 import { waitForSessionReady } from './helpers/store'
 
 test.describe('Settings sidebar search on the Shortcuts pane', () => {
-  test('pane-title-only query keeps rows visible and local search usable', async ({ dorkaPage }) => {
+  test('pane-title-only query keeps rows visible and local search usable', async ({
+    dorkaPage
+  }) => {
     await waitForSessionReady(dorkaPage)
 
     await dorkaPage.evaluate(async () => {

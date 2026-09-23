@@ -148,7 +148,10 @@ export function RepositoryHookScriptSetting({
         <div className="space-y-2">
           <div className="flex items-center justify-between gap-2">
             <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/25 bg-emerald-500/10 px-2 py-0.5 text-[11px] font-medium text-emerald-700 dark:text-emerald-300">
-              {translate('auto.components.settings.RepositoryHooksSection.39da2ae12f', 'dorka.yaml')}
+              {translate(
+                'auto.components.settings.RepositoryHooksSection.39da2ae12f',
+                'dorka.yaml'
+              )}
               <span className="font-normal text-emerald-700/80 dark:text-emerald-300/80">
                 {translate(
                   'auto.components.settings.RepositoryHooksSection.f828e1de19',

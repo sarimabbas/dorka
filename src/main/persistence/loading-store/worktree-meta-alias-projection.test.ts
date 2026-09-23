@@ -68,7 +68,10 @@ function openStore(dataFile: string): InstanceType<typeof Store> {
 }
 
 function tempDataFile(): string {
-  return join(realpathSync(mkdtempSync(join(tmpdir(), 'dorka-alias-projection-'))), 'dorka-data.json')
+  return join(
+    realpathSync(mkdtempSync(join(tmpdir(), 'dorka-alias-projection-'))),
+    'dorka-data.json'
+  )
 }
 
 function worktreeId(index: number): string {

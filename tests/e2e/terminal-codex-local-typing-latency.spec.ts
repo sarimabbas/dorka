@@ -194,7 +194,9 @@ async function waitForCodexComposer(page: Page): Promise<string> {
 }
 
 test.describe('local Codex terminal typing latency', () => {
-  test('keeps Codex prompt typing responsive @local-real-codex', async ({ dorkaPage }, testInfo) => {
+  test('keeps Codex prompt typing responsive @local-real-codex', async ({
+    dorkaPage
+  }, testInfo) => {
     test.skip(
       process.env.DORKA_E2E_REAL_CODEX !== '1',
       'Set DORKA_E2E_REAL_CODEX=1 to exercise the locally installed Codex TUI'

@@ -11,7 +11,10 @@ import {
   recordCloudSessionIdentityMutationIfCurrent
 } from './profile-cloud-session-mutation'
 import { runWithFreshDorkaCloudSession } from './profile-cloud-session-refresh'
-import { readDorkaCloudSession, saveDorkaCloudSessionIfCurrent } from './profile-cloud-session-store'
+import {
+  readDorkaCloudSession,
+  saveDorkaCloudSessionIfCurrent
+} from './profile-cloud-session-store'
 
 export async function refreshCurrentDorkaProfileAuth(
   userDataPath: string

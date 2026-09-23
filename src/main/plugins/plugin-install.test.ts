@@ -382,7 +382,10 @@ describe('installPluginFromLocalPath', () => {
     const lock = JSON.parse(await readFile(join(pluginsDir, 'plugins.lock.json'), 'utf8')) as {
       plugins: Record<string, unknown>
     }
-    expect(Object.keys(lock.plugins).sort()).toEqual(['dorka-samples.first', 'dorka-samples.second'])
+    expect(Object.keys(lock.plugins).sort()).toEqual([
+      'dorka-samples.first',
+      'dorka-samples.second'
+    ])
   })
 
   it('serializes concurrent lockfile publications without temporary-file collisions', async () => {

@@ -160,7 +160,10 @@ export function DorkaAccountSettingsPane(): React.JSX.Element {
             <AccountBenefit
               icon={BookOpen}
               className="border-t border-border/60 pt-5"
-              title={translate('auto.components.settings.dorkaAccount.skillsTitle', 'Skill sharing')}
+              title={translate(
+                'auto.components.settings.dorkaAccount.skillsTitle',
+                'Skill sharing'
+              )}
               description={translate(
                 'auto.components.settings.dorkaAccount.skillsDescription',
                 'Share one skill or a whole set behind an unlisted link, and install them on any machine you use.'

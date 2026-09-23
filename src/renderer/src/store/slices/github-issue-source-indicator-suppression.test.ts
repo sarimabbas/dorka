@@ -13,7 +13,10 @@ describe('IssueSourceIndicator suppression', () => {
     // Case-insensitive equality — the parent design doc calls out that `StablyAI/Dorka`
     // and `stablyai/orca` resolve to the same repo and must suppress.
     expect(
-      sameGitHubOwnerRepo({ owner: 'StablyAI', repo: 'Dorka' }, { owner: 'stablyai', repo: 'dorka' })
+      sameGitHubOwnerRepo(
+        { owner: 'StablyAI', repo: 'Dorka' },
+        { owner: 'stablyai', repo: 'dorka' }
+      )
     ).toBe(true)
     expect(
       sameGitHubOwnerRepo(

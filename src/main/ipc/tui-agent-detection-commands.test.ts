@@ -44,6 +44,8 @@ describe('tui agent detection commands', () => {
     expect(getTuiAgentDetectionProbeCommands(commands, 'win32')).toEqual([])
     expect(resolveDetectedTuiAgentIds(commands, new Set(['dorka', 'claude']), 'win32')).toEqual([])
     expect(getTuiAgentDetectionProbeCommands(commands, 'wsl')).toEqual([])
-    expect(resolveDetectedTuiAgentIds(commands, new Set(['dorka-ide', 'claude']), 'wsl')).toEqual([])
+    expect(resolveDetectedTuiAgentIds(commands, new Set(['dorka-ide', 'claude']), 'wsl')).toEqual(
+      []
+    )
   })
 })

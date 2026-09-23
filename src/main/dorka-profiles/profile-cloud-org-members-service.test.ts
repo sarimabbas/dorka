@@ -130,10 +130,16 @@ describe('Dorka cloud org members service (configured)', () => {
   it('maps a 409 already_member invite conflict', async () => {
     configureCloudEnv()
     runOperationDirectly()
-    inviteDorkaCloudOrgMemberMock.mockRejectedValue(new DorkaCloudRequestError(409, 'already_member'))
+    inviteDorkaCloudOrgMemberMock.mockRejectedValue(
+      new DorkaCloudRequestError(409, 'already_member')
+    )
 
     await expect(
-      inviteDorkaProfileOrgMember(userDataPath, { orgId: 'org-1', email: 'a@b.com', role: 'member' })
+      inviteDorkaProfileOrgMember(userDataPath, {
+        orgId: 'org-1',
+        email: 'a@b.com',
+        role: 'member'
+      })
     ).resolves.toEqual({ status: 'conflict', reason: 'already_member' })
   })
 
@@ -223,7 +229,9 @@ describe('Dorka cloud org members service (dev auth)', () => {
     if (afterInvite.status !== 'ok') {
       throw new Error('expected ok')
     }
-    expect(afterInvite.roster.pendingInvites.some((i) => i.email === 'fresh@dorka.local')).toBe(true)
+    expect(afterInvite.roster.pendingInvites.some((i) => i.email === 'fresh@dorka.local')).toBe(
+      true
+    )
 
     await expect(
       inviteDorkaProfileOrgMember(userDataPath, {

@@ -121,7 +121,9 @@ test.describe('Terminal Panes', () => {
       .toBe(true)
   })
 
-  test('@headful resizing split panes forwards only the settled PTY size', async ({ dorkaPage }) => {
+  test('@headful resizing split panes forwards only the settled PTY size', async ({
+    dorkaPage
+  }) => {
     await splitActiveTerminalPane(dorkaPage, 'vertical')
     const snapshot = await waitForPaneIdentitySnapshot(dorkaPage, 2)
     const ptyIds = snapshot.panes

@@ -54,7 +54,13 @@ describe('GC ownership — each model collects only its own namespace', () => {
   })
 
   it('claims nothing it did not create', () => {
-    for (const name of ['.dorka-remote', 'dorkad', 'relayish-0.1.0', 'dorkad-notaversion', 'node']) {
+    for (const name of [
+      '.dorka-remote',
+      'dorkad',
+      'relayish-0.1.0',
+      'dorkad-notaversion',
+      'node'
+    ]) {
       expect(remoteInstallDirOwner(name)).toBeNull()
       expect(remoteInstallGcPermits(RELAY_INSTALL_MODEL, name)).toBe(false)
       expect(remoteInstallGcPermits(DORKAD_INSTALL_MODEL, name)).toBe(false)

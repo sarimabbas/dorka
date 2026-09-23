@@ -200,7 +200,9 @@ test.describe('Worktree jump-palette filters', () => {
     await filterTrigger(dorkaPage).click()
     await expect(palette(dorkaPage).getByText('No results match the active filter')).toBeVisible()
     await expect(
-      palette(dorkaPage).getByText('Clear the filter above, or widen it to more hosts and projects.')
+      palette(dorkaPage).getByText(
+        'Clear the filter above, or widen it to more hosts and projects.'
+      )
     ).toBeVisible()
 
     // P3: clear restores both rows; reopening replaces ephemeral state with the sidebar scope.
@@ -221,9 +223,9 @@ test.describe('Worktree jump-palette filters', () => {
     await palette(dorkaPage).getByPlaceholder(SEARCH_PLACEHOLDER).fill('E2E Palette')
     await expect(filterTrigger(dorkaPage)).toContainText('1')
     await expect(worktreeRow(dorkaPage, fixture.localWorktreeId)).toBeVisible()
-    await expect(worktreeRow(dorkaPage, fixture.remoteWorktreeId, fixture.remoteHostId)).toHaveCount(
-      0
-    )
+    await expect(
+      worktreeRow(dorkaPage, fixture.remoteWorktreeId, fixture.remoteHostId)
+    ).toHaveCount(0)
   })
 
   test('opens with the sidebar repository scope without widening it', async ({ dorkaPage }) => {
@@ -238,9 +240,9 @@ test.describe('Worktree jump-palette filters', () => {
     await expect(filterTrigger(dorkaPage)).toContainText('1')
     await expect(palette(dorkaPage).getByLabel(`Remove filter ${LOCAL_PROJECT}`)).toBeVisible()
     await expect(worktreeRow(dorkaPage, fixture.localWorktreeId)).toBeVisible()
-    await expect(worktreeRow(dorkaPage, fixture.remoteWorktreeId, fixture.remoteHostId)).toHaveCount(
-      0
-    )
+    await expect(
+      worktreeRow(dorkaPage, fixture.remoteWorktreeId, fixture.remoteHostId)
+    ).toHaveCount(0)
   })
 
   test('pressing Enter creates a worktree from a typed name', async ({ dorkaPage }) => {

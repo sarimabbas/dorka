@@ -123,7 +123,10 @@ const DorkaYamlTrustDialog = React.memo(function DorkaYamlTrustDialog() {
             {previouslyApproved ? (
               <>
                 <code>
-                  {translate('auto.components.sidebar.DorkaYamlTrustDialog.79afc6772b', 'dorka.yaml')}
+                  {translate(
+                    'auto.components.sidebar.DorkaYamlTrustDialog.79afc6772b',
+                    'dorka.yaml'
+                  )}
                 </code>{' '}
                 {translate(
                   'auto.components.sidebar.DorkaYamlTrustDialog.c55beddbf8',
@@ -138,7 +141,10 @@ const DorkaYamlTrustDialog = React.memo(function DorkaYamlTrustDialog() {
                   "This repository's"
                 )}{' '}
                 <code>
-                  {translate('auto.components.sidebar.DorkaYamlTrustDialog.79afc6772b', 'dorka.yaml')}
+                  {translate(
+                    'auto.components.sidebar.DorkaYamlTrustDialog.79afc6772b',
+                    'dorka.yaml'
+                  )}
                 </code>{' '}
                 {translate(
                   'auto.components.sidebar.DorkaYamlTrustDialog.831f2cd9f0',

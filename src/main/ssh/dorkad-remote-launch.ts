@@ -25,7 +25,10 @@ import type { ServeReadiness } from '../server/serve-readiness'
 export const DORKAD_READINESS_FILENAME = '.dorkad-readiness'
 /** Stderr, including the bind-exposure line and every supervision message. */
 export const DORKAD_LOG_FILENAME = 'dorkad.log'
-export { DORKAD_PID_FILENAME, DorkadRemoteLaunchUnsupportedError } from './dorkad-remote-host-support'
+export {
+  DORKAD_PID_FILENAME,
+  DorkadRemoteLaunchUnsupportedError
+} from './dorkad-remote-host-support'
 
 export type DorkadLaunchSpec = {
   remoteInstallDir: string

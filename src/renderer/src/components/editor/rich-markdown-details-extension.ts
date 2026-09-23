@@ -208,7 +208,8 @@ const DorkaDetails = Details.extend({
       ...this.parent?.(),
       variant: {
         default: null,
-        parseHTML: (element) => parseToggleHeadingVariant(element.getAttribute('data-dorka-toggle')),
+        parseHTML: (element) =>
+          parseToggleHeadingVariant(element.getAttribute('data-dorka-toggle')),
         renderHTML: ({ variant }) => {
           const parsed = parseToggleHeadingVariant(variant)
           return parsed ? { 'data-dorka-toggle': parsed } : {}

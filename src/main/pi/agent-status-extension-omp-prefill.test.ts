@@ -19,7 +19,10 @@ describe('OMP prefill through the explicitly loaded status extension', () => {
   })
 
   it('preserves the draft until an editor is available', async () => {
-    const h = createAgentStatusExtensionHarness({ kind: 'omp', env: { DORKA_OMP_PREFILL: 'Draft' } })
+    const h = createAgentStatusExtensionHarness({
+      kind: 'omp',
+      env: { DORKA_OMP_PREFILL: 'Draft' }
+    })
     await h.callHook('session_start', {}, {})
     expect(h.processEnv.DORKA_OMP_PREFILL).toBe('Draft')
     const noopEditor = vi.fn()

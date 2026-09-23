@@ -125,7 +125,9 @@ test.describe('browser split navigation shortcuts', () => {
     await expectSecondSplitUntouched(dorkaPage, fixture, server)
   })
 
-  test('Reload and Hard Reload typed in one guest reload only that split', async ({ dorkaPage }) => {
+  test('Reload and Hard Reload typed in one guest reload only that split', async ({
+    dorkaPage
+  }) => {
     const fixture = await createBrowserSplitWithHistory(dorkaPage, server)
 
     await pressInGuest(dorkaPage, fixture, reloadChord)

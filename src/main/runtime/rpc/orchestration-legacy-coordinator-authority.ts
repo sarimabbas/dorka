@@ -1,4 +1,7 @@
-import type { DorkaRuntimeService, OrchestrationCompatibilityCallerAuthority } from '../dorka-runtime'
+import type {
+  DorkaRuntimeService,
+  OrchestrationCompatibilityCallerAuthority
+} from '../dorka-runtime'
 import type { OrchestrationDb } from '../orchestration/db'
 import type { LegacyCompatibilityPrincipalRow } from '../orchestration/types'
 import type { LegacyCoordinatorAuthorityProof, RpcRequest } from './core'

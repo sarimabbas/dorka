@@ -24,7 +24,10 @@ describe('decodeOffer', () => {
     ['dorka://pair', /no code= parameter/],
     ['dorka://pair?code=', /not base64url/],
     ['dorka://pair?code=not base64', /not base64url/],
-    [`dorka://pair?code=${Buffer.from('not json').toString('base64url')}`, /did not decode to JSON/],
+    [
+      `dorka://pair?code=${Buffer.from('not json').toString('base64url')}`,
+      /did not decode to JSON/
+    ],
     [`dorka://pair?code=${Buffer.from('[1,2]').toString('base64url')}`, /offer object/],
     [`dorka://pair?code=${Buffer.from('null').toString('base64url')}`, /offer object/]
   ])('refuses %j', (value, message) => {

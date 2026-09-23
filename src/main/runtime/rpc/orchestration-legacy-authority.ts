@@ -5,7 +5,10 @@ import type {
   LegacyPrincipalRole
 } from '../orchestration/types'
 import { OrchestrationError } from '../orchestration/orchestration-error'
-import type { DorkaRuntimeService, OrchestrationCompatibilityCallerAuthority } from '../dorka-runtime'
+import type {
+  DorkaRuntimeService,
+  OrchestrationCompatibilityCallerAuthority
+} from '../dorka-runtime'
 import { LEGACY_CONTRACT_VERSION } from '../orchestration/db'
 import type { RpcRequest } from './core'
 import {

@@ -54,7 +54,8 @@ export function resolvePiSourceAgentDir(
   }
 
   const overlayKey = kind === 'omp' ? 'DORKA_OMP_CODING_AGENT_DIR' : 'DORKA_PI_CODING_AGENT_DIR'
-  const otherOverlayKey = kind === 'omp' ? 'DORKA_PI_CODING_AGENT_DIR' : 'DORKA_OMP_CODING_AGENT_DIR'
+  const otherOverlayKey =
+    kind === 'omp' ? 'DORKA_PI_CODING_AGENT_DIR' : 'DORKA_OMP_CODING_AGENT_DIR'
 
   // Why: a mismatched Dorka overlay shadow means this shell inherited the other
   // Pi-compatible agent's PTY overlay. Do not remirror that overlay into this

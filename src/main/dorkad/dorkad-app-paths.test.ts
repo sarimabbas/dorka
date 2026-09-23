@@ -2,7 +2,11 @@ import { homedir, tmpdir } from 'node:os'
 import { join, sep } from 'node:path'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import type { AppPathName } from '../../shared/app-environment'
-import { resolveDorkadInstallRoot, resolveDorkadPath, resolveUserDataPath } from './dorkad-app-paths'
+import {
+  resolveDorkadInstallRoot,
+  resolveDorkadPath,
+  resolveUserDataPath
+} from './dorkad-app-paths'
 
 const ALL_PATH_NAMES: AppPathName[] = [
   'userData',

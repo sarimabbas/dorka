@@ -48,7 +48,9 @@ test.describe('PR comments sidebar cards view', () => {
     await waitForActiveWorktree(dorkaPage)
   })
 
-  test('groups open, conversation, and resolved comments in cards layout', async ({ dorkaPage }) => {
+  test('groups open, conversation, and resolved comments in cards layout', async ({
+    dorkaPage
+  }) => {
     const { worktreeId } = await seedPRCommentsSidebarFixture(dorkaPage)
     await openChecks(dorkaPage, worktreeId)
 

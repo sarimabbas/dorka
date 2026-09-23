@@ -109,9 +109,9 @@ describe('claude agent teams shim env', () => {
       resolveClaudeAgentTeamsShimBin({ PATH: '.', DORKA_AGENT_TEAMS_SHIM_BIN: 'dorka' })
     ).toBeNull()
     // Why: a bare override is still honored when it maps to a real absolute PATH entry.
-    expect(resolveClaudeAgentTeamsShimBin({ PATH: root, DORKA_AGENT_TEAMS_SHIM_BIN: 'dorka' })).toBe(
-      join(root, 'dorka')
-    )
+    expect(
+      resolveClaudeAgentTeamsShimBin({ PATH: root, DORKA_AGENT_TEAMS_SHIM_BIN: 'dorka' })
+    ).toBe(join(root, 'dorka'))
   })
 
   it.skipIf(process.platform !== 'win32')(

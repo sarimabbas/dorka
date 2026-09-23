@@ -174,7 +174,10 @@ export function RepositorySetupPolicySetting({
 
 function getCommandSourceLabel(policy: HookCommandSourcePolicy): string {
   if (policy === 'shared-only') {
-    return translate('auto.components.settings.RepositoryHooksSection.d88b6ff88f', 'dorka.yaml only')
+    return translate(
+      'auto.components.settings.RepositoryHooksSection.d88b6ff88f',
+      'dorka.yaml only'
+    )
   }
   if (policy === 'local-only') {
     return translate('auto.components.settings.RepositoryHooksSection.83dc78202a', 'Local only')

@@ -286,7 +286,9 @@ describe('useSkillFreshness', () => {
 
     expect(addEventListener.mock.calls.filter(([name]) => name === 'focus')).toHaveLength(1)
     expect(
-      addEventListener.mock.calls.filter(([name]) => name === 'dorka:installed-agent-skills-changed')
+      addEventListener.mock.calls.filter(
+        ([name]) => name === 'dorka:installed-agent-skills-changed'
+      )
     ).toHaveLength(1)
 
     await act(async () => root?.unmount())

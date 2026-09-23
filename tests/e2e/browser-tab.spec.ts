@@ -581,8 +581,18 @@ test.describe('Browser Tab', () => {
     ])
     try {
       const worktreeId = (await getActiveWorktreeId(dorkaPage))!
-      const tabA = await createBrowserTab(dorkaPage, worktreeId, formServerA.url('Zoom A'), 'Zoom A')
-      const tabB = await createBrowserTab(dorkaPage, worktreeId, formServerB.url('Zoom B'), 'Zoom B')
+      const tabA = await createBrowserTab(
+        dorkaPage,
+        worktreeId,
+        formServerA.url('Zoom A'),
+        'Zoom A'
+      )
+      const tabB = await createBrowserTab(
+        dorkaPage,
+        worktreeId,
+        formServerB.url('Zoom B'),
+        'Zoom B'
+      )
       expect(tabA?.id).toBeTruthy()
       expect(tabB?.id).toBeTruthy()
       for (const tab of [tabA, tabB]) {

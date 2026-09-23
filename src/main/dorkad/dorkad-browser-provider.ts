@@ -74,7 +74,9 @@ export function installedElectronCandidates(
       ...(environment.LOCALAPPDATA
         ? [joinPath(environment.LOCALAPPDATA, 'Programs', 'Dorka', 'Dorka.exe')]
         : []),
-      ...(environment.ProgramFiles ? [joinPath(environment.ProgramFiles, 'Dorka', 'Dorka.exe')] : [])
+      ...(environment.ProgramFiles
+        ? [joinPath(environment.ProgramFiles, 'Dorka', 'Dorka.exe')]
+        : [])
     ]
   }
   return [

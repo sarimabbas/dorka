@@ -13,7 +13,11 @@ const TRANSPORT_SUFFIX = ']]'
 const KEY_PATTERN = /^[a-f0-9]{32}$/
 const TRANSPORT_BODY_PATTERN =
   /^DORKA_RICH_MD:[a-f0-9]{32}:(?:literal|inline-html|block-html|document-link|html-superscript-link):/
-const LEGACY_PREFIXES = ['DORKA_RAW_HTML_INLINE:', 'DORKA_RAW_HTML_BLOCK:', 'DORKA_DOC_LINK:'] as const
+const LEGACY_PREFIXES = [
+  'DORKA_RAW_HTML_INLINE:',
+  'DORKA_RAW_HTML_BLOCK:',
+  'DORKA_DOC_LINK:'
+] as const
 
 export function skipInlineTransportStartScan(): number {
   // Marked already stops text at `[`, so inline envelopes need no suffix scan.

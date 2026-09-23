@@ -32,7 +32,10 @@ function prepareMethod() {
   return method
 }
 
-function runtimeWithSettings(enabled = true, disabledTuiAgents: string[] = []): DorkaRuntimeService {
+function runtimeWithSettings(
+  enabled = true,
+  disabledTuiAgents: string[] = []
+): DorkaRuntimeService {
   return {
     getClientSettings: vi.fn(() => ({
       agentStatusHooksEnabled: enabled,

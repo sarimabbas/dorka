@@ -538,9 +538,11 @@ test.describe('Onboarding flow', () => {
     await expectAddProjectDialog(dorkaPage)
     // The runtime env is selected as the Add Project host and the browse action
     // is host-scoped, proving the server project-setup UI is preserved on skip.
-    await expect(dorkaPage.getByText('Existing Git repository or folder on this host')).toBeVisible({
-      timeout: 30_000
-    })
+    await expect(dorkaPage.getByText('Existing Git repository or folder on this host')).toBeVisible(
+      {
+        timeout: 30_000
+      }
+    )
     await expect(dorkaPage.getByRole('button', { name: /Browse folder/i })).toBeVisible()
     await expect(dorkaPage.getByRole('button', { name: /Clone from URL/i })).toBeVisible()
     await expect(dorkaPage.getByRole('button', { name: /Create new project/i })).toBeVisible()
@@ -572,7 +574,9 @@ test.describe('Onboarding flow', () => {
     await expect
       .poll(
         async () =>
-          dorkaPage.evaluate(() => localStorage.getItem('dorka.e2e.notificationPermissionRequested')),
+          dorkaPage.evaluate(() =>
+            localStorage.getItem('dorka.e2e.notificationPermissionRequested')
+          ),
         { timeout: 5_000 }
       )
       .toBeNull()
@@ -680,7 +684,9 @@ test.describe('Onboarding flow', () => {
       .toBe(1)
   })
 
-  test('final notification step can be dismissed via Escape or click-off', async ({ dorkaPage }) => {
+  test('final notification step can be dismissed via Escape or click-off', async ({
+    dorkaPage
+  }) => {
     await expect(dorkaPage.getByRole('heading', { name: /Pick your default agent/i })).toBeVisible({
       timeout: 15_000
     })

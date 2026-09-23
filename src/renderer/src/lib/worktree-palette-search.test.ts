@@ -388,11 +388,9 @@ describe('worktree-palette-search', () => {
     ]
 
     // All three match on the repo name, order preserved from input.
-    expect(searchWorktrees(worktrees, 'dorka', repoMap).map((result) => result.worktreeId)).toEqual([
-      'wt-feature',
-      'wt-bugfix',
-      'wt-main'
-    ])
+    expect(searchWorktrees(worktrees, 'dorka', repoMap).map((result) => result.worktreeId)).toEqual(
+      ['wt-feature', 'wt-bugfix', 'wt-main']
+    )
   })
 
   it('supports "repo/worktree" composite queries and highlights both segments', () => {

@@ -79,7 +79,9 @@ describe('plugin panel list loading', () => {
       ]
     }
     usePluginPanelsStore.getState().setPlugins([installed])
-    usePluginPanelsStore.getState().setPanelHealth('plugin:dorka-samples.current/dashboard', 'error')
+    usePluginPanelsStore
+      .getState()
+      .setPanelHealth('plugin:dorka-samples.current/dashboard', 'error')
     expect(usePluginPanelsStore.getState().panelErrors).toEqual({
       'plugin:dorka-samples.current/dashboard': true
     })
@@ -89,7 +91,9 @@ describe('plugin panel list loading', () => {
       .setPanelHealth('plugin:dorka-samples.current/dashboard', 'healthy')
     expect(usePluginPanelsStore.getState().panelErrors).toEqual({})
 
-    usePluginPanelsStore.getState().setPanelHealth('plugin:dorka-samples.current/dashboard', 'error')
+    usePluginPanelsStore
+      .getState()
+      .setPanelHealth('plugin:dorka-samples.current/dashboard', 'error')
     usePluginPanelsStore.getState().setPlugins([])
     expect(usePluginPanelsStore.getState().panelErrors).toEqual({})
   })

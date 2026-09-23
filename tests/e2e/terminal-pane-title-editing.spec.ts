@@ -89,7 +89,9 @@ test.describe.configure({ mode: 'serial' })
 test.describe('Terminal Panes', () => {
   registerTerminalPaneMountReadiness()
 
-  test('first Set Title from terminal context menu stays open for typing', async ({ dorkaPage }) => {
+  test('first Set Title from terminal context menu stays open for typing', async ({
+    dorkaPage
+  }) => {
     const title = `First menu title ${Date.now()}`
 
     await openTerminalContextMenu(dorkaPage)

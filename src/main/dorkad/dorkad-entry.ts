@@ -17,7 +17,11 @@ import { setSecretStore, type SecretStore } from '../../shared/secret-store'
 import type { ServeReadiness } from '../server/serve-readiness'
 import { setRuntimeBrowserCommandsFactory } from '../runtime/runtime-browser-commands-factory'
 import { resolveDorkadBrowserProvider } from './dorkad-browser-provider'
-import { resolveDorkadInstallRoot, resolveDorkadPath, resolveUserDataPath } from './dorkad-app-paths'
+import {
+  resolveDorkadInstallRoot,
+  resolveDorkadPath,
+  resolveUserDataPath
+} from './dorkad-app-paths'
 import {
   describeDorkadBindExposure,
   DorkadBindAddressError,

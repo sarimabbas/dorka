@@ -26,7 +26,10 @@ export function DorkaProfileSignOutConfirmDialog({
       <DialogContent className="sm:max-w-[420px]">
         <DialogHeader>
           <DialogTitle>
-            {translate('auto.components.dorka.profiles.signout.confirm.title', 'Sign out of Dorka?')}
+            {translate(
+              'auto.components.dorka.profiles.signout.confirm.title',
+              'Sign out of Dorka?'
+            )}
           </DialogTitle>
           <DialogDescription>
             {translate(

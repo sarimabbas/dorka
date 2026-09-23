@@ -228,7 +228,10 @@ export function useAppSessionPersistence(): void {
       DORKA_UPDATER_QUIT_AND_INSTALL_ABORTED_EVENT,
       shutdownCheckpoint.abandonAttempt
     )
-    window.addEventListener(DORKA_RENDERER_UNLOAD_PREVENTED_EVENT, shutdownCheckpoint.abandonAttempt)
+    window.addEventListener(
+      DORKA_RENDERER_UNLOAD_PREVENTED_EVENT,
+      shutdownCheckpoint.abandonAttempt
+    )
     return () => {
       window.removeEventListener('beforeunload', persistBeforeUnload)
       window.removeEventListener(

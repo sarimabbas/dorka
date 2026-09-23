@@ -45,7 +45,9 @@ export type DorkaProfileApi = {
   refreshAuth: () => Promise<RefreshCurrentDorkaProfileAuthResult>
   signOutCurrent: () => Promise<SignOutCurrentDorkaProfileResult>
   selectOrg: (args: SelectDorkaProfileOrgArgs) => Promise<SelectDorkaProfileOrgResult>
-  orgMembersList: (args: DorkaProfileOrgMembersListArgs) => Promise<DorkaProfileOrgMembersListResult>
+  orgMembersList: (
+    args: DorkaProfileOrgMembersListArgs
+  ) => Promise<DorkaProfileOrgMembersListResult>
   orgMemberInvite: (
     args: DorkaProfileOrgMemberInviteArgs
   ) => Promise<DorkaProfileOrgMemberMutationResult>

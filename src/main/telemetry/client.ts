@@ -25,7 +25,8 @@ const TELEMETRY_ENABLED = true
 const BUILD_IDENTITY: 'stable' | 'rc' | null =
   typeof DORKA_BUILD_IDENTITY !== 'undefined'
     ? DORKA_BUILD_IDENTITY
-    : ((globalThis as { DORKA_BUILD_IDENTITY?: 'stable' | 'rc' | null }).DORKA_BUILD_IDENTITY ?? null)
+    : ((globalThis as { DORKA_BUILD_IDENTITY?: 'stable' | 'rc' | null }).DORKA_BUILD_IDENTITY ??
+      null)
 const WRITE_KEY: string | null =
   typeof DORKA_POSTHOG_WRITE_KEY !== 'undefined'
     ? DORKA_POSTHOG_WRITE_KEY

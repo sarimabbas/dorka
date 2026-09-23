@@ -83,7 +83,11 @@ describe.skipIf(process.platform === 'win32')('real sidecar exit reaping', () =>
       const sidecar = spawnProcess({
         program: process.execPath,
         args: [entry],
-        env: { ...process.env, DORKA_BACKGROUND_LAUNCH: '1', DORKA_TEST_PROVIDER_PID_FILE: pidFile },
+        env: {
+          ...process.env,
+          DORKA_BACKGROUND_LAUNCH: '1',
+          DORKA_TEST_PROVIDER_PID_FILE: pidFile
+        },
         stdio: ['ignore', 'pipe', 'pipe', 'ipc']
       })
       const sidecarExit = once(sidecar, 'exit')

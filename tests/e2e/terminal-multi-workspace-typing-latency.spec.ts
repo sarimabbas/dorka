@@ -409,7 +409,9 @@ test.describe('Multi-workspace sustained typing latency bench', () => {
   }, testInfo) => {
     await waitForSessionReady(dorkaPage)
     const typingWorktreeId = await waitForActiveWorktree(dorkaPage)
-    const loadWorktreeId = (await getAllWorktreeIds(dorkaPage)).find((id) => id !== typingWorktreeId)
+    const loadWorktreeId = (await getAllWorktreeIds(dorkaPage)).find(
+      (id) => id !== typingWorktreeId
+    )
     expect(Boolean(loadWorktreeId), 'bench needs the seeded secondary worktree').toBe(true)
     if (!loadWorktreeId) {
       return

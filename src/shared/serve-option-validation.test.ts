@@ -55,7 +55,9 @@ describe('getServeFlagTypoError', () => {
   )
 
   it('does not reinterpret tokens after --', () => {
-    expect(getServeFlagTypoError(['/opt/dorka/dorka-ide', '--serve', '--', '--no-pairng'])).toBeNull()
+    expect(
+      getServeFlagTypoError(['/opt/dorka/dorka-ide', '--serve', '--', '--no-pairng'])
+    ).toBeNull()
   })
 
   it('does not inspect an equals-form value as a flag', () => {

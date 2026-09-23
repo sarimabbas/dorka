@@ -180,7 +180,9 @@ test.describe('File Open & Markdown Preview', () => {
 
     // Switch to a terminal tab
     await switchToTerminal(dorkaPage, worktreeId)
-    await expect.poll(async () => getActiveTabType(dorkaPage), { timeout: 3_000 }).not.toBe('editor')
+    await expect
+      .poll(async () => getActiveTabType(dorkaPage), { timeout: 3_000 })
+      .not.toBe('editor')
 
     // Switch back to the same editor tab
     await switchToEditor(dorkaPage, editorFileId)

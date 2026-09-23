@@ -18,7 +18,9 @@ test.describe('Right sidebar native titlebar spacing', () => {
     await ensureTerminalVisible(dorkaPage)
 
     const hasDesktopWindowChrome = process.platform !== 'darwin'
-    expect(await dorkaPage.evaluate(() => window.api.platform.get().platform)).toBe(process.platform)
+    expect(await dorkaPage.evaluate(() => window.api.platform.get().platform)).toBe(
+      process.platform
+    )
 
     await dorkaPage.evaluate(() => {
       const store = window.__store

@@ -99,7 +99,8 @@ function createWslRunner(
         throw new Error('__DORKA_CONFLICT__')
       }
       const launcher =
-        command.match(/cat > "\$command_tmp" <<'DORKA_WSL_CLI'\n([\s\S]*)\nDORKA_WSL_CLI/)?.[1] ?? ''
+        command.match(/cat > "\$command_tmp" <<'DORKA_WSL_CLI'\n([\s\S]*)\nDORKA_WSL_CLI/)?.[1] ??
+        ''
       const bridge =
         command.match(
           /cat > "\$bridge_tmp" <<'DORKA_WSL_BRIDGE'\n([\s\S]*)\nDORKA_WSL_BRIDGE/
@@ -731,7 +732,8 @@ describe('WslCliInstaller', () => {
         platform: 'win32',
         distro: 'Ubuntu',
         hostInstaller: {
-          getStatus: async () => makeHostStatus('C:\\Program Files\\Dorka\\resources\\bin\\dorka.exe')
+          getStatus: async () =>
+            makeHostStatus('C:\\Program Files\\Dorka\\resources\\bin\\dorka.exe')
         },
         wslRunner: runner
       })
@@ -775,7 +777,9 @@ describe('WslCliInstaller', () => {
     await expect(installer.repairManagedRegistration()).resolves.toMatchObject({ changed: true })
     await expect(installer.repairManagedRegistration()).resolves.toMatchObject({ changed: false })
     expect(wsl.calls.filter((command) => command.includes('cat > "$command_tmp"'))).toHaveLength(1)
-    expect(wsl.getFile()).toContain("DORKA_WIN_LAUNCHER='D:\\Custom Dorka\\resources\\bin\\dorka.exe'")
+    expect(wsl.getFile()).toContain(
+      "DORKA_WIN_LAUNCHER='D:\\Custom Dorka\\resources\\bin\\dorka.exe'"
+    )
   })
 
   it('settles when wsl.exe never reports completion', async () => {

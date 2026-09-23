@@ -430,7 +430,10 @@ async function measureCrossWorkspaceTypingDuringHiddenLoad({
   const typingPtyId = await waitForActivePanePtyId(dorkaPage)
 
   const runId = randomUUID()
-  const scriptPath = path.join(testRepoPath, `.dorka-opencode-cross-${hiddenPaneCount}-${runId}.mjs`)
+  const scriptPath = path.join(
+    testRepoPath,
+    `.dorka-opencode-cross-${hiddenPaneCount}-${runId}.mjs`
+  )
   writeInteractivePromptScript(scriptPath, runId)
   await resetTerminalPtyOutputDebug(dorkaPage)
   const load = await startSyntheticOpenCodeInjection({

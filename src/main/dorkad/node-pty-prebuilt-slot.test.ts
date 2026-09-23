@@ -46,7 +46,9 @@ const stageSlot = (prebuilds: string, slot: string): void => {
 
 describe('resolveDorkadPrebuildsDir', () => {
   it('looks beside the running bundle', () => {
-    expect(resolveDorkadPrebuildsDir('/opt/dorkad/dorkad.js')).toBe(join('/opt/dorkad', 'prebuilds'))
+    expect(resolveDorkadPrebuildsDir('/opt/dorkad/dorkad.js')).toBe(
+      join('/opt/dorkad', 'prebuilds')
+    )
   })
 
   it('honours an explicit override', () => {

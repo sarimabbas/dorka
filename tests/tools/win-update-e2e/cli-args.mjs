@@ -105,7 +105,9 @@ function pathsOverlap(a, b) {
 
 /** A prior harness install directory carries both the app exe and its uninstaller. */
 function looksLikeHarnessInstall(dir) {
-  return existsSync(path.join(dir, 'Dorka.exe')) && existsSync(path.join(dir, 'Uninstall Dorka.exe'))
+  return (
+    existsSync(path.join(dir, 'Dorka.exe')) && existsSync(path.join(dir, 'Uninstall Dorka.exe'))
+  )
 }
 
 /**

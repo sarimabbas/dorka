@@ -100,7 +100,9 @@ describe('ChecksPanelReviewHeader', () => {
   // Why: with inverting on and Link Routing off the modifier reaches Dorka here, so the
   // hint must name Dorka rather than the destination a plain click already uses.
   it('names Dorka when the modifier inverts toward the built-in browser', () => {
-    expect(renderHeader({ modifierHintDestination: 'dorka' })).toContain('⇧⌘+click to open in Dorka')
+    expect(renderHeader({ modifierHintDestination: 'dorka' })).toContain(
+      '⇧⌘+click to open in Dorka'
+    )
 
     vi.stubGlobal('navigator', { userAgent: 'Windows' })
     expect(renderHeader({ modifierHintDestination: 'dorka' })).toContain(

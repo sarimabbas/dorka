@@ -28,7 +28,10 @@ import type { DorkaRuntimeService } from '../../dorka-runtime'
 /** The same budget orchestration gives a worker to reach its composer before dispatching to it. */
 const AGENT_READY_TIMEOUT_MS = 60_000
 
-type TerminalPromptRuntime = Pick<DorkaRuntimeService, 'waitForTerminal' | 'sendTerminalAgentPrompt'>
+type TerminalPromptRuntime = Pick<
+  DorkaRuntimeService,
+  'waitForTerminal' | 'sendTerminalAgentPrompt'
+>
 
 /**
  * Whether the text reached the pane.

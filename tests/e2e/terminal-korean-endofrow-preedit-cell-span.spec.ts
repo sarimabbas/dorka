@@ -56,7 +56,9 @@ function describeSpan(sample: MidlinePreeditOcclusionSample): string {
 }
 
 test.describe('Terminal end-of-row Korean preedit cell span', () => {
-  test('keeps the preedit caret inside the final terminal cell', async ({ dorkaPage }, testInfo) => {
+  test('keeps the preedit caret inside the final terminal cell', async ({
+    dorkaPage
+  }, testInfo) => {
     const arena = await openTerminalImePaneArena(dorkaPage)
     let completed = false
     try {

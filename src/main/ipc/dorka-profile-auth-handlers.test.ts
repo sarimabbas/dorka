@@ -163,7 +163,10 @@ describe('registerDorkaProfileHandlers auth channels', () => {
 
     await expect(
       Promise.resolve(
-        handlers.get('dorkaProfiles:createCloudLinked')?.(null, { orgId: ' org-1 ', name: ' Acme ' })
+        handlers.get('dorkaProfiles:createCloudLinked')?.(null, {
+          orgId: ' org-1 ',
+          name: ' Acme '
+        })
       )
     ).resolves.toBe(createResult)
     expect(createCloudLinkedDorkaProfileMock).toHaveBeenCalledWith('/tmp/dorka-user-data', {

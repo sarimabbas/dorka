@@ -172,7 +172,10 @@ for (const closeMode of ['terminal-close-cli', 'worker-release'] as const) {
     )
     await expect
       .poll(() =>
-        dorkaPage.evaluate((tabId) => Boolean(window.__paneManagers?.get(tabId)), workerBefore.tabId)
+        dorkaPage.evaluate(
+          (tabId) => Boolean(window.__paneManagers?.get(tabId)),
+          workerBefore.tabId
+        )
       )
       .toBe(true)
     expect(

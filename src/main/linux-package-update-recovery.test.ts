@@ -135,7 +135,9 @@ describe('captureLinuxPackageArtifact', () => {
 
   it('accepts an uppercase extension', () => {
     capture({ downloadedFile: path.join(downloadDir, 'Dorka.DEB') })
-    expect(recovery.getTrackedLinuxPackageArtifact()?.path).toBe(path.join(downloadDir, 'Dorka.DEB'))
+    expect(recovery.getTrackedLinuxPackageArtifact()?.path).toBe(
+      path.join(downloadDir, 'Dorka.DEB')
+    )
   })
 
   it('requires a non-empty string version', () => {
@@ -254,7 +256,9 @@ describe('captureLinuxPackageArtifact', () => {
   it('keeps the retained artifact when a new download has no usable digest', () => {
     capture()
     capture({ files: [{ url: 'dorka.deb' }] })
-    expect(recovery.getTrackedLinuxPackageArtifact()?.path).toBe(path.join(downloadDir, 'dorka.deb'))
+    expect(recovery.getTrackedLinuxPackageArtifact()?.path).toBe(
+      path.join(downloadDir, 'dorka.deb')
+    )
   })
 
   it('does not arm recovery from a download with no usable digest', () => {
@@ -272,7 +276,9 @@ describe('captureLinuxPackageArtifact', () => {
   it('keeps the retained artifact when an unrelated download event arrives', () => {
     capture()
     capture({ downloadedFile: path.join(downloadDir, 'dorka.AppImage') })
-    expect(recovery.getTrackedLinuxPackageArtifact()?.path).toBe(path.join(downloadDir, 'dorka.deb'))
+    expect(recovery.getTrackedLinuxPackageArtifact()?.path).toBe(
+      path.join(downloadDir, 'dorka.deb')
+    )
   })
 })
 

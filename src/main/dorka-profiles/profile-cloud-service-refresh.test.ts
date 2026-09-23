@@ -51,7 +51,8 @@ vi.mock('./profile-cloud-pkce', () => ({
 
 vi.mock('./profile-cloud-client', () => ({
   DorkaCloudRequestError: DorkaCloudRequestErrorMock,
-  isAmbiguousCloudRequestFailure: (error: unknown) => !(error instanceof DorkaCloudRequestErrorMock),
+  isAmbiguousCloudRequestFailure: (error: unknown) =>
+    !(error instanceof DorkaCloudRequestErrorMock),
   createDorkaCloudProfile: createDorkaCloudProfileMock,
   exchangeDorkaCloudAuthCode: exchangeDorkaCloudAuthCodeMock,
   refreshDorkaCloudCapabilities: refreshDorkaCloudCapabilitiesMock,

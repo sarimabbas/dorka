@@ -34,7 +34,9 @@ describe('web pairing input', () => {
 
   it('preserves optional paired device identity', () => {
     expect(
-      parseWebPairingInput(`dorka://pair?code=${encodeOffer({ pairedDeviceId: 'paired-device-a' })}`)
+      parseWebPairingInput(
+        `dorka://pair?code=${encodeOffer({ pairedDeviceId: 'paired-device-a' })}`
+      )
     ).toEqual({
       ...offer,
       pairedDeviceId: 'paired-device-a'

@@ -130,7 +130,10 @@ function run() {
   ]
   const resident = findAppDirResidentModules(modules, appDir)
   check('detects app-dir module', resident.length === 1)
-  check('detects the right module', resident[0].toLowerCase().includes('programs\\dorka\\dorka.exe'))
+  check(
+    'detects the right module',
+    resident[0].toLowerCase().includes('programs\\dorka\\dorka.exe')
+  )
   // Sibling-prefix must NOT match (C:\...\dorka vs C:\...\dorka-daemon-host).
   check(
     'sibling prefix not matched',

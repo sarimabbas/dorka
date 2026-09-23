@@ -764,7 +764,9 @@ test.describe('Chinese IME terminal chat input repro', () => {
         'candidate Space/digit selectors and pinyin preedit must not leak into the PTY'
       ).toEqual(['你', '你好', '再见', ''])
     } finally {
-      await attachImeEvidence(dorkaPage, testInfo, 'sogou-final-ime-evidence').catch(() => undefined)
+      await attachImeEvidence(dorkaPage, testInfo, 'sogou-final-ime-evidence').catch(
+        () => undefined
+      )
       await session?.detach().catch(() => undefined)
       if (harnessStarted) {
         await sendToTerminal(dorkaPage, ptyId, '\x03').catch(() => undefined)

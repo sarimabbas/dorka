@@ -338,7 +338,9 @@ process.stdout.write(${JSON.stringify(`${marker}\n`)})
       await dorkaPage.keyboard.type(`echo ${siblingAfterMarker}`)
       await dorkaPage.keyboard.press('Enter')
       await expect
-        .poll(async () => (await getTerminalContent(dorkaPage)).split(siblingAfterMarker).length - 1)
+        .poll(
+          async () => (await getTerminalContent(dorkaPage)).split(siblingAfterMarker).length - 1
+        )
         .toBeGreaterThanOrEqual(1)
     } finally {
       await dorkaPage

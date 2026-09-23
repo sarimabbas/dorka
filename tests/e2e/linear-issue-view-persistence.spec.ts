@@ -439,7 +439,10 @@ test.describe('Linear issue view persistence', () => {
     await expect(dorkaPage.getByText(STATE_A.name, { exact: true }).first()).toBeVisible()
   })
 
-  test('keeps attribute filters scoped per Linear workspace', async ({ electronApp, dorkaPage }) => {
+  test('keeps attribute filters scoped per Linear workspace', async ({
+    electronApp,
+    dorkaPage
+  }) => {
     await waitForSessionReady(dorkaPage)
     await waitForActiveWorktree(dorkaPage)
     await installLinearPersistenceBackend(electronApp, { multiWorkspace: true })

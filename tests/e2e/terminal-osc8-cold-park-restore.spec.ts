@@ -120,7 +120,9 @@ async function activateTerminalTab(page: Page, tabId: string): Promise<void> {
   await waitForActiveTerminalManager(page, 30_000)
 }
 
-test('restores and opens an OSC 8 link after its terminal is cold-parked', async ({ dorkaPage }) => {
+test('restores and opens an OSC 8 link after its terminal is cold-parked', async ({
+  dorkaPage
+}) => {
   await waitForSessionReady(dorkaPage)
   const worktreeId = await waitForActiveWorktree(dorkaPage)
   await dorkaPage.evaluate(async () => {
@@ -184,7 +186,9 @@ test('restores and opens an OSC 8 link after its terminal is cold-parked', async
     await dorkaPage.mouse.up()
     await dorkaPage.keyboard.up(modifier)
     await expect
-      .poll(async () => (await getBrowserTabs(dorkaPage, worktreeId)).some((tab) => tab.url === url))
+      .poll(async () =>
+        (await getBrowserTabs(dorkaPage, worktreeId)).some((tab) => tab.url === url)
+      )
       .toBe(true)
   } finally {
     await sendToTerminal(dorkaPage, ptyId, '\x03').catch(() => undefined)

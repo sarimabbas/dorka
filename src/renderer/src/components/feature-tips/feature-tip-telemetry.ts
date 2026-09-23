@@ -2,7 +2,8 @@ import { track } from '@/lib/telemetry'
 import type { EventProps } from '../../../../shared/telemetry-events'
 
 export type DorkaCliFeatureTipSource = EventProps<'dorka_cli_feature_tip_shown'>['source']
-export type DorkaCliFeatureTipSetupResult = EventProps<'dorka_cli_feature_tip_setup_result'>['result']
+export type DorkaCliFeatureTipSetupResult =
+  EventProps<'dorka_cli_feature_tip_setup_result'>['result']
 export type CmdJPaletteFeatureTipSource = EventProps<'cmd_j_palette_feature_tip_shown'>['source']
 
 export function getDorkaCliFeatureTipTelemetrySource(value: unknown): DorkaCliFeatureTipSource {

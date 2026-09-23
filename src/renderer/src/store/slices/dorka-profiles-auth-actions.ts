@@ -67,7 +67,10 @@ export const createDorkaProfilesAuthActions: StateCreator<
       } catch (err) {
         console.error('Failed to create Dorka cloud profile:', err)
         toast.error(
-          translate('auto.store.slices.dorka.profiles.f0c9e11a6d', 'Failed to create cloud profile'),
+          translate(
+            'auto.store.slices.dorka.profiles.f0c9e11a6d',
+            'Failed to create cloud profile'
+          ),
           {
             description: err instanceof Error ? err.message : String(err)
           }
@@ -170,7 +173,10 @@ export const createDorkaProfilesAuthActions: StateCreator<
       } catch (err) {
         console.error('Failed to refresh Dorka profile auth:', err)
         toast.error(
-          translate('auto.store.slices.dorka.profiles.2f6c78a039', 'Failed to refresh profile auth'),
+          translate(
+            'auto.store.slices.dorka.profiles.2f6c78a039',
+            'Failed to refresh profile auth'
+          ),
           {
             description: err instanceof Error ? err.message : String(err)
           }
@@ -197,9 +203,12 @@ export const createDorkaProfilesAuthActions: StateCreator<
         return result
       } catch (err) {
         console.error('Failed to sign out of Dorka profile:', err)
-        toast.error(translate('auto.store.slices.dorka.profiles.83600521e7', 'Failed to sign out'), {
-          description: err instanceof Error ? err.message : String(err)
-        })
+        toast.error(
+          translate('auto.store.slices.dorka.profiles.83600521e7', 'Failed to sign out'),
+          {
+            description: err instanceof Error ? err.message : String(err)
+          }
+        )
         return null
       }
     },

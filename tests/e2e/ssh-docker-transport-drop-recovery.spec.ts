@@ -113,7 +113,9 @@ function readUserDataDir(electronApp: ElectronApplication): Promise<string> {
 test.describe('SSH transport drop recovery', () => {
   test.skip(!RUN_DOCKER_SSH, 'Set DORKA_E2E_SSH_DOCKER=1 to run the dockerized SSH relay tests')
 
-  test('recovers a live pane after the transport dies under it', async ({ dorkaPage }, testInfo) => {
+  test('recovers a live pane after the transport dies under it', async ({
+    dorkaPage
+  }, testInfo) => {
     test.slow()
     let target: DockerSshRelayTarget | null = null
     try {
@@ -163,7 +165,9 @@ test.describe('SSH transport drop recovery', () => {
     }
   })
 
-  test('stays bounded when a disconnected shell floods its pty', async ({ dorkaPage }, testInfo) => {
+  test('stays bounded when a disconnected shell floods its pty', async ({
+    dorkaPage
+  }, testInfo) => {
     test.slow()
     // Timeouts here are deliberately generous: this guards memory, not latency. A 48MB flood plus a
     // reconnect lands near 60s wall-clock end to end, so a 60s bind timeout was marginal and made

@@ -26,7 +26,12 @@ export async function sendPromptWithLegacyCombinedSend(
     const { send } = await callRuntimeRpc<{ send: RuntimeTerminalSend }>(
       runtimeTarget,
       'terminal.send',
-      { terminal: terminalHandle, text: prompt, enter: true, client: DORKA_DESKTOP_TERMINAL_CLIENT },
+      {
+        terminal: terminalHandle,
+        text: prompt,
+        enter: true,
+        client: DORKA_DESKTOP_TERMINAL_CLIENT
+      },
       { timeoutMs: ACTIVE_AGENT_SEND_RPC_TIMEOUT_MS }
     )
     return send.accepted

@@ -32,7 +32,8 @@ export async function replaceOwnedSkillPlacementCopy(
   fileModes?: readonly SkillInstalledFileMode[],
   transaction?: { replacementPath: string; backupPath: string; retainBackup: boolean }
 ): Promise<void> {
-  const replacement = transaction?.replacementPath ?? `${destinationPath}.dorka-copy-${randomUUID()}`
+  const replacement =
+    transaction?.replacementPath ?? `${destinationPath}.dorka-copy-${randomUUID()}`
   const backup = transaction?.backupPath ?? `${destinationPath}.dorka-backup-${randomUUID()}`
   try {
     await (transaction

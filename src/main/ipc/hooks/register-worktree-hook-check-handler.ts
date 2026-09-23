@@ -35,7 +35,9 @@ export function registerWorktreeHookCheckHandler(context: WorktreeIpcContext): v
           return { status: 'error', hasHooks: false, hooks: null, mayNeedUpdate: false }
         }
         try {
-          const result = await fsProvider.readFile(joinWorktreeRelativePath(repo.path, 'dorka.yaml'))
+          const result = await fsProvider.readFile(
+            joinWorktreeRelativePath(repo.path, 'dorka.yaml')
+          )
           return {
             status: 'ok',
             hasHooks: !result.isBinary,

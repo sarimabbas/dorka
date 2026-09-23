@@ -266,7 +266,9 @@ test.describe('Activity Agent Pane Isolation', () => {
       })
   })
 
-  test('workspace card agent rows focus the matching terminal split pane', async ({ dorkaPage }) => {
+  test('workspace card agent rows focus the matching terminal split pane', async ({
+    dorkaPage
+  }) => {
     await splitActiveTerminalPane(dorkaPage, 'vertical')
     await waitForPaneCount(dorkaPage, 2)
     const snapshot = await waitForPaneIdentitySnapshot(dorkaPage, 2)

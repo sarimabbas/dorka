@@ -169,7 +169,12 @@ describe('validateGitExecArgs', () => {
         'pr-contributor-dorka',
         'https://github.com/contributor/dorka.git'
       ])
-      expectAllowed(['remote', 'add', 'pr-contributor-dorka', 'git@github.com:contributor/dorka.git'])
+      expectAllowed([
+        'remote',
+        'add',
+        'pr-contributor-dorka',
+        'git@github.com:contributor/dorka.git'
+      ])
       expectAllowed(['remote', 'remove', 'pr-contributor-dorka'])
     })
 

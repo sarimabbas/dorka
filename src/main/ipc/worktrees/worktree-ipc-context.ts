@@ -1,6 +1,9 @@
 import type { BrowserWindow } from 'electron'
 import type { Store } from '../../persistence/loading-store/store'
-import type { DorkaRuntimeService, RuntimeWorktreeLifecycleEvent } from '../../runtime/dorka-runtime'
+import type {
+  DorkaRuntimeService,
+  RuntimeWorktreeLifecycleEvent
+} from '../../runtime/dorka-runtime'
 import type { SenderScopedRequestCancellations } from '../sender-scoped-request-cancellation'
 import type { WorktreeRemovalInFlight } from './removal/worktree-removal-coordinator'
 

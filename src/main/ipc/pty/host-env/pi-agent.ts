@@ -37,7 +37,8 @@ export function resolvePiAgentSourceDir(
   }
 
   const overlayKey = kind === 'omp' ? 'DORKA_OMP_CODING_AGENT_DIR' : 'DORKA_PI_CODING_AGENT_DIR'
-  const otherOverlayKey = kind === 'omp' ? 'DORKA_PI_CODING_AGENT_DIR' : 'DORKA_OMP_CODING_AGENT_DIR'
+  const otherOverlayKey =
+    kind === 'omp' ? 'DORKA_PI_CODING_AGENT_DIR' : 'DORKA_OMP_CODING_AGENT_DIR'
 
   const publicDir = readEnvWithProcessFallback(baseEnv, primaryKey)
   const ownOverlayDir = readEnvWithProcessFallback(baseEnv, overlayKey)

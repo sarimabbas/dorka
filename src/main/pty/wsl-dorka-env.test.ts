@@ -139,7 +139,8 @@ describe('addDorkaWslInteropEnv', () => {
 
   it('path-translates a Windows hook endpoint but passes a guest-side one untouched', () => {
     const windowsEnv: Record<string, string> = {
-      DORKA_AGENT_HOOK_ENDPOINT: 'C:\\Users\\jin\\AppData\\Roaming\\Dorka\\agent-hooks\\endpoint.cmd'
+      DORKA_AGENT_HOOK_ENDPOINT:
+        'C:\\Users\\jin\\AppData\\Roaming\\Dorka\\agent-hooks\\endpoint.cmd'
     }
     addDorkaWslInteropEnv(windowsEnv)
     expect(windowsEnv.WSLENV).toContain('DORKA_AGENT_HOOK_ENDPOINT/p')

@@ -37,7 +37,9 @@ export default function (pi) {
           ctx.ui.notify('Use select, confirm, input, editor, or custom', 'error')
           return
       }
-      ctx.ui.notify(`Dorka verification: ${kind} ${answer === undefined ? 'cancelled' : 'answered'}`)
+      ctx.ui.notify(
+        `Dorka verification: ${kind} ${answer === undefined ? 'cancelled' : 'answered'}`
+      )
     }
   })
 }

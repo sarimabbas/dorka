@@ -66,8 +66,9 @@ function harness() {
    *  is no longer the live one. */
   const rosterIn = (groupId: string): NativeChatSubagentEntry[] =>
     agentsOf(
-      items.findLast((item) => dorkaClientMessageId(item.identity) === `claude-subagents:${groupId}`)
-        ?.body
+      items.findLast(
+        (item) => dorkaClientMessageId(item.identity) === `claude-subagents:${groupId}`
+      )?.body
     )
   const rosterOf = (turnUuid: string): NativeChatSubagentEntry[] =>
     rosterIn(`claude-session:${turnUuid}`)

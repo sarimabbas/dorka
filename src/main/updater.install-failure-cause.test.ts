@@ -306,7 +306,9 @@ describe('quitAndInstall failure carries the updater cause', () => {
     autoUpdaterMock.quitAndInstall.mockImplementation(() => {
       autoUpdaterMock.emit(
         'error',
-        new Error(`${escape}[31mdpkg -i '${home}/.cache/dorka-updater/pending/dorka.deb'${escape}[0m`)
+        new Error(
+          `${escape}[31mdpkg -i '${home}/.cache/dorka-updater/pending/dorka.deb'${escape}[0m`
+        )
       )
     })
 

@@ -220,7 +220,10 @@ describe('one real OMP turn', () => {
       previous = normalized
     }
 
-    expect(committed).toEqual(['⠋ π - fixing the sidebar - dorka', 'π - fixing the sidebar - dorka'])
+    expect(committed).toEqual([
+      '⠋ π - fixing the sidebar - dorka',
+      'π - fixing the sidebar - dorka'
+    ])
   })
 })
 

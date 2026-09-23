@@ -121,9 +121,9 @@ describe('Dorka cloud auth config', () => {
   it('ignores dev flags in packaged builds even without NODE_ENV', () => {
     // Why: packaged main bundles never define NODE_ENV, so packaged-ness must
     // gate the escape hatches on its own.
-    expect(allowsPlaintextDorkaCloudSession({ DORKA_CLOUD_ALLOW_PLAINTEXT_SESSION: '1' }, true)).toBe(
-      false
-    )
+    expect(
+      allowsPlaintextDorkaCloudSession({ DORKA_CLOUD_ALLOW_PLAINTEXT_SESSION: '1' }, true)
+    ).toBe(false)
     expect(isDorkaCloudDevAuthEnabled({ DORKA_CLOUD_DEV_AUTH: '1' }, true)).toBe(false)
   })
 

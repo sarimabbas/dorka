@@ -9,7 +9,10 @@ import { expect, test } from './helpers/dorka-app'
 import { launchHeadlessPairedRuntimeHost } from './helpers/headless-paired-runtime-host'
 import { launchPairedElectronClient } from './helpers/paired-electron-client'
 
-test.skip(process.env.DORKA_TOOLTIP_PREVIEW !== '1', 'Preview only; run with DORKA_TOOLTIP_PREVIEW=1')
+test.skip(
+  process.env.DORKA_TOOLTIP_PREVIEW !== '1',
+  'Preview only; run with DORKA_TOOLTIP_PREVIEW=1'
+)
 
 const HOLD_MINUTES = 20
 

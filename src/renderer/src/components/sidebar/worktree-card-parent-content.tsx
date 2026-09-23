@@ -105,7 +105,9 @@ export function WorktreeCardParentContent({
         }
         onOpenLinearIssueInDorka={linearIssue?.url ? handleOpenLinearIssueInDorka : undefined}
         onOpenReviewInDorka={
-          hoverReview?.url && hoverReview.provider === 'github' ? handleOpenReviewInDorka : undefined
+          hoverReview?.url && hoverReview.provider === 'github'
+            ? handleOpenReviewInDorka
+            : undefined
         }
         onOpenReviewInBrowser={hoverReview?.url ? handleOpenReviewInBrowser : undefined}
         onOpenAutomation={affiliateListMode ? undefined : handleOpenAutomation}

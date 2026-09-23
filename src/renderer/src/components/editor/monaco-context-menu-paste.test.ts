@@ -1,7 +1,10 @@
 // @vitest-environment happy-dom
 
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { runDorkaContextMenuPaste, type DorkaContextMenuPasteDeps } from './monaco-context-menu-paste'
+import {
+  runDorkaContextMenuPaste,
+  type DorkaContextMenuPasteDeps
+} from './monaco-context-menu-paste'
 
 const READ_ONLY_OPTION = 104
 const EMPTY_SELECTION_OPTION = 45

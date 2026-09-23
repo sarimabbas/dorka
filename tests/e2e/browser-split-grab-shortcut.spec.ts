@@ -161,7 +161,11 @@ test.describe('browser split grab shortcut', () => {
       second: server.pageUrl('b', 1, 'localhost')
     })
     await waitForGuestUrl(dorkaPage, fixture.firstBrowserTabId, server.pageUrl('a', 1))
-    await waitForGuestUrl(dorkaPage, fixture.secondBrowserTabId, server.pageUrl('b', 1, 'localhost'))
+    await waitForGuestUrl(
+      dorkaPage,
+      fixture.secondBrowserTabId,
+      server.pageUrl('b', 1, 'localhost')
+    )
 
     await reloadButton(dorkaPage, fixture.firstBrowserTabId).focus()
     await waitForFocusedGroup(dorkaPage, fixture.firstBrowserGroupId)

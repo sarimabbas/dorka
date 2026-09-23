@@ -751,7 +751,10 @@ describe('github RPC methods', () => {
       repo: 'dorka',
       seedLogins: ['octo']
     })
-    expect(runtime.listGitHubIssueTypesBySlug).toHaveBeenCalledWith({ owner: 'acme', repo: 'dorka' })
+    expect(runtime.listGitHubIssueTypesBySlug).toHaveBeenCalledWith({
+      owner: 'acme',
+      repo: 'dorka'
+    })
     expect(labels).toMatchObject({ ok: true, result: { ok: true, labels: ['bug'] } })
     expect(users).toMatchObject({ ok: true, result: { ok: true, users: [{ login: 'octo' }] } })
     expect(issueTypes).toMatchObject({ ok: true, result: { ok: true, types: [{ id: 'it-1' }] } })
