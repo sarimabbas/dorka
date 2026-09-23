@@ -7,6 +7,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { getDefaultSettings } from '../../../../shared/constants'
 import type { RuntimeClientTarget } from '@/runtime/runtime-client-target'
 import {
+  COMPUTER_CONFIGURATION_RUNTIME_CAPABILITY,
   COMPUTER_GIT_IDENTITY_RUNTIME_CAPABILITY,
   COMPUTER_LIFECYCLE_RUNTIME_CAPABILITY
 } from '../../../../shared/protocol-version'
@@ -59,6 +60,12 @@ function supportedStatus(): { capabilities: string[] } {
 function identitySupportedStatus(): { capabilities: string[] } {
   return {
     capabilities: [COMPUTER_LIFECYCLE_RUNTIME_CAPABILITY, COMPUTER_GIT_IDENTITY_RUNTIME_CAPABILITY]
+  }
+}
+
+function configurationSupportedStatus(): { capabilities: string[] } {
+  return {
+    capabilities: [COMPUTER_LIFECYCLE_RUNTIME_CAPABILITY, COMPUTER_CONFIGURATION_RUNTIME_CAPABILITY]
   }
 }
 
@@ -169,6 +176,81 @@ describe('ComputersSettingsPane', () => {
     expect(details).toHaveAttribute('open')
     expect(screen.getByText('Computer: main')).toBeInTheDocument()
     expect(screen.getByText('Image: computer:test')).toBeInTheDocument()
+  })
+
+  it('reviews and applies redacted Computer setup while preserving hidden variables', async () => {
+    const user = userEvent.setup()
+    const snapshot = {
+      id: stoppedComputer.id,
+      revision: '10000000-0000-4000-8000-000000000001',
+      configuration: {
+        resources: { cpus: 2, memoryMb: 4096, pids: 512 },
+        environment: ['TOKEN'],
+        premounts: []
+      }
+    }
+    const replacement = {
+      ...snapshot,
+      revision: '20000000-0000-4000-8000-000000000002',
+      configuration: {
+        ...snapshot.configuration,
+        resources: { ...snapshot.configuration.resources, cpus: 4 }
+      }
+    }
+    mocks.callRuntimeRpc
+      .mockResolvedValueOnce(configurationSupportedStatus())
+      .mockResolvedValueOnce([stoppedComputer])
+      .mockResolvedValueOnce(snapshot)
+      .mockResolvedValueOnce({
+        outcome: 'planned',
+        plan: {
+          ...snapshot,
+          configuration: replacement.configuration,
+          replacementRequired: true,
+          interruption: 'none',
+          changes: {
+            resources: ['cpus'],
+            environment: { added: [], changed: [], removed: [] },
+            premountsChanged: false
+          }
+        }
+      })
+      .mockResolvedValueOnce({ outcome: 'replaced', snapshot: replacement })
+
+    render(<ComputersSettingsPane settings={settings} />)
+    await user.click(await screen.findByText('Setup'))
+    const cpu = await screen.findByLabelText('CPUs')
+    await user.clear(cpu)
+    await user.type(cpu, '4')
+    await user.click(screen.getByRole('button', { name: 'Review changes' }))
+
+    expect(await screen.findByText('Ready to apply')).toBeInTheDocument()
+    expect(screen.getByText('Change cpus')).toBeInTheDocument()
+    expect(mocks.callRuntimeRpc).toHaveBeenNthCalledWith(
+      4,
+      { kind: 'local' },
+      'computers.configuration.plan',
+      {
+        id: stoppedComputer.id,
+        expectedRevision: snapshot.revision,
+        configuration: {
+          resources: { cpus: 4, memoryMb: 4096, pids: 512 },
+          environment: { preserve: ['TOKEN'], set: {} },
+          premounts: []
+        }
+      }
+    )
+
+    await user.click(screen.getByRole('button', { name: 'Apply' }))
+    await waitFor(() =>
+      expect(mocks.callRuntimeRpc).toHaveBeenNthCalledWith(
+        5,
+        { kind: 'local' },
+        'computers.configuration.replace',
+        expect.objectContaining({ expectedRevision: snapshot.revision })
+      )
+    )
+    expect(await screen.findByDisplayValue('4')).toBeInTheDocument()
   })
 
   it('edits and saves a running Computer Git identity inline', async () => {

@@ -3,6 +3,7 @@ import { Loader2, RefreshCw } from 'lucide-react'
 import type { ComputerRuntimeInfo } from '../../../../shared/computer-runtime'
 import type { GlobalSettings } from '../../../../shared/global-settings-types'
 import {
+  COMPUTER_CONFIGURATION_RUNTIME_CAPABILITY,
   COMPUTER_GIT_IDENTITY_RUNTIME_CAPABILITY,
   COMPUTER_LIFECYCLE_RUNTIME_CAPABILITY
 } from '../../../../shared/protocol-version'
@@ -17,7 +18,12 @@ type ComputersLoadState =
   | { kind: 'loading' }
   | { kind: 'unsupported' }
   | { kind: 'degraded'; message: string }
-  | { kind: 'ready'; computers: ComputerRuntimeInfo[]; supportsGitIdentity: boolean }
+  | {
+      kind: 'ready'
+      computers: ComputerRuntimeInfo[]
+      supportsConfiguration: boolean
+      supportsGitIdentity: boolean
+    }
 
 function errorMessage(error: unknown): string {
   return error instanceof Error
@@ -72,6 +78,9 @@ export function ComputersSettingsPane({
           setState({
             kind: 'ready',
             computers,
+            supportsConfiguration: status.capabilities.includes(
+              COMPUTER_CONFIGURATION_RUNTIME_CAPABILITY
+            ),
             supportsGitIdentity: status.capabilities.includes(
               COMPUTER_GIT_IDENTITY_RUNTIME_CAPABILITY
             )
@@ -224,6 +233,7 @@ export function ComputersSettingsPane({
             key={computer.id}
             computer={computer}
             settings={settings}
+            supportsConfiguration={state.supportsConfiguration}
             supportsGitIdentity={state.supportsGitIdentity}
             lifecyclePending={pendingComputerId === computer.id}
             onToggleRunning={() => void setComputerRunning(computer, computer.state !== 'running')}
