@@ -21,6 +21,18 @@ const BROWSER_GUEST_SESSION_PATH =
   'src/renderer/src/components/browser-pane/host-guest/browser-page-webview-guest-session.ts'
 
 describe('renderer startup runtime routing', () => {
+  it('always composes the existing workspace shell without a query escape hatch', () => {
+    const source = readSource(APP_PATH)
+
+    expect(source).toContain("import { AppWorkspaceShell } from './app-shell/AppWorkspaceShell'")
+    expect(source).toContain(
+      '<AppWorkspaceShell layout={layout} floatingWorkspace={floatingWorkspace} />'
+    )
+    expect(source).toContain('export default App')
+    expect(source).not.toContain('dorkaShell')
+    expect(source).not.toContain('DorkaAgentShell')
+  })
+
   it('owns closed editor cleanup in the persistent app shell', () => {
     expect(readSource(SHELL_SERVICES_PATH)).toContain('useClosedEditorTabCleanup()')
     expect(readSource('src/renderer/src/components/editor/EditorPanel.tsx')).not.toContain(
