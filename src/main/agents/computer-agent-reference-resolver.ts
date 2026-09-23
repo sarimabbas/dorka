@@ -67,8 +67,10 @@ export function createComputerAgentReferenceResolver(options: {
             { maxTextBytes: MCP_CONFIG_INSPECTION_MAX_BYTES }
           )
           content = file.isBinary ? '' : file.content
-        } catch {
-          // Missing and unreadable requirements are both launch-blocking.
+        } catch (error) {
+          if (!isRemoteNotFoundError(error)) {
+            throw error
+          }
         }
         inspection = inspectMcpConfigContent(candidate, content)
         inspections.set(reference.configId, inspection)

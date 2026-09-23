@@ -153,6 +153,16 @@ describe('Computer Agent reference resolver', () => {
     expect(stale.readFile).not.toHaveBeenCalled()
   })
 
+  it('propagates MCP transport failures instead of reporting a missing server', async () => {
+    const { resolver, request, readFile } = setup(
+      [{ kind: 'mcp-server', name: 'docs', configId: 'workspace' }],
+      {}
+    )
+    readFile.mockRejectedValueOnce(new Error('SSH transport disconnected'))
+
+    await expect(resolver(request)).rejects.toThrow('SSH transport disconnected')
+  })
+
   it('rejects a global skill when the Agent requires workspace scope', async () => {
     const { resolver, request } = setup(
       [{ kind: 'skill', name: 'code-review', scope: 'workspace' }],
