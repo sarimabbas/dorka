@@ -48,7 +48,7 @@ the server container must start and accept remote client connections.
 - [x] Preserve the existing application shell and tab behavior.
 - [x] Keep the existing Settings experience with only supported sections visible.
 - [x] Keep the existing local diff viewer.
-- [ ] Keep PR Review using credentials and tools inside the selected Computer.
+- [x] Keep provider-neutral Review as Git-ref comparison inside the selected Run's Computer.
 - [x] Keep Automations for scheduled or repeated Agent launches.
 - [x] Expose durable Agent presets and Computer lifecycle state in the retained Settings shell.
 - [ ] Apply Dorka terminology and restrained visual polish without changing the UI paradigm.
@@ -70,6 +70,9 @@ the server container must start and accept remote client connections.
 - [x] Provision an idempotent `Main` Computer and first Agent.
 - [x] Connect the Agent execution seam to a concrete managed-Computer SSH launcher and the existing PTY/session path.
 - [x] Record the selected `computerId`, terminal session identity, and process identity on each launched Run.
+- [x] Expose durable Run history and Run-scoped working-tree Diff/Review in the retained Settings shell.
+- [x] Project certified managed PTY exits to `waiting` without treating transport loss as process death.
+- [x] Configure persistent Computer-local Git name/email without exposing host credentials.
 - [x] Support validated ordinary environment variables and exact operator-allowlisted Computer premounts.
 - [x] Provision one persistent server-owned SSH control key per Computer, inject only its public key, and disable password authentication.
 - [x] Package the incumbent relay with the server image and compose the Node-safe managed SSH session owner in `dorkad`.
@@ -87,24 +90,24 @@ the server container must start and accept remote client connections.
 
 ## Remaining functional gaps
 
-- An isolated hidden Electron/CDP run against `/tmp/dorka-computer-use-qa-repo` passed project add,
-  Settings, tabs, local terminal execution, local Diff, and Automations with no renderer errors.
-  Evidence is recorded in `/tmp/dorka-computer-use-qa.md`. Hosted Review remained unreachable
-  because the safety fixture intentionally had no remote or provider credentials.
-- The existing local Diff and Review implementation remains in the application, but Review has not
-  yet been moved onto Computer-local `git`/`gh` execution and credentials.
-- The Agent execution path now validates placement, starts the Computer, connects its hidden managed
-  SSH target, launches `pi`, `claude`, or `codex` through the incumbent remote PTY/session path, and
-  durably records Run session/process identity. Post-spawn uncertainty becomes a waiting Run instead
-  of a false failure. The path is production-composed in `dorkad`, but still needs a real-image
-  Podman/Docker launch plus restart/reattach proof before the end-to-end loop is considered proven.
-- Computer SSH host keys now live in a dedicated managed volume, preserving host identity across
-  normal container replacement without exposing host or user SSH material.
+- Hidden Electron/CDP QA against `/tmp/dorka-computer-use-qa-repo` passed project add, Settings,
+  tabs, local terminal execution, local Diff, and Automations with no renderer errors. Evidence is
+  recorded in `/tmp/dorka-computer-use-qa.md`.
+- Rootless Podman E2E proved authenticated pairing, Computer reconciliation, managed SSH/relay/PTY
+  launch identity, immutable effective prompts, Run-scoped working-tree Diff, provider-neutral
+  Git-ref Review, Computer-local Git identity, persistent SSH host identity, and server restart
+  without relaunch or Run mutation. Evidence and exact limitations are in
+  `/tmp/dorka-managed-computer-e2e.md`.
+- The successful managed launch used the real amd64 Computer image under arm64 emulation but replaced
+  its heavy Selkies startup with a diagnostic headless `sshd` entrypoint. The standard graphical
+  image still needs native-Linux launch and desktop-readiness proof.
+- Server restart reconnects each active Run's running Computer once without starting stopped
+  Computers or relaunching work. An exited PTY discovered only after restart remains outcome-
+  unverifiable; authoritative completion projection across a server outage is still open.
 - Existing Project and Workspace language still needs a careful Dorka terminology pass. This must
-  not erase useful git/worktree distinctions.
-- Server restart currently recreates managed SSH relay sessions best-effort. Persisted Run identity
-  is not yet authoritatively reconciled back to `live`, `unverifiable`, or `exited` after restart.
-- Browser-hosted graphical Computer desktops remain a post-MVP runtime integration.
+  not erase useful Git/worktree distinctions.
+- Browser-hosted graphical Computer desktop proxying and scoped access tickets remain post-MVP
+  runtime integration.
 
 ## Explicitly deferred unless required for the smoke test
 

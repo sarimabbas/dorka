@@ -500,6 +500,38 @@ Run dead-code analysis after every deletion wave. Prefer ten reviewable deletion
 - Audit events for create/start/stop/delete, Agent placement, and credential-boundary changes.
 - Firecracker spike only after a written threat model requires it.
 
+## Current vertical-slice status
+
+The first managed-Computer control-plane slice is implemented and tested:
+
+```text
+paired client
+  -> authenticated Agent/Computer RPC
+  -> durable Run placement
+  -> server-owned Computer SSH key
+  -> private-network managed relay
+  -> incumbent PTY/session creation
+  -> durable terminal + process identity
+  -> Run-scoped Git status/diff/review
+```
+
+The retained Settings shell now exposes Computer lifecycle and Git identity, Agent presets and launch,
+durable recent Runs, working-tree Diff, and provider-neutral Git-ref Review. Source-control requests are
+keyed by `runId`; the Server resolves Computer placement, key path, and `/workspace` repository root.
+No source-control request accepts a Computer ID, absolute repository path, SSH key path, or token.
+
+Rootless Podman on macOS arm64 proved the real server image, persistent control/host keys, private SSH,
+managed relay launch identity, immutable prompts, restart without duplicate launch, Computer-local Git
+identity, working-tree Diff, and Git-ref Review. Because the Computer image is currently amd64, the full
+Selkies entrypoint timed out under emulation. The successful execution proof used the same image and
+volumes with a diagnostic headless `sshd` entrypoint. Native amd64 Linux remains the release gate for
+graphical startup. Exact evidence is in `/tmp/dorka-managed-computer-e2e.md`.
+
+Certified managed PTY exits move running Runs to `waiting`; transport loss and unverifiable SSH exits do
+not. Startup recovery reconnects each active Run's already-running Computer once and never starts,
+relaunches, or mutates a Run. Reconstructing authoritative PTY completion when exit occurs during a
+Server outage remains open.
+
 ## Local development: verified path
 
 The current checkout requires Node 24 and pnpm 12. The following succeeded on macOS arm64:
