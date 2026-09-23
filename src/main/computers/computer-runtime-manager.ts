@@ -10,7 +10,6 @@ import {
   DORKA_MANAGED_LABEL,
   DORKA_SERVER_LABEL,
   type ComputerCreateSpec,
-  type ComputerDesiredState,
   type ComputerReconcileResult,
   type ComputerRecord,
   type ComputerRuntimeInfo,
@@ -65,19 +64,15 @@ export class ComputerRuntimeManager {
 
   private async createNow(spec: ComputerCreateSpec): Promise<ComputerRuntimeInfo> {
     const validated = validateComputerSpec(spec)
-    const records = await this.store.load()
-    if (records.some((record) => record.spec.id === validated.id)) {
-      throw new Error(`Computer already exists: ${validated.id}`)
-    }
-
     const record: ComputerRecord = {
       spec: validated,
       desiredState: 'stopped',
       executionGeneration: randomUUID()
     }
-    await this.createContainer(record)
-    await this.store.save([...records, record])
-    return this.inspect(validated.id)
+    return this.store.create(record, {
+      beforeCommit: () => this.createContainer(record),
+      afterCommit: () => this.inspectRecord(record)
+    })
   }
 
   start(id: string): Promise<ComputerRuntimeInfo> {
@@ -85,11 +80,14 @@ export class ComputerRuntimeManager {
   }
 
   private async startNow(id: string): Promise<ComputerRuntimeInfo> {
-    await this.requireDesired(id)
-    await this.inspect(id)
-    await this.run(['start', computerName(id)])
-    await this.setDesiredState(id, 'running')
-    return this.inspect(id)
+    validateComputerId(id)
+    return this.store.setDesiredState(id, 'running', {
+      beforeCommit: async (record) => {
+        await this.inspectRecord(record)
+        await this.run(['start', computerName(id)])
+      },
+      afterCommit: (record) => this.inspectRecord(record)
+    })
   }
 
   stop(id: string): Promise<ComputerRuntimeInfo> {
@@ -97,11 +95,14 @@ export class ComputerRuntimeManager {
   }
 
   private async stopNow(id: string): Promise<ComputerRuntimeInfo> {
-    await this.requireDesired(id)
-    await this.inspect(id)
-    await this.run(['stop', computerName(id)])
-    await this.setDesiredState(id, 'stopped')
-    return this.inspect(id)
+    validateComputerId(id)
+    return this.store.setDesiredState(id, 'stopped', {
+      beforeCommit: async (record) => {
+        await this.inspectRecord(record)
+        await this.run(['stop', computerName(id)])
+      },
+      afterCommit: (record) => this.inspectRecord(record)
+    })
   }
 
   remove(id: string): Promise<void> {
@@ -109,17 +110,15 @@ export class ComputerRuntimeManager {
   }
 
   private async removeNow(id: string): Promise<void> {
-    await this.requireDesired(id)
-    await this.inspect(id)
-    await this.run(['rm', '--force', computerName(id)])
-    const records = await this.store.load()
-    await this.store.save(records.filter((record) => record.spec.id !== id))
+    validateComputerId(id)
+    await this.store.remove(id, async (record) => {
+      await this.inspectRecord(record)
+      await this.run(['rm', '--force', computerName(id)])
+    })
   }
 
   async inspect(id: string): Promise<ComputerRuntimeInfo> {
-    const record = await this.requireDesired(id)
-    const inspection = await this.inspectReference(computerName(id))
-    return this.toRuntimeInfo(inspection, id, record.executionGeneration)
+    return this.inspectRecord(await this.requireDesired(id))
   }
 
   async getExecutionGeneration(id: string): Promise<string> {
@@ -131,7 +130,7 @@ export class ComputerRuntimeManager {
   }
 
   async list(): Promise<ComputerRuntimeInfo[]> {
-    const records = await this.store.load()
+    const records = await this.store.list()
     const desiredById = new Map(records.map((record) => [record.spec.id, record]))
     return (await this.listOwnedComputers()).flatMap(({ info, executionGeneration }) => {
       const desired = desiredById.get(info.id)
@@ -144,48 +143,49 @@ export class ComputerRuntimeManager {
   }
 
   private async reconcileNow(): Promise<ComputerReconcileResult> {
-    const desired = await this.store.load()
-    const actual = await this.listOwnedComputers()
-    const actualById = new Map(actual.map((computer) => [computer.info.id, computer]))
-    const desiredById = new Map(desired.map((record) => [record.spec.id, record]))
-    const result: ComputerReconcileResult = { created: [], started: [], stopped: [], removed: [] }
+    return this.store.withSnapshot(async (desired) => {
+      const actual = await this.listOwnedComputers()
+      const actualById = new Map(actual.map((computer) => [computer.info.id, computer]))
+      const desiredById = new Map(desired.map((record) => [record.spec.id, record]))
+      const result: ComputerReconcileResult = { created: [], started: [], stopped: [], removed: [] }
 
-    for (const record of desired) {
-      let current = actualById.get(record.spec.id)
-      if (current && current.executionGeneration !== record.executionGeneration) {
-        await this.run(['rm', '--force', current.info.name])
-        current = undefined
-      }
-      if (!current) {
-        await this.createContainer(record)
-        result.created.push(record.spec.id)
-        current = {
-          info: {
-            id: record.spec.id,
-            name: computerName(record.spec.id),
-            image: record.spec.image,
-            state: 'created'
-          },
-          executionGeneration: record.executionGeneration
+      for (const record of desired) {
+        let current = actualById.get(record.spec.id)
+        if (current && current.executionGeneration !== record.executionGeneration) {
+          await this.run(['rm', '--force', current.info.name])
+          current = undefined
+        }
+        if (!current) {
+          await this.createContainer(record)
+          result.created.push(record.spec.id)
+          current = {
+            info: {
+              id: record.spec.id,
+              name: computerName(record.spec.id),
+              image: record.spec.image,
+              state: 'created'
+            },
+            executionGeneration: record.executionGeneration
+          }
+        }
+        if (record.desiredState === 'running' && current.info.state !== 'running') {
+          await this.run(['start', current.info.name])
+          result.started.push(record.spec.id)
+        } else if (record.desiredState === 'stopped' && current.info.state === 'running') {
+          await this.run(['stop', current.info.name])
+          result.stopped.push(record.spec.id)
         }
       }
-      if (record.desiredState === 'running' && current.info.state !== 'running') {
-        await this.run(['start', current.info.name])
-        result.started.push(record.spec.id)
-      } else if (record.desiredState === 'stopped' && current.info.state === 'running') {
-        await this.run(['stop', current.info.name])
-        result.stopped.push(record.spec.id)
-      }
-    }
 
-    for (const computer of actual) {
-      if (desiredById.has(computer.info.id)) {
-        continue
+      for (const computer of actual) {
+        if (desiredById.has(computer.info.id)) {
+          continue
+        }
+        await this.run(['rm', '--force', computer.info.name])
+        result.removed.push(computer.info.id)
       }
-      await this.run(['rm', '--force', computer.info.name])
-      result.removed.push(computer.info.id)
-    }
-    return result
+      return result
+    })
   }
 
   private async createContainer(record: ComputerRecord): Promise<void> {
@@ -203,18 +203,16 @@ export class ComputerRuntimeManager {
 
   private async requireDesired(id: string): Promise<ComputerRecord> {
     validateComputerId(id)
-    const record = (await this.store.load()).find((candidate) => candidate.spec.id === id)
+    const record = await this.store.get(id)
     if (!record) {
       throw new Error(`Unknown Computer: ${id}`)
     }
     return record
   }
 
-  private async setDesiredState(id: string, desiredState: ComputerDesiredState): Promise<void> {
-    const records = await this.store.load()
-    await this.store.save(
-      records.map((record) => (record.spec.id === id ? { ...record, desiredState } : record))
-    )
+  private async inspectRecord(record: ComputerRecord): Promise<ComputerRuntimeInfo> {
+    const inspection = await this.inspectReference(computerName(record.spec.id))
+    return this.toRuntimeInfo(inspection, record.spec.id, record.executionGeneration)
   }
 
   private async inspectReference(reference: string): Promise<ComputerEngineInspection> {

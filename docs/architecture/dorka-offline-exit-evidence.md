@@ -54,8 +54,12 @@ Add an immutable random `executionGeneration` when a Computer record is first cr
 - every exit certificate.
 
 Start, stop, reconciliation, and ordinary replacement preserve the generation. Deleting and
-recreating a Computer, explicitly accepting a changed host identity, or explicitly replacing its
-persistent volume creates a new generation.
+recreating a Computer or explicitly accepting a changed host identity creates a new generation.
+Out-of-band persistent-volume deletion or replacement is unsupported and cannot be distinguished
+from ordinary missing-container repair. It does not advance the generation. Any affected Run remains
+generation-unverifiable; absence or replacement of the volume is never inferred process death. No
+volume-replacement API exists until Dorka can perform that identity change as one durable lifecycle
+transaction.
 
 Legacy Runs without a launch-time generation cannot consume offline certificates. They retain exact
 live PTY reattachment and observer re-arming. Never backfill their generation from the Computer's
@@ -130,9 +134,9 @@ degraded journal; it must not silently delete pending evidence and make absence 
 A changed SSH host key blocks connection, certificate reads, and reattachment. Runs remain
 unverifiable until explicit operator re-adoption, which advances the Computer execution generation.
 
-A missing, corrupt, unsupported, or unreadable journal is no evidence. Computer home-volume
-replacement advances the generation. Server-volume loss does not let a new Run inherit old
-certificates.
+A missing, corrupt, unsupported, or unreadable journal is no evidence. Out-of-band Computer
+home-volume replacement is unsupported and leaves the generation unverifiable. Server-volume loss
+does not let a new Run inherit old certificates.
 
 Compatibility behavior:
 
@@ -145,16 +149,19 @@ Compatibility behavior:
 
 Completed prerequisites:
 
-- Commit `1a22d157b` adds immutable Computer execution generations, migrates legacy Computer records
-  once, preserves generations across lifecycle and reconciliation, writes the engine label and
-  root-authored Computer marker, and snapshots the generation onto every new Run. Legacy Runs remain
-  unset and are never backfilled.
+- Commit `1a22d157b` adds immutable Computer execution generations, preserves generations across
+  lifecycle and reconciliation, writes the engine label and root-authored Computer marker, and
+  snapshots the generation onto every new Run. Legacy Runs remain unset and are never backfilled.
+  The Computer record store now serializes migration and mutations across control-plane processes
+  sharing `/data` and publishes updates with crash-durability barriers.
 - Commit `e3ddb0d54` adds the standalone relay journal. It provides strict version-1 certificates,
   deterministic IDs, same-filesystem no-clobber publication, file and directory sync, bounded exact
   reads, corruption quarantine, and idempotent acknowledgement that converges crash residue.
 
 The journal is deliberately not yet composed into `PtyHandler`, relay capabilities, or managed Run
-recovery. Its presence alone is not exit evidence and does not change Run status.
+recovery. Its presence alone is not exit evidence and does not change Run status. Agent launch is
+also not yet generation-fenced: relay generation capability is landing separately, so a concurrent
+Computer remove/recreate can still make a newly launched Run generation-unverifiable.
 
 ## Delivery slice and forecast
 

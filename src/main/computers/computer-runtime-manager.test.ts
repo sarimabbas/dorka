@@ -410,7 +410,7 @@ describe('ComputerRuntimeManager', () => {
     )
   })
 
-  it('reuses the same public key when reconciliation recreates a Computer', async () => {
+  it('preserves generation because out-of-band volume replacement is unsupported', async () => {
     const directory = await dataDirectory()
     await writeFile(
       join(directory, 'computers.json'),

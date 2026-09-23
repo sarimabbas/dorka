@@ -1,38 +1,102 @@
-import { randomUUID } from 'node:crypto'
-import { mkdir, readFile, rename, writeFile } from 'node:fs/promises'
+import { randomBytes, randomUUID } from 'node:crypto'
+import { open, readFile, rename, rm } from 'node:fs/promises'
+import type { FileHandle } from 'node:fs/promises'
 import { join } from 'node:path'
-import { isComputerExecutionGeneration, type ComputerRecord } from '../../shared/computer-runtime'
+import {
+  isComputerExecutionGeneration,
+  type ComputerDesiredState,
+  type ComputerRecord
+} from '../../shared/computer-runtime'
+import { withFileTransactionLock } from '../file-transaction-lock'
 import { validateComputerSpec } from './computer-runtime-command'
 
 const STORE_FILE = 'computers.json'
+const TEMPORARY_FILE_ATTEMPTS = 10
 
 type LegacyComputerRecord = Omit<ComputerRecord, 'executionGeneration'> & {
   executionGeneration?: string
 }
 type StoredComputers = { version: 1; computers: LegacyComputerRecord[] }
+type PersistencePoint =
+  | 'before-file-sync'
+  | 'after-file-sync'
+  | 'after-rename'
+  | 'before-directory-sync'
 
+type ComputerRecordStoreOptions = {
+  temporaryId?: () => string
+  onPersistencePoint?: (point: PersistencePoint) => void | Promise<void>
+}
+
+type RecordCommit<T> = {
+  beforeCommit: (record: ComputerRecord) => Promise<void>
+  afterCommit: (record: ComputerRecord) => Promise<T>
+}
+
+/** Transaction callbacks run under the cross-process lock and must not re-enter this store. */
 export class ComputerRecordStore {
   private readonly path: string
-  private loadInFlight: Promise<ComputerRecord[]> | null = null
 
-  constructor(private readonly dataDirectory: string) {
+  constructor(
+    private readonly dataDirectory: string,
+    private readonly options: ComputerRecordStoreOptions = {}
+  ) {
     this.path = join(dataDirectory, STORE_FILE)
   }
 
-  load(): Promise<ComputerRecord[]> {
-    if (this.loadInFlight) {
-      return this.loadInFlight
-    }
-    const pending = this.loadAndMigrate()
-    this.loadInFlight = pending
-    void pending.then(
-      () => this.clearLoad(pending),
-      () => this.clearLoad(pending)
-    )
-    return pending
+  list(): Promise<ComputerRecord[]> {
+    return this.withRecords((records) => structuredClone(records))
   }
 
-  private async loadAndMigrate(): Promise<ComputerRecord[]> {
+  get(id: string): Promise<ComputerRecord | null> {
+    return this.withRecords((records) => {
+      const record = records.find((candidate) => candidate.spec.id === id)
+      return record ? structuredClone(record) : null
+    })
+  }
+
+  create<T>(record: ComputerRecord, commit: RecordCommit<T>): Promise<T> {
+    return this.withRecords(async (records) => {
+      if (records.some((candidate) => candidate.spec.id === record.spec.id)) {
+        throw new Error(`Computer already exists: ${record.spec.id}`)
+      }
+      await commit.beforeCommit(structuredClone(record))
+      await this.persist([...records, record])
+      return commit.afterCommit(structuredClone(record))
+    })
+  }
+
+  setDesiredState<T>(
+    id: string,
+    desiredState: ComputerDesiredState,
+    commit: RecordCommit<T>
+  ): Promise<T> {
+    return this.withRecords(async (records) => {
+      const record = requireRecord(records, id)
+      await commit.beforeCommit(structuredClone(record))
+      const next = { ...record, desiredState }
+      await this.persist(records.map((candidate) => (candidate.spec.id === id ? next : candidate)))
+      return commit.afterCommit(structuredClone(next))
+    })
+  }
+
+  remove(id: string, apply: (record: ComputerRecord) => Promise<void>): Promise<void> {
+    return this.withRecords(async (records) => {
+      const record = requireRecord(records, id)
+      await apply(structuredClone(record))
+      await this.persist(records.filter((candidate) => candidate.spec.id !== id))
+    })
+  }
+
+  withSnapshot<T>(inspect: (records: ComputerRecord[]) => Promise<T>): Promise<T> {
+    return this.withRecords((records) => inspect(structuredClone(records)))
+  }
+
+  private withRecords<T>(apply: (records: ComputerRecord[]) => T | Promise<T>): Promise<T> {
+    return withFileTransactionLock(this.path, async () => apply(await this.readAndMigrate()))
+  }
+
+  private async readAndMigrate(): Promise<ComputerRecord[]> {
     let text: string
     try {
       text = await readFile(this.path, 'utf8')
@@ -60,28 +124,68 @@ export class ComputerRecordStore {
       return { ...record, executionGeneration: record.executionGeneration }
     })
     if (migrated) {
-      await this.save(computers)
+      await this.persist(computers)
     }
     return computers
   }
 
-  private clearLoad(pending: Promise<ComputerRecord[]>): void {
-    if (this.loadInFlight === pending) {
-      this.loadInFlight = null
+  private async persist(computers: ComputerRecord[]): Promise<void> {
+    const value: StoredComputers = { version: 1, computers }
+    const { path: temporaryPath, file } = await this.openTemporaryFile()
+    let openFile: FileHandle | undefined = file
+    try {
+      await file.writeFile(`${JSON.stringify(value, null, 2)}\n`, 'utf8')
+      await this.options.onPersistencePoint?.('before-file-sync')
+      await file.sync()
+      await this.options.onPersistencePoint?.('after-file-sync')
+      await file.close()
+      openFile = undefined
+      await rename(temporaryPath, this.path)
+      await this.options.onPersistencePoint?.('after-rename')
+      const directory = await open(this.dataDirectory, 'r').catch(() => null)
+      try {
+        await this.options.onPersistencePoint?.('before-directory-sync')
+        await directory?.sync().catch(() => undefined)
+      } finally {
+        await directory?.close().catch(() => undefined)
+      }
+    } catch (error) {
+      await openFile?.close().catch(() => undefined)
+      await rm(temporaryPath, { force: true }).catch(() => undefined)
+      throw error
     }
   }
 
-  async save(computers: ComputerRecord[]): Promise<void> {
-    await mkdir(this.dataDirectory, { recursive: true })
-    const temporaryPath = `${this.path}.${process.pid}.${Date.now()}.tmp`
-    const value: StoredComputers = { version: 1, computers }
-    await writeFile(temporaryPath, `${JSON.stringify(value, null, 2)}\n`, { mode: 0o600 })
-    await rename(temporaryPath, this.path)
+  private async openTemporaryFile(): Promise<{ path: string; file: FileHandle }> {
+    for (let attempt = 0; attempt < TEMPORARY_FILE_ATTEMPTS; attempt += 1) {
+      const id = this.options.temporaryId?.() ?? randomBytes(16).toString('hex')
+      const path = `${this.path}.${process.pid}.${id}.tmp`
+      try {
+        return { path, file: await open(path, 'wx', 0o600) }
+      } catch (error) {
+        if (!isAlreadyExists(error)) {
+          throw error
+        }
+      }
+    }
+    throw new Error('Could not allocate a unique Computer record temporary file')
   }
+}
+
+function requireRecord(records: ComputerRecord[], id: string): ComputerRecord {
+  const record = records.find((candidate) => candidate.spec.id === id)
+  if (!record) {
+    throw new Error(`Unknown Computer: ${id}`)
+  }
+  return record
 }
 
 function isMissingFile(error: unknown): boolean {
   return error instanceof Error && 'code' in error && error.code === 'ENOENT'
+}
+
+function isAlreadyExists(error: unknown): boolean {
+  return error instanceof Error && 'code' in error && error.code === 'EEXIST'
 }
 
 function isStoredComputers(value: unknown): value is StoredComputers {
