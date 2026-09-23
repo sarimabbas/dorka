@@ -133,8 +133,7 @@ async function startDorkadRuntime(
   const { resolveAdvertisedPairingEndpoint } = await import('../runtime/pairing-endpoint')
   const { ServeReadinessPublisher } = await import('../server/serve-readiness')
   const { Store } = await import('../persistence/loading-store/store')
-  const { ensureActiveDorkaProfile, initDorkaProfilePaths } =
-    await import('../dorka-profiles/profile-index-store')
+  const profileIndex = await import('../dorka-profiles/profile-index-store')
   const { initSshHostKeyStoreFile } = await import('../ssh/ssh-host-key-store')
   const { startDorkadDaemon, stopDorkadDaemon } = await import('./dorkad-daemon-supervision')
   const { daemonOwnsFreshPersistentPtys } = await import('../daemon/daemon-init')
@@ -179,8 +178,8 @@ async function startDorkadRuntime(
   const { resolvePushGatewayOrigin } = await import('../runtime/push/push-gateway-origin')
 
   const runtimeUserDataPath = getAppEnvironment().getPath('userData')
-  initDorkaProfilePaths()
-  const profile = ensureActiveDorkaProfile(runtimeUserDataPath)
+  profileIndex.initDorkaProfilePaths()
+  const profile = profileIndex.ensureActiveDorkaProfile(runtimeUserDataPath)
   const controlPlane = await createDorkadControlPlane({
     dataDirectory: dirname(profile.dataFile)
   })
@@ -295,6 +294,7 @@ async function startDorkadRuntime(
   // spawning an unauthenticated agent.
   await registerHeadlessPtyRuntime(runtime, undefined, () => store.getSettings(), undefined, store)
 
+  await computerAgentExecution.recoverPersistedRunHosts()
   // Why: same post-registration reconciliation `--serve` performs. Skipping it leaves
   // restored orchestration rows claiming an authority this host never took over.
   // Why before the RPC server binds: a client host attaching first would find no pages to recover.

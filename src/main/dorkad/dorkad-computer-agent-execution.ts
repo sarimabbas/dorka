@@ -2,18 +2,28 @@ import type { Store } from '../persistence'
 import { AgentExecutionService } from '../agents/agent-execution-service'
 import { createManagedComputerAgentTerminalLauncher } from '../agents/managed-computer-agent-terminal-launcher'
 import { ComputerRunSourceControl } from '../agents/computer-run-source-control'
-import { createManagedComputerHostProjector } from '../agents/managed-computer-host-projector'
+import {
+  createManagedComputerHostProjector,
+  type ManagedComputerHostProjector
+} from '../agents/managed-computer-host-projector'
 import type { AgentRosterStore } from '../agents/agent-roster-store'
 import { ComputerGitIdentityManager } from '../computers/computer-git-identity'
 import type { ComputerRuntimeManager } from '../computers/computer-runtime-manager'
 import type { DorkaRuntimeService } from '../runtime/dorka-runtime'
 import { ManagedSshHostSessions } from '../ssh/managed-ssh-host-sessions'
 
+export type DorkadManagedRunRecoveryResult = {
+  recoveredComputerIds: string[]
+  failedComputerIds: string[]
+  unavailableReason?: 'managed-host-not-attached' | 'computer-list-failed'
+}
+
 export function createDorkadComputerAgentExecution(
   agents: AgentRosterStore,
   computers: ComputerRuntimeManager
 ) {
   let sessions: ManagedSshHostSessions | null = null
+  let host: ManagedComputerHostProjector | null = null
   let launch = createUnavailableLauncher()
   let sourceControlAuthority: ComputerRunSourceControl | null = null
   let gitIdentityAuthority: ComputerGitIdentityManager | null = null
@@ -42,7 +52,7 @@ export function createDorkadComputerAgentExecution(
     },
     attach(store: Store, runtime: DorkaRuntimeService): void {
       sessions = new ManagedSshHostSessions({ store, runtime })
-      const host = createManagedComputerHostProjector({ computers, sessions })
+      host = createManagedComputerHostProjector({ computers, sessions })
       launch = createManagedComputerAgentTerminalLauncher({ host, runtime })
       sourceControlAuthority = new ComputerRunSourceControl({
         roster: agents,
@@ -51,9 +61,74 @@ export function createDorkadComputerAgentExecution(
       })
       gitIdentityAuthority = new ComputerGitIdentityManager({ computers, host })
     },
+    async recoverPersistedRunHosts(): Promise<DorkadManagedRunRecoveryResult> {
+      const result = await recoverPersistedManagedComputerRunHosts({ agents, computers, host })
+      reportManagedRunRecovery(result)
+      return result
+    },
     async disconnectAll(): Promise<void> {
       await sessions?.disconnectAll()
     }
+  }
+}
+
+export async function recoverPersistedManagedComputerRunHosts(options: {
+  agents: Pick<AgentRosterStore, 'listRuns'>
+  computers: Pick<ComputerRuntimeManager, 'list'>
+  host: Pick<ManagedComputerHostProjector, 'connect'> | null
+}): Promise<DorkadManagedRunRecoveryResult> {
+  if (!options.host) {
+    return {
+      recoveredComputerIds: [],
+      failedComputerIds: [],
+      unavailableReason: 'managed-host-not-attached'
+    }
+  }
+
+  let runningComputerIds: Set<string>
+  try {
+    runningComputerIds = new Set(
+      (await options.computers.list())
+        .filter((computer) => computer.state === 'running')
+        .map((computer) => computer.id)
+    )
+  } catch {
+    return {
+      recoveredComputerIds: [],
+      failedComputerIds: [],
+      unavailableReason: 'computer-list-failed'
+    }
+  }
+
+  const computerIds = new Set(
+    options.agents
+      .listRuns()
+      .filter((run) => run.status === 'running' || run.status === 'waiting')
+      .map((run) => run.computerId)
+      .filter((computerId) => runningComputerIds.has(computerId))
+  )
+  const recoveredComputerIds: string[] = []
+  const failedComputerIds: string[] = []
+  for (const computerId of computerIds) {
+    try {
+      await options.host.connect(computerId)
+      recoveredComputerIds.push(computerId)
+    } catch {
+      failedComputerIds.push(computerId)
+    }
+  }
+  return { recoveredComputerIds, failedComputerIds }
+}
+
+function reportManagedRunRecovery(result: DorkadManagedRunRecoveryResult): void {
+  if (result.unavailableReason) {
+    console.error(
+      `[dorkad] Managed Computer Run recovery is degraded: ${result.unavailableReason}.`
+    )
+  } else if (result.failedComputerIds.length > 0) {
+    console.error(
+      `[dorkad] Managed Computer Run recovery is degraded for Computers: ${result.failedComputerIds.join(', ')}`
+    )
   }
 }
 

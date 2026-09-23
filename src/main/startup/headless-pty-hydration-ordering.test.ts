@@ -43,13 +43,18 @@ describe('headless PTY registry hydration ordering', () => {
     const store = source.indexOf('const store = new Store(')
     const daemon = source.indexOf('await startDorkadDaemon()', store)
     const handlersAndHydration = source.indexOf('await registerHeadlessPtyRuntime(', daemon)
-    const rpc = source.indexOf('await rpc.start()', handlersAndHydration)
+    const managedRunRecovery = source.indexOf(
+      'await computerAgentExecution.recoverPersistedRunHosts()',
+      handlersAndHydration
+    )
+    const rpc = source.indexOf('await rpc.start()', managedRunRecovery)
     const readiness = source.indexOf('await new ServeReadinessPublisher().publish(', rpc)
 
     expect(store).toBeGreaterThanOrEqual(0)
     expect(daemon).toBeGreaterThan(store)
     expect(handlersAndHydration).toBeGreaterThan(daemon)
-    expect(rpc).toBeGreaterThan(handlersAndHydration)
+    expect(managedRunRecovery).toBeGreaterThan(handlersAndHydration)
+    expect(rpc).toBeGreaterThan(managedRunRecovery)
     expect(readiness).toBeGreaterThan(rpc)
   })
 
