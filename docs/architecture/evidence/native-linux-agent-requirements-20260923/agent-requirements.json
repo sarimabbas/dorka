@@ -1,0 +1,45 @@
+{
+  "agentId": "62b44090-e374-4eb8-abc4-1ce4ca9070b0",
+  "references": {
+    "version": 1,
+    "items": [
+      {
+        "kind": "skill",
+        "name": "native-acceptance",
+        "scope": "global"
+      },
+      {
+        "kind": "mcp-server",
+        "name": "acceptance-docs",
+        "configId": "workspace"
+      }
+    ]
+  },
+  "successfulRun": {
+    "id": "5877ef5a-b49d-4eda-9897-ae7820af48e8",
+    "agentRevision": 3,
+    "terminalSessionId": "term_90be5c6b-8c50-4b9b-a9ff-1278fafb0796"
+  },
+  "revisionProgression": {
+    "initial": 2,
+    "required": 3,
+    "bumped": 4,
+    "missingSkill": 5,
+    "restored": 6
+  },
+  "preSpawnFailures": [
+    {
+      "id": "5028b6bb-fa35-4af6-a1fa-c7e3431fc6b7",
+      "condition": "missing-skill"
+    },
+    {
+      "id": "8494be4e-2c07-4d15-a66c-eba7fe67e011",
+      "condition": "disabled-mcp-server"
+    }
+  ],
+  "fixturePaths": [
+    "/home/ubuntu/.agents/skills/native-acceptance/SKILL.md",
+    "/workspace/.mcp.json"
+  ],
+  "repositoryCreated": false
+}

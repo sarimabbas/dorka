@@ -110,6 +110,23 @@ Remote transport failures propagate instead of becoming evidence of absence. `ag
 reuses the store CAS, while `agents.references.v1` is advertised only when both the roster and enforcing
 execution service are present. The compact inline editor hides itself from old or unverifiable runtimes.
 
+### Premount authorization has one honest policy boundary
+
+Commit `ff6d9d962` centralizes exact lexical source authorization in
+`ComputerMountSourcePolicy` and applies it during planning, replacement, and final engine creation.
+This removes duplicated checks and prevents a reviewed request from bypassing the runtime guard.
+The policy deliberately does not call Server-container `realpath()` authoritative: Docker resolves bind
+sources in the engine-host namespace. Operators must attest canonical paths with trusted, non-writable
+ancestors until enforcement moves to the engine host or a Dorka-owned staging tree.
+
+### Native requirements reuse the production composition
+
+Commit `4c18dfe56` extends the existing native two-Computer campaign instead of creating a parallel
+runtime. It proves capability advertisement, a successful Computer-local skill/MCP launch, immutable
+Run revision snapshots, and missing-skill/disabled-MCP rejection before terminal, process identity, or
+Agent-shim launch. Commits `5d572a1a1` and `06e25b716` also removed the fixture's assumption that the
+exit journal began empty; acknowledgement assertions now compare against the exact pre-case baseline.
+
 ### Agent and Run records no longer lose cross-instance writes
 
 Commit `ee8fffcb1` keeps the `AgentRosterStore` public interface unchanged but rereads the latest durable
@@ -122,7 +139,7 @@ change remains behind the existing store boundary and does not alter PTY ownersh
 | Rank | Verdict | Finding                                                                                                                          | Required direction                                                                                                                                               |
 | ---- | ------- | -------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | 1    | Next    | Replacement recovery still exposes a temporal store callback protocol and has no durable in-progress intent for process crashes. | Deepen the existing configuration/reconciler seam into one recoverable operation; persist intent and let startup reconciliation complete or roll it back.        |
-| 2    | Next    | Exact-string premount allowlisting does not canonicalize execution-host symlinks.                                                | Resolve and validate canonical operator-owned sources immediately before engine creation; document the remaining filesystem TOCTOU boundary.                     |
+| 2    | Next    | Exact lexical premount authorization is centralized, but the Server container cannot canonicalize engine-host symlinks.          | Move enforcement to an engine-host authority or stage approved content in a Dorka-owned tree; do not present Server-container `realpath()` as authoritative.     |
 | 3    | Next    | Cross-entity Agent/Run/Computer/Server rules are split between `DorkaRuntimeService` pass-throughs and dorkad composition.       | Deepen the existing dorkad control plane and let `DorkaRuntimeService` remain the capability boundary that delegates to it. Do not add a facade or transport.    |
 | 4    | Next    | Managed skill discovery still carries an optional host bag and launch resolution reconnects before terminal launch.              | Deepen the existing host projector into one Computer execution-host lease; keep Orca SSH/filesystem/PTY adapters internal and avoid a second provider framework. |
 | 5    | Next    | The configuration renderer still combines remote state, editor state, validation, and most fields in one large component.        | Extract one reviewed-configuration state machine plus substantive environment and premount editors; avoid cosmetic wrappers.                                     |
