@@ -1,4 +1,8 @@
 import { describe, expect, it, vi } from 'vitest'
+
+vi.mock('../providers/ssh-filesystem-dispatch', () => ({
+  requireSshFilesystemProvider: vi.fn(() => ({}))
+}))
 import type { RuntimeTerminalCreate } from '../../shared/runtime-types'
 import type { ManagedSshHostConnection } from '../ssh/managed-ssh-host-sessions'
 import type { TerminalWorkspaceLaunchScope } from '../runtime/runtime-legacy-worker-terminal-recovery-types'

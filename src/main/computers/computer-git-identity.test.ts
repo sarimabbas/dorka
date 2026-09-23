@@ -25,6 +25,7 @@ function harness(state: 'running' | 'stopped' = 'running') {
   const connect = vi.fn(async (): Promise<ManagedComputerConnection> => ({
     connectionId: 'runtime-ssh-computer-dev-box',
     executionHostId: 'ssh:runtime-ssh-computer-dev-box',
+    filesystem: {} as never,
     git
   }))
   const manager = new ComputerGitIdentityManager({
@@ -58,6 +59,7 @@ describe('ComputerGitIdentityManager', () => {
     connect.mockResolvedValueOnce({
       connectionId: 'runtime-ssh-computer-dev-box',
       executionHostId: 'ssh:runtime-ssh-computer-dev-box',
+      filesystem: {} as never,
       git: undefined
     })
 

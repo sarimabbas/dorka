@@ -121,6 +121,7 @@ function reconciliationFixture(status: RunStatus = 'running') {
   const connection: ManagedComputerConnection = {
     connectionId: CONNECTION_ID,
     executionHostId: `ssh:${CONNECTION_ID}`,
+    filesystem: {} as never,
     git: undefined,
     durableExitEvidence: {
       generation: COMPUTER_GENERATION,
@@ -272,6 +273,7 @@ describe('managed Run PTY exit observation', () => {
     const connection: ManagedComputerConnection = {
       connectionId: CONNECTION_ID,
       executionHostId: `ssh:${CONNECTION_ID}`,
+      filesystem: {} as never,
       git: undefined,
       durableExitEvidence: {
         generation: COMPUTER_GENERATION,

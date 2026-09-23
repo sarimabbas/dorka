@@ -1,10 +1,13 @@
 import { describe, expect, it, vi } from 'vitest'
 
-const { getSshGitProvider } = vi.hoisted(() => ({
-  getSshGitProvider: vi.fn()
+const { filesystem, getSshGitProvider, requireSshFilesystemProvider } = vi.hoisted(() => ({
+  filesystem: {},
+  getSshGitProvider: vi.fn(),
+  requireSshFilesystemProvider: vi.fn()
 }))
 
 vi.mock('../providers/ssh-git-dispatch', () => ({ getSshGitProvider }))
+vi.mock('../providers/ssh-filesystem-dispatch', () => ({ requireSshFilesystemProvider }))
 
 import { createManagedComputerHostProjector } from './managed-computer-host-projector'
 
@@ -29,6 +32,7 @@ describe('ManagedComputerHostProjector', () => {
       getSshGitProvider.mockReturnValue(git)
       return { durableExitEvidence }
     })
+    requireSshFilesystemProvider.mockReturnValue(filesystem)
     const host = createManagedComputerHostProjector({
       computers: {
         resolveSshIdentityFile: vi.fn(async () => '/server/private/alpha/id_ed25519')
@@ -39,6 +43,7 @@ describe('ManagedComputerHostProjector', () => {
     await expect(host.connect('alpha')).resolves.toEqual({
       connectionId: 'runtime-ssh-computer-alpha',
       executionHostId: 'ssh:runtime-ssh-computer-alpha',
+      filesystem,
       git,
       durableExitEvidence
     })

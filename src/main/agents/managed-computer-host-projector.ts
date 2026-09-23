@@ -2,7 +2,9 @@ import { posix } from 'node:path'
 import { toSshExecutionHostId } from '../../shared/execution-host'
 import type { SshTarget } from '../../shared/ssh-types'
 import type { ComputerRuntimeManager } from '../computers/computer-runtime-manager'
+import { requireSshFilesystemProvider } from '../providers/ssh-filesystem-dispatch'
 import { getSshGitProvider } from '../providers/ssh-git-dispatch'
+import type { IFilesystemProvider } from '../providers/types'
 import type { SshGitProvider } from '../providers/ssh-git-provider'
 import type { ManagedSshHostSessions } from '../ssh/managed-ssh-host-sessions'
 import type { ManagedDurableExitEvidence } from '../ssh/managed-durable-exit-evidence'
@@ -42,6 +44,7 @@ export type ManagedComputerGitCapability = Pick<
 export type ManagedComputerConnection = {
   connectionId: string
   executionHostId: `ssh:${string}`
+  filesystem: IFilesystemProvider
   git: ManagedComputerGitCapability | undefined
   durableExitEvidence?: ManagedDurableExitEvidence
 }
@@ -62,6 +65,7 @@ export function createManagedComputerHostProjector(options: {
       return {
         connectionId: target.id,
         executionHostId: toSshExecutionHostId(target.id),
+        filesystem: requireSshFilesystemProvider(target.id),
         git: getSshGitProvider(target.id),
         ...(session.durableExitEvidence ? { durableExitEvidence: session.durableExitEvidence } : {})
       }

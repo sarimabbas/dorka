@@ -34,6 +34,7 @@ function connection(computerId: string): ManagedComputerConnection {
   return {
     connectionId: `runtime-ssh-computer-${computerId}`,
     executionHostId: `ssh:runtime-ssh-computer-${computerId}`,
+    filesystem: {} as never,
     git: undefined
   }
 }

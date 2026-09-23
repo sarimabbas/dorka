@@ -78,6 +78,7 @@ function fixture(runRecord: Run | null = run()) {
   const connect = vi.fn(async (computerId: string): Promise<ManagedComputerConnection> => ({
     connectionId: `runtime-ssh-computer-${computerId}`,
     executionHostId: `ssh:runtime-ssh-computer-${computerId}`,
+    filesystem: {} as never,
     git: provider
   }))
   const getRun = vi.fn((_runId: string) => runRecord)
@@ -162,6 +163,7 @@ describe('ComputerRunSourceControl', () => {
     unavailable.connect.mockResolvedValueOnce({
       connectionId: 'runtime-ssh-computer-computer-a',
       executionHostId: 'ssh:runtime-ssh-computer-computer-a',
+      filesystem: {} as never,
       git: undefined
     })
     await expect(unavailable.authority.status('run-1')).rejects.toThrow('unverifiable')
@@ -186,6 +188,7 @@ describe('ComputerRunSourceControl', () => {
     h.connect.mockImplementation(async (computerId) => ({
       connectionId: `runtime-ssh-computer-${computerId}`,
       executionHostId: `ssh:runtime-ssh-computer-${computerId}`,
+      filesystem: {} as never,
       git: computerId === 'computer-b' ? providerB : h.provider
     }))
 
