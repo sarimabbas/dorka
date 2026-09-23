@@ -151,6 +151,26 @@ describe('ComputersSettingsPane', () => {
     )
   })
 
+  it('shows a friendly managed name and keeps setup details collapsed', async () => {
+    const user = userEvent.setup()
+    mocks.callRuntimeRpc
+      .mockResolvedValueOnce(identitySupportedStatus())
+      .mockResolvedValueOnce([
+        { ...runningComputer, id: 'main', name: 'dorka-computer-main', image: 'computer:test' }
+      ])
+      .mockResolvedValueOnce({ name: null, email: null })
+
+    render(<ComputersSettingsPane settings={settings} />)
+
+    expect(await screen.findByText('Main')).toBeInTheDocument()
+    const details = screen.getByText('Setup').closest('details')
+    expect(details).not.toHaveAttribute('open')
+    await user.click(screen.getByText('Setup'))
+    expect(details).toHaveAttribute('open')
+    expect(screen.getByText('Computer: main')).toBeInTheDocument()
+    expect(screen.getByText('Image: computer:test')).toBeInTheDocument()
+  })
+
   it('edits and saves a running Computer Git identity inline', async () => {
     const user = userEvent.setup()
     mocks.callRuntimeRpc

@@ -103,18 +103,25 @@ export function ComputerSettingsRow({
     !isRunning || identityState.kind === 'idle' || identityState.kind === 'loading' || saving
   const nameId = `computer-${computer.id}-git-name`
   const emailId = `computer-${computer.id}-git-email`
+  const displayName =
+    computer.name === `dorka-computer-${computer.id}`
+      ? computer.id
+          .split(/[-_\s]+/)
+          .filter(Boolean)
+          .map((part) => `${part[0]?.toUpperCase() ?? ''}${part.slice(1)}`)
+          .join(' ')
+      : computer.name
 
   return (
     <div className="space-y-4 py-4 first:pt-0 last:pb-0">
       <div className="flex items-center gap-4">
         <div className="min-w-0 flex-1 space-y-1">
           <div className="flex flex-wrap items-center gap-2">
-            <p className="truncate text-sm font-medium text-foreground">{computer.name}</p>
+            <p className="truncate text-sm font-medium text-foreground">{displayName}</p>
             <Badge variant="outline" className="capitalize text-muted-foreground">
               {computer.state}
             </Badge>
           </div>
-          <p className="truncate font-mono text-xs text-muted-foreground">{computer.id}</p>
         </div>
         <Button
           type="button"
@@ -131,74 +138,83 @@ export function ComputerSettingsRow({
       </div>
 
       {supportsGitIdentity ? (
-        <form className="space-y-3" onSubmit={(event) => void saveIdentity(event)}>
-          <div className="grid gap-3 sm:grid-cols-2">
-            <div className="space-y-2">
-              <Label htmlFor={nameId}>
-                {translate(
-                  'auto.components.settings.ComputerSettingsRow.gitDisplayName',
-                  'Git display name'
-                )}
-              </Label>
-              <Input
-                id={nameId}
-                value={name}
-                maxLength={128}
-                autoComplete="name"
-                disabled={identityDisabled}
-                required
-                onChange={(event) => {
-                  setName(event.target.value)
-                  setSaved(false)
-                }}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor={emailId}>
-                {translate('auto.components.settings.ComputerSettingsRow.gitEmail', 'Git email')}
-              </Label>
-              <Input
-                id={emailId}
-                type="email"
-                value={email}
-                maxLength={254}
-                autoComplete="email"
-                disabled={identityDisabled}
-                required
-                onChange={(event) => {
-                  setEmail(event.target.value)
-                  setSaved(false)
-                }}
-              />
-            </div>
+        <details className="rounded-md border border-border/70 bg-muted/20 px-3 py-2">
+          <summary className="cursor-pointer select-none text-xs font-medium text-muted-foreground hover:text-foreground">
+            Setup
+          </summary>
+          <div className="mt-3 mb-4 space-y-1 font-mono text-[11px] text-muted-foreground">
+            <p>Computer: {computer.id}</p>
+            <p className="truncate">Image: {computer.image}</p>
           </div>
-          <div className="flex min-h-8 items-center justify-between gap-3">
-            <p className="text-xs text-muted-foreground" aria-live="polite">
-              {!isRunning
-                ? translate(
-                    'auto.components.settings.ComputerSettingsRow.startToEdit',
-                    'Start this Computer to edit its Git identity.'
-                  )
-                : identityState.kind === 'loading' || identityState.kind === 'idle'
+          <form className="space-y-3" onSubmit={(event) => void saveIdentity(event)}>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor={nameId}>
+                  {translate(
+                    'auto.components.settings.ComputerSettingsRow.gitDisplayName',
+                    'Git display name'
+                  )}
+                </Label>
+                <Input
+                  id={nameId}
+                  value={name}
+                  maxLength={128}
+                  autoComplete="name"
+                  disabled={identityDisabled}
+                  required
+                  onChange={(event) => {
+                    setName(event.target.value)
+                    setSaved(false)
+                  }}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor={emailId}>
+                  {translate('auto.components.settings.ComputerSettingsRow.gitEmail', 'Git email')}
+                </Label>
+                <Input
+                  id={emailId}
+                  type="email"
+                  value={email}
+                  maxLength={254}
+                  autoComplete="email"
+                  disabled={identityDisabled}
+                  required
+                  onChange={(event) => {
+                    setEmail(event.target.value)
+                    setSaved(false)
+                  }}
+                />
+              </div>
+            </div>
+            <div className="flex min-h-8 items-center justify-between gap-3">
+              <p className="text-xs text-muted-foreground" aria-live="polite">
+                {!isRunning
                   ? translate(
-                      'auto.components.settings.ComputerSettingsRow.loadingIdentity',
-                      'Loading Git identity…'
+                      'auto.components.settings.ComputerSettingsRow.startToEdit',
+                      'Start this Computer to edit its Git identity.'
                     )
-                  : identityState.kind === 'error'
-                    ? identityState.message
-                    : saved
-                      ? translate('auto.components.settings.ComputerSettingsRow.saved', 'Saved')
-                      : translate(
-                          'auto.components.settings.ComputerSettingsRow.identityDescription',
-                          'Used for commits made on this Computer.'
-                        )}
-            </p>
-            <Button type="submit" size="sm" disabled={identityDisabled || !dirty}>
-              {saving ? <Loader2 className="animate-spin" /> : null}
-              {translate('auto.components.settings.ComputerSettingsRow.save', 'Save')}
-            </Button>
-          </div>
-        </form>
+                  : identityState.kind === 'loading' || identityState.kind === 'idle'
+                    ? translate(
+                        'auto.components.settings.ComputerSettingsRow.loadingIdentity',
+                        'Loading Git identity…'
+                      )
+                    : identityState.kind === 'error'
+                      ? identityState.message
+                      : saved
+                        ? translate('auto.components.settings.ComputerSettingsRow.saved', 'Saved')
+                        : translate(
+                            'auto.components.settings.ComputerSettingsRow.identityDescription',
+                            'Used for commits made on this Computer.'
+                          )}
+              </p>
+              <Button type="submit" size="sm" disabled={identityDisabled || !dirty}>
+                {saving ? <Loader2 className="animate-spin" /> : null}
+                {translate('auto.components.settings.ComputerSettingsRow.save', 'Save')}
+              </Button>
+            </div>
+          </form>
+        </details>
       ) : null}
     </div>
   )
