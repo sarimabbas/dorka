@@ -15,6 +15,7 @@ export type AgentTerminalLaunch = {
 export type AgentTerminalIdentity = {
   terminalSessionId: string
   processIdentity: string
+  ptyId?: string
 }
 
 export type AgentTerminalLauncher = (launch: AgentTerminalLaunch) => Promise<AgentTerminalIdentity>
@@ -30,7 +31,8 @@ export class AgentExecutionService {
   constructor(
     private readonly roster: AgentRosterStore,
     private readonly computers: Pick<ComputerRuntimeManager, 'inspect' | 'start'>,
-    private readonly launchTerminal: AgentTerminalLauncher
+    private readonly launchTerminal: AgentTerminalLauncher,
+    private readonly onTerminalCommitted?: (runId: string, ptyId: string) => void
   ) {}
 
   async run(request: RunAgentRequest): Promise<Run> {
@@ -74,6 +76,10 @@ export class AgentExecutionService {
     }
 
     // A successful launch may already be live. Persistence failure must not claim it exited.
-    return this.roster.updateRun(run.id, identity)
+    const committed = await this.roster.updateRun(run.id, identity)
+    if (identity.ptyId) {
+      this.onTerminalCommitted?.(run.id, identity.ptyId)
+    }
+    return committed
   }
 }

@@ -83,7 +83,8 @@ async function launchManagedComputerAgentTerminal(
   }
   return {
     terminalSessionId: terminal.handle,
-    processIdentity: `${terminal.ptyId}:${terminal.incarnationId}`
+    processIdentity: `${terminal.ptyId}:${terminal.incarnationId}`,
+    ptyId: terminal.ptyId
   }
 }
 

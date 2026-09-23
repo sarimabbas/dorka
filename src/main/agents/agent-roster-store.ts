@@ -200,6 +200,22 @@ export class AgentRosterStore {
     })
   }
 
+  transitionRunningRunToWaiting(id: string): Promise<Run> {
+    return this.mutate((roster) => {
+      const index = roster.runs.findIndex((run) => run.id === id)
+      if (index === -1) {
+        throw new Error(`Run not found: ${id}`)
+      }
+      const current = roster.runs[index]
+      if (current.status !== 'running') {
+        return current
+      }
+      const run = RunSchema.parse({ ...current, status: 'waiting' })
+      roster.runs[index] = run
+      return run
+    })
+  }
+
   transitionRun(id: string, transition: RunTransition): Promise<Run> {
     return this.mutate((roster) => {
       const index = roster.runs.findIndex((run) => run.id === id)

@@ -11,6 +11,7 @@ import { agentSessionPtyWriteGate } from './agent-session-pty-write-gate'
 import type { RetiredTerminalSurface } from './mobile-session-terminal-retirement'
 import { parsePaneKey } from '../../shared/stable-pane-id'
 import { advertisedUrlWatcher } from '../ports/advertised-url-watcher'
+import type { PtyExitNotification } from './pty-exit-notification'
 
 export class DorkaRuntimeWithOnPtyExit extends DorkaRuntimeWithOnClientDisconnected {
   onPtyExit(
@@ -69,7 +70,7 @@ export class DorkaRuntimeWithOnPtyExit extends DorkaRuntimeWithOnClientDisconnec
       pty?.incarnationId ??
       `runtime:${this.runtimeId}:${this.getPtyLifecycleGeneration(ptyId)}`
     this.advancePtyLifecycleGeneration(ptyId)
-    this.notifyPtyExitListeners(ptyId)
+    this.notifyPtyExitListeners(ptyId, { processDeathCertified })
     const exactSurfaceByKey = new Map<
       string,
       Pick<RetiredTerminalSurface, 'worktreeId' | 'parentTabId' | 'leafId'>
@@ -257,7 +258,7 @@ export class DorkaRuntimeWithOnPtyExit extends DorkaRuntimeWithOnClientDisconnec
     this.pruneDisconnectedPtyRecords()
   }
 
-  private notifyPtyExitListeners(ptyId: string): void {
+  private notifyPtyExitListeners(ptyId: string, event: PtyExitNotification): void {
     const listeners = this.ptyExitListenersByPtyId.get(ptyId)
     if (!listeners) {
       return
@@ -265,7 +266,7 @@ export class DorkaRuntimeWithOnPtyExit extends DorkaRuntimeWithOnClientDisconnec
     this.ptyExitListenersByPtyId.delete(ptyId)
     for (const listener of listeners) {
       try {
-        listener()
+        listener(event)
       } catch {
         // A subscriber cannot change exit cleanup for other waiters.
       }

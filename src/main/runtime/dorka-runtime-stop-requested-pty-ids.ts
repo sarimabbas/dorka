@@ -34,11 +34,15 @@ import { RuntimeMessageWaiters } from './runtime-message-waiters'
 import type { RuntimeSkillCommands } from './runtime-skill-command-surface'
 import { RuntimeTerminalStreamConsumers } from './runtime-terminal-stream-consumers'
 import type { RecentPtyOutputBuffer } from './recent-pty-output-buffer'
+import type { PtyExitNotification } from './pty-exit-notification'
 
 export class DorkaRuntimeWithStopRequestedPtyIds extends DorkaRuntimeWithRuntimeId {
   protected readonly stopRequestedPtyIds = new Set<string>()
 
-  protected readonly ptyExitListenersByPtyId = new Map<string, Set<() => void>>()
+  protected readonly ptyExitListenersByPtyId = new Map<
+    string,
+    Set<(event: PtyExitNotification) => void>
+  >()
 
   protected readonly terminalAgentPresence = new RuntimeTerminalAgentPresence({
     isLiveStructuredAgent: (handle) =>

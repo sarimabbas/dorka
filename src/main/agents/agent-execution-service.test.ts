@@ -37,7 +37,8 @@ async function fixture(state: ComputerRuntimeInfo['state'] = 'running') {
   const start = vi.fn(async () => ({ ...computer, state: 'running' as const }))
   const launch = vi.fn(async () => ({
     terminalSessionId: 'terminal-session-1',
-    processIdentity: 'pty-incarnation-1'
+    processIdentity: 'pty-incarnation-1',
+    ptyId: 'pty-1'
   }))
   const service = new AgentExecutionService(roster, { inspect, start }, launch)
   return { agent, computer, directory, inspect, launch, roster, service, start }
@@ -76,6 +77,38 @@ describe('AgentExecutionService', () => {
       terminalSessionId: 'terminal-session-1',
       processIdentity: 'pty-incarnation-1'
     })
+  })
+
+  it('registers an immediate PTY exit only after terminal identity persistence', async () => {
+    const h = await fixture()
+    h.launch.mockResolvedValueOnce({
+      terminalSessionId: 'terminal-session-1',
+      processIdentity: 'pty-1:incarnation-1',
+      ptyId: 'pty-1'
+    })
+    const observe = vi.fn((runId: string, ptyId: string) => {
+      expect(ptyId).toBe('pty-1')
+      expect(h.roster.getRun(runId)).toMatchObject({
+        terminalSessionId: 'terminal-session-1',
+        processIdentity: 'pty-1:incarnation-1'
+      })
+      void h.roster.transitionRunningRunToWaiting(runId)
+    })
+    const service = new AgentExecutionService(
+      h.roster,
+      { inspect: h.inspect, start: h.start },
+      h.launch,
+      observe
+    )
+
+    const run = await service.run({
+      agentId: h.agent.id,
+      computerId: h.computer.id,
+      prompt: 'Review the change'
+    })
+
+    expect(observe).toHaveBeenCalledWith(run.id, 'pty-1')
+    await vi.waitFor(() => expect(h.roster.getRun(run.id)?.status).toBe('waiting'))
   })
 
   it('records a failed Run when terminal delegation fails', async () => {

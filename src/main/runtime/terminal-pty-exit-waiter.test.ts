@@ -28,7 +28,19 @@ describe('PTY exit subscription', () => {
     runtime.onPtyExit('pty-1', 0)
 
     expect(listener).toHaveBeenCalledOnce()
+    expect(listener).toHaveBeenCalledWith({ processDeathCertified: true })
     expect(internals(runtime).ptyExitListenersByPtyId.has('pty-1')).toBe(false)
+  })
+
+  it('reports an unconfirmed exit without certifying process death', () => {
+    const runtime = new DorkaRuntimeService()
+    registerLivePty(runtime)
+    const listener = vi.fn()
+
+    runtime.subscribeToPtyExit('pty-1', listener)
+    runtime.onPtyExit('pty-1', -1)
+
+    expect(listener).toHaveBeenCalledWith({ processDeathCertified: false })
   })
 
   it('does not retain listeners across subscription churn', () => {

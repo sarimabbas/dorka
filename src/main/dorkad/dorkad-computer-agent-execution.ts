@@ -11,6 +11,7 @@ import { ComputerGitIdentityManager } from '../computers/computer-git-identity'
 import type { ComputerRuntimeManager } from '../computers/computer-runtime-manager'
 import type { DorkaRuntimeService } from '../runtime/dorka-runtime'
 import { ManagedSshHostSessions } from '../ssh/managed-ssh-host-sessions'
+import { ManagedRunPtyExitObserver } from './managed-run-pty-exit-observer'
 
 export type DorkadManagedRunRecoveryResult = {
   recoveredComputerIds: string[]
@@ -27,7 +28,13 @@ export function createDorkadComputerAgentExecution(
   let launch = createUnavailableLauncher()
   let sourceControlAuthority: ComputerRunSourceControl | null = null
   let gitIdentityAuthority: ComputerGitIdentityManager | null = null
-  const service = new AgentExecutionService(agents, computers, (request) => launch(request))
+  let runExitObserver: ManagedRunPtyExitObserver | null = null
+  const service = new AgentExecutionService(
+    agents,
+    computers,
+    (request) => launch(request),
+    (runId, ptyId) => runExitObserver?.observe(runId, ptyId)
+  )
   const sourceControl = {
     status: (runId: string) => requireSourceControl(sourceControlAuthority).status(runId),
     diff: (request: Parameters<ComputerRunSourceControl['diff']>[0]) =>
@@ -51,6 +58,8 @@ export function createDorkadComputerAgentExecution(
       computerGitIdentity: gitIdentity
     },
     attach(store: Store, runtime: DorkaRuntimeService): void {
+      runExitObserver?.dispose()
+      runExitObserver = new ManagedRunPtyExitObserver(agents, runtime)
       sessions = new ManagedSshHostSessions({ store, runtime })
       host = createManagedComputerHostProjector({ computers, sessions })
       launch = createManagedComputerAgentTerminalLauncher({ host, runtime })
@@ -67,6 +76,8 @@ export function createDorkadComputerAgentExecution(
       return result
     },
     async disconnectAll(): Promise<void> {
+      runExitObserver?.dispose()
+      runExitObserver = null
       await sessions?.disconnectAll()
     }
   }

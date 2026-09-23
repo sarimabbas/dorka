@@ -4,6 +4,7 @@ import type { PtyLivenessVerdict } from '../../shared/pty-liveness-verdict'
 import type { DriverState } from './dorka-runtime-core'
 import { clampTerminalViewport } from './terminal-viewport'
 import { getPtyTerminalState, getTerminalState } from './terminal-wait-results'
+import type { PtyExitNotification } from './pty-exit-notification'
 
 // Orphaned verdicts are bounded; active PTYs retain theirs until new evidence resolves them.
 const MAX_TRACKED_PTY_LIVENESS_VERDICTS = 256
@@ -73,10 +74,10 @@ export class DorkaRuntimeWithMarkPtyLivenessUnverifiable extends DorkaRuntimeWit
     return this.getLeavesForPty(ptyId).some((leaf) => getTerminalState(leaf) === 'exited')
   }
 
-  subscribeToPtyExit(ptyId: string, listener: () => void): () => void {
+  subscribeToPtyExit(ptyId: string, listener: (event: PtyExitNotification) => void): () => void {
     const lifecycleGeneration = this.getPtyLifecycleGeneration(ptyId)
     if (this.isPtyKnownExited(ptyId)) {
-      listener()
+      listener({ processDeathCertified: true })
       return () => {}
     }
     let listeners = this.ptyExitListenersByPtyId.get(ptyId)
@@ -101,7 +102,7 @@ export class DorkaRuntimeWithMarkPtyLivenessUnverifiable extends DorkaRuntimeWit
       this.isPtyKnownExited(ptyId)
     ) {
       unsubscribe()
-      listener()
+      listener({ processDeathCertified: true })
     }
     return unsubscribe
   }

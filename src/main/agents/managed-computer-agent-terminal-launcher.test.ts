@@ -70,7 +70,8 @@ describe('managed Computer agent terminal launcher', () => {
 
     await expect(h.launcher(launch())).resolves.toEqual({
       terminalSessionId: 'term_stable',
-      processIdentity: 'pty-1:inc-1'
+      processIdentity: 'pty-1:inc-1',
+      ptyId: 'pty-1'
     })
 
     expect(h.connect).toHaveBeenCalledWith({
