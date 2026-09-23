@@ -46,6 +46,7 @@ export function AgentRunHistory({
   const [error, setError] = useState<string | null>(null)
   const [selectedRunId, setSelectedRunId] = useState<string | null>(null)
   const [terminalRunId, setTerminalRunId] = useState<string | null>(null)
+  const [terminalOpenErrorRunId, setTerminalOpenErrorRunId] = useState<string | null>(null)
   const tabsByWorktree = useAppStore((state) => state.tabsByWorktree)
   const terminalLayoutsByTabId = useAppStore((state) => state.terminalLayoutsByTabId)
   const closeSettingsPage = useAppStore((state) => state.closeSettingsPage)
@@ -67,6 +68,7 @@ export function AgentRunHistory({
   useEffect(() => {
     let active = true
     setError(null)
+    setTerminalOpenErrorRunId(null)
     void listRuntimeAgentRuns(target, { agentId })
       .then((listed) => {
         if (active) {
@@ -135,13 +137,21 @@ export function AgentRunHistory({
                       type="button"
                       size="xs"
                       onClick={() => {
-                        const runTarget = terminalTargets.get(run.id)
+                        const runTarget = findAgentRunTerminalTarget(
+                          useAppStore.getState(),
+                          run,
+                          target
+                        )
                         if (
                           !runTarget ||
-                          activateAndRevealWorkspace(runTarget.worktreeId) === false
+                          activateAndRevealWorkspace(runTarget.worktreeId, {
+                            executionHostId: runTarget.executionHostId
+                          }) === false
                         ) {
+                          setTerminalOpenErrorRunId(run.id)
                           return
                         }
+                        setTerminalOpenErrorRunId(null)
                         activateTabAndFocusPane(runTarget.tabId, runTarget.leafId, {
                           flashFocusedPane: true,
                           scrollToBottomIfOutputSinceLastView: true
@@ -171,6 +181,11 @@ export function AgentRunHistory({
                   </Button>
                 </div>
               </div>
+              {terminalOpenErrorRunId === run.id ? (
+                <p role="status" className="mt-1 text-xs text-destructive">
+                  That terminal is no longer open. View its saved output instead.
+                </p>
+              ) : null}
               {terminalRunId === run.id && run.terminalSessionId ? (
                 <RunTerminalOutput terminal={run.terminalSessionId} target={target} />
               ) : null}

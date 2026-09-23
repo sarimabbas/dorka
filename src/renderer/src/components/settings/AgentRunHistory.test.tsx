@@ -20,9 +20,11 @@ const mocks = vi.hoisted(() => {
   }
 })
 
-vi.mock('@/store', () => ({
-  useAppStore: <T,>(selector: (state: typeof mocks) => T): T => selector(mocks)
-}))
+vi.mock('@/store', () => {
+  const useAppStore = <T,>(selector: (state: typeof mocks) => T): T => selector(mocks)
+  useAppStore.getState = (): typeof mocks => mocks
+  return { useAppStore }
+})
 
 vi.mock('@/lib/worktree-activation', () => ({
   activateAndRevealWorkspace: mocks.activateAndRevealWorkspace
@@ -129,11 +131,55 @@ describe('AgentRunHistory', () => {
 
     fireEvent.click(await screen.findByRole('button', { name: 'Open terminal' }))
 
-    expect(mocks.activateAndRevealWorkspace).toHaveBeenCalledWith('workspace-1')
+    expect(mocks.activateAndRevealWorkspace).toHaveBeenCalledWith('workspace-1', {
+      executionHostId: 'runtime:server-1'
+    })
     expect(mocks.activateTabAndFocusPane).toHaveBeenCalledWith('tab-1', 'leaf-1', {
       flashFocusedPane: true,
       scrollToBottomIfOutputSinceLastView: true
     })
     expect(mocks.closeSettingsPage).toHaveBeenCalledOnce()
+  })
+
+  it('does not offer a terminal owned by another or unverifiable runtime', async () => {
+    mocks.tabsByWorktree = {
+      'workspace-1': [
+        { id: 'tab-wrong-host', ptyId: 'remote:server-2@@term-sensitive-id' },
+        { id: 'tab-ownerless', ptyId: 'remote:term-sensitive-id' }
+      ]
+    }
+    render(
+      <AgentRunHistory
+        agentId="agent-1"
+        target={{ kind: 'environment', environmentId: 'server-1' }}
+        refreshKey={0}
+      />
+    )
+
+    expect(await screen.findByText('Inspect the current workspace')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Open terminal' })).not.toBeInTheDocument()
+  })
+
+  it('keeps Settings open and explains when the terminal disappears before activation', async () => {
+    mocks.tabsByWorktree = {
+      'workspace-1': [{ id: 'tab-1', ptyId: 'remote:server-1@@term-sensitive-id' }]
+    }
+    render(
+      <AgentRunHistory
+        agentId="agent-1"
+        target={{ kind: 'environment', environmentId: 'server-1' }}
+        refreshKey={0}
+      />
+    )
+    const button = await screen.findByRole('button', { name: 'Open terminal' })
+    mocks.tabsByWorktree = {}
+
+    fireEvent.click(button)
+
+    expect(screen.getByRole('status')).toHaveTextContent(
+      'That terminal is no longer open. View its saved output instead.'
+    )
+    expect(mocks.activateAndRevealWorkspace).not.toHaveBeenCalled()
+    expect(mocks.closeSettingsPage).not.toHaveBeenCalled()
   })
 })

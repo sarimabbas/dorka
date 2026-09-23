@@ -20,12 +20,14 @@ macOS Dorka client
 The controlled paired-client E2E gate passes only when:
 
 1. the repository's automated native-Linux acceptance gate passes;
-2. a macOS client pairs through the private SSH tunnel;
-3. the client sees the native `Main` Computer and default Agent;
-4. a fixture Agent Run emits `DORKA_NATIVE_AGENT_READY`;
-5. the client reconnects after Server replacement without replacing the Computer or relaunching the Run;
-6. the exact Run completes after its fixture exit marker is written;
-7. cleanup reports no named containers, volumes, or custom networks.
+2. an attended owner builds and attests a macOS client from the exact Server commit;
+3. that client runs with disposable user-data and home directories;
+4. the macOS client pairs through the private SSH tunnel;
+5. the client sees the native `Main` Computer and default Agent;
+6. a fixture Agent Run emits `DORKA_NATIVE_AGENT_READY`;
+7. the client reconnects after Server replacement without replacing the Computer or relaunching the Run;
+8. the exact Run completes after its fixture exit marker is written;
+9. cleanup reports no named containers, volumes, or custom networks.
 
 **Stop at the first failed check.** Preserve only the redacted evidence described below, then run cleanup. Do not continue to turn one failure into several ambiguous failures.
 
@@ -37,7 +39,7 @@ The controlled paired-client E2E gate passes only when:
 - Engine-socket access is equivalent to control of everything owned by that engine user. Never expose the socket over TCP.
 - Publish the Server only on host loopback. Reach it from macOS through SSH forwarding. Never expose port 6768 to the public internet.
 - Never publish Computer ports 2222 or 8080. The expected output of `docker port dorka-computer-main` is empty.
-- The pairing URL is a credential. Do not paste it into chat, tickets, shell history, screenshots, or retained logs.
+- The pairing URL is a credential. Reveal it only long enough to paste it into Dorka. Never put it in a shell command, variable, file, chat, ticket, screenshot, or retained log.
 - Use the repository's fixture Agent shim. Do not add provider credentials or use a real repository. The checkout is only a build input; managed Computers use disposable named volumes.
 - Do not put secrets in Computer environment variables. They persist in `/data/computers.json` and cross the engine command boundary.
 - Do not mount the host home, source checkout, engine socket, `/`, `/dev`, `/proc`, `/sys`, or `/run` into a Computer.
@@ -58,9 +60,11 @@ The controlled paired-client E2E gate passes only when:
 
 ### macOS client
 
-- A current Dorka desktop build compatible with the Server checkout.
+- A separate clean checkout of the Dorka repository. Do not reuse a checkout with uncommitted work.
+- macOS on Apple silicon or Intel, Node 24, Corepack, pnpm 12, Git, Xcode, and its command-line tools.
+- Enough free space to install both macOS native dependency variants and produce x64 and arm64 packages.
 - SSH access to the disposable host.
-- A disposable Dorka profile or disposable macOS test account. Do not use a profile holding important paired servers.
+- An attended owner for the visible product checks. Do not attach an unattended controller to the visible app.
 
 ## 0. Set run values
 
@@ -74,7 +78,82 @@ mkdir -m 0700 "$DORKA_E2E_ARTIFACTS"
 printf 'commit=%s\n' "$DORKA_E2E_SHA" >"$DORKA_E2E_ARTIFACTS/run.txt"
 ```
 
-Record the host SSH name separately on macOS as `<linux-host>`. Do not put credentials in the artifact directory.
+Record the host SSH name separately on macOS as `<linux-host>`. Transfer the printed commit value to the macOS terminal as `DORKA_E2E_SHA`; it is an identifier, not a credential. Do not put credentials in the artifact directory.
+
+### Build and attest the exact-SHA macOS client
+
+Run on **macOS**, from the separate clean Dorka checkout. Replace `<server-sha>` with the full commit recorded on Linux:
+
+```bash
+set -euo pipefail
+export DORKA_E2E_SHA='<server-sha>'
+test "$(uname -s)" = Darwin
+test "$(node -p 'process.versions.node.split(`.`)[0]')" = 24
+test "$(git status --porcelain)" = ""
+git fetch origin "$DORKA_E2E_SHA"
+git switch --detach "$DORKA_E2E_SHA"
+test "$(git rev-parse HEAD)" = "$DORKA_E2E_SHA"
+test "$(corepack pnpm --version | cut -d. -f1)" = 12
+corepack pnpm run install:release
+corepack pnpm run build:mac
+```
+
+`install:release` is required even when macOS matches the build host. `build:mac` produces both x64 and arm64 packages, and the packaging guard rejects missing native variants. The local build path uses ad-hoc signing; it does not require release signing or notarization credentials.
+
+Select the unpacked app matching the macOS host, then attest its executable and packaged compatibility record:
+
+```bash
+case "$(uname -m)" in
+  arm64)
+    export DORKA_E2E_ARCH=arm64
+    export DORKA_E2E_MACH_ARCH=arm64
+    export DORKA_E2E_APP="$PWD/dist/mac-arm64/Dorka.app"
+    ;;
+  x86_64)
+    export DORKA_E2E_ARCH=x64
+    export DORKA_E2E_MACH_ARCH=x86_64
+    export DORKA_E2E_APP="$PWD/dist/mac/Dorka.app"
+    ;;
+  *) exit 1 ;;
+esac
+
+test -x "$DORKA_E2E_APP/Contents/MacOS/Dorka"
+test "$(lipo -archs "$DORKA_E2E_APP/Contents/MacOS/Dorka")" = "$DORKA_E2E_MACH_ARCH"
+codesign --verify --deep --strict "$DORKA_E2E_APP"
+node - "$DORKA_E2E_APP/Contents/Resources/dorka-local-build.json" \
+  "$DORKA_E2E_SHA" "$DORKA_E2E_ARCH" <<'NODE'
+const fs = require('node:fs')
+const [manifestPath, sha, architecture] = process.argv.slice(2)
+const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'))
+if (
+  manifest.commit !== sha.slice(0, 12) ||
+  manifest.platform !== 'darwin' ||
+  manifest.architecture !== architecture
+) {
+  console.error({ manifest, expectedCommit: sha.slice(0, 12), architecture })
+  process.exit(1)
+}
+console.log(`DORKA_MAC_CLIENT_ATTESTED=${sha} (${architecture}, ${manifest.version})`)
+NODE
+```
+
+Expected: every check exits 0 and the final line contains the full Server SHA. **Stop** if the checkout, executable architecture, signature, or packaged commit differs.
+
+Create disposable paths and launch the matching client directly from the same terminal:
+
+```bash
+export DORKA_E2E_CLIENT_ROOT="$(mktemp -d "${TMPDIR%/}/dorka-self-e2e-client.XXXXXX")"
+export DORKA_E2E_USER_DATA_DIR="$DORKA_E2E_CLIENT_ROOT/user-data"
+export DORKA_E2E_HOME_DIR="$DORKA_E2E_CLIENT_ROOT/home"
+mkdir -m 0700 "$DORKA_E2E_USER_DATA_DIR" "$DORKA_E2E_HOME_DIR"
+HOME="$DORKA_E2E_HOME_DIR" \
+USERPROFILE="$DORKA_E2E_HOME_DIR" \
+DORKA_E2E_HOME_DIR="$DORKA_E2E_HOME_DIR" \
+DORKA_E2E_USER_DATA_DIR="$DORKA_E2E_USER_DATA_DIR" \
+  "$DORKA_E2E_APP/Contents/MacOS/Dorka"
+```
+
+Keep this terminal open through section 9. The command runs the visible app for the attended checks; do not add `DORKA_BACKGROUND_LAUNCH`, `DORKA_E2E_HEADLESS`, or an automation controller. `HOME` and `USERPROFILE` must match `DORKA_E2E_HOME_DIR` because startup rejects an E2E process that escapes its disposable home boundary.
 
 ## 1. Host preflight
 
@@ -290,7 +369,7 @@ nc -z 127.0.0.1 16768
 
 Expected: exit 0.
 
-On the **Linux host**, view—but do not save—the readiness line:
+On the **Linux host**, reveal—but do not redirect or save—the readiness line:
 
 ```bash
 docker logs "$DORKA_SERVER_CONTAINER" 2>&1 \
@@ -298,7 +377,7 @@ docker logs "$DORKA_SERVER_CONTAINER" 2>&1 \
   | tail -1
 ```
 
-Copy the `pairing.url` value directly into Dorka. Do not copy the line into retained evidence. The URL should advertise `127.0.0.1:16768`; **stop** if it advertises the container address or any public address.
+Copy the `pairing.url` value directly from the terminal into Dorka. Do not paste it into a shell command, assign it to a variable, or copy the line into retained evidence. The URL should advertise `127.0.0.1:16768`; **stop** if it advertises the container address or any public address. Clear the terminal scrollback after pairing.
 
 ## 6. Pair the macOS client
 
@@ -438,13 +517,20 @@ Do **not** retain raw `docker logs`, the readiness JSON, pairing URLs, desktop p
 ### macOS first
 
 1. In **Settings → Remote Dorka Servers**, remove `Disposable native E2E`.
-2. Quit the disposable Dorka client/profile.
+2. Quit the disposable Dorka client and wait for its foreground process to return.
 3. Stop the SSH tunnel with `Ctrl-C`.
-4. Confirm the local listener is gone:
+4. Confirm the local listener is gone and delete only the guarded disposable client root:
 
 ```bash
 ! nc -z 127.0.0.1 16768
+case "$DORKA_E2E_CLIENT_ROOT" in
+  "${TMPDIR%/}"/dorka-self-e2e-client.*) rm -rf "$DORKA_E2E_CLIENT_ROOT" ;;
+  *) echo "Refusing unexpected client root: $DORKA_E2E_CLIENT_ROOT" >&2; exit 1 ;;
+esac
+test ! -e "$DORKA_E2E_CLIENT_ROOT"
 ```
+
+Do not delete the macOS checkout until the evidence-retention decision is complete; its exact detached commit and build output support the client attestation.
 
 ### Linux host
 
@@ -493,6 +579,11 @@ Keep `$DORKA_E2E_ARTIFACTS` only as long as required by the review. Removing tha
 
 ## Supported repository surfaces used
 
+- `pnpm install:release`
+- `pnpm build:mac`
+- `config/scripts/build-mac-local.mjs`
+- `config/scripts/mac-build-compatibility.cjs`
+- `config/electron-builder.config.cjs`
 - `pnpm test:e2e:dorka-native-linux:contracts`
 - `pnpm test:e2e:dorka-native-linux`
 - `config/scripts/run-dorka-native-linux-acceptance.ts`
