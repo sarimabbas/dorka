@@ -24,10 +24,11 @@ Existing Orca UI + terminal/PTY core
 
 ## Definition of functioning
 
-A build is functioning when it launches locally and a tester can use the existing application
-shell to open terminal tabs, settings, diffs, review, and automations without encountering visible
-navigation for eliminated product surfaces. Agent and Computer records must survive restart, and
-the server container must start and accept remote client connections.
+A build is functioning when it launches locally and a tester can use the existing application shell
+to select a Server, inspect a Computer, launch an Agent Run, read its terminal output and history,
+and open Diff/Review and Automations without encountering visible navigation for eliminated product
+surfaces. Agent and Computer records must survive restart, and the server container must start and
+accept remote client connections.
 
 ## Checklist
 
@@ -51,7 +52,10 @@ the server container must start and accept remote client connections.
 - [x] Keep provider-neutral Review as Git-ref comparison inside the selected Run's Computer.
 - [x] Keep Automations for scheduled or repeated Agent launches.
 - [x] Expose durable Agent presets and Computer lifecycle state in the retained Settings shell.
-- [ ] Apply Dorka terminology and restrained visual polish without changing the UI paradigm.
+- [x] Make Agents and Computers first-class retained-shell navigation entries.
+- [x] Replace the dead local Computer state with actionable Server onboarding.
+- [x] Expose a Run's real terminal output alongside history and Diff/Review.
+- [ ] Complete the remaining Dorka terminology pass without changing the UI paradigm.
 
 ### Eliminate from the product UI
 
@@ -95,21 +99,23 @@ the server container must start and accept remote client connections.
   isolated paired-Server pass proved visible Agent launch, durable Run history after reload,
   Computer-local working-tree Diff, and provider-neutral Review. Evidence is recorded in
   `/tmp/dorka-computer-use-qa.md` and `/tmp/dorka-paired-run-ui-qa.md`.
-- Rootless Podman E2E proved authenticated pairing, Computer reconciliation, managed SSH/relay/PTY
-  launch identity, immutable effective prompts, Run-scoped working-tree Diff, provider-neutral
-  Git-ref Review, Computer-local Git identity, persistent SSH host identity, and server restart
-  without relaunch or Run mutation. Evidence and exact limitations are in
-  `/tmp/dorka-managed-computer-e2e.md`.
-- The successful managed launch used the real amd64 Computer image under arm64 emulation but replaced
-  its heavy Selkies startup with a diagnostic headless `sshd` entrypoint. The standard graphical
-  image still needs native-Linux launch and desktop-readiness proof.
+- Native amd64 Docker on `bfc5-et` proved the pinned GPU-optional Selkies image, authenticated desktop
+  readiness, private SSH/Desktop ports, outbound NAT, persistent SSH host and desktop-password
+  identity, first-run `Main` provisioning, missing-image recovery, healthy service restart, managed
+  SSH/relay/PTY launch, and Server replacement without relaunch. Rocky 9's rootless Podman/cgroups-v1
+  setup cannot create the required container cgroup, so the gate supports an explicitly enabled,
+  otherwise-empty isolated Docker engine rather than emulation or weakened assertions.
+- A hidden Electron/CDP pass paired the desktop through a private SSH tunnel, displayed the native
+  `Main` Computer, launched the default Agent, persisted the Run, and read the real terminal output
+  from its authoritative terminal handle. Agents and Computers are now reachable directly from the
+  existing two-pane shell.
 - Server restart reconnects each active Run's running Computer once without starting stopped
   Computers or relaunching work. For an exactly reattached terminal handle and process identity, it
-  now verifies Computer ownership and re-arms the incumbent PTY-exit observer. An exit observed only
-  while the Server was absent now has a generation-fenced, crash-durable replay path in code.
-  Exact certificates project only the matching Run identity and are acknowledged only after durable
-  persistence; in-process reconnect also redrives reconciliation. Native-Linux outage E2E remains
-  required before claiming release-quality proof.
+  verifies Computer ownership and re-arms the incumbent PTY-exit observer. Exact offline certificates
+  project only the matching Run identity and are acknowledged only after durable persistence.
+  Native outage acceptance is blocked because the terminating fixture leaves its owning PTY alive,
+  so no pending certificate appears. Diagnose this with a fast PTY/certificate reproducer before one
+  final clean Selkies release run.
 - Agent skill and MCP references are not yet versioned or resolved at launch. They must remain
   separate from Computer-owned credentials, provider homes, packages, and filesystems.
 - Existing Project and Workspace language still needs a careful Dorka terminology pass. This must
