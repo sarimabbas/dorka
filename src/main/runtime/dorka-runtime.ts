@@ -25,7 +25,6 @@ class DorkaRuntimeService extends DorkaRuntimeWithResolveWaiter {
   private readonly agentRosterStore?: AgentRosterStore
   private readonly agentExecutionService?: AgentExecutionService
   private readonly computerRuntimeManager?: ComputerRuntimeManager
-  private computerMutationQueue = Promise.resolve()
 
   constructor(
     store: BaseRuntimeConstructorParams[0] = null,
@@ -51,14 +50,12 @@ class DorkaRuntimeService extends DorkaRuntimeWithResolveWaiter {
     return this.requireAgentRosterStore().createAgent(input)
   }
 
-  moveRosterAgent(agentId: string, computerId: string) {
-    return this.runComputerMutation(async (manager) => {
-      const computers = await manager.list()
-      if (!computers.some((computer) => computer.id === computerId)) {
-        throw new Error(`Computer not found: ${computerId}`)
-      }
-      return this.requireAgentRosterStore().moveAgent(agentId, computerId)
-    })
+  async moveRosterAgent(agentId: string, computerId: string) {
+    const computers = await this.requireComputerRuntimeManager().list()
+    if (!computers.some((computer) => computer.id === computerId)) {
+      throw new Error(`Computer not found: ${computerId}`)
+    }
+    return this.requireAgentRosterStore().moveAgent(agentId, computerId)
   }
 
   runRosterAgent(request: RunAgentRequest) {
@@ -73,19 +70,19 @@ class DorkaRuntimeService extends DorkaRuntimeWithResolveWaiter {
   }
 
   createRuntimeComputer(spec: ComputerCreateSpec) {
-    return this.runComputerMutation((manager) => manager.create(spec))
+    return this.requireComputerRuntimeManager().create(spec)
   }
 
   startRuntimeComputer(id: string) {
-    return this.runComputerMutation((manager) => manager.start(id))
+    return this.requireComputerRuntimeManager().start(id)
   }
 
   stopRuntimeComputer(id: string) {
-    return this.runComputerMutation((manager) => manager.stop(id))
+    return this.requireComputerRuntimeManager().stop(id)
   }
 
   removeRuntimeComputer(id: string) {
-    return this.runComputerMutation((manager) => manager.remove(id))
+    return this.requireComputerRuntimeManager().remove(id)
   }
 
   private requireAgentRosterStore(): AgentRosterStore {
@@ -100,19 +97,6 @@ class DorkaRuntimeService extends DorkaRuntimeWithResolveWaiter {
       throw new Error('Computer runtime is unavailable')
     }
     return this.computerRuntimeManager
-  }
-
-  private runComputerMutation<T>(
-    operation: (manager: ComputerRuntimeManager) => Promise<T>
-  ): Promise<T> {
-    const pending = this.computerMutationQueue.then(() =>
-      operation(this.requireComputerRuntimeManager())
-    )
-    this.computerMutationQueue = pending.then(
-      () => undefined,
-      () => undefined
-    )
-    return pending
   }
 }
 type DorkaRuntimeServiceExport = RuntimeCommandSurfaceHost<DorkaRuntimeService>

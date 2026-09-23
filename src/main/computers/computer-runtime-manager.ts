@@ -47,6 +47,7 @@ export class ComputerRuntimeManager {
   private readonly execute: ComputerCommandExecutor
   private readonly store: ComputerRecordStore
   private readonly allowedMountSources: readonly string[]
+  private mutationQueue = Promise.resolve()
 
   constructor(private readonly options: ComputerRuntimeManagerOptions) {
     validateServerId(options.serverId)
@@ -56,7 +57,11 @@ export class ComputerRuntimeManager {
     this.store = new ComputerRecordStore(options.dataDirectory)
   }
 
-  async create(spec: ComputerCreateSpec): Promise<ComputerRuntimeInfo> {
+  create(spec: ComputerCreateSpec): Promise<ComputerRuntimeInfo> {
+    return this.runMutation(() => this.createNow(spec))
+  }
+
+  private async createNow(spec: ComputerCreateSpec): Promise<ComputerRuntimeInfo> {
     const validated = validateComputerSpec(spec)
     const records = await this.store.load()
     if (records.some((record) => record.spec.id === validated.id)) {
@@ -68,7 +73,11 @@ export class ComputerRuntimeManager {
     return this.inspect(validated.id)
   }
 
-  async start(id: string): Promise<ComputerRuntimeInfo> {
+  start(id: string): Promise<ComputerRuntimeInfo> {
+    return this.runMutation(() => this.startNow(id))
+  }
+
+  private async startNow(id: string): Promise<ComputerRuntimeInfo> {
     await this.requireDesired(id)
     await this.inspect(id)
     await this.run(['start', computerName(id)])
@@ -76,7 +85,11 @@ export class ComputerRuntimeManager {
     return this.inspect(id)
   }
 
-  async stop(id: string): Promise<ComputerRuntimeInfo> {
+  stop(id: string): Promise<ComputerRuntimeInfo> {
+    return this.runMutation(() => this.stopNow(id))
+  }
+
+  private async stopNow(id: string): Promise<ComputerRuntimeInfo> {
     await this.requireDesired(id)
     await this.inspect(id)
     await this.run(['stop', computerName(id)])
@@ -84,7 +97,11 @@ export class ComputerRuntimeManager {
     return this.inspect(id)
   }
 
-  async remove(id: string): Promise<void> {
+  remove(id: string): Promise<void> {
+    return this.runMutation(() => this.removeNow(id))
+  }
+
+  private async removeNow(id: string): Promise<void> {
     await this.requireDesired(id)
     await this.inspect(id)
     await this.run(['rm', '--force', computerName(id)])
@@ -118,7 +135,11 @@ export class ComputerRuntimeManager {
     })
   }
 
-  async reconcile(): Promise<ComputerReconcileResult> {
+  reconcile(): Promise<ComputerReconcileResult> {
+    return this.runMutation(() => this.reconcileNow())
+  }
+
+  private async reconcileNow(): Promise<ComputerReconcileResult> {
     const desired = await this.store.load()
     const actual = await this.list()
     const actualById = new Map(actual.map((computer) => [computer.id, computer]))
@@ -208,6 +229,15 @@ export class ComputerRuntimeManager {
       image: inspection.Config.Image,
       state: parseRuntimeState(inspection.State)
     }
+  }
+
+  private runMutation<T>(operation: () => Promise<T>): Promise<T> {
+    const pending = this.mutationQueue.then(operation)
+    this.mutationQueue = pending.then(
+      () => undefined,
+      () => undefined
+    )
+    return pending
   }
 
   private async run(args: string[]): Promise<ProcessResult> {

@@ -103,6 +103,66 @@ describe('ComputerRuntimeManager', () => {
     })
   })
 
+  it('serializes concurrent direct mutations before reading and saving records', async () => {
+    const directory = await dataDirectory()
+    const firstCreate = Promise.withResolvers<ProcessResult>()
+    const commands: (readonly string[])[] = []
+    const execute = vi.fn<ComputerCommandExecutor>(async ({ args = [] }) => {
+      commands.push(args)
+      if (args[0] === 'create' && args[2] === 'dorka-computer-alpha') {
+        return firstCreate.promise
+      }
+      if (args[0] === 'inspect') {
+        const id = args[1]?.replace('dorka-computer-', '') ?? ''
+        return processResult(JSON.stringify([inspection(id)]))
+      }
+      return processResult()
+    })
+    const manager = new ComputerRuntimeManager({ dataDirectory: directory, serverId, execute })
+
+    const alpha = manager.create({ id: 'alpha', image: 'safe/image:tag' })
+    const beta = manager.create({ id: 'beta', image: 'safe/image:tag' })
+    await new Promise((resolve) => setTimeout(resolve, 25))
+
+    expect(commands).toEqual([expect.arrayContaining(['create', '--name', 'dorka-computer-alpha'])])
+    firstCreate.resolve(processResult())
+    await Promise.all([alpha, beta])
+
+    expect(commands.filter(([command]) => command === 'create')).toEqual([
+      expect.arrayContaining(['--name', 'dorka-computer-alpha']),
+      expect.arrayContaining(['--name', 'dorka-computer-beta'])
+    ])
+    const stored = JSON.parse(await readFile(join(directory, 'computers.json'), 'utf8'))
+    expect(stored.computers.map((record: { spec: { id: string } }) => record.spec.id)).toEqual([
+      'alpha',
+      'beta'
+    ])
+  })
+
+  it('continues queued mutations after an earlier mutation fails', async () => {
+    const directory = await dataDirectory()
+    const execute = vi.fn<ComputerCommandExecutor>(async ({ args = [] }) => {
+      if (args[0] === 'create' && args[2] === 'dorka-computer-alpha') {
+        return processResult('', 'create failed', 1)
+      }
+      if (args[0] === 'inspect') {
+        return processResult(JSON.stringify([inspection('beta')]))
+      }
+      return processResult()
+    })
+    const manager = new ComputerRuntimeManager({ dataDirectory: directory, serverId, execute })
+
+    const alpha = manager.create({ id: 'alpha', image: 'safe/image:tag' })
+    const beta = manager.create({ id: 'beta', image: 'safe/image:tag' })
+
+    await expect(alpha).rejects.toThrow('create failed')
+    await expect(beta).resolves.toMatchObject({ id: 'beta' })
+    expect(execute.mock.calls.map(([spec]) => spec.args?.[2]).filter(Boolean)).toEqual([
+      'dorka-computer-alpha',
+      'dorka-computer-beta'
+    ])
+  })
+
   it('adds validated environment and exact allowlisted premounts without engine flags', async () => {
     const execute = vi
       .fn<ComputerCommandExecutor>()
