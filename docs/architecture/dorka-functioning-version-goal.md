@@ -50,6 +50,7 @@ the server container must start and accept remote client connections.
 - [ ] Keep the existing local diff viewer.
 - [ ] Keep PR Review using credentials and tools inside the selected Computer.
 - [x] Keep Automations for scheduled or repeated Agent launches.
+- [x] Expose durable Agent presets and Computer lifecycle state in the retained Settings shell.
 - [ ] Apply Dorka terminology and restrained visual polish without changing the UI paradigm.
 
 ### Eliminate from the product UI
@@ -67,8 +68,9 @@ the server container must start and accept remote client connections.
 - [x] Compose `ComputerRuntimeManager` during `dorkad` startup.
 - [x] Expose the minimal authenticated Agent and Computer control-plane operations.
 - [x] Provision an idempotent `Main` Computer and first Agent.
-- [ ] Connect an Agent preset to the existing launcher and PTY/session path.
-- [ ] Record the selected `computerId` and terminal session identity on each Run.
+- [ ] Connect the tested Agent execution seam to a concrete Computer SSH launcher and the existing PTY/session path.
+- [x] Record the selected `computerId`, terminal session identity, and process identity on each launched Run.
+- [x] Support validated ordinary environment variables and exact operator-allowlisted Computer premounts.
 
 ### Validation and handoff
 
@@ -86,8 +88,9 @@ the server container must start and accept remote client connections.
   complete manual smoke test.
 - The existing local Diff and Review implementation remains in the application, but Review has not
   yet been moved onto Computer-local `git`/`gh` execution and credentials.
-- The Agent and Computer control plane is durable and remotely callable, but Agent presets do not
-  yet launch through the existing PTY path or persist terminal session identity on a Run.
+- The Agent execution module now validates placement, starts the Computer, delegates to one terminal
+  launcher interface, and durably records Run session/process identity. The concrete Computer SSH
+  launcher adapter is still missing, so this is not yet an end-to-end Agent launch.
 - Existing Project and Workspace language still needs a careful Dorka terminology pass. This must
   not erase useful git/worktree distinctions.
 - Browser-hosted graphical Computer desktops remain a post-MVP runtime integration.

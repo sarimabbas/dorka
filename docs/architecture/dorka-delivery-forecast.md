@@ -3,7 +3,7 @@
 ## Purpose and status
 
 This forecast turns the functioning-version goal into an ordered delivery plan. It reflects
-`feat/dorka-computers` at `ee1d0d3ab` and the evidence listed below. A checked item means the
+`feat/dorka-computers` at `edb8d33ad` and the evidence listed below. A checked item means the
 repository contains both the implementation and named verification evidence, or the functioning
 version goal records a completed live check. It does **not** mean the full end-to-end MVP has been
 proved.
@@ -24,15 +24,16 @@ Desktop/mobile client
   -> reconcile Run and Computer state after client or server restart
 ```
 
-The first three steps have control-plane support. The launch, Run-to-session binding, and complete
-workspace-backed smoke path are the critical gap.
+The first four steps now have a tested control-plane seam through `AgentExecutionService`, including
+durable Run-to-session binding. The concrete Computer SSH terminal adapter and complete
+workspace-backed smoke path remain the critical gap.
 
 ## Prioritized backlog
 
 | Priority | Horizon | Type | Deliverable and acceptance evidence | Dependencies | Forecast |
 | --- | --- | --- | --- | --- | --- |
-| P0 | Now | Feature | Connect an Agent preset to the existing launcher and remote PTY/session path. A Run starts on its selected Computer and terminal output remains authoritative. | Agent roster, Computer lifecycle, internal execution adapter, existing PTY/session APIs | 3–5 engineering days |
-| P0 | Now | Feature | Persist `computerId`, terminal-session identity, and process identity on each Run. Prove restart/reconnect restores the same association without inferring process death from lost contact. | Launch integration; Run schema migration; execution-host status contract | 2–4 days, overlaps launch work |
+| P0 | Now | Feature | Complete the concrete Computer SSH launcher adapter behind the tested `AgentExecutionService`. A Run must start on its selected Computer through the existing PTY/session path. | Per-Computer control key, Computer SSH projection, existing PTY/session APIs | 2–4 engineering days |
+| P0 | Now | Validation | Prove restart/reconnect restores the persisted `computerId`, terminal-session identity, and process identity without inferring process death from lost contact. | Concrete launcher adapter; execution-host status contract | 1–2 days, overlaps launch work |
 | P0 | Now | Validation | Add a deterministic workspace fixture and smoke-test terminal launch, tabs, Settings, local Diff, Review, and Automations in the integrated app. Record the exact commands and results. | P0 launch path; test repository and provider-neutral review fixture | 2–3 days |
 | P0 | Now | Bug/validation | Prove first-run `Main` provisioning on native Linux with rootless Docker and Podman, including missing-image degradation, server restart, and Computer reconciliation. | Built Computer image; engine socket; Linux runner | 2–4 days |
 | P0 | Now | Feature | Route local Diff and PR Review through the selected Computer's Git binary, credentials, and filesystem. Keep provider-specific behavior behind explicit GitHub/GitLab checks. | Run placement; remote Git execution; credential-bearing test repositories | 4–7 days |
@@ -59,8 +60,12 @@ only after P0 evidence is green.
 | ✅ | Idempotent first-run defaults with degraded startup when provisioning fails | `src/main/dorka-bootstrap/dorka-first-run.test.ts`; `src/main/dorkad/dorkad-first-run.test.ts`; commits `86605b63f`, `bad589c2e` |
 | ✅ | Containerized `dorkad` build, external bind, sibling Computer topology, and rootless Podman socket handling | `Dockerfile`; `compose.yaml`; `docker/computer/Dockerfile`; `docs/reference/container-deployment.md`; commits `3b5b58a87`, `44c8b3c9b`, `4689aca73` |
 | ✅ | Retained single application shell with unsupported navigation and quick-command/status-bar surfaces removed | Renderer reachability/settings/quick-command tests; commits `a7da41fbd`, `29a0bb985`, `6a6f107cf`, `e26684aff`, `20584d4ef`, `13d9b8136` |
-| ✅ | Focused tests, Node/renderer typechecks, builds, and a live shell smoke are recorded complete | `docs/architecture/dorka-functioning-version-goal.md` at `ee1d0d3ab`; this forecast does not claim a fresh rerun |
-| ⬜ | Agent-to-PTY launch, Run session identity, workspace-backed full smoke, and Computer-local Review | Explicitly open in `dorka-functioning-version-goal.md`; these remain P0 |
+| ✅ | Tested Agent execution seam and durable Run placement/session/process identity | `src/main/agents/agent-execution-service.ts`; its tests; `agents.run` RPC; commit `b31581377` |
+| ✅ | Safe ordinary environment injection and exact operator-allowlisted premounts | Computer command/manager tests; deployment docs; commit `37b4a5fdf` |
+| ✅ | Persistent Computer home matches the image's actual `/home/ubuntu` user | command construction and rejection tests; commit `98397f367` |
+| ✅ | Retained Settings exposes durable Agent presets and Computer start/stop state | focused renderer tests; commits `54d861ad2`, `edb8d33ad` |
+| ✅ | Focused tests, Node/renderer typechecks, builds, and a live shell smoke are recorded complete | `docs/architecture/dorka-functioning-version-goal.md` at `ee1d0d3ab`; backend and renderer focused suites were rerun through `edb8d33ad` |
+| ⬜ | Concrete Computer SSH terminal adapter, workspace-backed full smoke, and Computer-local Review | Explicitly open in `dorka-functioning-version-goal.md`; these remain P0 |
 
 ## Known risks
 
