@@ -216,7 +216,8 @@ async function startDorkadRuntime(
 
   computerAgentExecution = createDorkadComputerAgentExecution(
     controlPlane.agents,
-    controlPlane.computers
+    controlPlane.computers,
+    dirname(profile.dataFile)
   )
   const runtime = new DorkaRuntimeService(store, undefined, {
     agentRosterStore: controlPlane.agents,

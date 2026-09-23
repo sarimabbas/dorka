@@ -29,7 +29,8 @@ export type DorkadManagedRunRecoveryResult = {
 
 export function createDorkadComputerAgentExecution(
   agents: AgentRosterStore,
-  computers: ComputerRuntimeManager
+  computers: ComputerRuntimeManager,
+  privateDirectory: string
 ) {
   let sessions: ManagedSshHostSessions | null = null
   let host: ManagedComputerHostProjector | null = null
@@ -44,7 +45,8 @@ export function createDorkadComputerAgentExecution(
     computers,
     (request) => launch(request),
     (runId, ptyId) => runExitObserver?.observe(runId, ptyId),
-    (request) => requireReferenceResolver(referenceAuthority)(request)
+    (request) => requireReferenceResolver(referenceAuthority)(request),
+    'server'
   )
   const sourceControl = {
     status: (runId: string) => requireSourceControl(sourceControlAuthority).status(runId),
@@ -86,7 +88,7 @@ export function createDorkadComputerAgentExecution(
       })
       host = createManagedComputerHostProjector({ computers, sessions })
       referenceAuthority = createComputerAgentReferenceResolver({ host })
-      launch = createManagedComputerAgentTerminalLauncher({ host, runtime })
+      launch = createManagedComputerAgentTerminalLauncher({ host, privateDirectory, runtime })
       sourceControlAuthority = new ComputerRunSourceControl({
         roster: agents,
         computers,

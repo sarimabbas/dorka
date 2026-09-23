@@ -84,6 +84,7 @@ describe('AgentExecutionService', () => {
       agentRevision: h.agent.revision,
       computerId: 'computer-a',
       computerExecutionGeneration,
+      processHost: 'computer',
       prompt: 'Plan carefully\n\nReview the change',
       sourceDirectory: '/workspace/repo',
       status: 'running',
@@ -98,6 +99,33 @@ describe('AgentExecutionService', () => {
       sourceDirectory: '/workspace/repo',
       terminalSessionId: 'terminal-session-1',
       processIdentity: 'pty-incarnation-1'
+    })
+  })
+
+  it('records an explicitly configured Server process host while retaining the Computer target', async () => {
+    const h = await fixture()
+    const service = new AgentExecutionService(
+      h.roster,
+      {
+        getExecutionGeneration: h.getExecutionGeneration,
+        inspect: h.inspect,
+        start: h.start
+      },
+      h.launch,
+      undefined,
+      undefined,
+      'server'
+    )
+
+    await expect(
+      service.run({
+        agentId: h.agent.id,
+        computerId: h.computer.id,
+        prompt: 'Review the change'
+      })
+    ).resolves.toMatchObject({
+      computerId: 'computer-a',
+      processHost: 'server'
     })
   })
 

@@ -39,7 +39,8 @@ export class AgentExecutionService {
     >,
     private readonly launchTerminal: AgentTerminalLauncher,
     private readonly onTerminalCommitted?: (runId: string, ptyId: string) => void,
-    private readonly resolveReferences?: AgentReferenceResolver
+    private readonly resolveReferences?: AgentReferenceResolver,
+    private readonly processHost: NonNullable<Run['processHost']> = 'computer'
   ) {}
 
   canResolveReferences(): boolean {
@@ -57,6 +58,7 @@ export class AgentExecutionService {
     const { agent, run } = await this.roster.createRunForAgent(validated.agentId, (current) => ({
       computerId: computer.id,
       computerExecutionGeneration,
+      processHost: this.processHost,
       prompt: `${current.promptTemplate}\n\n${validated.prompt}`,
       sourceDirectory: resolveComputerSourceDirectory(current.workingDirectory)
     }))

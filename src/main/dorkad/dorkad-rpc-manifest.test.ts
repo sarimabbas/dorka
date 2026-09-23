@@ -57,7 +57,10 @@ describe('dorkad RPC manifest', () => {
     expect(composition).toContain('computerGitIdentity: gitIdentity')
     expect(entry).toContain('computerAgentExecution?.disconnectAll()')
     expect(composition.match(/createManagedComputerHostProjector\(/g)).toHaveLength(1)
-    expect(composition).toContain('createManagedComputerAgentTerminalLauncher({ host, runtime })')
+    expect(composition).toContain(
+      'createManagedComputerAgentTerminalLauncher({ host, privateDirectory, runtime })'
+    )
+    expect(composition).toContain("'server'")
     expect(composition).toContain('new ComputerRunSourceControl({')
     expect(composition).toContain('new ComputerGitIdentityManager({ computers, host })')
     expect(composition).toContain('host\n      })')
