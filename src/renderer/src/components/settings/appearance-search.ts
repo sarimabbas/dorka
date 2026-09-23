@@ -5,16 +5,9 @@ import { createLocalizedCatalog } from '@/i18n/localized-catalog'
 import { translate } from '@/i18n/i18n'
 import { translateSearchKeyword } from './settings-search-keywords'
 import { SHOW_UI_LANGUAGE_SETTING } from '@/i18n/supported-languages'
-import { getStatusBarToggles } from './appearance-status-bar-search'
-import { getUsagePercentageDisplayEntry } from './appearance-usage-percentage-search'
 import { getMenuBarIconEntries, getSystemTrayEntries } from './appearance-system-presence-search'
 
-export {
-  getMenuBarIconEntries,
-  getStatusBarToggles,
-  getSystemTrayEntries,
-  getUsagePercentageDisplayEntry
-}
+export { getMenuBarIconEntries, getSystemTrayEntries }
 
 export const getThemeEntries = createLocalizedCatalog((): SettingsSearchEntry[] => [
   {
@@ -164,15 +157,6 @@ export const getTitlebarEntries = createLocalizedCatalog((): SettingsSearchEntry
   }
 ])
 
-export const getStatusBarEntries = createLocalizedCatalog((): SettingsSearchEntry[] => [
-  getUsagePercentageDisplayEntry(),
-  ...getStatusBarToggles().map(({ title, description, keywords }) => ({
-    title,
-    description,
-    keywords
-  }))
-])
-
 export { getLeftSidebarAppearanceEntry, getSidebarEntries }
 
 export const getAppIconEntries = createLocalizedCatalog((): SettingsSearchEntry[] => [
@@ -217,7 +201,7 @@ const getAppearanceSectionEntries = createLocalizedCatalog((): SettingsSearchEnt
     ),
     description: translate(
       'auto.components.settings.AppearancePane.windowSidebarSummary',
-      'Sidebar, status bar, and file explorer'
+      'Sidebar and file explorer'
     )
   }
 ])
@@ -240,7 +224,6 @@ export function getAppearancePaneSearchEntries(
     ...getTerminalAppearanceSearchEntries(options),
     ...getLayoutEntries(),
     ...getTitlebarEntries(),
-    ...getStatusBarEntries(),
     ...getSidebarEntries(),
     ...getAppIconEntries(),
     ...getSystemTrayEntries(options),

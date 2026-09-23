@@ -1,8 +1,6 @@
 import type React from 'react'
 
 import type { GlobalSettings } from '../../../../shared/global-settings-types'
-import type { StatusBarItem } from '../../../../shared/ui-chrome-types'
-import type { FeatureInteractionId } from '../../../../shared/feature-interaction-catalog'
 import { SearchableSetting } from './SearchableSetting'
 import { AppearanceAdvancedDisclosure } from './AppearanceAdvancedDisclosure'
 import { useAppStore } from '../../store'
@@ -12,14 +10,7 @@ import {
   SettingsSubsectionHeader,
   SettingsSwitchRow
 } from './SettingsFormControls'
-import { useAvailableStatusBarToggles } from '../status-bar/use-available-status-bar-toggles'
-import {
-  getLayoutEntries,
-  getSidebarEntries,
-  getStatusBarToggles,
-  getUsagePercentageDisplayEntry
-} from './appearance-search'
-import { USAGE_PERCENTAGE_DISPLAY_SETTING_ID } from './appearance-usage-percentage-search'
+import { getLayoutEntries, getSidebarEntries } from './appearance-search'
 import { LeftSidebarAppearanceSetting } from './LeftSidebarAppearanceSetting'
 import {
   getLeftSidebarAppearanceEntry,
@@ -35,30 +26,6 @@ type AppearanceWindowSidebarSectionProps = {
   forceVisiblePrimary?: boolean
 }
 
-function recordStatusBarToggleInteraction(
-  id: StatusBarItem,
-  recordFeatureInteraction: (feature: FeatureInteractionId) => void
-): void {
-  if (id === 'resource-usage') {
-    recordFeatureInteraction('resource-manager')
-  } else if (id === 'ports') {
-    recordFeatureInteraction('ports')
-  } else if (id === 'ssh') {
-    recordFeatureInteraction('ssh')
-  } else if (
-    id === 'claude' ||
-    id === 'codex' ||
-    id === 'gemini' ||
-    id === 'opencode-go' ||
-    id === 'kimi' ||
-    id === 'antigravity' ||
-    id === 'minimax' ||
-    id === 'grok'
-  ) {
-    recordFeatureInteraction('usage-tracking')
-  }
-}
-
 export function AppearanceWindowSidebarSection({
   settings,
   updateSettings,
@@ -66,47 +33,16 @@ export function AppearanceWindowSidebarSection({
 }: AppearanceWindowSidebarSectionProps): React.JSX.Element {
   const searchQuery = useAppStore((state) => state.settingsSearchQuery)
   const isSearching = normalizeSettingsSearchQuery(searchQuery).length > 0
-  const statusBarItems = useAppStore((state) => state.statusBarItems)
-  const toggleStatusBarItem = useAppStore((state) => state.toggleStatusBarItem)
-  const usagePercentageDisplay = useAppStore((state) => state.usagePercentageDisplay)
-  const setUsagePercentageDisplay = useAppStore((state) => state.setUsagePercentageDisplay)
-  const recordFeatureInteraction = useAppStore((state) => state.recordFeatureInteraction)
   const setWorktreeCardMode = useAppStore((state) => state.setWorktreeCardMode)
-  const visibleStatusBarToggles = useAvailableStatusBarToggles(getStatusBarToggles())
-  const usagePercentageDisplayEntry = getUsagePercentageDisplayEntry()
   const leftSidebarAppearanceEntry = getLeftSidebarAppearanceEntry()
   const sidebarEntries = getSidebarEntries()
   const workspaceCardLayoutEntry = getWorkspaceCardLayoutEntry()
   const layoutEntries = getLayoutEntries()
-  const statusBarTitle = translate(
-    'auto.components.settings.AppearancePane.3e4175e5c6',
-    'Status Bar'
-  )
-  const statusBarDescription = translate(
-    'auto.components.settings.AppearancePane.statusBarDescription',
-    'Choose which indicators appear in the status bar.'
-  )
-  const statusBarKeywords = ['status bar', 'indicators']
-  const statusBarSectionMatches = matchesSettingsSearch(searchQuery, {
-    title: statusBarTitle,
-    description: statusBarDescription,
-    keywords: statusBarKeywords
-  })
-  const statusBarControlMatches =
-    matchesSettingsSearch(searchQuery, usagePercentageDisplayEntry) ||
-    visibleStatusBarToggles.some((toggle) =>
-      matchesSettingsSearch(searchQuery, {
-        title: toggle.title,
-        description: toggle.description,
-        keywords: toggle.keywords
-      })
-    )
   const sidebarAdvancedMatches = matchesSettingsSearch(searchQuery, [
     workspaceCardLayoutEntry,
     ...sidebarEntries
   ])
   const fileExplorerAdvancedMatches = matchesSettingsSearch(searchQuery, layoutEntries)
-  const showStatusBarControls = !isSearching || statusBarSectionMatches || statusBarControlMatches
   const showSidebarAdvanced = !isSearching || sidebarAdvancedMatches
   const showFileExplorerAdvanced = !isSearching || fileExplorerAdvancedMatches
   const showAdvanced = showSidebarAdvanced || showFileExplorerAdvanced
@@ -122,75 +58,6 @@ export function AppearanceWindowSidebarSection({
           forceVisible={forceVisiblePrimary}
         >
           <LeftSidebarAppearanceSetting settings={settings} updateSettings={updateSettings} />
-        </SearchableSetting>
-
-        <SearchableSetting
-          title={statusBarTitle}
-          keywords={statusBarKeywords}
-          forceVisible={forceVisiblePrimary || statusBarSectionMatches || statusBarControlMatches}
-        >
-          <SettingsRow label={statusBarTitle} description={statusBarDescription} control={null} />
-          {showStatusBarControls ? (
-            <div className="ml-4 divide-y divide-border/40 border-t border-border/40">
-              <SearchableSetting
-                id={USAGE_PERCENTAGE_DISPLAY_SETTING_ID}
-                title={usagePercentageDisplayEntry.title}
-                description={usagePercentageDisplayEntry.description}
-                keywords={usagePercentageDisplayEntry.keywords}
-              >
-                <SettingsRow
-                  label={usagePercentageDisplayEntry.title}
-                  description={usagePercentageDisplayEntry.description}
-                  control={
-                    <SettingsSegmentedControl
-                      ariaLabel={usagePercentageDisplayEntry.title}
-                      value={usagePercentageDisplay}
-                      onChange={setUsagePercentageDisplay}
-                      options={[
-                        {
-                          value: 'used',
-                          label: translate(
-                            'auto.components.settings.AppearanceWindowSidebarSection.usagePercentageDisplayUsed',
-                            'Used'
-                          )
-                        },
-                        {
-                          value: 'remaining',
-                          label: translate(
-                            'auto.components.settings.AppearanceWindowSidebarSection.usagePercentageDisplayRemaining',
-                            'Remaining'
-                          )
-                        }
-                      ]}
-                    />
-                  }
-                />
-              </SearchableSetting>
-
-              {visibleStatusBarToggles.map((toggle) => {
-                const enabled = statusBarItems.includes(toggle.id)
-                return (
-                  <SearchableSetting
-                    key={toggle.id}
-                    title={toggle.title}
-                    description={toggle.description}
-                    keywords={toggle.keywords}
-                  >
-                    <SettingsSwitchRow
-                      label={toggle.title}
-                      description={toggle.toggleDescription}
-                      checked={enabled}
-                      onChange={() => {
-                        recordStatusBarToggleInteraction(toggle.id, recordFeatureInteraction)
-                        toggleStatusBarItem(toggle.id)
-                      }}
-                      ariaLabel={toggle.title}
-                    />
-                  </SearchableSetting>
-                )
-              })}
-            </div>
-          ) : null}
         </SearchableSetting>
       </div>
 

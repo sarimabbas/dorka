@@ -15,7 +15,7 @@ export function renderAppearanceSettingsSection(context: SettingsRenderContext):
       title={translate('auto.components.settings.Settings.2b4474780a', 'Appearance')}
       description={translate(
         'auto.components.settings.Settings.6d1a27e193',
-        'Theme, zoom, app and terminal appearance, sidebars, and status bar.'
+        'Theme, zoom, app and terminal appearance, sidebars, and file explorer.'
       )}
       searchEntries={navigation.getSectionSearchEntries('appearance')}
     >

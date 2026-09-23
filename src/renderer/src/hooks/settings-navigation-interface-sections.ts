@@ -22,7 +22,7 @@ export function buildInterfaceSettingsSections({
       title: translate('auto.hooks.useSettingsNavigationMetadata.93d88d20bf', 'Appearance'),
       description: translate(
         'auto.hooks.useSettingsNavigationMetadata.b11a5a48a2',
-        'Theme, zoom, app and terminal appearance, sidebars, and status bar.'
+        'Theme, zoom, app and terminal appearance, sidebars, and file explorer.'
       ),
       icon: Palette,
       searchEntries: getAppearancePaneSearchEntries({

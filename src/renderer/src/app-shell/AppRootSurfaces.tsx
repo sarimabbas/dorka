@@ -31,9 +31,6 @@ const WorktreeJumpPalette = lazy(() => import('../components/WorktreeJumpPalette
 const WorkspaceCleanupDialog = lazy(
   () => import('../components/workspace-cleanup/WorkspaceCleanupDialog')
 )
-const StatusBar = lazy(() =>
-  import('../components/status-bar/StatusBar').then((module) => ({ default: module.StatusBar }))
-)
 const SetupGuideModal = lazy(() => import('../components/setup-guide/SetupGuideModal'))
 const FeatureWallModal = lazy(() => import('../components/feature-wall/FeatureWallModal'))
 const FeatureTipsModal = lazy(() => import('../components/feature-tips/FeatureTipsModal'))
@@ -139,7 +136,6 @@ export function AppRootSurfaces(props: {
   const voiceEnabled = useAppStore(selectAppRootSurfaceVoiceEnabled)
   const petEnabled = useAppStore(selectAppRootSurfacePetEnabled)
   const telemetryOptedIn = useAppStore(selectAppRootSurfaceTelemetryOptedIn)
-  const statusBarVisible = useAppStore((s) => s.statusBarVisible)
   const persistedUIReady = useAppStore((s) => s.persistedUIReady)
   const petVisible = useAppStore((s) => s.petVisible)
   const dictationState = useAppStore((s) => s.dictationState)
@@ -170,25 +166,6 @@ export function AppRootSurfaces(props: {
               onOpenChange={floatingWorkspace.setOpenWithFocus}
               tourInteractionSnapshot={floatingWorkspace.tourInteractionSnapshotRef.current}
             />
-          </OverlayBoundary>
-        </Suspense>
-      ) : null}
-      {statusBarVisible ? (
-        <Suspense
-          fallback={
-            <div className="h-6 min-h-[24px] shrink-0 border-t border-border bg-[var(--bg-titlebar,var(--card))]" />
-          }
-        >
-          <OverlayBoundary
-            boundaryId="overlay.status-bar"
-            resetKey={activeView}
-            title={translate('auto.App.2e8ff36f94', 'The status bar hit an error.')}
-            description={translate(
-              'auto.App.8a023cea1f',
-              'Retry the status bar to remount its controls.'
-            )}
-          >
-            <StatusBar floatingTerminalOpen={floatingWorkspace.open} />
           </OverlayBoundary>
         </Suspense>
       ) : null}

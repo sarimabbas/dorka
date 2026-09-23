@@ -534,13 +534,14 @@ describe('renderer startup runtime routing', () => {
     expect(source).not.toContain("from './PetStatusSegment'")
   })
 
-  it('does not eagerly import the status bar shell on startup', () => {
+  it('does not import or render the status bar from the app root', () => {
     const source = readSource(ROOT_SURFACES_PATH)
 
-    expect(source).toContain("import('../components/status-bar/StatusBar').then")
-    expect(source).not.toContain("from '../components/status-bar/StatusBar'")
-    expect(source).toContain('statusBarVisible ? (')
-    expect(source).toContain('h-6 min-h-[24px] shrink-0 border-t border-border')
+    expect(source).not.toContain('components/status-bar/StatusBar')
+    expect(source).not.toContain('<StatusBar')
+    expect(source).not.toContain('boundaryId="overlay.status-bar"')
+    expect(source).toContain('<FloatingTerminalPanel')
+    expect(source).toContain('<NewWorkspaceComposerModal')
   })
 
   it('keeps activeView off the 150ms debounced UI writer hot path (#9002)', () => {

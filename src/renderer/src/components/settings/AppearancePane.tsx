@@ -18,7 +18,6 @@ import {
   getLayoutEntries,
   getMenuBarIconEntries,
   getSidebarEntries,
-  getStatusBarEntries,
   getSystemTrayEntries,
   getThemeEntries,
   getTitlebarEntries,
@@ -131,7 +130,7 @@ export function AppearancePane({
   )
   const windowSidebarSummary = translate(
     'auto.components.settings.AppearancePane.windowSidebarSummary',
-    'Sidebar, status bar, and file explorer'
+    'Sidebar and file explorer'
   )
 
   // Search-entry buckets per section so a query can force-open the matching one.
@@ -156,7 +155,6 @@ export function AppearancePane({
       title: windowSidebarTitle,
       description: windowSidebarSummary
     },
-    ...getStatusBarEntries(),
     ...getSidebarEntries(),
     ...getLayoutEntries(),
     getLeftSidebarAppearanceEntry(),
