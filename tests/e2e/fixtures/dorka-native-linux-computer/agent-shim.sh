@@ -3,7 +3,9 @@ set -euo pipefail
 
 token=''
 for argument in "$@"; do
-  case "$argument" in run-dna-*) token="$argument" ;; esac
+  if [[ "$argument" =~ (run-dna-[a-z0-9_.-]+) ]]; then
+    token="${BASH_REMATCH[1]}"
+  fi
 done
 if [[ -z "$token" ]]; then
   printf 'DORKA_NATIVE_AGENT_ERROR missing run token\n' >&2

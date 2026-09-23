@@ -31,7 +31,7 @@ function fixture() {
     run: {
       id: 'run-1',
       status: 'running',
-      terminalSessionId: relayPtyId,
+      terminalSessionId: 'term_10000000-0000-4000-8000-000000000001',
       processIdentity: `ssh:runtime-ssh-computer-main@@${relayPtyId}:${ptyIncarnationId}`,
       computerExecutionGeneration
     },

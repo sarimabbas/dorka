@@ -243,6 +243,13 @@ jobs:
       - uses: ./.github/actions/install-node-dependencies
         with:
           native-runtime: node
+      - name: Reclaim hosted-runner disk for Selkies images
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo rm -rf /usr/local/lib/android /usr/share/dotnet /opt/ghc /opt/hostedtoolcache/CodeQL
+          sudo apt-get clean
+          df -h /
       - name: Start ephemeral rootless Podman API
         shell: bash
         run: |
@@ -256,6 +263,21 @@ jobs:
           echo "DOCKER_HOST=unix://$socket" >> "$GITHUB_ENV"
       - run: pnpm run build:cli
       - run: pnpm test:e2e:dorka-native-linux:contracts
+      - name: Native fail-closed exit-evidence contracts
+        run: >-
+          pnpm exec vitest run --config config/vitest.config.ts
+          src/relay/managed-pty-exit-journal.test.ts
+          src/relay/managed-pty-exit-journal-fsync.test.ts
+          src/relay/pty-handler-exit-evidence.test.ts
+          src/relay/relay-runtime-exit-evidence.test.ts
+          src/main/ssh/managed-durable-exit-evidence.test.ts
+          src/main/ssh/managed-ssh-host-sessions.test.ts
+          src/main/dorkad/managed-run-pty-exit-observer.test.ts
+          src/main/dorkad/dorkad-computer-agent-execution.test.ts
+          src/main/providers/ssh-managed-computer-spawn-generation.test.ts
+          src/main/agents/managed-computer-agent-terminal-launcher.test.ts
+          src/main/agents/agent-roster-store.test.ts
+          src/main/computers/computer-runtime-manager-concurrency.test.ts
       - name: Native Linux acceptance
         env:
           DORKA_ACCEPTANCE_SHA: ${{ github.sha }}

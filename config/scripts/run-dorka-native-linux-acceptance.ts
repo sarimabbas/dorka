@@ -72,8 +72,8 @@ export function assertUnverifiable(before: Run, after: Run): void {
 export function certificateMatchesRun(certificate: ManagedPtyExitCertificateV1, run: Run): boolean {
   return (
     certificate.computerExecutionGeneration === run.computerExecutionGeneration &&
-    certificate.relayPtyId === run.terminalSessionId &&
-    run.processIdentity?.includes(`:${certificate.ptyIncarnationId}`) === true &&
+    run.processIdentity?.endsWith(`@@${certificate.relayPtyId}:${certificate.ptyIncarnationId}`) ===
+      true &&
     certificate.certificateId === managedPtyExitCertificateId(certificate)
   )
 }
