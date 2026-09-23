@@ -133,7 +133,7 @@ export const AGENT_RUN_HISTORY_RUNTIME_CAPABILITY = 'agents.run-history.v1' as c
 export const AGENT_EXECUTION_RUNTIME_CAPABILITY = 'agents.execution.v1' as const
 export const AGENT_SOURCE_CONTROL_RUNTIME_CAPABILITY = 'agents.source-control.v1' as const
 export const COMPUTER_LIFECYCLE_RUNTIME_CAPABILITY = 'computers.lifecycle.v1' as const
-export const COMPUTER_CONFIGURATION_RUNTIME_CAPABILITY = 'computers.configuration.v1' as const
+export const COMPUTER_CONFIGURATION_RUNTIME_CAPABILITY = 'computers.configuration.v2' as const
 export const COMPUTER_GIT_IDENTITY_RUNTIME_CAPABILITY = 'computers.git-identity.v1' as const
 // Why: older hosts cannot reconcile terminal.create's mutation after losing the reply, so clients may only retry unknown outcomes when advertised.
 export const TERMINAL_CREATE_IDEMPOTENCY_RUNTIME_CAPABILITY =
