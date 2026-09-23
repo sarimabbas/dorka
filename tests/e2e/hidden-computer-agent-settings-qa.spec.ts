@@ -63,6 +63,18 @@ const CONFIGURATION_REQUEST = {
   environment: { preserve: ['DORKA_QA_TOKEN'], set: {} },
   premounts: []
 }
+const ALLOWED_RPC_METHODS = new Set([
+  'status.get',
+  'computers.list',
+  'computers.configuration.get',
+  'computers.configuration.plan',
+  'computers.configuration.replace',
+  'computers.gitIdentity.get',
+  'computers.stop',
+  'agents.list',
+  'agents.references.update',
+  'agents.runs.list'
+])
 
 test.use({
   seedTestRepo: false,
@@ -241,6 +253,10 @@ test('captures hidden Computer setup, Stop, and Agent requirements without real 
     userData: app.getPath('userData')
   }))
   const userDataDir = isolatedPaths.userData
+  const realUserDataDir = realpathSync.native(userDataDir)
+  const realTemporaryRoot = realpathSync.native(tmpdir())
+  expect(realUserDataDir.startsWith(`${realTemporaryRoot}${path.sep}`)).toBe(true)
+  expect(path.basename(realUserDataDir)).toMatch(/^dorka-e2e-userdata-/)
   expect(isolatedPaths.home).toBe(realpathSync.native(path.join(userDataDir, 'home')))
   const electronProcess = electronApp.process()
   await installFailClosedRuntime(electronApp, userDataDir)
@@ -331,6 +347,8 @@ test('captures hidden Computer setup, Stop, and Agent requirements without real 
   await expect(agents.getByText('Release reviewer')).toBeVisible()
   await expect(agents.getByRole('button', { name: /Requirements/ })).toHaveCount(0)
   await agents.screenshot({ path: path.join(ARTIFACT_DIR, 'agent-requirements-unsupported.png') })
-  expect(readRpcLog().filter(({ method }) => method === 'agents.references.update')).toHaveLength(1)
+  const finalLog = readRpcLog()
+  expect(finalLog.filter(({ method }) => method === 'agents.references.update')).toHaveLength(1)
+  expect(finalLog.filter(({ method }) => !ALLOWED_RPC_METHODS.has(method))).toEqual([])
   await expectWindowsHidden(electronApp)
 })
