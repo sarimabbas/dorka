@@ -1,4 +1,4 @@
-import { useEffect, useId, useState, type FormEvent } from 'react'
+import { useEffect, useId, useMemo, useState, type FormEvent } from 'react'
 import { Loader2 } from 'lucide-react'
 import type { Agent, Run } from '../../../../shared/agent-roster'
 import type { ComputerRuntimeInfo } from '../../../../shared/computer-runtime'
@@ -33,6 +33,11 @@ export function AgentPresetRow({
 }): React.JSX.Element {
   const [launchOpen, setLaunchOpen] = useState(false)
   const [runHistoryVersion, setRunHistoryVersion] = useState(0)
+  const environmentId = target.kind === 'environment' ? target.environmentId : null
+  const runtimeTarget = useMemo<RuntimeClientTarget>(
+    () => (environmentId ? { kind: 'environment', environmentId } : { kind: 'local' }),
+    [environmentId]
+  )
   return (
     <div>
       <div className="flex items-start justify-between gap-4 px-3 py-2.5">
@@ -59,12 +64,12 @@ export function AgentPresetRow({
       {launchOpen ? (
         <AgentPresetLaunchForm
           preset={preset}
-          target={target}
+          target={runtimeTarget}
           onClose={() => setLaunchOpen(false)}
           onRunCreated={() => setRunHistoryVersion((version) => version + 1)}
         />
       ) : null}
-      <AgentRunHistory agentId={preset.id} target={target} refreshKey={runHistoryVersion} />
+      <AgentRunHistory agentId={preset.id} target={runtimeTarget} refreshKey={runHistoryVersion} />
     </div>
   )
 }

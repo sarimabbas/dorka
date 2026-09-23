@@ -68,6 +68,24 @@ describe('AgentPresetsSection', () => {
     expect(listPresets).toHaveBeenCalledWith({ kind: 'local' })
   })
 
+  it('keeps Run requests stable when the selected runtime object is recreated', async () => {
+    listPresets.mockResolvedValue([preset])
+
+    const view = render(
+      <AgentPresetsSection target={{ kind: 'environment', environmentId: 'server-1' }} />
+    )
+    await screen.findByText('No Runs yet.')
+    view.rerender(
+      <AgentPresetsSection target={{ kind: 'environment', environmentId: 'server-1' }} />
+    )
+
+    await waitFor(() => expect(listRuns).toHaveBeenCalledTimes(1))
+    expect(listRuns).toHaveBeenCalledWith(
+      { kind: 'environment', environmentId: 'server-1' },
+      { agentId: preset.id }
+    )
+  })
+
   it('shows persisted Runs under their Agent with Computer and terminal identity', async () => {
     listPresets.mockResolvedValue([preset])
     listRuns.mockResolvedValue([
