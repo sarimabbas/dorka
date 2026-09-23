@@ -3,6 +3,9 @@ import { describe, expect, it, vi } from 'vitest'
 vi.mock('../providers/ssh-filesystem-dispatch', () => ({
   requireSshFilesystemProvider: vi.fn(() => ({}))
 }))
+vi.mock('../../shared/secure-file', () => ({
+  writeSecureFile: vi.fn(() => true)
+}))
 import type { RuntimeTerminalCreate } from '../../shared/runtime-types'
 import type { ManagedSshHostConnection } from '../ssh/managed-ssh-host-sessions'
 import type { TerminalWorkspaceLaunchScope } from '../runtime/runtime-legacy-worker-terminal-recovery-types'
@@ -15,6 +18,12 @@ import {
 } from './managed-computer-host-projector'
 
 const COMPUTER_GENERATION = '10000000-0000-4000-8000-000000000001'
+const HOST_PUBLIC_KEY = `ssh-ed25519 ${Buffer.concat([
+  Buffer.from([0, 0, 0, 11]),
+  Buffer.from('ssh-ed25519'),
+  Buffer.from([0, 0, 0, 32]),
+  Buffer.alloc(32, 7)
+]).toString('base64')}`
 
 function launch(overrides: Partial<AgentTerminalLaunch> = {}): AgentTerminalLaunch {
   return {
@@ -72,8 +81,17 @@ function fixture() {
     })
   )
   const host = createManagedComputerHostProjector({
-    computers: { resolveSshIdentityFile },
-    sessions: { connect }
+    computers: {
+      getExecutionGeneration: vi.fn(async () => COMPUTER_GENERATION),
+      resolveSshIdentityFile
+    },
+    sessions: {
+      connect,
+      readComputerSshBridgeEvidence: vi.fn(async () => ({
+        executionGeneration: COMPUTER_GENERATION,
+        hostPublicKey: HOST_PUBLIC_KEY
+      }))
+    }
   })
   const launcher = createManagedComputerAgentTerminalLauncher({
     host,

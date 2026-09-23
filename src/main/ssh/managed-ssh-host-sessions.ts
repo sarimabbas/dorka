@@ -7,6 +7,7 @@ import { SshConnectionManager } from './ssh-connection-manager'
 import { SshPortForwardManager } from './ssh-port-forward'
 import { SshRelaySession } from './ssh-relay-session'
 import type { ManagedDurableExitEvidence } from './managed-durable-exit-evidence'
+import { execCommand } from './ssh-relay-exec-command'
 
 const PROVIDER_READY_TIMEOUT_MS = 10_000
 const PROVIDER_READY_INTERVAL_MS = 25
@@ -22,6 +23,11 @@ export type ManagedSshHostSessionsOptions = {
 
 export type ManagedSshHostConnection = {
   durableExitEvidence?: ManagedDurableExitEvidence
+}
+
+export type ManagedComputerSshBridgeEvidence = {
+  executionGeneration: string
+  hostPublicKey: string
 }
 
 /** Owns runtime-created SSH transports and relay sessions without Electron IPC. */
@@ -58,6 +64,18 @@ export class ManagedSshHostSessions {
     })
     this.connecting.set(target.id, promise)
     return promise
+  }
+
+  async readComputerSshBridgeEvidence(targetId: string): Promise<ManagedComputerSshBridgeEvidence> {
+    const connection = this.connectionManager.getConnection(targetId)
+    if (!connection || !this.isReady(targetId)) {
+      throw new Error('Managed SSH connection is not ready.')
+    }
+    const output = await execCommand(
+      connection,
+      `set -eu; generation="$(cat /home/ubuntu/.dorka/execution-generation)"; printf 'generation=%s\\n' "$generation"; printf 'host-key='; cat /etc/ssh/ssh_host_ed25519_key.pub`
+    )
+    return parseComputerSshBridgeEvidence(output)
   }
 
   async disconnectAll(): Promise<void> {
@@ -185,6 +203,14 @@ export class ManagedSshHostSessions {
       throw new Error('Managed SSH sessions require a runtime-owned target.')
     }
   }
+}
+
+function parseComputerSshBridgeEvidence(output: string): ManagedComputerSshBridgeEvidence {
+  const match = /^generation=([^\r\n]+)\r?\nhost-key=([^\r\n]+)\r?\n?$/.exec(output)
+  if (!match?.[1] || !match[2]) {
+    throw new Error('Managed Computer SSH bridge evidence is invalid.')
+  }
+  return { executionGeneration: match[1], hostPublicKey: match[2] }
 }
 
 async function waitForSshPtyProvider(targetId: string, signal?: AbortSignal): Promise<void> {

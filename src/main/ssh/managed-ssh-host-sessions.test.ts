@@ -33,6 +33,7 @@ const mocks = vi.hoisted(() => {
     provider = {}
   })
   const removeAllForwards = vi.fn(async (_targetId: string) => undefined)
+  const execCommand = vi.fn(async () => '')
 
   return {
     get provider() {
@@ -76,7 +77,8 @@ const mocks = vi.hoisted(() => {
     establish,
     detachAndPersist,
     reconnect,
-    removeAllForwards
+    removeAllForwards,
+    execCommand
   }
 })
 
@@ -111,6 +113,8 @@ vi.mock('./ssh-connection-manager', () => ({
     }
   }
 }))
+
+vi.mock('./ssh-relay-exec-command', () => ({ execCommand: mocks.execCommand }))
 
 vi.mock('./ssh-port-forward', () => ({
   SshPortForwardManager: class {
@@ -185,6 +189,8 @@ describe('ManagedSshHostSessions', () => {
     mocks.detachAndPersist.mockClear()
     mocks.reconnect.mockClear()
     mocks.removeAllForwards.mockClear()
+    mocks.execCommand.mockReset()
+    mocks.execCommand.mockResolvedValue('')
   })
 
   it('reuses one incumbent SSH relay connection and returns only after its PTY provider exists', async () => {
@@ -209,6 +215,25 @@ describe('ManagedSshHostSessions', () => {
     await expect(sessions.connect(target)).resolves.toEqual({ durableExitEvidence })
     await expect(sessions.connect(target)).resolves.toEqual({ durableExitEvidence })
     expect(mocks.connect).toHaveBeenCalledOnce()
+  })
+
+  it('reads bridge evidence only through the ready authenticated connection', async () => {
+    const sessions = new ManagedSshHostSessions({ store })
+    mocks.execCommand.mockResolvedValue(
+      'generation=10000000-0000-4000-8000-000000000001\nhost-key=ssh-ed25519 AAAA host\n'
+    )
+
+    await sessions.connect(target)
+    await expect(sessions.readComputerSshBridgeEvidence(target.id)).resolves.toEqual({
+      executionGeneration: '10000000-0000-4000-8000-000000000001',
+      hostPublicKey: 'ssh-ed25519 AAAA host'
+    })
+    expect(mocks.execCommand).toHaveBeenCalledWith(
+      expect.objectContaining({ connected: true }),
+      expect.stringMatching(
+        /\/home\/ubuntu\/\.dorka\/execution-generation.*\/etc\/ssh\/ssh_host_ed25519_key\.pub/
+      )
+    )
   })
 
   it('waits for PTY registration even after relay establishment returns', async () => {
