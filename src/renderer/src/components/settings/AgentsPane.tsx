@@ -238,6 +238,13 @@ export function AgentsPane({
 
   return (
     <div className="space-y-8">
+      <AgentPresetsSection
+        target={
+          activeServerEnvironmentId
+            ? { kind: 'environment', environmentId: activeServerEnvironmentId }
+            : { kind: 'local' }
+        }
+      />
       <AgentDefaultSetting
         defaultAgent={defaultAgent}
         detectedIds={detectedIds}
@@ -265,13 +272,6 @@ export function AgentsPane({
         mode={resolveAgentPermissionModeSummary({ agentDefaultArgs, agentDefaultEnv })}
         onChange={(mode) =>
           updateSettings(applyAgentPermissionMode({ mode, agentDefaultArgs, agentDefaultEnv }))
-        }
-      />
-      <AgentPresetsSection
-        target={
-          activeServerEnvironmentId
-            ? { kind: 'environment', environmentId: activeServerEnvironmentId }
-            : { kind: 'local' }
         }
       />
       <AgentDetectionCatalog
