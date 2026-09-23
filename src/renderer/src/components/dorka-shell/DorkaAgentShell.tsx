@@ -21,18 +21,32 @@ type SentMessage = { id: number; body: string }
 function AgentMark({ agent, size = 'md' }: { agent: Agent; size?: 'sm' | 'md' | 'lg' }) {
   return (
     <span
-      aria-hidden="true"
       className={cn(
-        'relative flex shrink-0 items-center justify-center rounded-[42%] font-semibold text-white shadow-xs',
-        size === 'sm' && 'size-8 text-xs',
-        size === 'md' && 'size-10 text-sm',
-        size === 'lg' && 'size-12 text-base'
+        'relative flex shrink-0 items-center justify-center',
+        size === 'sm' && 'size-8',
+        size === 'md' && 'size-10',
+        size === 'lg' && 'size-12'
       )}
-      style={{ backgroundColor: `hsl(${agent.hue} 66% 42%)` }}
     >
-      {agent.name.slice(0, 2).toUpperCase()}
+      <svg
+        role="img"
+        aria-label={`${agent.name} agent mark`}
+        viewBox="0 0 48 48"
+        className="size-full"
+        style={{ color: `hsl(${agent.hue} 66% 48%)` }}
+      >
+        <path
+          fill="currentColor"
+          fillRule="evenodd"
+          clipRule="evenodd"
+          d="M24 3.5c8.2 0 15.3 4.2 18.6 10.4 3.4 6.4 1.8 14.8-2.1 21-3.5 5.5-9.5 9.8-16.5 9.5-7.4-.3-14.1-4.4-17.6-10.5C3 28 2.5 20.2 5.9 14 9.5 7.6 16.2 3.5 24 3.5Zm-3.25 19.5c0 2.2-1.23 4-2.75 4s-2.75-1.8-2.75-4 1.23-4 2.75-4 2.75 1.8 2.75 4Zm12 0c0 2.2-1.23 4-2.75 4s-2.75-1.8-2.75-4 1.23-4 2.75-4 2.75 1.8 2.75 4Z"
+        />
+      </svg>
       {agent.active ? (
-        <span className="absolute -right-0.5 -bottom-0.5 size-2.5 rounded-full border-2 border-sidebar bg-status-success" />
+        <span
+          aria-hidden="true"
+          className="absolute -right-0.5 -bottom-0.5 size-2.5 rounded-full border-2 border-background bg-status-success"
+        />
       ) : null}
     </span>
   )
@@ -188,7 +202,7 @@ function Conversation({
           onClick={onOpenInspector}
           className="ml-auto inline-flex items-center gap-2 rounded-full border border-border bg-muted px-3 py-1.5 text-xs font-medium outline-none hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring"
         >
-          <Computer className="size-3.5" /> Computer
+          <Computer className="size-3.5" /> On Main
         </button>
       </header>
 
@@ -266,7 +280,7 @@ function AgentInspector({
 }) {
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="w-[min(90vw,380px)] sm:max-w-[380px]">
+      <SheetContent className="dark w-[min(90vw,380px)] sm:max-w-[380px]">
         <div className="border-b border-border p-2">
           <SheetHeader>
             <div className="mb-3">
@@ -279,9 +293,11 @@ function AgentInspector({
         <div className="space-y-6 p-6">
           <section>
             <h3 className="text-sm font-semibold">Placement</h3>
-            <p className="mt-2 flex items-center gap-2 text-sm text-muted-foreground">
-              <Computer className="size-4" /> Computer · Local workspace
-            </p>
+            <div className="mt-3">
+              <Badge variant="secondary">
+                <Computer className="size-3.5" /> On Main
+              </Badge>
+            </div>
           </section>
           <section>
             <h3 className="text-sm font-semibold">Working style</h3>
@@ -338,8 +354,8 @@ export function DorkaAgentShell(): React.JSX.Element {
   }
 
   return (
-    <div className="flex h-screen min-h-0 overflow-hidden bg-background font-sans text-foreground">
-      <div className="dorka-roster-desktop dark w-80 shrink-0 border-r border-sidebar-border">
+    <div className="dorka-shell dark flex h-screen min-h-0 overflow-hidden bg-background font-sans text-foreground">
+      <div className="dorka-roster-desktop w-80 shrink-0 border-r border-sidebar-border">
         <AgentRoster
           agents={visibleAgents}
           selectedId={selectedId}

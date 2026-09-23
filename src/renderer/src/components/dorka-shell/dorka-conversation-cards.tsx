@@ -7,7 +7,7 @@ export function JobCard({ accepted, onAccept }: { accepted: boolean; onAccept: (
   return (
     <section
       aria-label="Suggested job"
-      className="rounded-xl border border-border bg-card p-4 text-card-foreground shadow-xs"
+      className="rounded-xl border border-border bg-card p-4 text-card-foreground"
     >
       <div className="flex items-start gap-3">
         <span className="rounded-md bg-muted p-2 text-foreground">
@@ -47,7 +47,7 @@ export function CapabilityCard({
   return (
     <section
       aria-label="Capability request"
-      className="rounded-xl border border-border bg-card p-4 text-card-foreground shadow-xs"
+      className="rounded-xl border border-border bg-card p-4 text-card-foreground"
     >
       <div className="flex items-start gap-3">
         <span className="rounded-md bg-muted p-2 text-foreground">
@@ -77,7 +77,7 @@ export function ProgressCard(): React.JSX.Element {
   return (
     <section
       aria-label="Job progress"
-      className="rounded-xl border border-border bg-card p-4 text-card-foreground shadow-xs"
+      className="rounded-xl border border-border bg-card p-4 text-card-foreground"
     >
       <div className="mb-3 flex items-center justify-between gap-4">
         <div>

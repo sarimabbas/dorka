@@ -50,9 +50,10 @@ describe('DorkaAgentShell', () => {
     const user = userEvent.setup()
     render(<DorkaAgentShell />)
 
-    await user.click(screen.getByRole('button', { name: /Computer/ }))
+    expect(screen.getAllByRole('img', { name: 'Mara agent mark' }).length).toBeGreaterThan(0)
+    await user.click(screen.getByRole('button', { name: /On Main/ }))
     expect(screen.getByRole('dialog')).not.toBeNull()
-    expect(screen.getByText(/Local workspace/)).not.toBeNull()
+    expect(screen.getAllByText('On Main')).toHaveLength(2)
 
     await user.keyboard('{Escape}')
     await act(async () => {

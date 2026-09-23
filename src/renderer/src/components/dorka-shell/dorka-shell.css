@@ -1,3 +1,13 @@
+.dorka-shell {
+  color-scheme: dark;
+  caret-color: var(--foreground);
+}
+
+.dorka-shell ::selection {
+  color: var(--accent-foreground);
+  background: var(--accent);
+}
+
 .dorka-roster-desktop {
   display: none;
 }
