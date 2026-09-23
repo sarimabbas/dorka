@@ -3,13 +3,17 @@
 ARG SELKIES_IMAGE=ghcr.io/selkies-project/nvidia-glx-desktop:24.04-20260810151351
 FROM ${SELKIES_IMAGE}
 
-USER 1000
-SHELL ["/usr/bin/fakeroot", "--", "/bin/sh", "-c"]
+# Install system packages as real root. fakeroot cannot perform dpkg ownership changes under
+# rootless Podman/buildx emulation and produced an image that could not be built reproducibly.
+USER 0
+SHELL ["/bin/sh", "-c"]
 ARG DEBIAN_FRONTEND=noninteractive
 # hadolint ignore=DL3008,SC1008
 RUN apt-get update && apt-get install --no-install-recommends -y \
       bash build-essential ca-certificates curl git jq nodejs npm openssh-server python3 && \
-    apt-get clean && rm -rf /var/lib/apt/lists/* /var/cache/debconf/* /var/log/* /tmp/* /var/tmp/*
+    apt-get clean && \
+    rm -f /etc/ssh/ssh_host_* && \
+    rm -rf /var/lib/apt/lists/* /var/cache/debconf/* /var/log/* /tmp/* /var/tmp/*
 
 # sshd starts as root, then drops each session to the unprivileged ubuntu user.
 # hadolint ignore=DL3002
