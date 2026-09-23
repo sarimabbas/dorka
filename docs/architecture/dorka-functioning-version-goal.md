@@ -47,7 +47,7 @@ the server container must start and accept remote client connections.
 - [x] Remove the temporary parallel Dorka shell entry path.
 - [x] Preserve the existing application shell and tab behavior.
 - [x] Keep the existing Settings experience with only supported sections visible.
-- [ ] Keep the existing local diff viewer.
+- [x] Keep the existing local diff viewer.
 - [ ] Keep PR Review using credentials and tools inside the selected Computer.
 - [x] Keep Automations for scheduled or repeated Agent launches.
 - [x] Expose durable Agent presets and Computer lifecycle state in the retained Settings shell.
@@ -71,6 +71,9 @@ the server container must start and accept remote client connections.
 - [ ] Connect the tested Agent execution seam to a concrete Computer SSH launcher and the existing PTY/session path.
 - [x] Record the selected `computerId`, terminal session identity, and process identity on each launched Run.
 - [x] Support validated ordinary environment variables and exact operator-allowlisted Computer premounts.
+- [x] Provision one persistent server-owned SSH control key per Computer, inject only its public key, and disable password authentication.
+- [x] Keep Computer lifecycle mutation ordering inside `ComputerRuntimeManager`.
+- [x] Omit unconfigured artifact, account, and plugin RPC families from the `dorkad` bundle and capability catalog.
 
 ### Validation and handoff
 
@@ -83,14 +86,19 @@ the server container must start and accept remote client connections.
 
 ## Remaining functional gaps
 
-- The desktop shell, reduced Settings, and Automations passed a live Electron/CDP smoke test.
-  Project-bound tabs, local Diff, Review, and terminal launch still need a workspace fixture for a
-  complete manual smoke test.
+- An isolated hidden Electron/CDP run against `/tmp/dorka-computer-use-qa-repo` passed project add,
+  Settings, tabs, local terminal execution, local Diff, and Automations with no renderer errors.
+  Evidence is recorded in `/tmp/dorka-computer-use-qa.md`. Hosted Review remained unreachable
+  because the safety fixture intentionally had no remote or provider credentials.
 - The existing local Diff and Review implementation remains in the application, but Review has not
   yet been moved onto Computer-local `git`/`gh` execution and credentials.
-- The Agent execution module now validates placement, starts the Computer, delegates to one terminal
-  launcher interface, and durably records Run session/process identity. The concrete Computer SSH
-  launcher adapter is still missing, so this is not yet an end-to-end Agent launch.
+- The Agent execution module now validates placement, starts the Computer, passes a stable Run id to
+  one terminal launcher interface, and durably records Run session/process identity. Managed
+  Computers now receive a server-owned public control key. The Node-safe SSH host-session adapter,
+  direct remote terminal launch seam, and production composition are still missing, so this is not
+  yet an end-to-end Agent launch.
+- Computer SSH host keys survive stop/start but not container replacement. Recreate/reconcile must
+  establish an explicit replacement generation instead of silently accepting a changed host key.
 - Existing Project and Workspace language still needs a careful Dorka terminology pass. This must
   not erase useful git/worktree distinctions.
 - Browser-hosted graphical Computer desktops remain a post-MVP runtime integration.

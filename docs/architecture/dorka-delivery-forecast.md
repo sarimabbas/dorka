@@ -3,7 +3,7 @@
 ## Purpose and status
 
 This forecast turns the functioning-version goal into an ordered delivery plan. It reflects
-`feat/dorka-computers` at `edb8d33ad` and the evidence listed below. A checked item means the
+`feat/dorka-computers` at `9802a6006` and the evidence listed below. A checked item means the
 repository contains both the implementation and named verification evidence, or the functioning
 version goal records a completed live check. It does **not** mean the full end-to-end MVP has been
 proved.
@@ -25,16 +25,18 @@ Desktop/mobile client
 ```
 
 The first four steps now have a tested control-plane seam through `AgentExecutionService`, including
-durable Run-to-session binding. The concrete Computer SSH terminal adapter and complete
-workspace-backed smoke path remain the critical gap.
+durable Run-to-session binding and a stable Run launch identity. Managed Computers now receive a
+persistent server-owned public control key with password authentication disabled. The Node-safe SSH
+host-session adapter, direct remote terminal launch seam, and Computer-local Review remain the
+critical gaps.
 
 ## Prioritized backlog
 
 | Priority | Horizon | Type | Deliverable and acceptance evidence | Dependencies | Forecast |
 | --- | --- | --- | --- | --- | --- |
-| P0 | Now | Feature | Complete the concrete Computer SSH launcher adapter behind the tested `AgentExecutionService`. A Run must start on its selected Computer through the existing PTY/session path. | Per-Computer control key, Computer SSH projection, existing PTY/session APIs | 2–4 engineering days |
+| P0 | Now | Feature | Complete the concrete Computer SSH launcher adapter behind the tested `AgentExecutionService`. A Run must start on its selected Computer through the existing PTY/session path. | Node-safe SSH host-session composition, Computer SSH projection, direct resolved-scope terminal seam | 2–4 engineering days |
 | P0 | Now | Validation | Prove restart/reconnect restores the persisted `computerId`, terminal-session identity, and process identity without inferring process death from lost contact. | Concrete launcher adapter; execution-host status contract | 1–2 days, overlaps launch work |
-| P0 | Now | Validation | Add a deterministic workspace fixture and smoke-test terminal launch, tabs, Settings, local Diff, Review, and Automations in the integrated app. Record the exact commands and results. | P0 launch path; test repository and provider-neutral review fixture | 2–3 days |
+| P0 | Now | Validation | Extend the completed isolated Electron fixture with safe provider-backed Review and the Computer launch path. Preserve the recorded tabs, Settings, local terminal, local Diff, and Automations evidence. | P0 launch path; credential-bearing disposable review fixture | 1–2 days |
 | P0 | Now | Bug/validation | Prove first-run `Main` provisioning on native Linux with rootless Docker and Podman, including missing-image degradation, server restart, and Computer reconciliation. | Built Computer image; engine socket; Linux runner | 2–4 days |
 | P0 | Now | Feature | Route local Diff and PR Review through the selected Computer's Git binary, credentials, and filesystem. Keep provider-specific behavior behind explicit GitHub/GitLab checks. | Run placement; remote Git execution; credential-bearing test repositories | 4–7 days |
 | P1 | Next | Validation | Prove two-Computer identity isolation: separate home/workspace volumes and Git identities, shared identity within one Computer, and changed identity after moving an Agent's next Run. | All P0 runtime work; two isolated test repositories | 3–5 days |
@@ -55,17 +57,20 @@ only after P0 evidence is green.
 | Status | Completed capability | Evidence |
 | --- | --- | --- |
 | ✅ | Durable Agent presets and Run records | `src/main/agents/agent-roster-store.ts`; `agent-roster-store.test.ts`; commits `b2b7b2c58`, `00c44aff8` |
-| ✅ | Persistent Computer lifecycle records and reconciliation | `src/main/computers/computer-runtime-manager.ts`; `computer-runtime-manager.test.ts`; commit `aff13464f` |
+| ✅ | Persistent Computer lifecycle records, manager-owned mutation ordering, and reconciliation | `src/main/computers/computer-runtime-manager.ts`; concurrency/recovery tests; commits `aff13464f`, `e3372e3a4` |
 | ✅ | Agent/Computer control-plane composition and authenticated RPC methods | `src/main/dorkad/dorkad-control-plane.ts`; its test; `src/main/runtime/rpc/methods/lifecycle-rpc.test.ts`; commits `eafda17fd`, `6b412e0d8`, `4d8dc2ba7` |
 | ✅ | Idempotent first-run defaults with degraded startup when provisioning fails | `src/main/dorka-bootstrap/dorka-first-run.test.ts`; `src/main/dorkad/dorkad-first-run.test.ts`; commits `86605b63f`, `bad589c2e` |
 | ✅ | Containerized `dorkad` build, external bind, sibling Computer topology, and rootless Podman socket handling | `Dockerfile`; `compose.yaml`; `docker/computer/Dockerfile`; `docs/reference/container-deployment.md`; commits `3b5b58a87`, `44c8b3c9b`, `4689aca73` |
 | ✅ | Retained single application shell with unsupported navigation and quick-command/status-bar surfaces removed | Renderer reachability/settings/quick-command tests; commits `a7da41fbd`, `29a0bb985`, `6a6f107cf`, `e26684aff`, `20584d4ef`, `13d9b8136` |
-| ✅ | Tested Agent execution seam and durable Run placement/session/process identity | `src/main/agents/agent-execution-service.ts`; its tests; `agents.run` RPC; commit `b31581377` |
+| ✅ | Tested Agent execution seam and durable Run placement/session/process identity | `src/main/agents/agent-execution-service.ts`; its tests; `agents.run` RPC; stable Run launch identity; commits `b31581377`, `9802a6006` |
 | ✅ | Safe ordinary environment injection and exact operator-allowlisted premounts | Computer command/manager tests; deployment docs; commit `37b4a5fdf` |
 | ✅ | Persistent Computer home matches the image's actual `/home/ubuntu` user | command construction and rejection tests; commit `98397f367` |
+| ✅ | Per-Computer server-owned Ed25519 control key with public-key-only injection and password SSH disabled | key-store, command, manager, and image-entrypoint tests; commit `3df2d3e08` |
+| ✅ | `dorkad` omits unconfigured artifact/account/plugin RPC families and their bundle graph | manifest/capability tests plus `build:dorkad`; commit `294cbb766` |
 | ✅ | Retained Settings exposes durable Agent presets and Computer start/stop state | focused renderer tests; commits `54d861ad2`, `edb8d33ad` |
-| ✅ | Focused tests, Node/renderer typechecks, builds, and a live shell smoke are recorded complete | `docs/architecture/dorka-functioning-version-goal.md` at `ee1d0d3ab`; backend and renderer focused suites were rerun through `edb8d33ad` |
-| ⬜ | Concrete Computer SSH terminal adapter, workspace-backed full smoke, and Computer-local Review | Explicitly open in `dorka-functioning-version-goal.md`; these remain P0 |
+| ✅ | Isolated retained-shell QA for project add, Settings, tabs, local terminal, local Diff, and Automations | `/tmp/dorka-computer-use-qa.md` and ten screenshots; hidden Playwright/Electron CDP against a throwaway `/tmp` repository |
+| ✅ | Focused tests, Node/renderer typechecks, and `dorkad` build are recorded complete | integrated 27-test control-plane/RPC run, 28-test Computer-key run, full typecheck, and 8.18 MB/4,408-module `build:dorkad` through `3df2d3e08` |
+| ⬜ | Concrete Computer SSH terminal adapter, restart/reconnect proof, and Computer-local Review | Explicitly open in `dorka-functioning-version-goal.md`; these remain P0 |
 
 ## Known risks
 
@@ -77,6 +82,9 @@ only after P0 evidence is green.
   service account. Rootless operation reduces impact but is not a security boundary by itself.
 - **Image availability:** the pinned Selkies base is currently `linux/amd64`; arm64 development may
   require emulation and can hide native-Linux defects.
+- **SSH host identity:** Computer host keys currently live in the container layer. Container
+  replacement must create an explicit target generation; silently accepting a changed key is not
+  allowed.
 - **Wire compatibility:** clients and Servers update independently. Add optional RPC fields and
   capability-negotiate new stream behavior.
 - **Review portability:** Computer-local review must support GitLab and other providers, not only
