@@ -5,8 +5,12 @@ import {
   type ManagedPtyExitCertificateV1
 } from '../../src/shared/managed-pty-exit-evidence.ts'
 
-const MAIN = 'dorka-computer-main'
-const FIXED_VOLUMES = [`${MAIN}-home`, `${MAIN}-workspace`, `${MAIN}-ssh-host-keys`]
+const COMPUTERS = ['dorka-computer-main', 'dorka-computer-secondary']
+const FIXED_VOLUMES = COMPUTERS.flatMap((computer) => [
+  `${computer}-home`,
+  `${computer}-workspace`,
+  `${computer}-ssh-host-keys`
+])
 
 type Run = {
   id: string
@@ -126,7 +130,7 @@ export function certificateMatchesRun(certificate: ManagedPtyExitCertificateV1, 
 export function cleanupResourceNames(names: Names): string[] {
   return [
     names.server,
-    MAIN,
+    ...COMPUTERS,
     names.serverData,
     ...FIXED_VOLUMES,
     'dorka-runtimes',

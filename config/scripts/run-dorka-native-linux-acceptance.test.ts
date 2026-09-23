@@ -121,10 +121,14 @@ describe('native Linux acceptance contracts', () => {
     expect(cleanupResourceNames(names)).toEqual([
       names.server,
       'dorka-computer-main',
+      'dorka-computer-secondary',
       names.serverData,
       'dorka-computer-main-home',
       'dorka-computer-main-workspace',
       'dorka-computer-main-ssh-host-keys',
+      'dorka-computer-secondary-home',
+      'dorka-computer-secondary-workspace',
+      'dorka-computer-secondary-ssh-host-keys',
       'dorka-runtimes',
       names.controlNetwork
     ])

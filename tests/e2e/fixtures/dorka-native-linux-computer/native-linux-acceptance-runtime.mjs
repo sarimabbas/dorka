@@ -10,8 +10,15 @@ import {
   redactArtifact
 } from '../../../../config/scripts/run-dorka-native-linux-acceptance.ts'
 import { selkiesServiceStatus, verifyDesktopReadiness } from './native-linux-desktop-readiness.mjs'
-const MAIN = 'dorka-computer-main'
-const FIXED_VOLUMES = [`${MAIN}-home`, `${MAIN}-workspace`, `${MAIN}-ssh-host-keys`]
+import { verifyTwoComputerIsolation } from './native-linux-two-computer-acceptance.mjs'
+const MAIN_ID = 'main'
+const SECONDARY_ID = 'secondary'
+const MAIN = `dorka-computer-${MAIN_ID}`
+const SECONDARY = `dorka-computer-${SECONDARY_ID}`
+const COMPUTERS = [MAIN, SECONDARY]
+const FIXED_VOLUMES = COMPUTERS.flatMap((computer) =>
+  ['home', 'workspace', 'ssh-host-keys'].map((suffix) => `${computer}-${suffix}`)
+)
 const PENDING = '/home/ubuntu/.dorka/managed-pty-exits/v1/pending'
 const ACKED = '/home/ubuntu/.dorka/managed-pty-exits/v1/acknowledged'
 const ROOT = resolve(import.meta.dirname, '../../../..')
@@ -93,9 +100,16 @@ function preflight(names) {
     ) >= 62914560,
     'requires 60 GiB free in the container image store'
   )
-  requireValue(engine(['ps', '-aq', '--filter', `name=^${MAIN}$`]) === '', `${MAIN} already exists`)
+  for (const computer of COMPUTERS) {
+    requireValue(
+      engine(['ps', '-aq', '--filter', `name=^${computer}$`]) === '',
+      `${computer} already exists`
+    )
+  }
   requireValue(
-    engine(['volume', 'ls', '-q', '--filter', `name=^${MAIN}-`]) === '',
+    FIXED_VOLUMES.every(
+      (volume) => engine(['volume', 'ls', '-q', '--filter', `name=^${volume}$`]) === ''
+    ),
     'fixed volumes already exist'
   )
   requireValue(
@@ -122,7 +136,7 @@ function cleanup(names, artifacts) {
       failures.push(`${args[0]} ${args[1] ?? ''}`)
     }
   }
-  attempt(['rm', '-f', names.server, MAIN])
+  attempt(['rm', '-f', names.server, ...COMPUTERS])
   for (const id of engine(['ps', '-aq', '--filter', `label=${names.label}`])
     .split('\n')
     .filter(Boolean)) {
@@ -141,9 +155,11 @@ function cleanup(names, artifacts) {
   }
   attempt(['image', 'rm', '-f', names.computerImage, names.computerBaseImage, names.serverImage])
   const residue = [
-    engine(['ps', '-aq', '--filter', `name=^${MAIN}$`]),
+    ...COMPUTERS.map((computer) => engine(['ps', '-aq', '--filter', `name=^${computer}$`])),
     engine(['ps', '-aq', '--filter', `label=${names.label}`]),
-    engine(['volume', 'ls', '-q', '--filter', `name=^${MAIN}-`]),
+    ...FIXED_VOLUMES.map((volume) =>
+      engine(['volume', 'ls', '-q', '--filter', `name=^${volume}$`])
+    ),
     engine(['volume', 'ls', '-q', '--filter', `label=${names.label}`]),
     engine(['network', 'ls', '-q', '--filter', 'name=^dorka-runtimes$'])
   ].filter(Boolean)
@@ -254,8 +270,17 @@ function findRun(pairing, agentId, id) {
   requireValue(run, `run ${id} missing`)
   return run
 }
-function launch(pairing, agentId, token) {
-  const run = rpc(pairing, 'agents.run', { agentId, computerId: 'main', prompt: token })
+function waitForComputerHealth(container, label = container) {
+  return waitFor(`${label} health`, 3e5, () =>
+    engine(['inspect', container, '--format', '{{.State.Health.Status}}'], {
+      allowFailure: true
+    }) === 'healthy'
+      ? true
+      : void 0
+  )
+}
+function launch(pairing, agentId, computerId, token) {
+  const run = rpc(pairing, 'agents.run', { agentId, computerId, prompt: token })
   requireValue(typeof run === 'object' && run !== null && 'id' in run, 'agents.run returned no Run')
   return run
 }
@@ -270,7 +295,7 @@ function captureFailureDiagnostics(names, artifacts, failure) {
       .split('\n')
       .filter(Boolean)
   )
-  for (const container of [names.server, MAIN]) {
+  for (const container of [names.server, ...COMPUTERS]) {
     if (!containers.has(container)) {
       continue
     }
@@ -280,7 +305,7 @@ function captureFailureDiagnostics(names, artifacts, failure) {
       engine(['logs', container], { allowFailure: true, includeStderr: true })
     )
     artifact(artifacts, `${container}-inspect.json`, engine(['inspect', container]))
-    if (container === MAIN) {
+    if (COMPUTERS.includes(container)) {
       artifact(
         artifacts,
         `${container}-processes-and-service-logs.txt`,
@@ -352,12 +377,7 @@ function runAcceptance() {
       Array.isArray(agents) && agents.length === 1 && agents[0].harnessId === 'pi',
       'expected exactly one Assistant'
     )
-    waitFor('Computer health', 3e5, () =>
-      engine(['inspect', MAIN, '--format', '{{.State.Health.Status}}'], { allowFailure: true }) ===
-      'healthy'
-        ? true
-        : void 0
-    )
+    waitForComputerHealth(MAIN)
     requireValue(engine(['port', MAIN]) === '', 'Computer publishes host ports')
     engine([
       'exec',
@@ -377,35 +397,30 @@ function runAcceptance() {
       '-E',
       'sha256'
     ])
-    engine(['restart', MAIN])
-    waitFor('Computer health after restart', 3e5, () =>
-      engine(['inspect', MAIN, '--format', '{{.State.Health.Status}}'], { allowFailure: true }) ===
-      'healthy'
-        ? true
-        : void 0
-    )
-    requireValue(
-      engine([
-        'exec',
-        MAIN,
-        'ssh-keygen',
-        '-lf',
-        '/etc/ssh/ssh_host_ed25519_key.pub',
-        '-E',
-        'sha256'
-      ]) === fingerprint,
-      'Computer SSH host key changed across restart'
-    )
-    requireValue(
-      engine(['exec', MAIN, 'cat', '/home/ubuntu/.dorka/desktop-password']) === desktopPassword,
-      'Computer desktop password changed across restart'
-    )
+    const agentId = agents[0].id
+    const isolated = Date.now()
+    verifyTwoComputerIsolation({
+      agentId,
+      artifacts,
+      artifact,
+      desktopPassword,
+      engine,
+      findRun,
+      fingerprint,
+      launch,
+      names,
+      pairing: current.pairing,
+      requireValue,
+      rpc,
+      waitFor,
+      waitForComputerHealth
+    })
+    record('two-computer-isolation-persistence-and-agent-move', isolated)
     const supervisor = selkiesServiceStatus(engine, MAIN)
     artifact(artifacts, 'selkies-supervisor.txt', supervisor)
     artifact(artifacts, 'computer-processes.txt', engine(['exec', MAIN, 'ps', '-ef']))
     artifact(artifacts, 'computer-inspect.json', engine(['inspect', MAIN]))
     record('selkies-ssh-private-ports', first)
-    const agentId = agents[0].id
     const generation = engine([
       'inspect',
       MAIN,
@@ -413,7 +428,7 @@ function runAcceptance() {
       '{{index .Config.Labels "dev.dorka.execution-generation"}}'
     ])
     const token = `run-${names.run}-a`
-    const launched = launch(current.pairing, agentId, token)
+    const launched = launch(current.pairing, agentId, MAIN_ID, token)
     requireValue(
       launched.status === 'running' && launched.computerExecutionGeneration === generation,
       'managed Run identity is incomplete'
@@ -484,7 +499,7 @@ function runAcceptance() {
     record('offline-exit-replay', offline)
     const blocked = Date.now()
     const token2 = `run-${names.run}-b`
-    const run2 = launch(current.pairing, agentId, token2)
+    const run2 = launch(current.pairing, agentId, MAIN_ID, token2)
     engine(['stop', '--time', '20', names.server])
     engine(['exec', MAIN, 'touch', `/workspace/${token2}.exit`])
     waitFor('second pending certificate', 3e4, () =>
