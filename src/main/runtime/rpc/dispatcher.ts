@@ -9,7 +9,6 @@ import {
 } from './core'
 
 import { errorResponse, successResponse } from './errors'
-import { ALL_RPC_METHODS } from './methods'
 import { emulatorProbe, emulatorProbeError } from '../../emulator/emulator-probe'
 import type { DorkaRuntimeService } from '../dorka-runtime'
 import {
@@ -26,7 +25,7 @@ import { invokeDispatcherUnaryMethod } from './dispatcher-unary-method-invocatio
 
 export type DispatcherOptions = {
   runtime: DorkaRuntimeService
-  methods?: readonly RpcAnyMethodDeclaration[]
+  methods: readonly RpcAnyMethodDeclaration[]
 }
 
 type DispatchCallOptions = RpcDispatchStreamingOptions
@@ -38,7 +37,7 @@ export class RpcDispatcher {
   private readonly legacyOrchestration: OrchestrationLegacyCompatibility
   private readonly streamingDispatcher: RpcStreamingDispatcher
 
-  constructor({ runtime, methods = ALL_RPC_METHODS }: DispatcherOptions) {
+  constructor({ runtime, methods }: DispatcherOptions) {
     this.runtime = runtime
     this.registry = buildRegistry(methods)
     this.orchestrationMutations = getOrchestrationMutationExecutor(runtime)

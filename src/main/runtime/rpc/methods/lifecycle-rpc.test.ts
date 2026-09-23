@@ -80,7 +80,7 @@ describe('Agent and Computer lifecycle RPC', () => {
       agentExecutionService,
       computerRuntimeManager
     })
-    const dispatcher = new RpcDispatcher({ runtime })
+    const dispatcher = new RpcDispatcher({ runtime, methods: ALL_RPC_METHODS })
 
     const createdAgent = await dispatch(dispatcher, 'agents.create', {
       name: 'Planner',

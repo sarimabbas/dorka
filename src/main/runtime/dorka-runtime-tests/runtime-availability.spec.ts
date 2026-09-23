@@ -7,6 +7,10 @@ import {
   unregisterSshGitProvider
 } from '../dorka-runtime-test-mocks.spec'
 import {
+  ACCOUNT_IMPORT_RUNTIME_CAPABILITY,
+  CODEX_RESET_CREDIT_RUNTIME_CAPABILITY
+} from '../../../shared/protocol-version'
+import {
   HEADLESS_LEAF_ID,
   TEST_WINDOW_ID,
   TEST_WORKTREE_ID,
@@ -269,6 +273,18 @@ describe('DorkaRuntimeService', () => {
     const runtime = createRuntime()
 
     expect(runtime.getStatus().capabilities).toContain('accounts.codex-reset-credit.v1')
+  })
+
+  it('lets dorkad suppress capabilities whose RPC methods are not installed', () => {
+    const runtime = new DorkaRuntimeService(store, undefined, {
+      disabledRuntimeCapabilities: [
+        ACCOUNT_IMPORT_RUNTIME_CAPABILITY,
+        CODEX_RESET_CREDIT_RUNTIME_CAPABILITY
+      ]
+    })
+
+    expect(runtime.getStatus().capabilities).not.toContain('accounts.codex-reset-credit.v1')
+    expect(runtime.getStatus().capabilities).not.toContain('accounts.import-host-credentials.v1')
   })
 
   it('routes mobile Codex reset consumption through the account mutation coordinator', async () => {

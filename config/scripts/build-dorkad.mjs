@@ -155,6 +155,11 @@ const electronImporters = collectImporters(
   (specifier) => specifier === 'electron' || specifier.startsWith('electron/')
 )
 const sqliteImporters = collectImporters(metafiles, (specifier) => specifier === 'node:sqlite')
+const unsupportedRpcMethodModules = [
+  'src/main/runtime/rpc/methods/accounts.ts',
+  'src/main/runtime/rpc/methods/artifacts.ts',
+  'src/main/runtime/rpc/methods/plugins.ts'
+].filter((file) => file in result.metafile.inputs)
 
 const graphErrors = []
 if (electronImporters.size > 0) {
@@ -167,6 +172,13 @@ if (electronImporters.size > 0) {
 if (sqliteImporters.size > 0) {
   graphErrors.push(
     `${sqliteImporters.size} module(s) in the bundle import node:sqlite:\n${[...sqliteImporters]
+      .map((file) => `  - ${file}`)
+      .join('\n')}`
+  )
+}
+if (unsupportedRpcMethodModules.length > 0) {
+  graphErrors.push(
+    `the dorkad bundle reaches unconfigured RPC method modules:\n${unsupportedRpcMethodModules
       .map((file) => `  - ${file}`)
       .join('\n')}`
   )

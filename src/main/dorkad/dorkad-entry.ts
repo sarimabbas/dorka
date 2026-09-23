@@ -16,6 +16,7 @@ import process from 'node:process'
 import { setAppEnvironment, type AppEnvironment } from '../../shared/app-environment'
 import { setSecretStore, type SecretStore } from '../../shared/secret-store'
 import type { ServeReadiness } from '../server/serve-readiness'
+import * as DorkadRpc from './dorkad-rpc-server'
 import { setRuntimeBrowserCommandsFactory } from '../runtime/runtime-browser-commands-factory'
 import { resolveDorkadBrowserProvider } from './dorkad-browser-provider'
 import {
@@ -144,7 +145,6 @@ async function startDorkadRuntime(
   registerCleanup: (cleanup: () => Promise<void>) => void
 ): Promise<Pick<DorkadHandle, 'readiness'>> {
   const { DorkaRuntimeService } = await import('../runtime/dorka-runtime')
-  const { DorkaRuntimeRpcServer } = await import('../runtime/runtime-rpc')
   const { registerHeadlessPtyRuntime, getLocalPtyProvider, getSshPtyProvider } =
     await import('../ipc/pty')
   const { getAppEnvironment } = await import('../../shared/app-environment')
@@ -168,7 +168,7 @@ async function startDorkadRuntime(
   const { AgentStatusObservedPaneIdentities, AgentStatusObservedPaneIdentityCapture } =
     await import('../runtime/agent-status-observed-pane-identity')
 
-  let rpc: InstanceType<typeof DorkaRuntimeRpcServer> | null = null
+  let rpc: DorkadRpc.DorkadRuntimeRpcServer | null = null
   let uninstallHookStatusRepublish = (): void => {}
   let uninstallObservedStatusIdentity = (): void => {}
   registerCleanup(async () => {
@@ -230,6 +230,7 @@ async function startDorkadRuntime(
   const runtime = new DorkaRuntimeService(store, undefined, {
     agentRosterStore: controlPlane.agents,
     computerRuntimeManager: controlPlane.computers,
+    disabledRuntimeCapabilities: DorkadRpc.DORKAD_DISABLED_RUNTIME_CAPABILITIES,
     // Why lazy: a daemon swap replaces the provider after construction, so an eager
     // reference would freeze the pre-daemon one.
     getLocalProvider: () => getLocalPtyProvider(),
@@ -312,7 +313,7 @@ async function startDorkadRuntime(
   observedStatusCapture.attach(runtime)
 
   const bindHost = resolveDorkadBindHost(options.bind)
-  rpc = new DorkaRuntimeRpcServer({
+  rpc = new DorkadRpc.DorkadRuntimeRpcServer({
     runtime,
     userDataPath: runtimeUserDataPath,
     enableWebSocket: true,

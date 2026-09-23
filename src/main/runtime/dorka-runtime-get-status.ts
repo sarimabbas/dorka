@@ -68,6 +68,7 @@ export class DorkaRuntimeWithGetStatus extends DorkaRuntimeWithGetRuntimeId {
       process.platform === 'win32' && isWindowsProcessStartTimeAvailable()
     const capabilities: RuntimeCapability[] = RUNTIME_CAPABILITIES.filter(
       (capability) =>
+        !this.disabledRuntimeCapabilities.has(capability) &&
         (capability !== 'browser.screencast.v1' || canBrowse) &&
         // Why: the nested-runtime E2E needs a real legacy transport without maintaining an old binary fixture.
         (process.env.DORKA_E2E_DISABLE_RUNTIME_SHARED_CONTROL !== '1' ||

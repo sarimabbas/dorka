@@ -2,7 +2,6 @@ import { randomBytes } from 'node:crypto'
 import type { RuntimeTransportMetadata } from '../../../shared/runtime-bootstrap'
 import type { DorkaRuntimeService } from '../dorka-runtime'
 import { RpcDispatcher } from '../rpc/dispatcher'
-import { ALL_RPC_METHODS } from '../rpc/methods'
 import type { RpcTransport } from '../rpc/transport'
 import type { WebSocket } from 'ws'
 import type { DeviceRegistry } from '../device-registry'
@@ -109,7 +108,10 @@ export class RuntimeRpcState {
     methods
   }: DorkaRuntimeRpcServerOptions) {
     this.runtime = runtime
-    this.dispatcher = new RpcDispatcher({ runtime, methods: methods ?? ALL_RPC_METHODS })
+    if (!methods) {
+      throw new Error('rpc_method_manifest_required')
+    }
+    this.dispatcher = new RpcDispatcher({ runtime, methods })
     this.userDataPath = userDataPath
     this.pid = pid
     this.platform = platform

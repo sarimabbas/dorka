@@ -15,6 +15,7 @@ import type {
   AiVaultPrepareSessionResumeResult
 } from '../../shared/ai-vault-resume-preparation'
 import type { RuntimeDesktopWindowStatus } from '../../shared/runtime-types'
+import type { RuntimeCapability } from '../../shared/protocol-version'
 import type { AgentSessionClaimSigner } from './agent-session-claim-identity'
 import type { OrchestrationEnvironmentTransport } from './orchestration/environment-transport'
 import type { RuntimeCommandSurfaceHost } from './dorka-runtime-core'
@@ -43,6 +44,7 @@ import { registerTerminalViewAttributesApplier } from './terminal-view-attribute
 
 export class DorkaRuntimeWithStateFields extends DorkaRuntimeWithLinearCommands {
   protected readonly prepareClaudeAuth?: PrepareClaudeAuth
+  protected readonly disabledRuntimeCapabilities: ReadonlySet<RuntimeCapability>
 
   constructor(
     store: RuntimeStore | null = null,
@@ -103,11 +105,13 @@ export class DorkaRuntimeWithStateFields extends DorkaRuntimeWithLinearCommands 
       // it is installed after construction, so the closure has to resolve it at call time.
       applySessionSearchSettings?: SessionSearchSettingsApply
       orchestrationEnvironmentTransport?: OrchestrationEnvironmentTransport
+      disabledRuntimeCapabilities?: readonly RuntimeCapability[]
     }
   ) {
     super()
     this.store = store
     this.prepareClaudeAuth = deps?.prepareClaudeAuth
+    this.disabledRuntimeCapabilities = new Set(deps?.disabledRuntimeCapabilities)
     store?.onSettingsChanged?.((updates) => {
       if ('experimentalStructuredNativeChat' in updates) {
         this.notifyMobileSessionTabsChanged()
