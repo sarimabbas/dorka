@@ -3,7 +3,7 @@
 ## Purpose and status
 
 This forecast turns the functioning-version goal into an ordered delivery plan. It reflects
-`feat/dorka-computers` through `876b1dd11` and the evidence listed below. A checked item means the
+`feat/dorka-computers` through `26a404b42` and the evidence listed below. A checked item means the
 repository contains both implementation and named verification evidence, or the functioning-version
 goal records a completed live check.
 
@@ -12,13 +12,12 @@ A paired desktop client has selected the native amd64 Server on `bfc5-et`, displ
 `Main` Computer, launched the default Agent into it, persisted Run history, and read the Run's real
 terminal output through the existing runtime. The same native campaign proved authenticated Selkies
 readiness, private Computer ports, outbound NAT, persistent SSH/desktop identity, missing-image
-recovery, first-run provisioning, and Server replacement without duplicate launch. Host-certified PTY
-exit replay while the Server is offline remains the only P0 acceptance item. The focused reproducer
-proved that an interactive owning shell ignores `SIGTERM`; the fixture now uses `SIGKILL`, which closes
-the PTY in the component probe. Exact Run execution identity is now centralized, and its strict candidate
-projection removes the relay-generation field that the two-field evidence wire contract rejects. A final
-clean native campaign must still prove certificate publication, projection-before-ack, and replay end to
-end.
+recovery, first-run provisioning, and Server replacement without duplicate launch. The final clean
+native campaign also proved host-certified offline exit publication, exact `running → waiting`,
+projection-before-ack, failed-ack replay, acknowledgement cleanup, and negative disconnect behavior.
+Exact Run execution identity is centralized, and strict evidence candidates satisfy the two-field wire
+contract. All native containers, volumes, images, and custom networks were removed after evidence was
+captured.
 
 ## Execution flow
 
@@ -44,31 +43,30 @@ gate, so acceptance supports an explicitly enabled, otherwise-empty isolated Doc
 
 ## Prioritized backlog
 
-| Priority | Horizon | Type        | Deliverable and acceptance evidence                                                                                                                                                                                                                                                                                                                                                                                   | Dependencies                                                           | Forecast               |
-| -------- | ------- | ----------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------- | ---------------------- |
-| P0       | Done    | Validation  | Run the pinned GPU-optional Selkies Computer entrypoint on native amd64 Linux. Prove authenticated desktop readiness, managed SSH/relay launch, terminal output, outbound NAT, persistent identity, and no published Computer ports.                                                                                                                                                                                  | Isolated native Docker engine on `bfc5-et`                             | Completed 2026-09-23   |
-| P0       | Now     | Validation  | Prove host-certified PTY exit replay across a Server outage on native Linux. The focused reproducer now closes the owning PTY, and replay now emits the strict two-field evidence candidate; rerun the clean campaign to verify journal creation, Server replacement, exact `running → waiting`, projection-before-ack, acknowledgement replay, and all negative unverifiable cases with disposable Computer volumes. | Fresh native acceptance host; production Computer entrypoint and relay | <1 engineering day     |
-| P0       | Done    | Validation  | Prove first-run `Main` provisioning on native Linux, including missing-image degradation, server replacement, Computer reconciliation, and no duplicate managed launch.                                                                                                                                                                                                                                               | Built Computer image; isolated native Docker engine                    | Completed 2026-09-23   |
-| P1       | Next    | Validation  | Prove two-Computer identity isolation: separate home/workspace volumes and Git identities, shared identity within one Computer, and changed identity after moving an Agent's next Run.                                                                                                                                                                                                                                | Native-Linux P0 evidence; two isolated repositories                    | 2–4 days               |
-| P1       | Done    | Feature     | Expose honest Server connection/retry state and compact Agent/Computer selection in the retained shell, without reintroducing a parallel shell. Make Run terminal output and Diff/Review reachable from history.                                                                                                                                                                                                      | Stable Run lifecycle; renderer state projection                        | Completed 2026-09-23   |
-| P1       | Now     | Feature     | Turn Agents and Computers from settings-first administration into compact operational surfaces. Hide raw runtime identities under Details; reuse incumbent tab activation for real Open terminal/chat/desktop actions; keep output preview as fallback.                                                                                                                                                               | Existing shell navigation and owned-session activation                 | 3–5 days               |
-| P1       | Next    | Feature     | Expose existing safe Computer creation, ordinary environment, resource, and operator-allowlisted premount configuration through a redacted revisioned get/plan/replace module and confirmation UI. Keep secrets out of environment and engine arguments.                                                                                                                                                              | Computer record revisioning and replacement planning                   | 3–5 days               |
-| P1       | Done    | Hardening   | Centralize exact managed Run execution identity and certified-exit projection behind one internal module, then deepen the existing dorkad control plane instead of adding another facade.                                                                                                                                                                                                                             | Exact identity and strict candidate tests                              | Completed 2026-09-23   |
-| P1       | Next    | Feature     | Add versioned Agent skill/MCP references and resolve them at launch without moving credentials, provider homes, packages, or files into Agent state.                                                                                                                                                                                                                                                                  | Stable capability catalog and Computer-local resolution contract       | 3–5 days               |
-| P1       | Next    | Validation  | Exercise Mac, mobile, folder-workspace, SSH/remote, restart, and mixed-client-version flows against one headless Server.                                                                                                                                                                                                                                                                                              | Stable RPC contract; fixtures for each execution boundary              | 1–2 weeks              |
-| P1       | Next    | Bug/cleanup | Complete the terminology pass while retaining precise repository, branch, folder-workspace, and worktree terms where they describe real execution details.                                                                                                                                                                                                                                                            | Finalized product copy; reachability tests                             | 2–4 days               |
-| P2       | Later   | Feature     | Add authenticated Selkies desktop proxying with short-lived Computer-scoped tickets and persisted browser/desktop state.                                                                                                                                                                                                                                                                                              | Stable Computer network, session, and authorization model              | 2–4 weeks              |
-| P2       | Later   | Hardening   | Add quotas, disk accounting, image allowlisting, egress policy, backups, credential rotation, audit events, and upgrade drain behavior.                                                                                                                                                                                                                                                                               | Proven P0/P1 lifecycle; written threat model                           | 2–4 weeks              |
-| P2       | Later   | Cleanup     | Delete unreachable legacy modules and proprietary relay/cloud-account paths only after direct-connect, reconnect, mobile-resume, and mixed-version gates pass.                                                                                                                                                                                                                                                        | Reachability inventory and replacement coverage                        | Incremental; 2–4 weeks |
+| Priority | Horizon | Type        | Deliverable and acceptance evidence                                                                                                                                                                                                                                    | Dependencies                                                     | Forecast               |
+| -------- | ------- | ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------- | ---------------------- |
+| P0       | Done    | Validation  | Run the pinned GPU-optional Selkies Computer entrypoint on native amd64 Linux. Prove authenticated desktop readiness, managed SSH/relay launch, terminal output, outbound NAT, persistent identity, and no published Computer ports.                                   | Isolated native Docker engine on `bfc5-et`                       | Completed 2026-09-23   |
+| P0       | Done    | Validation  | Prove host-certified PTY exit replay across a Server outage on native Linux: journal creation, Server replacement, exact `running → waiting`, projection-before-ack, failed-ack replay, acknowledgement cleanup, negative unverifiable cases, and zero engine residue. | Native amd64 Docker acceptance campaign                          | Completed 2026-09-23   |
+| P0       | Done    | Validation  | Prove first-run `Main` provisioning on native Linux, including missing-image degradation, server replacement, Computer reconciliation, and no duplicate managed launch.                                                                                                | Built Computer image; isolated native Docker engine              | Completed 2026-09-23   |
+| P1       | Next    | Validation  | Prove two-Computer identity isolation: separate home/workspace volumes and Git identities, shared identity within one Computer, and changed identity after moving an Agent's next Run.                                                                                 | Native-Linux P0 evidence; two isolated repositories              | 2–4 days               |
+| P1       | Done    | Feature     | Expose honest Server connection/retry state and compact Agent/Computer selection in the retained shell, without reintroducing a parallel shell. Make Run terminal output and Diff/Review reachable from history.                                                       | Stable Run lifecycle; renderer state projection                  | Completed 2026-09-23   |
+| P1       | Now     | Feature     | Turn Agents and Computers from settings-first administration into compact operational surfaces. Hide raw runtime identities under Details; reuse incumbent tab activation for real Open terminal/chat/desktop actions; keep output preview as fallback.                | Existing shell navigation and owned-session activation           | 3–5 days               |
+| P1       | Next    | Feature     | Expose existing safe Computer creation, ordinary environment, resource, and operator-allowlisted premount configuration through a redacted revisioned get/plan/replace module and confirmation UI. Keep secrets out of environment and engine arguments.               | Computer record revisioning and replacement planning             | 3–5 days               |
+| P1       | Done    | Hardening   | Centralize exact managed Run execution identity and certified-exit projection behind one internal module, then deepen the existing dorkad control plane instead of adding another facade.                                                                              | Exact identity and strict candidate tests                        | Completed 2026-09-23   |
+| P1       | Next    | Feature     | Add versioned Agent skill/MCP references and resolve them at launch without moving credentials, provider homes, packages, or files into Agent state.                                                                                                                   | Stable capability catalog and Computer-local resolution contract | 3–5 days               |
+| P1       | Next    | Validation  | Exercise Mac, mobile, folder-workspace, SSH/remote, restart, and mixed-client-version flows against one headless Server.                                                                                                                                               | Stable RPC contract; fixtures for each execution boundary        | 1–2 weeks              |
+| P1       | Next    | Bug/cleanup | Complete the terminology pass while retaining precise repository, branch, folder-workspace, and worktree terms where they describe real execution details.                                                                                                             | Finalized product copy; reachability tests                       | 2–4 days               |
+| P2       | Later   | Feature     | Add authenticated Selkies desktop proxying with short-lived Computer-scoped tickets and persisted browser/desktop state.                                                                                                                                               | Stable Computer network, session, and authorization model        | 2–4 weeks              |
+| P2       | Later   | Hardening   | Add quotas, disk accounting, image allowlisting, egress policy, backups, credential rotation, audit events, and upgrade drain behavior.                                                                                                                                | Proven P0/P1 lifecycle; written threat model                     | 2–4 weeks              |
+| P2       | Later   | Cleanup     | Delete unreachable legacy modules and proprietary relay/cloud-account paths only after direct-connect, reconnect, mobile-resume, and mixed-version gates pass.                                                                                                         | Reachability inventory and replacement coverage                  | Incremental; 2–4 weeks |
 
 Forecasts are engineering ranges, not calendar commitments. They assume one engineer, available
-Linux/container test infrastructure, and no migration redesign. The remaining P0 slice is realistically
-**1–2 engineering days**, now isolated to PTY termination and offline certificate acceptance.
-Generation-fenced launch, durable relay evidence, exact Server replay, reconnect redrive, and
-projection-before-ack are implemented and focused-tested. Use three validation levels: a fast
-PTY/certificate reproducer, cached immutable-image native integration with fresh runtime state, and one
-final clean release gate. Do not rebuild the full Selkies campaign for each relay fix. P1 adds **1–2
-weeks**. P2 should be planned only after P0 evidence is green.
+Linux/container test infrastructure, and no migration redesign. P0 is green. Generation-fenced launch,
+durable relay evidence, exact Server replay, reconnect redrive, and projection-before-ack are implemented,
+focused-tested, and native-accepted. Continue using three validation levels: a fast PTY/certificate
+reproducer, cached immutable-image native integration with fresh runtime state, and one clean release
+gate. Do not rebuild the full Selkies campaign for each relay fix. P1 adds **1–2 weeks**. P2 should be
+planned only after the multi-Computer beta evidence is green.
 
 ## Completion evidence
 
@@ -106,7 +104,7 @@ weeks**. P2 should be planned only after P0 evidence is green.
 | ✅     | Native-Linux graphical image, first-run reconciliation, authenticated desktop, private ports, outbound NAT, identity persistence, missing-image recovery, Server replacement, and managed launch                        | `bfc5-et` native amd64/Docker 28.3.3 acceptance run `dorka-native-20260923T134038Z`; result recorded here before its remote workspace, containers, volumes, networks, and images were removed; commits `3db0910ba` through `1cd5f7057` |
 | ✅     | Visible paired-client `Server → Computer → Agent → Run → terminal/history` loop                                                                                                                                         | Hidden Electron/CDP check on 2026-09-23 using isolated pairing port `17668`, the `bfc5-et` native Server, `Main`, and a disposable Agent shim; commits `57e5f9694`, `91e35c152`                                                        |
 | ✅     | Fast owning-PTY exit reproducer                                                                                                                                                                                         | `config/scripts/reproduce-native-pty-owner-exit.mjs` proves interactive `SIGTERM` is ignored and `SIGKILL` closes the PTY; fixture contract tests pass; commit `9cbc68f6a`                                                             |
-| ⬜     | Server-offline exit replay and projection-before-ack native proof                                                                                                                                                       | Prior run stopped at `timed out waiting for pending certificate`. The diagnosed fixture fix now needs one final clean native release run.                                                                                              |
+| ✅     | Server-offline exit replay and projection-before-ack native proof                                                                                                                                                       | Native amd64/Docker 28.3.3 run at `33ca26073`; all six cases passed, both Runs ended `waiting`, and cleanup left zero residue. Evidence: `docs/architecture/evidence/native-linux-acceptance-20260923/`.                               |
 
 ## Known risks
 
@@ -126,8 +124,8 @@ weeks**. P2 should be planned only after P0 evidence is green.
 - **Review portability:** Computer-local review must support GitLab and other providers, not only
   GitHub credentials and terminology.
 - **Exit-fixture ownership:** the fast reproducer proved interactive shells ignore `SIGTERM`; the
-  fixture now uses `SIGKILL` and closes the PTY in isolation. Keep exact-generation and
-  exact-incarnation checks unchanged, and require the clean native replay gate before closing P0.
+  fixture uses `SIGKILL` and the native release gate now proves exact-generation and exact-incarnation
+  replay. Keep those assertions unchanged.
 - **Validation cost:** rebuilding and reprovisioning Selkies for every relay change hides the signal.
   Keep immutable images only when source/input labels match, always use fresh runtime state, and run
   the clean campaign once after focused checks pass.
@@ -138,10 +136,9 @@ weeks**. P2 should be planned only after P0 evidence is green.
 
 1. **M0 — Baseline (complete):** retained shell launches; durable Agent/Computer control-plane
    seams exist; focused checks and a limited live smoke are recorded.
-2. **M1 — Functioning native loop (Now):** native graphical startup, managed launch, durable
-   identity, terminal output, Run Diff/Review, Git identity, non-relaunching Server replacement, and
-   paired-client UI are proved. Authoritative post-outage completion remains before the gate is
-   complete.
+2. **M1 — Functioning native loop (complete):** native graphical startup, managed launch, durable
+   identity, terminal output, Run Diff/Review, Git identity, non-relaunching Server replacement,
+   paired-client UI, and authoritative post-outage completion are proved.
 3. **M2 — Isolated multi-Computer beta (Next):** placement, moves, identity isolation, remote/mobile
    reconnect, and mixed-version behavior pass end-to-end tests.
 4. **M3 — Desktop and production hardening (Later):** scoped desktop access and operational controls

@@ -114,8 +114,10 @@ accept remote client connections.
   verifies Computer ownership and re-arms the incumbent PTY-exit observer. Exact offline certificates
   project only the matching Run identity and are acknowledged only after durable persistence.
   The focused PTY reproducer proved the prior fixture's interactive owning shell ignored `SIGTERM`.
-  The fixture now uses `SIGKILL`, which closes the PTY in isolation. One final clean native Selkies
-  run must still prove certificate publication, projection-before-ack, and replay end to end.
+  The fixture now uses `SIGKILL`, which closes the PTY. The final clean native amd64 campaign proved
+  certificate publication, exact `running → waiting`, projection-before-ack, failed-ack replay,
+  acknowledgement cleanup, negative disconnect behavior, and zero engine residue. Redacted evidence
+  is tracked under `docs/architecture/evidence/native-linux-acceptance-20260923/`.
 - Agent skill and MCP references are not yet versioned or resolved at launch. They must remain
   separate from Computer-owned credentials, provider homes, packages, and filesystems.
 - Existing Project and Workspace language still needs a careful Dorka terminology pass. This must
