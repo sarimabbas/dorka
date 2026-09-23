@@ -5,6 +5,7 @@ import type { AgentRosterStore } from './agent-roster-store'
 import type { ComputerRuntimeManager } from '../computers/computer-runtime-manager'
 
 export type AgentTerminalLaunch = {
+  runId: string
   agent: Agent
   computer: ComputerRuntimeInfo
   prompt: string
@@ -44,7 +45,12 @@ export class AgentExecutionService {
       if (computer.state !== 'running') {
         computer = await this.computers.start(computer.id)
       }
-      identity = await this.launchTerminal({ agent, computer, prompt: validated.prompt })
+      identity = await this.launchTerminal({
+        runId: run.id,
+        agent,
+        computer,
+        prompt: validated.prompt
+      })
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error)
       await this.roster.transitionRun(run.id, {

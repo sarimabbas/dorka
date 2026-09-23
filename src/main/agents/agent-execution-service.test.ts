@@ -51,6 +51,7 @@ describe('AgentExecutionService', () => {
 
     expect(h.start).toHaveBeenCalledWith('computer-a')
     expect(h.launch).toHaveBeenCalledWith({
+      runId: run.id,
       agent: h.agent,
       computer: { ...h.computer, state: 'running' },
       prompt: 'Review the change'
