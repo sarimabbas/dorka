@@ -26,6 +26,19 @@ type PersistencePoint =
 type ComputerRecordStoreOptions = {
   temporaryId?: () => string
   onPersistencePoint?: (point: PersistencePoint) => void | Promise<void>
+  syncDirectory?: (directory: string) => Promise<void>
+}
+
+async function syncRecordDirectory(directory: string): Promise<void> {
+  if (process.platform === 'win32') {
+    return
+  }
+  const handle = await open(directory, 'r')
+  try {
+    await handle.sync()
+  } finally {
+    await handle.close().catch(() => undefined)
+  }
 }
 
 type RecordCommit<T> = {
@@ -142,13 +155,8 @@ export class ComputerRecordStore {
       openFile = undefined
       await rename(temporaryPath, this.path)
       await this.options.onPersistencePoint?.('after-rename')
-      const directory = await open(this.dataDirectory, 'r').catch(() => null)
-      try {
-        await this.options.onPersistencePoint?.('before-directory-sync')
-        await directory?.sync().catch(() => undefined)
-      } finally {
-        await directory?.close().catch(() => undefined)
-      }
+      await this.options.onPersistencePoint?.('before-directory-sync')
+      await (this.options.syncDirectory ?? syncRecordDirectory)(this.dataDirectory)
     } catch (error) {
       await openFile?.close().catch(() => undefined)
       await rm(temporaryPath, { force: true }).catch(() => undefined)

@@ -121,4 +121,21 @@ describe('ComputerRecordStore', () => {
     await expect(recovered.get('alpha')).resolves.toMatchObject({ desiredState: expectedState })
     expect((await readdir(directory)).filter((name) => name.endsWith('.tmp'))).toEqual([])
   })
+
+  it('reports a directory sync failure after publishing a valid record', async () => {
+    const directory = await temporaryDirectory()
+    await writeRecords(directory, [record('alpha')])
+    const store = new ComputerRecordStore(directory, {
+      syncDirectory: async () => {
+        throw new Error('directory sync failed')
+      }
+    })
+
+    await expect(store.setDesiredState('alpha', 'running', noOpCommit())).rejects.toThrow(
+      'directory sync failed'
+    )
+    await expect(new ComputerRecordStore(directory).get('alpha')).resolves.toMatchObject({
+      desiredState: 'running'
+    })
+  })
 })

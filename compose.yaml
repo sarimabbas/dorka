@@ -36,4 +36,3 @@ networks:
     name: dorka-control
   dorka-runtimes:
     name: dorka-runtimes
-    internal: true

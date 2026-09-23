@@ -5,10 +5,11 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import type { ProcessResult, ProcessSpec } from '../../shared/child-process/run-process'
 import {
   DORKA_COMPUTER_LABEL,
+  DORKA_EXECUTION_GENERATION_LABEL,
   DORKA_MANAGED_LABEL,
   DORKA_SERVER_LABEL
 } from '../../shared/computer-runtime'
-import { createDorkadControlPlane } from './dorkad-control-plane'
+import { createDorkadControlPlane, loadOrCreateServerId } from './dorkad-control-plane'
 
 const directories: string[] = []
 
@@ -58,6 +59,33 @@ describe('createDorkadControlPlane', () => {
     )
   })
 
+  it('serializes concurrent server-id creation', async () => {
+    const directory = await temporaryDirectory()
+
+    const ids = await Promise.all([
+      loadOrCreateServerId(directory),
+      loadOrCreateServerId(directory),
+      loadOrCreateServerId(directory)
+    ])
+
+    expect(new Set(ids)).toEqual(new Set([ids[0]]))
+  })
+
+  it('reports a server-id directory sync failure after publishing a valid id', async () => {
+    const directory = await temporaryDirectory()
+
+    await expect(
+      loadOrCreateServerId(directory, {
+        syncDirectory: async () => {
+          throw new Error('directory sync failed')
+        }
+      })
+    ).rejects.toThrow('directory sync failed')
+    await expect(loadOrCreateServerId(directory)).resolves.toBe(
+      (await readFile(join(directory, 'server-id'), 'utf8')).trim()
+    )
+  })
+
   it('does not reconcile when the Docker-compatible CLI is unavailable', async () => {
     const directory = await temporaryDirectory()
     vi.spyOn(console, 'error').mockImplementation(() => {})
@@ -85,6 +113,7 @@ describe('createDorkadControlPlane', () => {
   it('reconciles an available engine and applies the configured default image', async () => {
     const directory = await temporaryDirectory()
     let serverId = ''
+    let executionGeneration = ''
     let createArgs: string[] = []
     const execute = vi.fn(async (spec: ProcessSpec) => {
       const args = spec.args ?? []
@@ -96,6 +125,10 @@ describe('createDorkadControlPlane', () => {
       }
       if (args[0] === 'create') {
         createArgs = [...args]
+        executionGeneration =
+          args
+            .find((arg) => arg.startsWith(`${DORKA_EXECUTION_GENERATION_LABEL}=`))
+            ?.split('=')[1] ?? ''
         return result()
       }
       if (args[0] === 'inspect') {
@@ -109,7 +142,8 @@ describe('createDorkadControlPlane', () => {
                 Labels: {
                   [DORKA_MANAGED_LABEL]: 'true',
                   [DORKA_SERVER_LABEL]: serverId,
-                  [DORKA_COMPUTER_LABEL]: 'alpha'
+                  [DORKA_COMPUTER_LABEL]: 'alpha',
+                  [DORKA_EXECUTION_GENERATION_LABEL]: executionGeneration
                 }
               },
               State: { Running: false, Status: 'created' }

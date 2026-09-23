@@ -74,9 +74,11 @@ grants authority over resources owned by that rootless engine user.
 
 `DORKA_SERVER_PORT` changes the published server port. The container listens on
 `0.0.0.0:6768`; device pairing still authenticates clients before exposing runtime
-operations. Compose creates `dorka-runtimes` as an internal network for
-runtime traffic and a separate `dorka-control` network for the published server.
-Computer instances are created dynamically by Dorka and are intentionally not
+operations. Compose creates the private, unpublished `dorka-runtimes` bridge for
+runtime traffic and a separate `dorka-control` network for the published Server.
+The runtime bridge retains ordinary outbound NAT so Git remotes and agent providers
+remain usable; privacy comes from publishing neither Computer port, not from disabling
+egress. Computer instances are created dynamically by Dorka and are intentionally not
 listed in `compose.yaml`.
 
 ## Computer environment and premounted paths

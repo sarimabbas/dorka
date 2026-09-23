@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto'
-import { mkdir, readFile, rename, writeFile } from 'node:fs/promises'
+import { open, readFile, rename, rm } from 'node:fs/promises'
 import { join } from 'node:path'
 import { AgentRosterStore } from '../agents/agent-roster-store'
 import {
@@ -8,6 +8,7 @@ import {
 } from '../computers/computer-runtime-manager'
 import { runProcess } from '../../shared/child-process/run-process'
 import type { ComputerCreateSpec, ComputerReconcileResult } from '../../shared/computer-runtime'
+import { withFileTransactionLock } from '../file-transaction-lock'
 
 const SERVER_ID_FILE = 'server-id'
 const DEFAULT_COMPUTER_IMAGE = 'dorka-computer:selkies'
@@ -52,26 +53,58 @@ function isMissingFile(error: unknown): boolean {
   return error instanceof Error && 'code' in error && error.code === 'ENOENT'
 }
 
-async function loadOrCreateServerId(dataDirectory: string): Promise<string> {
-  const path = join(dataDirectory, SERVER_ID_FILE)
+type ServerIdPersistenceOptions = {
+  syncDirectory?: (directory: string) => Promise<void>
+}
+
+async function syncServerIdDirectory(directory: string): Promise<void> {
+  if (process.platform === 'win32') {
+    return
+  }
+  const handle = await open(directory, 'r')
   try {
-    const serverId = (await readFile(path, 'utf8')).trim()
-    if (!serverId) {
-      throw new Error('Dorka server id is empty')
+    await handle.sync()
+  } finally {
+    await handle.close().catch(() => undefined)
+  }
+}
+
+export function loadOrCreateServerId(
+  dataDirectory: string,
+  options: ServerIdPersistenceOptions = {}
+): Promise<string> {
+  const path = join(dataDirectory, SERVER_ID_FILE)
+  return withFileTransactionLock(path, async () => {
+    try {
+      const serverId = (await readFile(path, 'utf8')).trim()
+      if (!serverId) {
+        throw new Error('Dorka server id is empty')
+      }
+      return serverId
+    } catch (error) {
+      if (!isMissingFile(error)) {
+        throw error
+      }
     }
-    return serverId
-  } catch (error) {
-    if (!isMissingFile(error)) {
+
+    const serverId = randomUUID()
+    const temporaryPath = `${path}.${process.pid}.${randomUUID()}.tmp`
+    const file = await open(temporaryPath, 'wx', 0o600)
+    let openFile: Awaited<ReturnType<typeof open>> | undefined = file
+    try {
+      await file.writeFile(`${serverId}\n`, 'utf8')
+      await file.sync()
+      await file.close()
+      openFile = undefined
+      await rename(temporaryPath, path)
+      await (options.syncDirectory ?? syncServerIdDirectory)(dataDirectory)
+      return serverId
+    } catch (error) {
+      await openFile?.close().catch(() => undefined)
+      await rm(temporaryPath, { force: true }).catch(() => undefined)
       throw error
     }
-  }
-
-  await mkdir(dataDirectory, { recursive: true, mode: 0o700 })
-  const serverId = randomUUID()
-  const temporaryPath = `${path}.${process.pid}.tmp`
-  await writeFile(temporaryPath, `${serverId}\n`, { mode: 0o600 })
-  await rename(temporaryPath, path)
-  return serverId
+  })
 }
 
 function engineFailureReason(error: unknown): string {
