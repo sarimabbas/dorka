@@ -35,7 +35,7 @@ export function selkiesServiceStatus(engine, main) {
     '/etc/service/plasma'
   ])
   if (!status.split('\n').every((line) => /^(?:.*: )?up \(pid \d+\)/.test(line))) {
-    throw new Error('Selkies supervisor is degraded')
+    throw new Error(`Selkies supervisor is degraded: ${JSON.stringify(status)}`)
   }
   return status
 }
