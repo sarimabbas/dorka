@@ -75,6 +75,7 @@ describe('AgentExecutionService', () => {
       runId: run.id,
       agent: h.agent,
       computer: { ...h.computer, state: 'running' },
+      computerExecutionGeneration,
       prompt: 'Plan carefully\n\nReview the change',
       sourceDirectory: '/workspace/repo'
     })

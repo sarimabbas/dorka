@@ -5,6 +5,7 @@ import type { ComputerRuntimeManager } from '../computers/computer-runtime-manag
 import { getSshGitProvider } from '../providers/ssh-git-dispatch'
 import type { SshGitProvider } from '../providers/ssh-git-provider'
 import type { ManagedSshHostSessions } from '../ssh/managed-ssh-host-sessions'
+import type { ManagedDurableExitEvidence } from '../ssh/managed-durable-exit-evidence'
 
 export const COMPUTER_WORKSPACE = '/workspace'
 
@@ -42,6 +43,7 @@ export type ManagedComputerConnection = {
   connectionId: string
   executionHostId: `ssh:${string}`
   git: ManagedComputerGitCapability | undefined
+  durableExitEvidence?: ManagedDurableExitEvidence
 }
 
 export type ManagedComputerHostProjector = {
@@ -56,11 +58,12 @@ export function createManagedComputerHostProjector(options: {
     async connect(computerId) {
       const identityFile = await options.computers.resolveSshIdentityFile(computerId)
       const target = managedComputerSshTarget(computerId, identityFile)
-      await options.sessions.connect(target)
+      const session = await options.sessions.connect(target)
       return {
         connectionId: target.id,
         executionHostId: toSshExecutionHostId(target.id),
-        git: getSshGitProvider(target.id)
+        git: getSshGitProvider(target.id),
+        ...(session.durableExitEvidence ? { durableExitEvidence: session.durableExitEvidence } : {})
       }
     }
   }

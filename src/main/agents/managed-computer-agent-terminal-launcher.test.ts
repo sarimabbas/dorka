@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import type { RuntimeTerminalCreate } from '../../shared/runtime-types'
+import type { ManagedSshHostConnection } from '../ssh/managed-ssh-host-sessions'
 import type { TerminalWorkspaceLaunchScope } from '../runtime/runtime-legacy-worker-terminal-recovery-types'
 import type { TerminalCreateOptions } from '../runtime/runtime-terminal-contracts'
 import type { AgentTerminalLaunch } from './agent-execution-service'
@@ -8,6 +9,8 @@ import {
   createManagedComputerHostProjector,
   resolveComputerSourceDirectory
 } from './managed-computer-host-projector'
+
+const COMPUTER_GENERATION = '10000000-0000-4000-8000-000000000001'
 
 function launch(overrides: Partial<AgentTerminalLaunch> = {}): AgentTerminalLaunch {
   return {
@@ -30,6 +33,7 @@ function launch(overrides: Partial<AgentTerminalLaunch> = {}): AgentTerminalLaun
       image: 'dorka-computer:test',
       state: 'running'
     },
+    computerExecutionGeneration: COMPUTER_GENERATION,
     prompt: 'Review carefully.\n\nInspect this change.',
     sourceDirectory: '/workspace/repo',
     ...overrides
@@ -40,7 +44,14 @@ function fixture() {
   const resolveSshIdentityFile = vi.fn(
     async (_computerId: string) => '/server/private/alpha/id_ed25519'
   )
-  const connect = vi.fn(async (_target: object) => undefined)
+  const durableExitEvidence = {
+    generation: COMPUTER_GENERATION,
+    listExact: vi.fn(async () => []),
+    acknowledgeExact: vi.fn(async () => undefined)
+  }
+  const connect = vi.fn<(_target: object) => Promise<ManagedSshHostConnection>>(async () => ({
+    durableExitEvidence
+  }))
   const createTerminalInWorkspaceScope = vi.fn(
     async (
       _scope: TerminalWorkspaceLaunchScope,
@@ -106,6 +117,24 @@ describe('managed Computer agent terminal launcher', () => {
         agentSessionCreateOperationId: expect.stringMatching(/^[A-Za-z0-9_-]{43}$/)
       })
     )
+  })
+
+  it('refuses an old or mismatched relay without spawning', async () => {
+    const h = fixture()
+    h.connect.mockResolvedValueOnce({})
+
+    await expect(h.launcher(launch())).rejects.toThrow('generation is unverifiable')
+    expect(h.createTerminalInWorkspaceScope).not.toHaveBeenCalled()
+
+    h.connect.mockResolvedValueOnce({
+      durableExitEvidence: {
+        generation: '20000000-0000-4000-8000-000000000002',
+        listExact: vi.fn(async () => []),
+        acknowledgeExact: vi.fn(async () => undefined)
+      }
+    })
+    await expect(h.launcher(launch())).rejects.toThrow('generation is unverifiable')
+    expect(h.createTerminalInWorkspaceScope).not.toHaveBeenCalled()
   })
 
   it.each(['aider', 'CODEX', ''])('refuses non-allowlisted harness %j', async (harnessId) => {

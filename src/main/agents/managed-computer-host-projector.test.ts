@@ -19,9 +19,15 @@ describe('ManagedComputerHostProjector', () => {
       getComputerGitIdentity: vi.fn(),
       setComputerGitIdentity: vi.fn()
     }
+    const durableExitEvidence = {
+      generation: '10000000-0000-4000-8000-000000000001',
+      listExact: vi.fn(async () => []),
+      acknowledgeExact: vi.fn(async () => undefined)
+    }
     const connect = vi.fn(async () => {
       expect(getSshGitProvider).not.toHaveBeenCalled()
       getSshGitProvider.mockReturnValue(git)
+      return { durableExitEvidence }
     })
     const host = createManagedComputerHostProjector({
       computers: {
@@ -33,7 +39,8 @@ describe('ManagedComputerHostProjector', () => {
     await expect(host.connect('alpha')).resolves.toEqual({
       connectionId: 'runtime-ssh-computer-alpha',
       executionHostId: 'ssh:runtime-ssh-computer-alpha',
-      git
+      git,
+      durableExitEvidence
     })
     expect(getSshGitProvider).toHaveBeenCalledWith('runtime-ssh-computer-alpha')
     expect(connect).toHaveBeenCalledWith(

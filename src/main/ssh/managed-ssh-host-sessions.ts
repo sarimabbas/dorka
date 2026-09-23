@@ -6,6 +6,7 @@ import type { SshConnectionState, SshTarget } from '../../shared/ssh-types'
 import { SshConnectionManager } from './ssh-connection-manager'
 import { SshPortForwardManager } from './ssh-port-forward'
 import { SshRelaySession } from './ssh-relay-session'
+import type { ManagedDurableExitEvidence } from './managed-durable-exit-evidence'
 
 const PROVIDER_READY_TIMEOUT_MS = 10_000
 const PROVIDER_READY_INTERVAL_MS = 25
@@ -15,13 +16,17 @@ export type ManagedSshHostSessionsOptions = {
   runtime?: DorkaRuntimeService
 }
 
+export type ManagedSshHostConnection = {
+  durableExitEvidence?: ManagedDurableExitEvidence
+}
+
 /** Owns runtime-created SSH transports and relay sessions without Electron IPC. */
 export class ManagedSshHostSessions {
   private readonly connectionManager: SshConnectionManager
   private readonly portForwardManager = new SshPortForwardManager()
   private readonly sessions = new Map<string, SshRelaySession>()
   private readonly targets = new Map<string, SshTarget>()
-  private readonly connecting = new Map<string, Promise<void>>()
+  private readonly connecting = new Map<string, Promise<ManagedSshHostConnection>>()
   private readonly reconnecting = new Map<string, Promise<void>>()
 
   constructor(private readonly options: ManagedSshHostSessionsOptions) {
@@ -32,14 +37,14 @@ export class ManagedSshHostSessions {
     })
   }
 
-  connect(target: SshTarget, signal?: AbortSignal): Promise<void> {
+  connect(target: SshTarget, signal?: AbortSignal): Promise<ManagedSshHostConnection> {
     this.assertManagedTarget(target)
     const existing = this.connecting.get(target.id)
     if (existing) {
       return existing
     }
     if (this.isReady(target.id)) {
-      return Promise.resolve()
+      return this.projectConnection(target.id)
     }
 
     const promise = this.connectTarget(target, signal).finally(() => {
@@ -80,7 +85,10 @@ export class ManagedSshHostSessions {
     }
   }
 
-  private async connectTarget(target: SshTarget, signal?: AbortSignal): Promise<void> {
+  private async connectTarget(
+    target: SshTarget,
+    signal?: AbortSignal
+  ): Promise<ManagedSshHostConnection> {
     if (signal?.aborted) {
       throw new Error('Managed SSH connection was aborted.')
     }
@@ -95,6 +103,7 @@ export class ManagedSshHostSessions {
       }
       await session.establish(connection, target.relayGracePeriodSeconds)
       await waitForSshPtyProvider(target.id, signal)
+      return await this.projectConnection(target.id)
     } catch (error) {
       this.sessions.delete(target.id)
       this.targets.delete(target.id)
@@ -104,6 +113,11 @@ export class ManagedSshHostSessions {
       ])
       throw sanitizeManagedSshError(error, target.identityFile)
     }
+  }
+
+  private async projectConnection(targetId: string): Promise<ManagedSshHostConnection> {
+    const durableExitEvidence = await this.sessions.get(targetId)?.getManagedDurableExitEvidence()
+    return durableExitEvidence ? { durableExitEvidence } : {}
   }
 
   private createSession(targetId: string): SshRelaySession {

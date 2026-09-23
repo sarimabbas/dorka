@@ -98,7 +98,8 @@ describe.skipIf(process.platform === 'win32')('PtyHandler durable exit evidence'
 
   it('advertises and registers the additive protocol only when configured', async () => {
     await expect(dispatcher.callRequest('pty.getCapabilities')).resolves.toMatchObject({
-      durableExitEvidenceVersion: 1
+      durableExitEvidenceVersion: 1,
+      computerExecutionGeneration: COMPUTER_GENERATION
     })
     expect(dispatcher._requestHandlers.has('pty.listExitEvidenceV1')).toBe(true)
     expect(dispatcher._requestHandlers.has('pty.ackExitEvidenceV1')).toBe(true)
@@ -107,6 +108,9 @@ describe.skipIf(process.platform === 'win32')('PtyHandler durable exit evidence'
     const legacyHandler = createTestPtyHandler(legacyDispatcher)
     await expect(legacyDispatcher.callRequest('pty.getCapabilities')).resolves.not.toHaveProperty(
       'durableExitEvidenceVersion'
+    )
+    await expect(legacyDispatcher.callRequest('pty.getCapabilities')).resolves.not.toHaveProperty(
+      'computerExecutionGeneration'
     )
     expect(legacyDispatcher._requestHandlers.has('pty.listExitEvidenceV1')).toBe(false)
     await legacyHandler.dispose({ waitForPhysicalExit: false })

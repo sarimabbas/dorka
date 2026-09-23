@@ -1230,7 +1230,12 @@ export class PtyHandler {
       // Additive capability: clients may request the no-process-table inventory
       // projection and consume fenced inspect evidence on this host.
       foregroundProcessEvidenceVersion: 1,
-      ...(this.durableExitEvidence ? { durableExitEvidenceVersion: 1 } : {})
+      ...(this.durableExitEvidence
+        ? {
+            durableExitEvidenceVersion: 1,
+            computerExecutionGeneration: this.durableExitEvidence.computerExecutionGeneration
+          }
+        : {})
     }))
     if (this.durableExitEvidence) {
       this.dispatcher.onRequest('pty.listExitEvidenceV1', (params) =>

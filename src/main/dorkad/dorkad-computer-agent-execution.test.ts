@@ -73,84 +73,40 @@ describe('persisted managed Computer Run recovery', () => {
     expect(runs).toEqual(before)
   })
 
-  it('re-arms every exact Run with realistic colon-bearing relay PTY IDs', async () => {
-    const runs = [run('run-1', 'computer-1', 'running'), run('run-2', 'computer-1', 'waiting')]
-    const connect = vi.fn(async (computerId: string) => connection(computerId))
-    const observe = vi.fn()
-    const getExactTerminalPtyId = vi.fn((handle: string, processIdentity: string) => {
-      const candidate = runs.find(
-        (run) => run.terminalSessionId === handle && run.processIdentity === processIdentity
-      )
-      return candidate ? ptyId(candidate.id, candidate.computerId) : null
-    })
+  it('delegates one post-connect reconciliation with every Run on an active Computer', async () => {
+    const runs = [
+      run('run-1', 'computer-1', 'running'),
+      run('run-2', 'computer-1', 'waiting'),
+      run('run-3', 'computer-1', 'succeeded')
+    ]
+    const connected = connection('computer-1')
+    const connect = vi.fn(async () => connected)
+    const reconcileAfterConnect = vi.fn(async () => undefined)
+    const runtime = { getExactTerminalPtyId: vi.fn(() => null) }
 
     await recoverPersistedManagedComputerRunHosts({
       agents: { listRuns: () => runs },
       computers: { list: async () => [computer('computer-1', 'running')] },
       host: { connect },
-      runExitObserver: { observe },
-      runtime: { getExactTerminalPtyId }
+      runExitObserver: { reconcileAfterConnect },
+      runtime
     })
 
     expect(connect).toHaveBeenCalledOnce()
-    expect(observe.mock.calls).toEqual([
-      ['run-1', 'ssh:runtime-ssh-computer-computer-1@@pty2:run-1:2'],
-      ['run-2', 'ssh:runtime-ssh-computer-computer-1@@pty2:run-2:2']
-    ])
+    expect(reconcileAfterConnect).toHaveBeenCalledWith(connected, runs, runtime)
   })
 
-  it.each([
-    ['missing terminal identity', { terminalSessionId: undefined }],
-    ['missing process identity', { processIdentity: undefined }],
-    ['malformed process identity', { processIdentity: 'not-a-pty' }],
-    ['different Computer identity', { processIdentity: `${ptyId('run', 'computer-2')}:inc-run` }]
-  ])('does not observe a Run with %s', async (_name, overrides) => {
-    const persisted = { ...run('run', 'computer-1', 'running'), ...overrides }
-    const observe = vi.fn()
+  it('does not connect a Computer represented only by terminal Runs', async () => {
+    const connect = vi.fn(async (computerId: string) => connection(computerId))
 
     await recoverPersistedManagedComputerRunHosts({
-      agents: { listRuns: () => [persisted] },
+      agents: { listRuns: () => [run('run-1', 'computer-1', 'succeeded')] },
       computers: { list: async () => [computer('computer-1', 'running')] },
-      host: { connect: vi.fn(async (computerId: string) => connection(computerId)) },
-      runExitObserver: { observe },
-      runtime: {
-        getExactTerminalPtyId: () =>
-          persisted.processIdentity?.includes('computer-2') ? ptyId('run', 'computer-2') : null
-      }
+      host: { connect }
     })
 
-    expect(observe).not.toHaveBeenCalled()
+    expect(connect).not.toHaveBeenCalled()
   })
-
-  it('does not observe an absent or replaced persisted PTY', async () => {
-    const observe = vi.fn()
-
-    await recoverPersistedManagedComputerRunHosts({
-      agents: { listRuns: () => [run('run-1', 'computer-1', 'running')] },
-      computers: { list: async () => [computer('computer-1', 'running')] },
-      host: { connect: vi.fn(async (computerId: string) => connection(computerId)) },
-      runExitObserver: { observe },
-      runtime: { getExactTerminalPtyId: () => null }
-    })
-
-    expect(observe).not.toHaveBeenCalled()
-  })
-
-  it.each(['succeeded', 'failed', 'cancelled'] as const)(
-    'does not observe a %s Run',
-    async (status) => {
-      const observe = vi.fn()
-      await recoverPersistedManagedComputerRunHosts({
-        agents: { listRuns: () => [run('run-1', 'computer-1', status)] },
-        computers: { list: async () => [computer('computer-1', 'running')] },
-        host: { connect: vi.fn(async (computerId: string) => connection(computerId)) },
-        runExitObserver: { observe },
-        runtime: { getExactTerminalPtyId: vi.fn() }
-      })
-
-      expect(observe).not.toHaveBeenCalled()
-    }
-  )
 
   it('reports reconnect failures without returning private key paths', async () => {
     const privateKeyPath = '/home/operator/.ssh/dorka-computer'

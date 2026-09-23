@@ -30,6 +30,9 @@ async function launchManagedComputerAgentTerminal(
 ): Promise<AgentTerminalIdentity> {
   const harness = resolveHarness(launch.agent.harnessId)
   const connection = await options.host.connect(launch.computer.id)
+  if (connection.durableExitEvidence?.generation !== launch.computerExecutionGeneration) {
+    throw new Error('Computer relay execution generation is unverifiable')
+  }
 
   const operationId = createHash('sha256').update(launch.runId).digest('base64url')
   const handle = `term_${deterministicAgentSessionUuid(`${operationId}:handle`)}`

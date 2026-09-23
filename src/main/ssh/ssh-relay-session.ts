@@ -13,6 +13,10 @@ import type { TerminalUnavailableCause } from '../../shared/terminal-unavailable
 import { replayPendingSshPtyKills } from './ssh-pending-pty-kill-replay'
 import { sweepOrphanedRelayPtys } from './ssh-orphan-relay-pty-sweep'
 import { SshChannelMultiplexer } from './ssh-channel-multiplexer'
+import {
+  requestManagedDurableExitEvidence,
+  type ManagedDurableExitEvidence
+} from './managed-durable-exit-evidence'
 import { SshPtyProvider } from '../providers/ssh-pty-provider'
 import type { SshPtyAttachResult } from '../providers/ssh-pty-session-reattach'
 import type { SshPtyDataCallback, SshPtyExitCallback } from '../providers/ssh-pty-provider-contract'
@@ -431,6 +435,16 @@ export class SshRelaySession {
 
   getMux(): SshChannelMultiplexer | null {
     return this.mux
+  }
+
+  async getManagedDurableExitEvidence(): Promise<ManagedDurableExitEvidence | undefined> {
+    const mux = this.mux
+    if (!mux || mux.isDisposed() || this._state !== 'ready') {
+      return undefined
+    }
+    return requestManagedDurableExitEvidence((method, params, options) =>
+      mux.request(method, params, options)
+    )
   }
 
   getHostPlatform(): RemoteHostPlatform | null {

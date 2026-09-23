@@ -2,7 +2,9 @@ import { mkdtemp, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import type { RunStatus } from '../../shared/agent-roster'
+import type { Run, RunStatus } from '../../shared/agent-roster'
+import { managedPtyExitCertificateId } from '../../shared/managed-pty-exit-evidence'
+import type { ManagedComputerConnection } from '../agents/managed-computer-host-projector'
 import { AgentRosterStore } from '../agents/agent-roster-store'
 import type { PtyExitNotification } from '../runtime/pty-exit-notification'
 import { ManagedRunPtyExitObserver } from './managed-run-pty-exit-observer'
@@ -52,6 +54,92 @@ function exitRuntime() {
       )
     },
     unsubscribes
+  }
+}
+
+const COMPUTER_GENERATION = '10000000-0000-4000-8000-000000000001'
+const RELAY_GENERATION = '20000000-0000-4000-8000-000000000002'
+const INCARNATION = '30000000-0000-4000-8000-000000000003'
+const CONNECTION_ID = 'runtime-ssh-computer-computer-1'
+const RELAY_PTY_ID = `pty2:${RELAY_GENERATION}:7`
+const APP_PTY_ID = `ssh:${CONNECTION_ID}@@${RELAY_PTY_ID}`
+
+function persistedRun(status: RunStatus = 'running'): Run {
+  return {
+    id: 'run-offline',
+    agentId: 'agent-1',
+    computerId: 'computer-1',
+    computerExecutionGeneration: COMPUTER_GENERATION,
+    status,
+    prompt: 'work',
+    terminalSessionId: 'terminal-offline',
+    processIdentity: `${APP_PTY_ID}:${INCARNATION}`,
+    createdAt: 1
+  }
+}
+
+function certificate(overrides: Record<string, unknown> = {}) {
+  const draft = {
+    version: 1 as const,
+    computerExecutionGeneration: COMPUTER_GENERATION,
+    relayGeneration: RELAY_GENERATION,
+    relayPtyId: RELAY_PTY_ID,
+    ptyIncarnationId: INCARNATION,
+    exitCode: 0,
+    observedAt: 1,
+    evidence: 'node-pty-exit' as const,
+    ...overrides
+  }
+  return { ...draft, certificateId: managedPtyExitCertificateId(draft) }
+}
+
+function reconciliationFixture(status: RunStatus = 'running') {
+  let current = persistedRun(status)
+  const order: string[] = []
+  const transitionRunningRunToWaiting = vi.fn(async () => {
+    order.push('persist')
+    if (current.status === 'running') {
+      current = { ...current, status: 'waiting' }
+    }
+    return current
+  })
+  const acknowledgeExact = vi.fn(async () => {
+    order.push('ack')
+  })
+  const listExact = vi.fn(async () => [certificate()])
+  const connection: ManagedComputerConnection = {
+    connectionId: CONNECTION_ID,
+    executionHostId: `ssh:${CONNECTION_ID}`,
+    git: undefined,
+    durableExitEvidence: {
+      generation: COMPUTER_GENERATION,
+      listExact,
+      acknowledgeExact
+    }
+  }
+  const runtime = {
+    subscribeToPtyExit: vi.fn(() => vi.fn()),
+    getExactTerminalPtyId: vi.fn<() => string | null>(() => null)
+  }
+  const roster = {
+    getRun: vi.fn(() => current),
+    transitionRunningRunToWaiting
+  }
+  const observer = new ManagedRunPtyExitObserver(roster, runtime)
+  return {
+    acknowledgeExact,
+    connection,
+    get current() {
+      return current
+    },
+    listExact,
+    observer,
+    order,
+    roster,
+    runtime,
+    setCurrent(run: Run) {
+      current = run
+    }
   }
 }
 
@@ -110,6 +198,133 @@ describe('managed Run PTY exit observation', () => {
       await vi.waitFor(() => expect(roster.getRun(runId)?.status).toBe(status))
     }
   )
+
+  it('re-arms an exact live managed PTY without reading offline evidence', async () => {
+    const h = reconciliationFixture()
+    h.runtime.getExactTerminalPtyId.mockReturnValueOnce(APP_PTY_ID)
+
+    await h.observer.reconcileAfterConnect(h.connection, [h.current], h.runtime)
+
+    expect(h.runtime.subscribeToPtyExit).toHaveBeenCalledWith(APP_PTY_ID, expect.any(Function))
+    expect(h.listExact).not.toHaveBeenCalled()
+  })
+
+  it('projects an offline certified exit before acknowledging it', async () => {
+    const h = reconciliationFixture()
+
+    await h.observer.reconcileAfterConnect(h.connection, [h.current], h.runtime)
+
+    expect(h.current.status).toBe('waiting')
+    expect(h.order).toEqual(['persist', 'ack'])
+    expect(h.listExact).toHaveBeenCalledWith([
+      { relayPtyId: RELAY_PTY_ID, ptyIncarnationId: INCARNATION, relayGeneration: RELAY_GENERATION }
+    ])
+  })
+
+  it('does not acknowledge when Run persistence fails', async () => {
+    const h = reconciliationFixture()
+    h.roster.transitionRunningRunToWaiting.mockRejectedValueOnce(new Error('disk full'))
+
+    await h.observer.reconcileAfterConnect(h.connection, [h.current], h.runtime)
+
+    expect(h.acknowledgeExact).not.toHaveBeenCalled()
+  })
+
+  it('replays harmlessly when acknowledgement fails', async () => {
+    const h = reconciliationFixture()
+    h.acknowledgeExact.mockRejectedValueOnce(new Error('relay lost'))
+
+    await h.observer.reconcileAfterConnect(h.connection, [h.current], h.runtime)
+    await h.observer.reconcileAfterConnect(h.connection, [h.current], h.runtime)
+
+    expect(h.current.status).toBe('waiting')
+    expect(h.acknowledgeExact).toHaveBeenCalledTimes(2)
+  })
+
+  it('keeps mismatched identities and unsupported relays unverifiable', async () => {
+    const wrongGeneration = reconciliationFixture()
+    wrongGeneration.connection.durableExitEvidence = {
+      generation: '40000000-0000-4000-8000-000000000004',
+      listExact: wrongGeneration.listExact,
+      acknowledgeExact: wrongGeneration.acknowledgeExact
+    }
+    await wrongGeneration.observer.reconcileAfterConnect(
+      wrongGeneration.connection,
+      [wrongGeneration.current],
+      wrongGeneration.runtime
+    )
+    expect(wrongGeneration.listExact).not.toHaveBeenCalled()
+
+    for (const processIdentity of [
+      `${APP_PTY_ID}:not-a-uuid`,
+      `${APP_PTY_ID.replace(CONNECTION_ID, 'runtime-ssh-computer-other')}:${INCARNATION}`,
+      `${APP_PTY_ID.replace(RELAY_GENERATION, 'wrong-generation')}:${INCARNATION}`
+    ]) {
+      const h = reconciliationFixture()
+      h.setCurrent({ ...h.current, processIdentity })
+      await h.observer.reconcileAfterConnect(h.connection, [h.current], h.runtime)
+      expect(h.listExact).not.toHaveBeenCalled()
+    }
+
+    const oldRelay = reconciliationFixture()
+    delete oldRelay.connection.durableExitEvidence
+    await oldRelay.observer.reconcileAfterConnect(
+      oldRelay.connection,
+      [oldRelay.current],
+      oldRelay.runtime
+    )
+    expect(oldRelay.current.status).toBe('running')
+  })
+
+  it('rejects a certificate from the wrong relay generation', async () => {
+    const h = reconciliationFixture()
+    h.listExact.mockResolvedValueOnce([
+      certificate({ relayGeneration: '40000000-0000-4000-8000-000000000004' })
+    ])
+
+    await h.observer.reconcileAfterConnect(h.connection, [h.current], h.runtime)
+
+    expect(h.current.status).toBe('running')
+    expect(h.acknowledgeExact).not.toHaveBeenCalled()
+  })
+
+  it('acknowledges an exact terminal duplicate without changing its state', async () => {
+    const h = reconciliationFixture('succeeded')
+
+    await h.observer.reconcileAfterConnect(h.connection, [h.current], h.runtime)
+
+    expect(h.current.status).toBe('succeeded')
+    expect(h.roster.transitionRunningRunToWaiting).not.toHaveBeenCalled()
+    expect(h.acknowledgeExact).toHaveBeenCalledOnce()
+  })
+
+  it('does not acknowledge after the persisted Run identity changes', async () => {
+    const h = reconciliationFixture('waiting')
+    h.roster.getRun.mockImplementationOnce(() => ({
+      ...h.current,
+      processIdentity: `${APP_PTY_ID}:40000000-0000-4000-8000-000000000004`
+    }))
+
+    await h.observer.reconcileAfterConnect(h.connection, [h.current], h.runtime)
+
+    expect(h.acknowledgeExact).not.toHaveBeenCalled()
+  })
+
+  it('does nothing for empty evidence and after disposal', async () => {
+    const empty = reconciliationFixture()
+    empty.listExact.mockResolvedValueOnce([])
+    await empty.observer.reconcileAfterConnect(empty.connection, [empty.current], empty.runtime)
+    expect(empty.current.status).toBe('running')
+
+    const disposed = reconciliationFixture()
+    disposed.observer.dispose()
+    await disposed.observer.reconcileAfterConnect(
+      disposed.connection,
+      [disposed.current],
+      disposed.runtime
+    )
+    expect(disposed.listExact).not.toHaveBeenCalled()
+  })
 
   it('unsubscribes every observed PTY on disposal', async () => {
     const first = await createRun()

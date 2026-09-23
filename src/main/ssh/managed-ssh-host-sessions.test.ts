@@ -6,6 +6,7 @@ const mocks = vi.hoisted(() => {
   let provider: object | undefined
   let connectError: Error | null = null
   let registerProviderOnEstablish = true
+  let durableExitEvidence: object | undefined
   let callbacks: { onStateChange: (targetId: string, state: SshConnectionState) => void } | null =
     null
   const connect = vi.fn(async (target: SshTarget) => {
@@ -53,6 +54,12 @@ const mocks = vi.hoisted(() => {
     },
     get callbacks() {
       return callbacks
+    },
+    get durableExitEvidence() {
+      return durableExitEvidence
+    },
+    set durableExitEvidence(value: object | undefined) {
+      durableExitEvidence = value
     },
     set callbacks(value: typeof callbacks) {
       callbacks = value
@@ -127,6 +134,10 @@ vi.mock('./ssh-relay-session', () => ({
       return mocks.detachAndPersist()
     }
 
+    async getManagedDurableExitEvidence() {
+      return mocks.durableExitEvidence
+    }
+
     getState() {
       return this.state
     }
@@ -155,6 +166,7 @@ describe('ManagedSshHostSessions', () => {
     mocks.provider = undefined
     mocks.connectError = null
     mocks.registerProviderOnEstablish = true
+    mocks.durableExitEvidence = undefined
     mocks.connect.mockClear()
     mocks.disconnect.mockClear()
     mocks.establish.mockClear()
@@ -171,6 +183,20 @@ describe('ManagedSshHostSessions', () => {
     expect(mocks.connect).toHaveBeenCalledTimes(1)
     expect(mocks.establish).toHaveBeenCalledTimes(1)
     expect(mocks.provider).toBeDefined()
+  })
+
+  it('returns the narrow durable evidence capability from the incumbent session', async () => {
+    const sessions = new ManagedSshHostSessions({ store })
+    const durableExitEvidence = {
+      generation: '10000000-0000-4000-8000-000000000001',
+      listExact: vi.fn(),
+      acknowledgeExact: vi.fn()
+    }
+    mocks.durableExitEvidence = durableExitEvidence
+
+    await expect(sessions.connect(target)).resolves.toEqual({ durableExitEvidence })
+    await expect(sessions.connect(target)).resolves.toEqual({ durableExitEvidence })
+    expect(mocks.connect).toHaveBeenCalledOnce()
   })
 
   it('waits for PTY registration even after relay establishment returns', async () => {

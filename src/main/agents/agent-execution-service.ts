@@ -9,6 +9,7 @@ export type AgentTerminalLaunch = {
   runId: string
   agent: Agent
   computer: ComputerRuntimeInfo
+  computerExecutionGeneration: string
   prompt: string
   sourceDirectory: string
 }
@@ -68,6 +69,7 @@ export class AgentExecutionService {
         runId: run.id,
         agent,
         computer,
+        computerExecutionGeneration,
         prompt: effectivePrompt,
         sourceDirectory
       })

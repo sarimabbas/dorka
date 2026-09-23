@@ -1,6 +1,5 @@
 import type { Store } from '../persistence'
 import type { Run } from '../../shared/agent-roster'
-import { parseAppSshPtyId } from '../../shared/ssh-pty-id'
 import { AgentExecutionService } from '../agents/agent-execution-service'
 import { createManagedComputerAgentTerminalLauncher } from '../agents/managed-computer-agent-terminal-launcher'
 import { ComputerRunSourceControl } from '../agents/computer-run-source-control'
@@ -98,7 +97,7 @@ export async function recoverPersistedManagedComputerRunHosts(options: {
   agents: Pick<AgentRosterStore, 'listRuns'>
   computers: Pick<ComputerRuntimeManager, 'list'>
   host: Pick<ManagedComputerHostProjector, 'connect'> | null
-  runExitObserver?: Pick<ManagedRunPtyExitObserver, 'observe'> | null
+  runExitObserver?: Pick<ManagedRunPtyExitObserver, 'reconcileAfterConnect'> | null
   runtime?: Pick<DorkaRuntimeService, 'getExactTerminalPtyId'> | null
 }): Promise<DorkadManagedRunRecoveryResult> {
   if (!options.host) {
@@ -124,8 +123,9 @@ export async function recoverPersistedManagedComputerRunHosts(options: {
     }
   }
 
+  const persistedRuns = options.agents.listRuns()
   const runsByComputer = new Map<string, Run[]>()
-  for (const run of options.agents.listRuns()) {
+  for (const run of persistedRuns) {
     if (
       (run.status !== 'running' && run.status !== 'waiting') ||
       !runningComputerIds.has(run.computerId)
@@ -139,49 +139,23 @@ export async function recoverPersistedManagedComputerRunHosts(options: {
 
   const recoveredComputerIds: string[] = []
   const failedComputerIds: string[] = []
-  for (const [computerId, runs] of runsByComputer) {
+  for (const [computerId] of runsByComputer) {
+    let connection
     try {
-      await options.host.connect(computerId)
+      connection = await options.host.connect(computerId)
     } catch {
       failedComputerIds.push(computerId)
       continue
     }
     recoveredComputerIds.push(computerId)
-    for (const run of runs) {
-      observePersistedManagedRun(options, run)
+    if (options.runExitObserver && options.runtime) {
+      const computerRuns = persistedRuns.filter((run) => run.computerId === computerId)
+      await options.runExitObserver
+        .reconcileAfterConnect(connection, computerRuns, options.runtime)
+        .catch(() => undefined)
     }
   }
   return { recoveredComputerIds, failedComputerIds }
-}
-
-function observePersistedManagedRun(
-  options: {
-    runExitObserver?: Pick<ManagedRunPtyExitObserver, 'observe'> | null
-    runtime?: Pick<DorkaRuntimeService, 'getExactTerminalPtyId'> | null
-  },
-  run: Run
-): void {
-  if (
-    !options.runExitObserver ||
-    !options.runtime ||
-    !run.terminalSessionId ||
-    !run.processIdentity
-  ) {
-    return
-  }
-  try {
-    const ptyId = options.runtime.getExactTerminalPtyId(run.terminalSessionId, run.processIdentity)
-    if (!ptyId) {
-      return
-    }
-    const parsed = parseAppSshPtyId(ptyId)
-    if (parsed?.connectionId !== `runtime-ssh-computer-${run.computerId}`) {
-      return
-    }
-    options.runExitObserver.observe(run.id, ptyId)
-  } catch {
-    // Observation is best-effort; reconnect recovery must not change Run state on uncertainty.
-  }
 }
 
 function reportManagedRunRecovery(result: DorkadManagedRunRecoveryResult): void {
