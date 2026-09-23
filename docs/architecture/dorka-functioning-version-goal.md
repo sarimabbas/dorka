@@ -106,8 +106,10 @@ the server container must start and accept remote client connections.
 - Server restart reconnects each active Run's running Computer once without starting stopped
   Computers or relaunching work. For an exactly reattached terminal handle and process identity, it
   now verifies Computer ownership and re-arms the incumbent PTY-exit observer. An exit observed only
-  while the Server was absent still lacks durable host-certified evidence and remains outcome-
-  unverifiable; authoritative completion projection across that outage interval is still open.
+  while the Server was absent still lacks replayed host-certified evidence and remains outcome-
+  unverifiable. Immutable Computer/Run execution generations and a standalone crash-durable relay
+  exit journal are now implemented, but certified exit writers, list/ack RPC composition, and
+  projection-before-ack recovery remain open.
 - Agent skill and MCP references are not yet versioned or resolved at launch. They must remain
   separate from Computer-owned credentials, provider homes, packages, and filesystems.
 - Existing Project and Workspace language still needs a careful Dorka terminology pass. This must

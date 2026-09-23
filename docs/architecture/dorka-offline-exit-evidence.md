@@ -141,16 +141,31 @@ Compatibility behavior:
 - **Old client, new Server:** no client protocol change is required; Run status remains the projection.
 - **Legacy Run:** no generation means no offline replay.
 
+## Implementation status
+
+Completed prerequisites:
+
+- Commit `1a22d157b` adds immutable Computer execution generations, migrates legacy Computer records
+  once, preserves generations across lifecycle and reconciliation, writes the engine label and
+  root-authored Computer marker, and snapshots the generation onto every new Run. Legacy Runs remain
+  unset and are never backfilled.
+- Commit `e3ddb0d54` adds the standalone relay journal. It provides strict version-1 certificates,
+  deterministic IDs, same-filesystem no-clobber publication, file and directory sync, bounded exact
+  reads, corruption quarantine, and idempotent acknowledgement that converges crash residue.
+
+The journal is deliberately not yet composed into `PtyHandler`, relay capabilities, or managed Run
+recovery. Its presence alone is not exit evidence and does not change Run status.
+
 ## Delivery slice and forecast
 
-Implement as one focused vertical slice:
+Remaining focused vertical slice:
 
-1. Computer/Run execution-generation persistence and migration;
-2. crash-durable relay journal for certified exits only;
-3. capability-gated exact list/ack relay methods;
-4. projection-before-ack reconciliation in the existing managed exit module;
-5. mixed-version and fault-injection tests;
-6. native-Linux outage E2E using only disposable repositories and Computer volumes.
+1. compose one journal under the stable Computer-home path and write only from certified relay exit
+   paths;
+2. add capability-gated exact list/ack relay methods;
+3. add projection-before-ack reconciliation to the existing managed exit module;
+4. add mixed-version and fault-injection tests;
+5. run native-Linux outage E2E using only disposable repositories and Computer volumes.
 
-The complete P0 slice is estimated at **4–5 engineering days**. A journal/protocol-only checkpoint is
-1.5–2 days but does not close P0 without exact Run projection and native-Linux outage evidence.
+The remaining implementation is estimated at **2–4 engineering days**. The P0 gate stays open until
+exact Run projection and native-Linux outage evidence pass.
