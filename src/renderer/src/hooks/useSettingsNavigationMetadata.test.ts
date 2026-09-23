@@ -95,13 +95,14 @@ describe('settings navigation metadata', () => {
     expect(sections.find((section) => section.id === 'mobile')?.group).toBe('setup')
   })
 
-  it('places Automations, Artifacts, and Share Skills first under Workflows', () => {
+  it('places Computers before the existing sharing workflows', () => {
     const sections = buildSettingsNavigationMetadata({
       isMac: false,
       isWindows: false,
       isWebClient: false,
       repos: [repo]
     })
+    const computers = sections.find((section) => section.id === 'computers')
     const automations = sections.find((section) => section.id === 'automations')
     const artifacts = sections.find((section) => section.id === 'artifacts')
     const shareSkills = sections.find((section) => section.id === 'share-skills')
@@ -109,6 +110,8 @@ describe('settings navigation metadata', () => {
       .filter((section) => section.group === 'workflows')
       .map((section) => section.id)
 
+    expect(computers?.group).toBe('workflows')
+    expect(computers?.searchEntries[0]?.title).toBe('Runtime computers')
     expect(automations?.group).toBe('workflows')
     expect(automations?.searchEntries[0]?.title).toBe('Show Automations Button')
     expect(artifacts?.group).toBe('workflows')
@@ -118,7 +121,12 @@ describe('settings navigation metadata', () => {
     )
     expect(shareSkills).toMatchObject({ group: 'workflows', badge: 'Beta' })
     expect(shareSkills?.searchEntries[0]?.title).toBe('Unlisted skill links')
-    expect(workflowIds.slice(0, 3)).toEqual(['automations', 'artifacts', 'share-skills'])
+    expect(workflowIds.slice(0, 4)).toEqual([
+      'computers',
+      'automations',
+      'artifacts',
+      'share-skills'
+    ])
   })
 
   it('places the Dorka account in Set Up on desktop only', () => {

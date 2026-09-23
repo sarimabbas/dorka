@@ -14,6 +14,7 @@ const VISIBLE_DORKA_SETTINGS_SECTION_IDS: ReadonlySet<string> = new Set([
   'agents',
   'orchestration',
   'computer-use',
+  'computers',
   'automations',
   'notifications',
   'privacy',

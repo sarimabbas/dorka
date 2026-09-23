@@ -12,6 +12,7 @@ const RETAINED_SECTION_IDS = [
   'agents',
   'orchestration',
   'computer-use',
+  'computers',
   'automations',
   'notifications',
   'privacy',

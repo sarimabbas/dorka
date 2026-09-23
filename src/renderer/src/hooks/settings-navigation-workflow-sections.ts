@@ -14,6 +14,7 @@ import type { SettingsNavSection } from '@/lib/settings-navigation-types'
 import {
   BookOpen,
   CalendarClock,
+  Computer,
   Files,
   History,
   GitBranch,
@@ -32,6 +33,29 @@ export function buildWorkflowSettingsSections(
 ): SettingsNavSection[] {
   const showDesktopOnlySettings = !isWebClient
   return [
+    {
+      id: 'computers',
+      title: translate('auto.hooks.useSettingsNavigationMetadata.computersTitle', 'Computers'),
+      description: translate(
+        'auto.hooks.useSettingsNavigationMetadata.computersDescription',
+        'View and control computers on the selected Dorka runtime.'
+      ),
+      icon: Computer,
+      searchEntries: [
+        {
+          title: translate(
+            'auto.hooks.useSettingsNavigationMetadata.computersSearchTitle',
+            'Runtime computers'
+          ),
+          description: translate(
+            'auto.hooks.useSettingsNavigationMetadata.computersSearchDescription',
+            'View computer state and start or stop existing computers.'
+          ),
+          keywords: ['running', 'stopped', 'created']
+        }
+      ],
+      group: 'workflows'
+    },
     {
       id: 'automations',
       title: translate('auto.hooks.useSettingsNavigationMetadata.automationsTitle', 'Automations'),

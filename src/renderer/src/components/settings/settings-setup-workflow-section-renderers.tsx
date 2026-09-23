@@ -1,4 +1,5 @@
 import { SessionHistorySettingsPane } from './SessionHistorySettingsPane'
+import { ComputersSettingsPane } from './ComputersSettingsPane'
 import { ArtifactsSettingsPane } from './ArtifactsSettingsPane'
 import { AutomationsSettingsPane } from './AutomationsSettingsPane'
 import { GeneralPane } from './GeneralPane'
@@ -115,6 +116,25 @@ export function renderMobileSettingsSection(
       {view.isSectionMounted('mobile') ? <MobileSettingsPane /> : null}
     </SettingsSection>
   ) : null
+}
+
+export function renderComputersSettingsSection(context: SettingsRenderContext): React.JSX.Element {
+  const { model, navigation, view } = context
+  return (
+    <SettingsSection
+      id="computers"
+      title={translate('auto.components.settings.Settings.computersTitle', 'Computers')}
+      description={translate(
+        'auto.components.settings.Settings.computersDescription',
+        'View and control computers on the selected Dorka runtime.'
+      )}
+      searchEntries={navigation.getSectionSearchEntries('computers')}
+    >
+      {view.isSectionMounted('computers') ? (
+        <ComputersSettingsPane settings={model.settings} />
+      ) : null}
+    </SettingsSection>
+  )
 }
 
 export function renderAutomationsSettingsSection(

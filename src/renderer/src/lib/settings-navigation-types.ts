@@ -26,6 +26,7 @@ const SETTINGS_NAV_TARGETS = [
   'quick-commands',
   'notifications',
   'computer-use',
+  'computers',
   'developer-permissions',
   'privacy',
   'advanced',
