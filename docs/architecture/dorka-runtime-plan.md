@@ -535,10 +535,11 @@ relaunches work. When the incumbent runtime can prove that a recovered terminal 
 exact persisted process identity, recovery verifies the managed Computer target and re-arms the existing
 PTY-exit observer. Missing handles, replaced incarnations, stopped Computers, and failed reattachment do
 not mutate Run state. Computers and new Runs now carry an immutable execution generation, and the
-relay has a standalone crash-durable exact-certificate journal. These are prerequisites only: the
-journal is not yet composed into certified PTY exit writers, capability-gated list/ack RPCs, or
-projection-before-ack recovery. Authoritative completion for an exit while the Server is absent
-therefore remains open.
+relay has a crash-durable exact-certificate journal composed into certified-only exit writers and
+capability-gated list/ack RPCs. Computer record migration and mutation are serialized across Server
+processes sharing `/data`. The remaining gap is generation-fenced launch plus Server-side
+projection-before-ack reconciliation. Authoritative completion for an exit while the Server is absent
+therefore remains open until that path and native-Linux outage evidence pass.
 
 ## Local development: verified path
 

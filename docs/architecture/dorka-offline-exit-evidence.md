@@ -149,30 +149,31 @@ Compatibility behavior:
 
 Completed prerequisites:
 
-- Commit `1a22d157b` adds immutable Computer execution generations, preserves generations across
-  lifecycle and reconciliation, writes the engine label and root-authored Computer marker, and
-  snapshots the generation onto every new Run. Legacy Runs remain unset and are never backfilled.
-  The Computer record store now serializes migration and mutations across control-plane processes
-  sharing `/data` and publishes updates with crash-durability barriers.
-- Commit `e3ddb0d54` adds the standalone relay journal. It provides strict version-1 certificates,
-  deterministic IDs, same-filesystem no-clobber publication, file and directory sync, bounded exact
-  reads, corruption quarantine, and idempotent acknowledgement that converges crash residue.
+- Commits `1a22d157b` and `44c7fd7b3` add immutable Computer execution generations, preserve them
+  across lifecycle and reconciliation, write the engine label and root-authored Computer marker, and
+  snapshot the generation onto every new Run. Legacy Runs remain unset and are never backfilled. The
+  Computer record store owns migration and mutations behind a cross-process lock and publishes with
+  file and directory durability barriers.
+- Commits `e3ddb0d54` and `95015efc1` add and compose the relay journal. It provides strict
+  version-1 certificates, deterministic IDs, no-clobber publication, descriptor-based bounded reads,
+  corruption quarantine, idempotent acknowledgement, certified-only PTY writers, and
+  generation-gated list/ack RPCs. The additive relay capability appears only when a valid Computer
+  generation marker and durable journal are available.
 
-The journal is deliberately not yet composed into `PtyHandler`, relay capabilities, or managed Run
-recovery. Its presence alone is not exit evidence and does not change Run status. Agent launch is
-also not yet generation-fenced: relay generation capability is landing separately, so a concurrent
-Computer remove/recreate can still make a newly launched Run generation-unverifiable.
+Agent launch is not yet generation-fenced against the connected relay. A concurrent Computer
+remove/recreate can still make a newly launched Run generation-unverifiable. The Server also does not
+yet list, project, and acknowledge offline certificates, so the new relay evidence does not by itself
+change Run status.
 
 ## Delivery slice and forecast
 
 Remaining focused vertical slice:
 
-1. compose one journal under the stable Computer-home path and write only from certified relay exit
-   paths;
-2. add capability-gated exact list/ack relay methods;
-3. add projection-before-ack reconciliation to the existing managed exit module;
-4. add mixed-version and fault-injection tests;
-5. run native-Linux outage E2E using only disposable repositories and Computer volumes.
+1. require the connected relay's advertised Computer generation to match the Run snapshot before PTY
+   launch commits;
+2. add capability-gated projection-before-ack reconciliation to the existing managed exit module;
+3. add mixed-version and fault-injection tests;
+4. run native-Linux outage E2E using only disposable repositories and Computer volumes.
 
-The remaining implementation is estimated at **2–4 engineering days**. The P0 gate stays open until
-exact Run projection and native-Linux outage evidence pass.
+The remaining implementation is estimated at **1–3 engineering days**. The P0 gate stays open until
+generation-fenced launch, exact Run projection, and native-Linux outage evidence pass.
