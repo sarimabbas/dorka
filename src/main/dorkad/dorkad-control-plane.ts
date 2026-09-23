@@ -2,6 +2,7 @@ import { randomUUID } from 'node:crypto'
 import { open, readFile, rename, rm } from 'node:fs/promises'
 import { join } from 'node:path'
 import { AgentRosterStore } from '../agents/agent-roster-store'
+import { ComputerMountSourcePolicy } from '../computers/computer-mount-source-policy'
 import {
   ComputerRuntimeManager,
   type ComputerCommandExecutor
@@ -131,11 +132,14 @@ export async function createDorkadControlPlane(
   const defaultComputerImage = env.DORKA_COMPUTER_IMAGE || DEFAULT_COMPUTER_IMAGE
   const serverId = await loadOrCreateServerId(options.dataDirectory)
   const agents = await AgentRosterStore.open(options.dataDirectory)
+  const mountSourcePolicy = ComputerMountSourcePolicy.create(
+    parseComputerMountAllowlist(env[COMPUTER_MOUNT_ALLOWLIST_ENV])
+  )
   const computers = new ComputerRuntimeManager({
     dataDirectory: options.dataDirectory,
     serverId,
     enginePath: cliPath,
-    allowedMountSources: parseComputerMountAllowlist(env[COMPUTER_MOUNT_ALLOWLIST_ENV]),
+    mountSourcePolicy,
     execute
   })
 

@@ -32,7 +32,7 @@ export function computerConfigurationSnapshot(
 export function planComputerConfiguration(
   record: ComputerRecord,
   input: ComputerConfigurationInput,
-  allowedMountSources: readonly string[]
+  allowedMountSources?: readonly string[]
 ): PlannedComputerConfiguration {
   const current = validateComputerSpec(record.spec)
   const spec = materializeComputerConfiguration(record.spec, input, allowedMountSources)
@@ -55,7 +55,7 @@ export function planComputerConfiguration(
 export function materializeComputerConfiguration(
   current: ComputerCreateSpec,
   input: ComputerConfigurationInput,
-  allowedMountSources: readonly string[]
+  allowedMountSources?: readonly string[]
 ): ValidatedComputerCreateSpec {
   const preserve = input.environment.preserve
   const set = input.environment.set
@@ -76,16 +76,16 @@ export function materializeComputerConfiguration(
     ...preserve.map((name) => [name, current.environment?.[name] ?? ''] as const),
     ...Object.entries(set)
   ])
-  return validateComputerSpecWithAllowedMountSources(
-    {
-      id: current.id,
-      image: current.image,
-      resources: input.resources,
-      environment,
-      mounts: input.premounts
-    },
-    allowedMountSources
-  )
+  const spec = {
+    id: current.id,
+    image: current.image,
+    resources: input.resources,
+    environment,
+    mounts: input.premounts
+  }
+  return allowedMountSources
+    ? validateComputerSpecWithAllowedMountSources(spec, allowedMountSources)
+    : validateComputerSpec(spec)
 }
 
 function redactConfiguration(spec: ValidatedComputerCreateSpec): RedactedComputerConfiguration {

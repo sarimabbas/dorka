@@ -109,15 +109,31 @@ services:
 
 A Computer request can then mount `/srv/dorka-shared` at a normalized absolute
 container target. Mounts default to read-only; writable access must be explicit.
-The source must exactly match the allowlist. Parent-directory and prefix matches
-do not count. Dorka rejects home directories, engine/runtime paths, device and
-kernel filesystems, duplicate targets, and attempts to replace the managed home,
-workspace, or engine-socket target.
+The source string must exactly match the allowlist. Parent-directory, prefix,
+and alternate path spellings do not count. Dorka rejects home directories,
+engine/runtime paths, device and kernel filesystems, duplicate targets, and
+attempts to replace the managed home, workspace, or engine-socket target.
+
+Allowlist entries are operator attestations about paths in the container
+engine's host namespace. The dorkad process may run in a Server container, so
+it cannot safely canonicalize or inspect the host path that Docker or Podman
+will open. Before adding an entry, resolve it on the engine host, verify that it
+names the intended directory, and ensure untrusted users cannot replace it or
+any ancestor. Use the same canonical spelling in the allowlist, the Server bind
+mount, and Computer requests. Prefer a root-owned, non-group/world-writable tree
+such as `/srv/dorka/...`; never use a replaceable path below `/tmp`.
 
 The allowlist is configuration, not a general bind-mount API. Never add the
 engine socket, a host home, `/`, `/dev`, `/proc`, `/sys`, or `/run`. Computer
 containers never receive the engine socket or host home, never run privileged,
 and cannot request arbitrary engine flags or unconstrained host mounts.
+
+Dorka rechecks exact membership before replacement removes an existing
+container and again immediately before invoking the engine. These lexical
+checks cannot close the namespace or pathname race before the engine opens the
+source. A threat model that includes an actor able to replace an attested host
+path requires engine-host enforcement, handle-based attachment, or a trusted
+staging tree.
 
 ## Computer SSH keys
 

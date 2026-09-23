@@ -11,6 +11,7 @@ import {
   DORKA_SERVER_LABEL,
   type ComputerCreateSpec
 } from '../../shared/computer-runtime'
+import { ComputerMountSourcePolicy } from './computer-mount-source-policy'
 import { ComputerRuntimeManager, type ComputerCommandExecutor } from './computer-runtime-manager'
 
 const executionGeneration = '10000000-0000-4000-8000-000000000001'
@@ -56,6 +57,10 @@ function inspection(
 
 async function dataDirectory(): Promise<string> {
   return mkdtemp(join(tmpdir(), 'dorka-computers-'))
+}
+
+function allowMountSource(source: string): ComputerMountSourcePolicy {
+  return ComputerMountSourcePolicy.create([source])
 }
 
 describe('ComputerRuntimeManager', () => {
@@ -209,7 +214,7 @@ describe('ComputerRuntimeManager', () => {
     const manager = new ComputerRuntimeManager({
       dataDirectory: await dataDirectory(),
       serverId,
-      allowedMountSources: ['/srv/dorka/shared'],
+      mountSourcePolicy: allowMountSource('/srv/dorka/shared'),
       execute
     })
 
@@ -252,7 +257,7 @@ describe('ComputerRuntimeManager', () => {
     const manager = new ComputerRuntimeManager({
       dataDirectory: directory,
       serverId,
-      allowedMountSources: ['/srv/dorka/shared'],
+      mountSourcePolicy: allowMountSource('/srv/dorka/shared'),
       execute
     })
     await manager.create({
@@ -340,6 +345,29 @@ describe('ComputerRuntimeManager', () => {
         environment: { TOKEN: 'preserved-value', MODE: 'replacement-value' }
       }
     })
+  })
+
+  it('rejects replacement premounts before inspecting or removing the current container', async () => {
+    const execute = vi
+      .fn<ComputerCommandExecutor>()
+      .mockResolvedValueOnce(processResult())
+      .mockResolvedValueOnce(processResult(JSON.stringify([inspection('alpha')])))
+    const manager = new ComputerRuntimeManager({
+      dataDirectory: await dataDirectory(),
+      serverId,
+      execute
+    })
+    await manager.create({ id: 'alpha', image: 'safe/image:tag' })
+    execute.mockClear()
+
+    await expect(
+      manager.replaceConfiguration('alpha', executionGeneration, 'stopped', {
+        resources: { cpus: 2, memoryMb: 4096, pids: 512 },
+        environment: { preserve: [], set: {} },
+        premounts: [{ source: '/srv/not-allowed', target: '/shared' }]
+      })
+    ).rejects.toThrow('Computer mount source is not allowlisted')
+    expect(execute).not.toHaveBeenCalled()
   })
 
   it('reconciles the durable Computer after a replacement command fails', async () => {

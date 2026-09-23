@@ -26,13 +26,13 @@ import {
 } from './computer-engine-inspection'
 import { ComputerConfigurationService } from './computer-configuration-service'
 import { ComputerRecordStore } from './computer-record-store'
+import { ComputerMountSourcePolicy } from './computer-mount-source-policy'
 import { reconcileComputerState, type OwnedComputer } from './computer-runtime-reconciler'
 import { ComputerSshKeyStore } from './computer-ssh-key-store'
 import {
   computerName,
   createComputerArgs,
   listComputerIdsArgs,
-  validateAllowedMountSources,
   validateComputerId,
   validateComputerSpec,
   validateServerId
@@ -44,7 +44,7 @@ export type ComputerRuntimeManagerOptions = {
   dataDirectory: string
   serverId: string
   enginePath?: string
-  allowedMountSources?: readonly string[]
+  mountSourcePolicy?: ComputerMountSourcePolicy
   execute?: ComputerCommandExecutor
 }
 
@@ -54,22 +54,23 @@ export class ComputerRuntimeManager {
   private readonly store: ComputerRecordStore
   private readonly configuration: ComputerConfigurationService
   private readonly sshKeys: ComputerSshKeyStore
-  private readonly allowedMountSources: readonly string[]
+  private readonly mountSourcePolicy: ComputerMountSourcePolicy
   private mutationQueue = Promise.resolve()
 
   constructor(private readonly options: ComputerRuntimeManagerOptions) {
     validateServerId(options.serverId)
     this.enginePath = options.enginePath ?? 'docker'
     this.execute = options.execute ?? runProcess
-    this.allowedMountSources = validateAllowedMountSources(options.allowedMountSources ?? [])
+    this.mountSourcePolicy = options.mountSourcePolicy ?? ComputerMountSourcePolicy.denyAll()
     this.store = new ComputerRecordStore(options.dataDirectory)
     this.sshKeys = new ComputerSshKeyStore(options.dataDirectory)
     this.configuration = new ComputerConfigurationService({
       store: this.store,
-      allowedMountSources: this.allowedMountSources,
+      mountSourcePolicy: this.mountSourcePolicy,
       runMutation: (operation) => this.runMutation(operation),
       recoverRuntime: () => this.reconcileNow().then(() => undefined),
       replaceContainer: async (current, next) => {
+        this.mountSourcePolicy.authorize(next.spec)
         await this.inspectRecord(current)
         await this.run(['rm', '--force', computerName(current.spec.id)])
         await this.createContainer(next)
@@ -201,14 +202,15 @@ export class ComputerRuntimeManager {
   }
 
   private async createContainer(record: ComputerRecord): Promise<void> {
+    const authorized = this.mountSourcePolicy.authorize(record.spec)
     const publicKey = await this.sshKeys.loadOrCreatePublicKey(record.spec.id)
     await this.run(
       createComputerArgs(
-        record.spec,
+        authorized,
         this.options.serverId,
         publicKey,
         record.executionGeneration,
-        this.allowedMountSources
+        this.mountSourcePolicy.sources
       )
     )
   }

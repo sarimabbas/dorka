@@ -8,11 +8,12 @@ import type {
 } from '../../shared/computer-runtime'
 import { computerConfigurationSnapshot, planComputerConfiguration } from './computer-configuration'
 import type { ComputerRecordReplacement, ComputerRecordStore } from './computer-record-store'
+import type { ComputerMountSourcePolicy } from './computer-mount-source-policy'
 import { validateComputerId } from './computer-runtime-command'
 
 type ComputerConfigurationHost = {
   store: ComputerRecordStore
-  allowedMountSources: readonly string[]
+  mountSourcePolicy: ComputerMountSourcePolicy
   runMutation: <T>(operation: () => Promise<T>) => Promise<T>
   replaceContainer: (current: ComputerRecord, next: ComputerRecord) => Promise<void>
   recoverRuntime: () => Promise<void>
@@ -40,10 +41,9 @@ export class ComputerConfigurationService {
     ) {
       return { outcome: 'conflict', currentRevision: record.executionGeneration }
     }
-    return {
-      outcome: 'planned',
-      plan: planComputerConfiguration(record, configuration, this.host.allowedMountSources).plan
-    }
+    const planned = planComputerConfiguration(record, configuration)
+    this.host.mountSourcePolicy.authorize(planned.spec)
+    return { outcome: 'planned', plan: planned.plan }
   }
 
   replace(
@@ -57,15 +57,19 @@ export class ComputerConfigurationService {
       let replacementEffectsStarted = false
       let replacement: ComputerRecordReplacement<void>
       try {
+        const current = await this.requireRecord(id)
+        if (
+          current.executionGeneration === expectedRevision &&
+          current.desiredState === expectedDesiredState
+        ) {
+          const preflight = planComputerConfiguration(current, configuration)
+          this.host.mountSourcePolicy.authorize(preflight.spec)
+        }
         replacement = await this.host.store.replaceSpec(
           id,
           expectedRevision,
-          (current) => {
-            const planned = planComputerConfiguration(
-              current,
-              configuration,
-              this.host.allowedMountSources
-            )
+          (storedCurrent) => {
+            const planned = planComputerConfiguration(storedCurrent, configuration)
             return planned.plan.replacementRequired ? planned.spec : null
           },
           {
