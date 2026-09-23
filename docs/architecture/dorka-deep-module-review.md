@@ -2,14 +2,14 @@
 
 ## Scope and verdict
 
-This review covers the Agent, Run, Computer, and Server vertical slice through `f27686310`. It applies
+This review covers the Agent, Run, Computer, and Server vertical slice through `4a0d160b8`. It applies
 Ousterhout's deep-module criteria: information hiding, interface leverage, temporal coupling, policy
 ownership, error vocabulary, and deletion opportunity.
 
 The core model is sound. `AgentExecutionService`, `ComputerRunSourceControl`, and
 `ComputerRuntimeManager` are deep product modules. They hide meaningful policy behind small
-interfaces. The largest remaining design debt is below those product seams: the managed Computer host
-interface leaks SSH adapter details and registry timing to its callers.
+interfaces. The review's isolated authority leaks are now closed. The largest remaining design debt is
+temporal: Run launch outcomes span separate persistence and PTY identity commits.
 
 ```text
 Renderer domain clients
@@ -45,6 +45,13 @@ Agent workingDirectory
 
 This removed duplicated placement policy and a shallow `resolveComputerCwd` re-export.
 
+### Managed Computer connections hide SSH topology
+
+Commit `4a0d160b8` replaces the raw `SshTarget` result with a narrow managed connection containing
+only the existing execution-host identity, connection ID, and incumbent Git capability. Private key
+paths, target construction, session establishment, and provider registration remain inside the
+projector. Source control and Git identity no longer repeat global provider lookups.
+
 ### Persisted Runs re-arm exact PTY observation
 
 Commit `f27686310` reconnects each already-running Computer once, verifies the recovered terminal
@@ -58,15 +65,14 @@ reattached. It does not manufacture evidence for an exit that happened while the
 
 ## Ranked remaining findings
 
-| Rank | Verdict | Finding                                                                                                                                                                      | Required direction                                                                                                                                                       |
-| ---- | ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| 1    | Next    | `ManagedComputerHostProjector.connect()` returns `SshTarget`, so source control, Git identity, and launch callers know SSH topology and global provider-registration timing. | Return a narrow connected-Computer view containing only execution-host identity and incumbent Git capability. Keep keys, targets, sessions, and provider lookup private. |
-| 2    | Next    | Run launch persistence exposes a `create -> transition -> launch -> update identity` temporal protocol.                                                                      | Deepen the existing roster seam around committed, unverifiable, and failed launch outcomes. Coordinate this with PTY observation. Do not add a lifecycle store.          |
-| 3    | Later   | Capability proof is repeated in renderer domain clients and React Computer settings.                                                                                         | Put required-capability proof in the existing runtime RPC client. Domain clients should expose Agent, Run, Computer, and source-control operations only.                 |
-| 4    | Later   | Run and Computer UI behavior classifies some failures by matching prose.                                                                                                     | Add an additive, allowlisted domain error vocabulary while retaining human messages and mixed-version fallback.                                                          |
-| 5    | Later   | `RunDiffDataSource` exposes form validation and React cache identity alongside remote Git operations.                                                                        | Replace it with a Run-bound four-operation client and one panel-local request controller with cancellation. Do not create a global store.                                |
-| 6    | Later   | Computer Git identity writes name and email sequentially.                                                                                                                    | Make the existing relay mutation atomic while preserving unrelated Git config and permissions.                                                                           |
-| 7    | Later   | Computer-create constraints are restated in RPC schemas and command validation.                                                                                              | Reuse one Computer-domain parser at RPC, persistence, and execution trust boundaries. Keep operator mount allowlisting and argv emission server-local.                   |
+| Rank | Verdict | Finding                                                                                                 | Required direction                                                                                                                                              |
+| ---- | ------- | ------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1    | Next    | Run launch persistence exposes a `create -> transition -> launch -> update identity` temporal protocol. | Deepen the existing roster seam around committed, unverifiable, and failed launch outcomes. Coordinate this with PTY observation. Do not add a lifecycle store. |
+| 2    | Later   | Capability proof is repeated in renderer domain clients and React Computer settings.                    | Put required-capability proof in the existing runtime RPC client. Domain clients should expose Agent, Run, Computer, and source-control operations only.        |
+| 3    | Later   | Run and Computer UI behavior classifies some failures by matching prose.                                | Add an additive, allowlisted domain error vocabulary while retaining human messages and mixed-version fallback.                                                 |
+| 4    | Later   | `RunDiffDataSource` exposes form validation and React cache identity alongside remote Git operations.   | Replace it with a Run-bound four-operation client and one panel-local request controller with cancellation. Do not create a global store.                       |
+| 5    | Later   | Computer Git identity writes name and email sequentially.                                               | Make the existing relay mutation atomic while preserving unrelated Git config and permissions.                                                                  |
+| 6    | Later   | Computer-create constraints are restated in RPC schemas and command validation.                         | Reuse one Computer-domain parser at RPC, persistence, and execution trust boundaries. Keep operator mount allowlisting and argv emission server-local.          |
 
 ## Modules to preserve
 
@@ -95,9 +101,10 @@ dependency checks and weaken capability honesty.
 
 ## Validation evidence
 
-The review's two implemented changes passed:
+The review's three implemented changes passed:
 
 - 56 focused tests across execution, launcher, startup recovery, PTY observation, and runtime identity.
+- 39 focused tests across managed connection projection, Run source control, Git identity, and launch scope.
 - Owned Oxlint and Oxfmt checks.
 - Node typecheck.
 - Node-only `dorkad` build.
