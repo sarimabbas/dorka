@@ -1,5 +1,5 @@
 // The SSH shim runs the bundled CLI so remote shells get the full command surface.
-import { app } from 'electron'
+import { getAppEnvironment } from '../../shared/app-environment'
 import { spawn as nodeSpawn } from 'node:child_process'
 import { existsSync } from 'node:fs'
 import { join } from 'node:path'
@@ -153,7 +153,7 @@ export async function runHostDorkaCliPassthrough(
   options: HostCliPassthroughOptions = {}
 ): Promise<RemoteDorkaCliResult> {
   // Why: per-field lazy defaults keep the module testable — tests inject all
-  // three, so no Electron API is touched outside the production path.
+  // three, so no host-environment path is read outside the production path.
   const execPath = options.execPath ?? process.execPath
   let cliEntryPath: string
   let userDataPath: string
@@ -161,9 +161,9 @@ export async function runHostDorkaCliPassthrough(
     cliEntryPath =
       options.cliEntryPath ??
       resolveHostCliEntryPath({
-        isPackaged: app.isPackaged,
+        isPackaged: getAppEnvironment().isPackaged(),
         resourcesPath: process.resourcesPath,
-        appPath: app.getAppPath()
+        appPath: getAppEnvironment().getAppPath()
       })
     // Why: must match the userData dir the runtime RPC server writes metadata
     // to (see index.ts DorkaRuntimeRpcServer wiring), or the CLI subprocess
