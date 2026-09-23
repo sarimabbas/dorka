@@ -30,7 +30,7 @@ function command(program, args, options = {}) {
       )
     )
   }
-  return result.stdout.trim()
+  return (options.includeStderr ? `${result.stdout}\n${result.stderr}` : result.stdout).trim()
 }
 function requireValue(condition, message) {
   if (!condition) {
@@ -151,7 +151,9 @@ function cleanup(names, artifacts) {
 }
 function build(names, artifacts) {
   const build2 = (tag, file, extra = [], pull = true) => {
-    const output = engine(acceptanceBuildArgs({ tag, file, label: names.label, extra, pull }))
+    const output = engine(acceptanceBuildArgs({ tag, file, label: names.label, extra, pull }), {
+      includeStderr: true
+    })
     appendFileSync(resolve(artifacts, 'build.log'), redactArtifact(output))
     requireValue(
       engine(['image', 'inspect', tag, '--format', '{{.Os}}/{{.Architecture}}']) === 'linux/amd64',
@@ -250,6 +252,25 @@ function launch(pairing, agentId, token) {
   requireValue(typeof run === 'object' && run !== null && 'id' in run, 'agents.run returned no Run')
   return run
 }
+function captureFailureDiagnostics(names, artifacts, failure) {
+  artifact(
+    artifacts,
+    'failure.txt',
+    failure instanceof Error ? (failure.stack ?? failure.message) : String(failure)
+  )
+  for (const container of [names.server, MAIN]) {
+    if (engine(['inspect', container], { allowFailure: true }) === '') {
+      continue
+    }
+    artifact(
+      artifacts,
+      `${container}-logs.txt`,
+      engine(['logs', container], { allowFailure: true, includeStderr: true })
+    )
+    artifact(artifacts, `${container}-inspect.json`, engine(['inspect', container]))
+  }
+}
+
 function runAcceptance() {
   const names = acceptanceNames()
   const artifacts = process.env.DORKA_ACCEPTANCE_ARTIFACTS ?? resolve(tmpdir(), names.run)
@@ -511,6 +532,9 @@ function runAcceptance() {
   } catch (error) {
     failure = error
   } finally {
+    if (failure) {
+      captureFailureDiagnostics(names, artifacts, failure)
+    }
     const residue = cleanup(names, artifacts)
     const summary = {
       schemaVersion: 1,
