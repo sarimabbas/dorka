@@ -1,6 +1,7 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { Loader2, Plus, X } from 'lucide-react'
 import type {
+  ComputerConfigurationInput,
   ComputerConfigurationPlan,
   ComputerConfigurationPlanResult,
   ComputerConfigurationReplaceResult,
@@ -9,14 +10,20 @@ import type {
 import type { GlobalSettings } from '../../../../shared/global-settings-types'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import { callRuntimeRpc, getActiveRuntimeTarget } from '@/runtime/runtime-rpc-client'
 import { ComputerConfigurationPlanSummary } from './ComputerConfigurationPlanSummary'
+import { ComputerResourceFields } from './ComputerResourceFields'
 import {
   computerConfigurationDraft,
   computerConfigurationRequest,
   type ComputerConfigurationDraft
 } from './computer-configuration-draft'
+
+type ReviewedPlan = {
+  plan: ComputerConfigurationPlan
+  request: ComputerConfigurationInput
+  draftVersion: number
+}
 
 type LoadState =
   | { kind: 'loading' }
@@ -39,14 +46,15 @@ export function ComputerConfigurationForm({
   settings: GlobalSettings
 }): React.JSX.Element {
   const [state, setState] = useState<LoadState>({ kind: 'loading' })
-  const [plan, setPlan] = useState<ComputerConfigurationPlan | null>(null)
+  const [reviewed, setReviewed] = useState<ReviewedPlan | null>(null)
   const [pending, setPending] = useState<'plan' | 'replace' | null>(null)
+  const draftVersion = useRef(0)
   const [error, setError] = useState<string | null>(null)
   const [nextEnvironmentId, setNextEnvironmentId] = useState(1)
 
   const load = useCallback(async (): Promise<void> => {
     setState({ kind: 'loading' })
-    setPlan(null)
+    setReviewed(null)
     setError(null)
     try {
       const snapshot = await callRuntimeRpc<ComputerConfigurationSnapshot>(
@@ -86,13 +94,16 @@ export function ComputerConfigurationForm({
   const updateDraft = (
     update: (current: ComputerConfigurationDraft) => ComputerConfigurationDraft
   ): void => {
-    setPlan(null)
+    draftVersion.current += 1
+    setReviewed(null)
     setError(null)
     setState((current) =>
       current.kind === 'ready' ? { ...current, draft: update(current.draft) } : current
     )
   }
   const review = async (): Promise<void> => {
+    const version = draftVersion.current
+    const request = computerConfigurationRequest(draft)
     setPending('plan')
     setError(null)
     try {
@@ -102,14 +113,17 @@ export function ComputerConfigurationForm({
         {
           id: computerId,
           expectedRevision: snapshot.revision,
-          configuration: computerConfigurationRequest(draft)
+          configuration: request
         }
       )
+      if (version !== draftVersion.current) {
+        return
+      }
       if (result.outcome === 'conflict') {
         setError('This Computer changed elsewhere. Reload setup before continuing.')
         return
       }
-      setPlan(result.plan)
+      setReviewed({ plan: result.plan, request, draftVersion: version })
     } catch (planError) {
       setError(message(planError))
     } finally {
@@ -117,7 +131,7 @@ export function ComputerConfigurationForm({
     }
   }
   const apply = async (): Promise<void> => {
-    if (!plan?.replacementRequired) {
+    if (!reviewed?.plan.replacementRequired || reviewed.draftVersion !== draftVersion.current) {
       return
     }
     setPending('replace')
@@ -129,14 +143,14 @@ export function ComputerConfigurationForm({
         {
           id: computerId,
           expectedRevision: snapshot.revision,
-          configuration: computerConfigurationRequest(draft)
+          configuration: reviewed.request
         }
       )
       if (result.outcome === 'conflict') {
         setError('This Computer changed elsewhere. Reload setup before continuing.')
         return
       }
-      setPlan(null)
+      setReviewed(null)
       setState({
         kind: 'ready',
         snapshot: result.snapshot,
@@ -149,39 +163,10 @@ export function ComputerConfigurationForm({
     }
   }
 
+  const plan = reviewed?.plan ?? null
   return (
     <div className="space-y-4">
-      <div className="space-y-2">
-        <p className="text-xs font-medium text-foreground">Resources</p>
-        <div className="grid grid-cols-3 gap-2">
-          {(
-            [
-              ['cpus', 'CPUs'],
-              ['memoryMb', 'Memory MiB'],
-              ['pids', 'Processes']
-            ] as const
-          ).map(([key, label]) => (
-            <div key={key} className="space-y-1">
-              <Label htmlFor={`${computerId}-${key}`} className="text-[11px]">
-                {label}
-              </Label>
-              <Input
-                id={`${computerId}-${key}`}
-                type="number"
-                value={draft.resources[key]}
-                min={key === 'cpus' ? 0.25 : key === 'memoryMb' ? 256 : 32}
-                step={key === 'cpus' ? 0.25 : 1}
-                onChange={(event) =>
-                  updateDraft((current) => ({
-                    ...current,
-                    resources: { ...current.resources, [key]: Number(event.target.value) }
-                  }))
-                }
-              />
-            </div>
-          ))}
-        </div>
-      </div>
+      <ComputerResourceFields computerId={computerId} draft={draft} updateDraft={updateDraft} />
 
       <div className="space-y-2">
         <div>
@@ -212,7 +197,7 @@ export function ComputerConfigurationForm({
           </label>
         ))}
         {draft.environment.map((entry) => (
-          <div key={entry.id} className="grid grid-cols-[1fr_1fr_auto] gap-2">
+          <div key={entry.id} className="grid gap-2 sm:grid-cols-[1fr_1fr_auto]">
             <Input
               aria-label="Variable name"
               placeholder="NAME"
@@ -246,9 +231,9 @@ export function ComputerConfigurationForm({
             />
             <Button
               type="button"
-              size="icon-xs"
+              size="icon-sm"
               variant="ghost"
-              aria-label="Remove variable"
+              aria-label={`Remove variable ${entry.name || 'row'}`}
               onClick={() =>
                 updateDraft((current) => ({
                   ...current,
@@ -289,7 +274,7 @@ export function ComputerConfigurationForm({
             key={`${computerId}-premount-${index}`}
             className="space-y-2 rounded-md border border-border/60 p-2"
           >
-            <div className="grid grid-cols-[1fr_1fr_auto] gap-2">
+            <div className="grid gap-2 sm:grid-cols-[1fr_1fr_auto]">
               <Input
                 aria-label="Source folder"
                 placeholder="/srv/shared"
@@ -322,9 +307,9 @@ export function ComputerConfigurationForm({
               />
               <Button
                 type="button"
-                size="icon-xs"
+                size="icon-sm"
                 variant="ghost"
-                aria-label="Remove premount"
+                aria-label={`Remove premounted folder ${index + 1}`}
                 onClick={() =>
                   updateDraft((current) => ({
                     ...current,
@@ -377,7 +362,7 @@ export function ComputerConfigurationForm({
           {error}
         </p>
       ) : null}
-      <div className="flex justify-end gap-2">
+      <div className="flex flex-wrap justify-end gap-2">
         {error?.includes('changed elsewhere') ? (
           <Button type="button" size="xs" variant="outline" onClick={() => void load()}>
             Reload
@@ -401,7 +386,7 @@ export function ComputerConfigurationForm({
             onClick={() => void apply()}
           >
             {pending === 'replace' ? <Loader2 className="animate-spin" /> : null}
-            Apply
+            {plan.interruption === 'restart' ? 'Apply & restart' : 'Apply setup'}
           </Button>
         ) : null}
       </div>

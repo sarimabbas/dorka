@@ -1,7 +1,7 @@
 // @vitest-environment happy-dom
 
 import '@testing-library/jest-dom/vitest'
-import { cleanup, render, screen, waitFor } from '@testing-library/react'
+import { act, cleanup, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { getDefaultSettings } from '../../../../shared/constants'
@@ -241,7 +241,7 @@ describe('ComputersSettingsPane', () => {
       }
     )
 
-    await user.click(screen.getByRole('button', { name: 'Apply' }))
+    await user.click(screen.getByRole('button', { name: 'Apply setup' }))
     await waitFor(() =>
       expect(mocks.callRuntimeRpc).toHaveBeenNthCalledWith(
         5,
@@ -251,6 +251,55 @@ describe('ComputersSettingsPane', () => {
       )
     )
     expect(await screen.findByDisplayValue('4')).toBeInTheDocument()
+  })
+
+  it('does not apply a plan after the draft changes while planning', async () => {
+    const user = userEvent.setup()
+    const snapshot = {
+      id: stoppedComputer.id,
+      revision: '10000000-0000-4000-8000-000000000001',
+      configuration: {
+        resources: { cpus: 2, memoryMb: 4096, pids: 512 },
+        environment: [],
+        premounts: []
+      }
+    }
+    let resolvePlan: ((value: unknown) => void) | undefined
+    const pendingPlan = new Promise((resolve) => {
+      resolvePlan = resolve
+    })
+    mocks.callRuntimeRpc
+      .mockResolvedValueOnce(configurationSupportedStatus())
+      .mockResolvedValueOnce([stoppedComputer])
+      .mockResolvedValueOnce(snapshot)
+      .mockReturnValueOnce(pendingPlan)
+
+    render(<ComputersSettingsPane settings={settings} />)
+    await user.click(await screen.findByText('Setup'))
+    const cpu = await screen.findByLabelText('CPUs')
+    await user.clear(cpu)
+    await user.type(cpu, '4')
+    await user.click(screen.getByRole('button', { name: 'Review changes' }))
+    await user.clear(cpu)
+    await user.type(cpu, '6')
+    await act(async () => {
+      resolvePlan?.({
+        outcome: 'planned',
+        plan: {
+          ...snapshot,
+          replacementRequired: true,
+          interruption: 'none',
+          changes: {
+            resources: ['cpus'],
+            environment: { added: [], changed: [], removed: [] },
+            premountsChanged: false
+          }
+        }
+      })
+      await pendingPlan
+    })
+
+    expect(screen.queryByRole('button', { name: 'Apply setup' })).not.toBeInTheDocument()
   })
 
   it('edits and saves a running Computer Git identity inline', async () => {
@@ -272,7 +321,7 @@ describe('ComputersSettingsPane', () => {
     await user.type(name, 'Grace Hopper')
     await user.clear(email)
     await user.type(email, 'grace@example.com')
-    await user.click(screen.getByRole('button', { name: 'Save' }))
+    await user.click(screen.getByRole('button', { name: 'Save Git identity' }))
 
     expect(mocks.callRuntimeRpc).toHaveBeenNthCalledWith(
       4,
@@ -281,6 +330,25 @@ describe('ComputersSettingsPane', () => {
       { id: 'dev-box', name: 'Grace Hopper', email: 'grace@example.com' }
     )
     expect(await screen.findByText('Saved')).toBeInTheDocument()
+  })
+
+  it('keeps Git identity disabled after a load failure and offers retry', async () => {
+    const user = userEvent.setup()
+    mocks.callRuntimeRpc
+      .mockResolvedValueOnce(identitySupportedStatus())
+      .mockResolvedValueOnce([runningComputer])
+      .mockRejectedValueOnce(new Error('Identity unavailable'))
+      .mockResolvedValueOnce({ name: 'Ada Lovelace', email: 'ada@example.com' })
+
+    render(<ComputersSettingsPane settings={settings} />)
+
+    expect(await screen.findByText('Identity unavailable')).toBeInTheDocument()
+    expect(screen.getByLabelText('Git display name')).toBeDisabled()
+    expect(screen.queryByRole('button', { name: 'Save Git identity' })).not.toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Retry' }))
+    await waitFor(() =>
+      expect(screen.getByLabelText('Git display name')).toHaveValue('Ada Lovelace')
+    )
   })
 
   it('does not read identity or silently start a stopped Computer', async () => {
@@ -314,6 +382,8 @@ describe('ComputersSettingsPane', () => {
     await waitFor(() => expect(screen.getByRole('button', { name: 'Stop' })).toBeEnabled())
 
     await user.click(screen.getByRole('button', { name: 'Stop' }))
+    expect(screen.getByText('Running processes will end.')).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Stop Computer' }))
     expect(mocks.callRuntimeRpc).toHaveBeenNthCalledWith(4, { kind: 'local' }, 'computers.stop', {
       id: 'dev-box'
     })

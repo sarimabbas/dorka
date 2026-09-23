@@ -13,7 +13,11 @@ export function ComputerConfigurationPlanSummary({
     ...(plan.changes.premountsChanged ? ['Change premounted folders'] : [])
   ]
   return (
-    <div className="rounded-md border border-border bg-background p-3 text-xs">
+    <div
+      className="rounded-md border border-border bg-background p-3 text-xs"
+      role="status"
+      aria-live="polite"
+    >
       <p className="font-medium">{changes.length > 0 ? 'Ready to apply' : 'No changes'}</p>
       {changes.length > 0 ? (
         <ul className="mt-1 list-disc space-y-0.5 pl-4 text-muted-foreground">
