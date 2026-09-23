@@ -60,8 +60,9 @@ DORKA_ENGINE_SOCKET="${XDG_RUNTIME_DIR}/podman/podman.sock" podman compose up -d
 On macOS or Windows, use the socket path reported by `podman machine inspect`
 and make sure that path is shareable by the Compose provider.
 
-`DORKA_SERVER_PORT` changes the published server port. The container still
-listens on 6768. Compose creates `dorka-runtimes` as an internal network for
+`DORKA_SERVER_PORT` changes the published server port. The container listens on
+`0.0.0.0:6768`; device pairing still authenticates clients before exposing runtime
+operations. Compose creates `dorka-runtimes` as an internal network for
 runtime traffic and a separate `dorka-control` network for the published server.
 Computer instances are created dynamically by Dorka and are intentionally not
 listed in `compose.yaml`.

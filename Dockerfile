@@ -36,6 +36,6 @@ WORKDIR /data
 VOLUME ["/data"]
 EXPOSE 6768
 ENTRYPOINT ["/usr/local/bin/dorka-server-entrypoint"]
-CMD ["--port", "6768"]
+CMD ["--bind", "0.0.0.0", "--port", "6768"]
 HEALTHCHECK --interval=15s --timeout=3s --start-period=30s --retries=5 \
   CMD bash -c 'exec 3<>/dev/tcp/127.0.0.1/6768'
