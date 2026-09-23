@@ -1,5 +1,7 @@
 import { defineMethod } from '../core'
 import {
+  ComputerConfigurationGetParams,
+  ComputerConfigurationMutationParams,
   ComputerGitIdentityParams,
   ComputerIdParams,
   CreateComputerParams,
@@ -32,6 +34,23 @@ export const COMPUTER_LIFECYCLE_METHODS = [
     name: 'computers.remove',
     params: ComputerIdParams,
     handler: async (params, { runtime }) => runtime.removeRuntimeComputer(params.id)
+  }),
+  defineMethod({
+    name: 'computers.configuration.get',
+    params: ComputerConfigurationGetParams,
+    handler: async (params, { runtime }) => runtime.getComputerConfiguration(params.id)
+  }),
+  defineMethod({
+    name: 'computers.configuration.plan',
+    params: ComputerConfigurationMutationParams,
+    handler: async (params, { runtime }) =>
+      runtime.planComputerConfiguration(params.id, params.expectedRevision, params.configuration)
+  }),
+  defineMethod({
+    name: 'computers.configuration.replace',
+    params: ComputerConfigurationMutationParams,
+    handler: async (params, { runtime }) =>
+      runtime.replaceComputerConfiguration(params.id, params.expectedRevision, params.configuration)
   }),
   defineMethod({
     name: 'computers.gitIdentity.get',

@@ -56,6 +56,38 @@ export const CreateComputerParams = z
 
 export const ComputerIdParams = z.object({ id: ComputerId }).strict()
 
+const ComputerConfigurationEnvironment = z
+  .object({
+    preserve: z
+      .array(z.string().regex(/^[A-Za-z_][A-Za-z0-9_]{0,127}$/))
+      .max(128)
+      .refine((names) => new Set(names).size === names.length),
+    set: ComputerEnvironment
+  })
+  .strict()
+  .refine(
+    ({ preserve, set }) => preserve.every((name) => !Object.hasOwn(set, name)),
+    'Computer environment names cannot be both preserved and set'
+  )
+
+export const ComputerConfiguration = z
+  .object({
+    resources: ComputerResources.required(),
+    environment: ComputerConfigurationEnvironment,
+    premounts: z.array(ComputerMount).max(16)
+  })
+  .strict()
+
+export const ComputerConfigurationGetParams = ComputerIdParams
+
+export const ComputerConfigurationMutationParams = z
+  .object({
+    id: ComputerId,
+    expectedRevision: z.uuid(),
+    configuration: ComputerConfiguration
+  })
+  .strict()
+
 export const ComputerGitIdentityParams = ComputerIdParams
 
 export const SetComputerGitIdentityParams = z

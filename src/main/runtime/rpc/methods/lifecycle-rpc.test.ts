@@ -13,6 +13,7 @@ import {
   AGENT_EXECUTION_RUNTIME_CAPABILITY,
   AGENT_ROSTER_RUNTIME_CAPABILITY,
   AGENT_RUN_HISTORY_RUNTIME_CAPABILITY,
+  COMPUTER_CONFIGURATION_RUNTIME_CAPABILITY,
   COMPUTER_GIT_IDENTITY_RUNTIME_CAPABILITY,
   COMPUTER_LIFECYCLE_RUNTIME_CAPABILITY,
   RUNTIME_CAPABILITIES
@@ -40,6 +41,9 @@ describe('Agent and Computer lifecycle RPC', () => {
       'computers.start',
       'computers.stop',
       'computers.remove',
+      'computers.configuration.get',
+      'computers.configuration.plan',
+      'computers.configuration.replace',
       'computers.gitIdentity.get',
       'computers.gitIdentity.set'
     ] as const
@@ -88,7 +92,20 @@ describe('Agent and Computer lifecycle RPC', () => {
         target: 'ssh-1'
       }).success
     ).toBe(false)
+    expect(
+      methods.get('computers.configuration.replace')?.params?.safeParse({
+        id: 'worker-1',
+        expectedRevision: '10000000-0000-4000-8000-000000000001',
+        configuration: {
+          resources: { cpus: 2, memoryMb: 4096, pids: 512 },
+          environment: { preserve: [], set: {} },
+          premounts: []
+        },
+        engineArgs: ['--privileged']
+      }).success
+    ).toBe(false)
     expect(RUNTIME_CAPABILITIES).toContain(COMPUTER_LIFECYCLE_RUNTIME_CAPABILITY)
+    expect(RUNTIME_CAPABILITIES).toContain(COMPUTER_CONFIGURATION_RUNTIME_CAPABILITY)
     expect(RUNTIME_CAPABILITIES).toContain(COMPUTER_GIT_IDENTITY_RUNTIME_CAPABILITY)
   })
 
@@ -99,6 +116,7 @@ describe('Agent and Computer lifecycle RPC', () => {
     expect(capabilities).not.toContain(AGENT_RUN_HISTORY_RUNTIME_CAPABILITY)
     expect(capabilities).not.toContain(AGENT_EXECUTION_RUNTIME_CAPABILITY)
     expect(capabilities).not.toContain(COMPUTER_LIFECYCLE_RUNTIME_CAPABILITY)
+    expect(capabilities).not.toContain(COMPUTER_CONFIGURATION_RUNTIME_CAPABILITY)
     expect(capabilities).not.toContain(COMPUTER_GIT_IDENTITY_RUNTIME_CAPABILITY)
   })
 
@@ -153,6 +171,45 @@ describe('Agent and Computer lifecycle RPC', () => {
         computerId: 'worker-1'
       })
     ).toMatchObject({ ok: true, result: { lastComputerId: 'worker-1' } })
+    const configuration = await dispatch(dispatcher, 'computers.configuration.get', {
+      id: 'worker-1'
+    })
+    expect(configuration).toMatchObject({
+      ok: true,
+      result: {
+        id: 'worker-1',
+        configuration: { environment: [], premounts: [] }
+      }
+    })
+    const revision = resultRevision(configuration)
+    expect(
+      await dispatch(dispatcher, 'computers.configuration.plan', {
+        id: 'worker-1',
+        expectedRevision: revision,
+        configuration: {
+          resources: { cpus: 4, memoryMb: 8192, pids: 512 },
+          environment: { preserve: [], set: { MODE: 'private-value' } },
+          premounts: []
+        }
+      })
+    ).toMatchObject({
+      ok: true,
+      result: { outcome: 'planned', plan: { replacementRequired: true } }
+    })
+    const replaced = await dispatch(dispatcher, 'computers.configuration.replace', {
+      id: 'worker-1',
+      expectedRevision: revision,
+      configuration: {
+        resources: { cpus: 4, memoryMb: 8192, pids: 512 },
+        environment: { preserve: [], set: { MODE: 'private-value' } },
+        premounts: []
+      }
+    })
+    expect(replaced).toMatchObject({
+      ok: true,
+      result: { outcome: 'replaced', snapshot: { configuration: { environment: ['MODE'] } } }
+    })
+    expect(JSON.stringify(replaced)).not.toContain('private-value')
     expect(await dispatch(dispatcher, 'computers.start', { id: 'worker-1' })).toMatchObject({
       ok: true,
       result: { state: 'running' }
@@ -217,6 +274,17 @@ async function dispatch(
     method,
     params
   })
+}
+
+function resultRevision(response: Awaited<ReturnType<typeof dispatch>>): string {
+  if (!response.ok || !response.result || typeof response.result !== 'object') {
+    throw new Error('Expected a successful object response')
+  }
+  const revision = Reflect.get(response.result, 'revision')
+  if (typeof revision !== 'string') {
+    throw new Error('Expected a revision')
+  }
+  return revision
 }
 
 function resultId(response: Awaited<ReturnType<typeof dispatch>>): string {

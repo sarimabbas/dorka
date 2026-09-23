@@ -13,7 +13,7 @@ import type {
   AgentSourceControlReviewDiffRequest,
   AgentSourceControlReviewRequest
 } from '../../shared/rpc-contract/agent-source-control-params'
-import type { ComputerCreateSpec } from '../../shared/computer-runtime'
+import type { ComputerConfigurationInput, ComputerCreateSpec } from '../../shared/computer-runtime'
 import type { AgentRosterStore } from '../agents/agent-roster-store'
 import type { AgentExecutionService } from '../agents/agent-execution-service'
 import type { ComputerRuntimeManager } from '../computers/computer-runtime-manager'
@@ -24,6 +24,7 @@ import {
   AGENT_ROSTER_RUNTIME_CAPABILITY,
   AGENT_RUN_HISTORY_RUNTIME_CAPABILITY,
   AGENT_SOURCE_CONTROL_RUNTIME_CAPABILITY,
+  COMPUTER_CONFIGURATION_RUNTIME_CAPABILITY,
   COMPUTER_GIT_IDENTITY_RUNTIME_CAPABILITY,
   COMPUTER_LIFECYCLE_RUNTIME_CAPABILITY,
   type RuntimeCapability
@@ -55,6 +56,7 @@ function withLifecycleCapabilityHonesty(
   }
   if (!deps?.computerRuntimeManager) {
     disabled.add(COMPUTER_LIFECYCLE_RUNTIME_CAPABILITY)
+    disabled.add(COMPUTER_CONFIGURATION_RUNTIME_CAPABILITY)
   }
   if (!deps?.computerRunSourceControl) {
     disabled.add(AGENT_SOURCE_CONTROL_RUNTIME_CAPABILITY)
@@ -151,6 +153,34 @@ class DorkaRuntimeService extends DorkaRuntimeWithResolveWaiter {
 
   removeRuntimeComputer(id: string) {
     return this.requireComputerRuntimeManager().remove(id)
+  }
+
+  getComputerConfiguration(id: string) {
+    return this.requireComputerRuntimeManager().getConfiguration(id)
+  }
+
+  planComputerConfiguration(
+    id: string,
+    expectedRevision: string,
+    configuration: ComputerConfigurationInput
+  ) {
+    return this.requireComputerRuntimeManager().planConfiguration(
+      id,
+      expectedRevision,
+      configuration
+    )
+  }
+
+  replaceComputerConfiguration(
+    id: string,
+    expectedRevision: string,
+    configuration: ComputerConfigurationInput
+  ) {
+    return this.requireComputerRuntimeManager().replaceConfiguration(
+      id,
+      expectedRevision,
+      configuration
+    )
   }
 
   getComputerGitIdentity(id: string) {
