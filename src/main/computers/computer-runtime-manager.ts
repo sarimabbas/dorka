@@ -19,6 +19,7 @@ import {
   computerName,
   createComputerArgs,
   listComputerIdsArgs,
+  validateAllowedMountSources,
   validateComputerId,
   validateComputerSpec,
   validateServerId
@@ -30,6 +31,7 @@ export type ComputerRuntimeManagerOptions = {
   dataDirectory: string
   serverId: string
   enginePath?: string
+  allowedMountSources?: readonly string[]
   execute?: ComputerCommandExecutor
 }
 
@@ -44,11 +46,13 @@ export class ComputerRuntimeManager {
   private readonly enginePath: string
   private readonly execute: ComputerCommandExecutor
   private readonly store: ComputerRecordStore
+  private readonly allowedMountSources: readonly string[]
 
   constructor(private readonly options: ComputerRuntimeManagerOptions) {
     validateServerId(options.serverId)
     this.enginePath = options.enginePath ?? 'docker'
     this.execute = options.execute ?? runProcess
+    this.allowedMountSources = validateAllowedMountSources(options.allowedMountSources ?? [])
     this.store = new ComputerRecordStore(options.dataDirectory)
   }
 
@@ -59,7 +63,7 @@ export class ComputerRuntimeManager {
       throw new Error(`Computer already exists: ${validated.id}`)
     }
 
-    await this.run(createComputerArgs(validated, this.options.serverId))
+    await this.run(createComputerArgs(validated, this.options.serverId, this.allowedMountSources))
     await this.store.save([...records, { spec: validated, desiredState: 'stopped' }])
     return this.inspect(validated.id)
   }
@@ -124,7 +128,9 @@ export class ComputerRuntimeManager {
     for (const record of desired) {
       let current = actualById.get(record.spec.id)
       if (!current) {
-        await this.run(createComputerArgs(record.spec, this.options.serverId))
+        await this.run(
+          createComputerArgs(record.spec, this.options.serverId, this.allowedMountSources)
+        )
         result.created.push(record.spec.id)
         current = {
           id: record.spec.id,

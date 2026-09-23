@@ -9,10 +9,18 @@ export type ComputerResourceLimits = {
   pids?: number
 }
 
+export type ComputerMountSpec = {
+  source: string
+  target: string
+  readOnly?: boolean
+}
+
 export type ComputerCreateSpec = {
   id: string
   image: string
   resources?: ComputerResourceLimits
+  environment?: Record<string, string>
+  mounts?: ComputerMountSpec[]
 }
 
 export type ComputerDesiredState = 'stopped' | 'running'

@@ -79,6 +79,44 @@ runtime traffic and a separate `dorka-control` network for the published server.
 Computer instances are created dynamically by Dorka and are intentionally not
 listed in `compose.yaml`.
 
+## Computer environment and premounted paths
+
+A Computer create request may include ordinary string environment variables.
+Names must use the portable `NAME` form and both names and values are bounded.
+Dorka passes each value as one `--env` argument; callers cannot add container
+engine flags.
+
+Environment values are persisted in `/data/computers.json`. **Do not put secrets
+in them.** Secret references and runtime injection are a future seam; they must
+resolve through a dedicated secret store without persisting plaintext in the
+Computer spec.
+
+Host paths are denied by default. An operator may expose an exact set of paths
+that are already mounted into `dorka-server` at the same absolute paths. Set
+`DORKA_COMPUTER_MOUNT_ALLOWLIST` to a JSON array, then add the matching server
+bind mounts in a Compose override:
+
+```yaml
+services:
+  dorka-server:
+    environment:
+      DORKA_COMPUTER_MOUNT_ALLOWLIST: '["/srv/dorka-shared"]'
+    volumes:
+      - /srv/dorka-shared:/srv/dorka-shared
+```
+
+A Computer request can then mount `/srv/dorka-shared` at a normalized absolute
+container target. Mounts default to read-only; writable access must be explicit.
+The source must exactly match the allowlist. Parent-directory and prefix matches
+do not count. Dorka rejects home directories, engine/runtime paths, device and
+kernel filesystems, duplicate targets, and attempts to replace the managed home,
+workspace, or engine-socket target.
+
+The allowlist is configuration, not a general bind-mount API. Never add the
+engine socket, a host home, `/`, `/dev`, `/proc`, `/sys`, or `/run`. Computer
+containers never receive the engine socket or host home, never run privileged,
+and cannot request arbitrary engine flags or unconstrained host mounts.
+
 ## Build the Computer image
 
 The curated Computer extends an official, persistent Selkies desktop tag. It

@@ -6,7 +6,8 @@ import type { ProcessResult, ProcessSpec } from '../../shared/child-process/run-
 import {
   DORKA_COMPUTER_LABEL,
   DORKA_MANAGED_LABEL,
-  DORKA_SERVER_LABEL
+  DORKA_SERVER_LABEL,
+  type ComputerCreateSpec
 } from '../../shared/computer-runtime'
 import { ComputerRuntimeManager, type ComputerCommandExecutor } from './computer-runtime-manager'
 
@@ -92,7 +93,9 @@ describe('ComputerRuntimeManager', () => {
           spec: {
             id: 'alpha',
             image: 'ghcr.io/dorka/runtime:1.0',
-            resources: { cpus: 2, memoryMb: 4096, pids: 512 }
+            resources: { cpus: 2, memoryMb: 4096, pids: 512 },
+            environment: {},
+            mounts: []
           },
           desiredState: 'stopped'
         }
@@ -100,13 +103,71 @@ describe('ComputerRuntimeManager', () => {
     })
   })
 
-  it.each([
+  it('adds validated environment and exact allowlisted premounts without engine flags', async () => {
+    const execute = vi
+      .fn<ComputerCommandExecutor>()
+      .mockResolvedValueOnce(processResult('engine-alpha\n'))
+      .mockResolvedValueOnce(processResult(JSON.stringify([inspection('alpha')])))
+    const manager = new ComputerRuntimeManager({
+      dataDirectory: await dataDirectory(),
+      serverId,
+      allowedMountSources: ['/srv/dorka/shared'],
+      execute
+    })
+
+    await manager.create({
+      id: 'alpha',
+      image: 'safe/image:tag',
+      environment: { FEATURE_FLAG: 'enabled', LITERAL: '--privileged' },
+      mounts: [
+        { source: '/srv/dorka/shared', target: '/shared' },
+        { source: '/srv/dorka/shared', target: '/imports', readOnly: false }
+      ]
+    })
+
+    const args = execute.mock.calls[0]?.[0].args ?? []
+    expect(args.slice(args.indexOf('--env'), args.indexOf('--workdir'))).toEqual([
+      '--env',
+      'FEATURE_FLAG=enabled',
+      '--env',
+      'LITERAL=--privileged',
+      '--mount',
+      'type=bind,source=/srv/dorka/shared,target=/shared,readonly',
+      '--mount',
+      'type=bind,source=/srv/dorka/shared,target=/imports'
+    ])
+    expect(args.at(-1)).toBe('safe/image:tag')
+  })
+
+  it.each<ComputerCreateSpec>([
     { id: '../escape', image: 'safe/image:tag' },
     { id: 'UPPER', image: 'safe/image:tag' },
     { id: 'safe', image: '--privileged' },
     { id: 'safe', image: 'safe/image:tag', resources: { cpus: 0 } },
     { id: 'safe', image: 'safe/image:tag', resources: { memoryMb: 1 } },
-    { id: 'safe', image: 'safe/image:tag', resources: { pids: 1 } }
+    { id: 'safe', image: 'safe/image:tag', resources: { pids: 1 } },
+    { id: 'safe', image: 'safe/image:tag', environment: { 'BAD-NAME': 'value' } },
+    { id: 'safe', image: 'safe/image:tag', environment: { SAFE: 'bad\0value' } },
+    {
+      id: 'safe',
+      image: 'safe/image:tag',
+      mounts: [{ source: '/srv/not-allowed', target: '/shared' }]
+    },
+    {
+      id: 'safe',
+      image: 'safe/image:tag',
+      mounts: [{ source: '/home/operator', target: '/shared' }]
+    },
+    {
+      id: 'safe',
+      image: 'safe/image:tag',
+      mounts: [{ source: '/srv/dorka/shared,readonly', target: '/shared' }]
+    },
+    {
+      id: 'safe',
+      image: 'safe/image:tag',
+      mounts: [{ source: '/srv/dorka/shared', target: '/var/run/docker.sock' }]
+    }
   ])('rejects invalid create input without executing: $id $image', async (spec) => {
     const execute = vi.fn<ComputerCommandExecutor>()
     const manager = new ComputerRuntimeManager({

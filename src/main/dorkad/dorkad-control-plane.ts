@@ -12,6 +12,7 @@ import type { ComputerCreateSpec, ComputerReconcileResult } from '../../shared/c
 const SERVER_ID_FILE = 'server-id'
 const DEFAULT_COMPUTER_IMAGE = 'dorka-computer:selkies'
 const DEFAULT_ENGINE_PATH = 'docker'
+const COMPUTER_MOUNT_ALLOWLIST_ENV = 'DORKA_COMPUTER_MOUNT_ALLOWLIST'
 
 export type DorkadComputerEngineHealth =
   | {
@@ -77,6 +78,17 @@ function engineFailureReason(error: unknown): string {
   return error instanceof Error ? error.message : String(error)
 }
 
+function parseComputerMountAllowlist(value: string | undefined): string[] {
+  if (!value) {
+    return []
+  }
+  const parsed: unknown = JSON.parse(value)
+  if (!Array.isArray(parsed) || !parsed.every((entry) => typeof entry === 'string')) {
+    throw new Error(`${COMPUTER_MOUNT_ALLOWLIST_ENV} must be a JSON array of absolute paths`)
+  }
+  return parsed
+}
+
 export async function createDorkadControlPlane(
   options: DorkadControlPlaneOptions
 ): Promise<DorkadControlPlaneService> {
@@ -90,6 +102,7 @@ export async function createDorkadControlPlane(
     dataDirectory: options.dataDirectory,
     serverId,
     enginePath: cliPath,
+    allowedMountSources: parseComputerMountAllowlist(env[COMPUTER_MOUNT_ALLOWLIST_ENV]),
     execute
   })
 

@@ -22,13 +22,34 @@ const ComputerResources = z
   })
   .strict()
 
+const ComputerEnvironment = z
+  .record(
+    z.string(),
+    z
+      .string()
+      .max(8192)
+      .refine((value) => !value.includes('\0'))
+  )
+  .refine((value) => Object.keys(value).length <= 128)
+  .refine((value) => Object.keys(value).every((key) => /^[A-Za-z_][A-Za-z0-9_]{0,127}$/.test(key)))
+
+const ComputerMount = z
+  .object({
+    source: z.string().max(1024),
+    target: z.string().max(1024),
+    readOnly: z.boolean().optional()
+  })
+  .strict()
+
 export const ListComputersParams = z.object({}).strict()
 
 export const CreateComputerParams = z
   .object({
     id: ComputerId,
     image: ComputerImage,
-    resources: ComputerResources.optional()
+    resources: ComputerResources.optional(),
+    environment: ComputerEnvironment.optional(),
+    mounts: z.array(ComputerMount).max(16).optional()
   })
   .strict()
 
