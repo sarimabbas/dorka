@@ -1,5 +1,5 @@
 import { posix } from 'node:path'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import type { Agent, AgentReference } from '../../shared/agent-roster'
 import type { IFilesystemProvider } from '../providers/types'
 import type { AgentTerminalLaunch } from './agent-execution-service'
@@ -57,14 +57,27 @@ function filesystem(files: Record<string, string>): IFilesystemProvider {
   } as IFilesystemProvider
 }
 
-function setup(references: AgentReference[], files: Record<string, string>) {
+function setup(
+  references: AgentReference[],
+  files: Record<string, string>,
+  relayGeneration = 'generation-1'
+) {
+  const computerFilesystem = filesystem(files)
+  const readFile = vi.spyOn(computerFilesystem, 'readFile')
   const host: ManagedComputerHostProjector = {
     async connect() {
       return {
         connectionId: 'runtime-ssh-computer-main',
         executionHostId: 'ssh:runtime-ssh-computer-main',
-        filesystem: filesystem(files),
-        git: undefined
+        filesystem: computerFilesystem,
+        git: undefined,
+        durableExitEvidence: {
+          generation: relayGeneration,
+          async listExact() {
+            return []
+          },
+          async acknowledgeExact() {}
+        }
       }
     }
   }
@@ -93,7 +106,7 @@ function setup(references: AgentReference[], files: Record<string, string>) {
     prompt: 'Build it',
     sourceDirectory: '/workspace'
   }
-  return { resolver: createComputerAgentReferenceResolver({ host }), request }
+  return { resolver: createComputerAgentReferenceResolver({ host }), request, readFile }
 }
 
 describe('Computer Agent reference resolver', () => {
@@ -113,6 +126,31 @@ describe('Computer Agent reference resolver', () => {
     )
 
     await expect(resolver(request)).resolves.toBeUndefined()
+  })
+
+  it('reads each bounded MCP config once and fences the Computer generation', async () => {
+    const references: AgentReference[] = [
+      { kind: 'mcp-server', name: 'docs', configId: 'workspace' },
+      { kind: 'mcp-server', name: 'search', configId: 'workspace' }
+    ]
+    const config = JSON.stringify({
+      mcpServers: {
+        docs: { type: 'http', url: 'https://example.invalid/docs' },
+        search: { type: 'http', url: 'https://example.invalid/search' }
+      }
+    })
+    const accepted = setup(references, { '/workspace/.mcp.json': config })
+    await accepted.resolver(accepted.request)
+    expect(accepted.readFile).toHaveBeenCalledTimes(1)
+    expect(accepted.readFile).toHaveBeenCalledWith('/workspace/.mcp.json', {
+      maxTextBytes: 256 * 1024
+    })
+
+    const stale = setup(references, { '/workspace/.mcp.json': config }, 'generation-2')
+    await expect(stale.resolver(stale.request)).rejects.toThrow(
+      'Computer relay execution generation is unverifiable'
+    )
+    expect(stale.readFile).not.toHaveBeenCalled()
   })
 
   it('rejects a global skill when the Agent requires workspace scope', async () => {

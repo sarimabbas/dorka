@@ -1,6 +1,9 @@
 import type { Store } from '../persistence'
 import type { Run } from '../../shared/agent-roster'
-import { AgentExecutionService } from '../agents/agent-execution-service'
+import {
+  AgentExecutionService,
+  type AgentReferenceResolver
+} from '../agents/agent-execution-service'
 import { createManagedComputerAgentTerminalLauncher } from '../agents/managed-computer-agent-terminal-launcher'
 import { createComputerAgentReferenceResolver } from '../agents/computer-agent-reference-resolver'
 import { ComputerRunSourceControl } from '../agents/computer-run-source-control'
@@ -31,6 +34,7 @@ export function createDorkadComputerAgentExecution(
   let sessions: ManagedSshHostSessions | null = null
   let host: ManagedComputerHostProjector | null = null
   let launch = createUnavailableLauncher()
+  let referenceAuthority: AgentReferenceResolver | null = null
   let sourceControlAuthority: ComputerRunSourceControl | null = null
   let gitIdentityAuthority: ComputerGitIdentityManager | null = null
   let runExitObserver: ManagedRunPtyExitObserver | null = null
@@ -40,12 +44,7 @@ export function createDorkadComputerAgentExecution(
     computers,
     (request) => launch(request),
     (runId, ptyId) => runExitObserver?.observe(runId, ptyId),
-    async (request) => {
-      if (!host) {
-        throw new Error('Computer Agent requirements are unavailable')
-      }
-      await createComputerAgentReferenceResolver({ host })(request)
-    }
+    (request) => requireReferenceResolver(referenceAuthority)(request)
   )
   const sourceControl = {
     status: (runId: string) => requireSourceControl(sourceControlAuthority).status(runId),
@@ -86,6 +85,7 @@ export function createDorkadComputerAgentExecution(
           })
       })
       host = createManagedComputerHostProjector({ computers, sessions })
+      referenceAuthority = createComputerAgentReferenceResolver({ host })
       launch = createManagedComputerAgentTerminalLauncher({ host, runtime })
       sourceControlAuthority = new ComputerRunSourceControl({
         roster: agents,
@@ -109,6 +109,7 @@ export function createDorkadComputerAgentExecution(
       runExitObserver?.dispose()
       runExitObserver = null
       runtimeAuthority = null
+      referenceAuthority = null
       await sessions?.disconnectAll()
     }
   }
@@ -215,6 +216,15 @@ function reportManagedRunRecovery(result: DorkadManagedRunRecoveryResult): void 
       `[dorkad] Managed Computer Run recovery is degraded for Computers: ${result.failedComputerIds.join(', ')}`
     )
   }
+}
+
+function requireReferenceResolver(
+  authority: AgentReferenceResolver | null
+): AgentReferenceResolver {
+  if (!authority) {
+    throw new Error('Computer Agent requirements are unavailable')
+  }
+  return authority
 }
 
 function requireGitIdentity(

@@ -26,6 +26,7 @@ describe('managed-host skill discovery', () => {
     const host: SkillDiscoveryHost = {
       cacheNamespace: 'computer-test',
       pathApi: posix,
+      isNotFoundError: (error) => (error as NodeJS.ErrnoException | null)?.code === 'ENOENT',
       filesystem: {
         async readDir(path) {
           calls.push(`dir:${path}`)

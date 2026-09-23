@@ -6,7 +6,10 @@ import { isSkillStagingEntryName } from './skill-delete/staging-names'
 
 export const SKILL_FILE_NAME = 'SKILL.md'
 
-export type SkillDiscoveryFilesystem = Pick<IFilesystemProvider, 'readDir' | 'realpath' | 'stat'>
+type SkillDiscoveryDirectoryEntry = DirEntry & { isFile?: boolean }
+export type SkillDiscoveryFilesystem = Pick<IFilesystemProvider, 'realpath' | 'stat'> & {
+  readDir(dirPath: string): Promise<SkillDiscoveryDirectoryEntry[]>
+}
 export type SkillDiscoveryPathApi = {
   isAbsolute(path: string): boolean
   join(...paths: string[]): string
@@ -16,6 +19,7 @@ export type SkillDiscoveryPathApi = {
 export type SkillDiscoveryHost = {
   filesystem: SkillDiscoveryFilesystem & Pick<IFilesystemProvider, 'readFile'>
   cacheNamespace: string
+  isNotFoundError(error: unknown): boolean
   pathApi: SkillDiscoveryPathApi & {
     basename(path: string): string
     dirname(path: string): string
@@ -44,7 +48,8 @@ export async function findSkillFilesWithFilesystem(
   maxDepth: number,
   filesystem: SkillDiscoveryFilesystem,
   pathApi: SkillDiscoveryPathApi,
-  signal?: AbortSignal
+  signal?: AbortSignal,
+  isNotFoundError: (error: unknown) => boolean = () => false
 ): Promise<string[]> {
   const out: string[] = []
   const visitedDirectoryPaths = new Set<string>()
@@ -53,19 +58,25 @@ export async function findSkillFilesWithFilesystem(
     let resolvedDirPath: string
     try {
       resolvedDirPath = await filesystem.realpath(dirPath)
-    } catch {
-      return
+    } catch (error) {
+      if (isNotFoundError(error)) {
+        return
+      }
+      throw error
     }
     if (visitedDirectoryPaths.has(resolvedDirPath)) {
       return
     }
     visitedDirectoryPaths.add(resolvedDirPath)
 
-    let entries: DirEntry[]
+    let entries: SkillDiscoveryDirectoryEntry[]
     try {
       entries = await filesystem.readDir(dirPath)
-    } catch {
-      return
+    } catch (error) {
+      if (isNotFoundError(error)) {
+        return
+      }
+      throw error
     }
     let childrenWithinDepth: boolean | undefined
     for (const entry of entries) {
@@ -75,17 +86,17 @@ export async function findSkillFilesWithFilesystem(
       }
       const entryPath = pathApi.join(dirPath, entry.name)
       if (entry.name === SKILL_FILE_NAME) {
-        if (!entry.isDirectory && !entry.isSymlink) {
+        if (entry.isFile) {
           out.push(entryPath)
-          continue
-        }
-        if (entry.isSymlink) {
+        } else if (entry.isFile === undefined || entry.isSymlink) {
           try {
             if ((await filesystem.stat(entryPath)).type === 'file') {
               out.push(entryPath)
             }
-          } catch {
-            // Broken links are not valid skill files.
+          } catch (error) {
+            if (!isNotFoundError(error)) {
+              throw error
+            }
           }
         }
         continue
@@ -103,8 +114,10 @@ export async function findSkillFilesWithFilesystem(
         let linksToDirectory = false
         try {
           linksToDirectory = (await filesystem.stat(entryPath)).type === 'directory'
-        } catch {
-          // Broken links are not valid skill directories.
+        } catch (error) {
+          if (!isNotFoundError(error)) {
+            throw error
+          }
         }
         if (linksToDirectory) {
           await visit(entryPath)
@@ -130,7 +143,8 @@ export function findSkillFiles(
         return (await readdir(dirPath, { withFileTypes: true })).map((entry) => ({
           name: entry.name,
           isDirectory: entry.isDirectory(),
-          isSymlink: entry.isSymbolicLink()
+          isSymlink: entry.isSymbolicLink(),
+          isFile: entry.isFile()
         }))
       },
       realpath,
@@ -145,6 +159,12 @@ export function findSkillFiles(
       }
     },
     { isAbsolute, join, relative, sep },
-    signal
+    signal,
+    isNativeNotFoundError
   )
+}
+
+export function isNativeNotFoundError(error: unknown): boolean {
+  const code = (error as NodeJS.ErrnoException | null)?.code
+  return code === 'ENOENT' || code === 'ENOTDIR'
 }

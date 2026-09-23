@@ -1,7 +1,6 @@
-import { open, realpath, stat } from 'node:fs/promises'
+import { realpath } from 'node:fs/promises'
 import { homedir } from 'node:os'
 import { basename, dirname, relative, sep } from 'node:path'
-import { summarizeSkillMarkdown } from '../../shared/skill-metadata'
 import type { Repo } from '../../shared/repo-types'
 import type {
   DiscoveredSkill,
@@ -26,6 +25,7 @@ import {
   type SkillDiscoveryHost
 } from './skill-root-file-walk'
 import { runSkillCandidateTasks } from './skill-candidate-concurrency'
+import { readSkillSummary, skillPathExists } from './skill-discovery-filesystem'
 import {
   isSkillRootUnavailableError,
   SkillScanCoalescer,
@@ -36,7 +36,6 @@ import { skillDirectoryMaxDepth } from '../../shared/skill-discovery-depth'
 
 export { buildSkillDiscoverySources } from './skill-discovery-sources'
 
-const MAX_MARKDOWN_BYTES = 256 * 1024
 // Why: the fixed home roots are identical for every target, so one worktree pane
 // per open workspace used to re-walk the same directories once per pane. Sharing
 // them for a few seconds is what bounds that fan-out.
@@ -109,53 +108,6 @@ function readLastKnownRootScan(key: string): ScannedSkill[] {
 
 export type { SkillDiscoveryHost } from './skill-root-file-walk'
 
-async function pathExists(pathValue: string, host?: SkillDiscoveryHost): Promise<boolean> {
-  try {
-    await (host ? host.filesystem.stat(pathValue) : stat(pathValue))
-    return true
-  } catch {
-    return false
-  }
-}
-
-async function readSkillSummary(
-  skillFilePath: string,
-  host?: SkillDiscoveryHost
-): Promise<{
-  name: string | null
-  description: string | null
-  updatedAt: number | null
-} | null> {
-  try {
-    if (host) {
-      const [fileStat, file] = await Promise.all([
-        host.filesystem.stat(skillFilePath),
-        host.filesystem.readFile(skillFilePath, { maxTextBytes: MAX_MARKDOWN_BYTES })
-      ])
-      if (file.isBinary) {
-        return null
-      }
-      return {
-        ...summarizeSkillMarkdown(file.content),
-        updatedAt: fileStat.mtimeMs ?? fileStat.mtime
-      }
-    }
-    const fileStat = await stat(skillFilePath)
-    const file = await open(skillFilePath, 'r')
-    let content = ''
-    try {
-      const buffer = Buffer.alloc(Math.min(fileStat.size, MAX_MARKDOWN_BYTES))
-      const { bytesRead } = await file.read(buffer, 0, buffer.length, 0)
-      content = buffer.toString('utf8', 0, bytesRead)
-    } finally {
-      await file.close()
-    }
-    return { ...summarizeSkillMarkdown(content), updatedAt: fileStat.mtimeMs }
-  } catch {
-    return null
-  }
-}
-
 type ScannedSkill = DiscoveredSkill & { canonicalSkillFilePath: string }
 
 async function scanRoot(
@@ -165,7 +117,14 @@ async function scanRoot(
 ): Promise<ScannedSkill[]> {
   const maxDepth = skillDirectoryMaxDepth(root.sourceKind)
   const skillFiles = host
-    ? await findSkillFilesWithFilesystem(root.path, maxDepth, host.filesystem, host.pathApi, signal)
+    ? await findSkillFilesWithFilesystem(
+        root.path,
+        maxDepth,
+        host.filesystem,
+        host.pathApi,
+        signal,
+        host.isNotFoundError
+      )
     : await findSkillFiles(root.path, maxDepth, signal)
   // Why: a root can hold many packages and each one costs a summary read plus a
   // package walk. Unbounded fan-out here is what turned one scan into a burst of
@@ -230,7 +189,7 @@ async function scanRootShared(
       key,
       { ttlMs: SKILL_ROOT_SCAN_TTL_MS, refresh },
       async (signal) => {
-        const exists = await pathExists(root.path, host)
+        const exists = await skillPathExists(root.path, host)
         return { exists, skills: exists ? await scanRoot(root, signal, host) : [] }
       }
     )
