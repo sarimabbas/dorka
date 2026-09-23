@@ -2,7 +2,7 @@
 
 ## Scope and verdict
 
-This review covers the Agent, Run, Computer, and Server vertical slice through `97f7a6367`. It applies
+This review covers the Agent, Run, Computer, and Server vertical slice through `c18d2083f`. It applies
 Ousterhout's deep-module criteria: information hiding, interface leverage, temporal coupling, policy
 ownership, error vocabulary, and deletion opportunity.
 
@@ -96,6 +96,21 @@ running Computer. If a normal engine command fails after replacement starts, the
 durable record before returning the error. Environment output remains names-only and the UI labels the
 input as ordinary, non-secret configuration.
 
+### Agent references are portable and fail closed
+
+Commits `09c4e4384` through `c18d2083f` add a strict names-only reference set without storing paths,
+commands, URLs, environment, credentials, or package data on the Agent. Lazy v1→v2 roster migration
+runs under the existing locked mutation path. Revision-fenced updates and `createRunForAgent` resolve
+the latest durable Agent and stamp its revision atomically. Preparation failures remain queued→failed;
+only the terminal-launch phase may project an unverifiable spawn to waiting. A stopped Computer is not
+started when the Server lacks a resolver. The existing managed host projector now exposes the already
+registered SSH filesystem provider, and MCP configuration candidates have stable IDs.
+
+The resolver remains intentionally unadvertised. The next deepening step is one Computer-local resolver
+that reuses skill discovery and bounded MCP inspection, then an additive update/inspection RPC and
+capability-gated UI. Until that composition lands, non-empty requirements fail before Computer start or
+terminal spawn rather than being silently ignored.
+
 ### Agent and Run records no longer lose cross-instance writes
 
 Commit `ee8fffcb1` keeps the `AgentRosterStore` public interface unchanged but rereads the latest durable
@@ -110,9 +125,10 @@ change remains behind the existing store boundary and does not alter PTY ownersh
 | 1    | Next    | Replacement recovery still exposes a temporal store callback protocol and has no durable in-progress intent for process crashes. | Deepen the existing configuration/reconciler seam into one recoverable operation; persist intent and let startup reconciliation complete or roll it back.     |
 | 2    | Next    | Exact-string premount allowlisting does not canonicalize execution-host symlinks.                                                | Resolve and validate canonical operator-owned sources immediately before engine creation; document the remaining filesystem TOCTOU boundary.                  |
 | 3    | Next    | Cross-entity Agent/Run/Computer/Server rules are split between `DorkaRuntimeService` pass-throughs and dorkad composition.       | Deepen the existing dorkad control plane and let `DorkaRuntimeService` remain the capability boundary that delegates to it. Do not add a facade or transport. |
-| 4    | Next    | The configuration renderer still combines remote state, editor state, validation, and most fields in one large component.        | Extract one reviewed-configuration state machine plus substantive environment and premount editors; avoid cosmetic wrappers.                                  |
-| 5    | Later   | Capability requirements and response parsing are duplicated between RPC method arrays and renderer clients.                      | Add lifecycle-operation descriptors with params, result schema, and capability metadata while preserving method strings and envelopes.                        |
-| 6    | Later   | Run and Computer UI behavior classifies some failures by matching prose.                                                         | Add an additive, allowlisted domain error vocabulary while retaining human messages and mixed-version fallback.                                               |
+| 4    | Next    | Agent requirements have a deep persistence/launch seam but no Computer-local implementation.                                     | Reuse managed SSH filesystem projection, existing skill discovery, and bounded MCP inspection; advertise editing only after launch enforcement is composed.   |
+| 5    | Next    | The configuration renderer still combines remote state, editor state, validation, and most fields in one large component.        | Extract one reviewed-configuration state machine plus substantive environment and premount editors; avoid cosmetic wrappers.                                  |
+| 6    | Later   | Capability requirements and response parsing are duplicated between RPC method arrays and renderer clients.                      | Add lifecycle-operation descriptors with params, result schema, and capability metadata while preserving method strings and envelopes.                        |
+| 7    | Later   | Run and Computer UI behavior classifies some failures by matching prose.                                                         | Add an additive, allowlisted domain error vocabulary while retaining human messages and mixed-version fallback.                                               |
 
 ## Modules to preserve
 
