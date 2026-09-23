@@ -1,4 +1,4 @@
-import { mkdtemp, rm, writeFile } from 'node:fs/promises'
+import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, describe, expect, it, vi } from 'vitest'
@@ -269,7 +269,39 @@ describe('AgentRosterStore', () => {
     expect(store.getRun(run.id)?.status).toBe('waiting')
   })
 
-  it('validates version 1 records loaded from disk without migration', async () => {
+  it('migrates version 1 Agents to revisioned empty reference sets', async () => {
+    const { directory } = await openStore()
+    const file = join(directory, AGENT_ROSTER_FILE_NAME)
+    await writeFile(
+      file,
+      JSON.stringify({
+        version: 1,
+        agents: [
+          {
+            id: 'legacy-agent',
+            name: 'Legacy',
+            character: { color: 'blue', variant: 'orb' },
+            job: 'Work',
+            harnessId: 'pi',
+            promptTemplate: 'Do the work.',
+            createdAt: 1,
+            updatedAt: 1
+          }
+        ],
+        runs: []
+      })
+    )
+
+    const store = await AgentRosterStore.open(directory)
+    expect(store.getAgent('legacy-agent')).toMatchObject({
+      revision: 1,
+      references: { version: 1, items: [] }
+    })
+    await store.createRun({ agentId: 'legacy-agent', computerId: 'main', prompt: 'Migrate' })
+    expect(JSON.parse(await readFile(file, 'utf8'))).toMatchObject({ version: 2 })
+  })
+
+  it('rejects invalid version 1 records during migration', async () => {
     const { directory } = await openStore()
     await writeFile(
       join(directory, AGENT_ROSTER_FILE_NAME),

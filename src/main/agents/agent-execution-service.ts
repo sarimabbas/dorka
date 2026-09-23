@@ -53,6 +53,7 @@ export class AgentExecutionService {
     const sourceDirectory = resolveComputerSourceDirectory(agent.workingDirectory)
     const run = await this.roster.createRun({
       agentId: agent.id,
+      agentRevision: agent.revision,
       computerId: computer.id,
       computerExecutionGeneration,
       prompt: effectivePrompt,

@@ -1,8 +1,6 @@
 import { randomUUID } from 'node:crypto'
-import { mkdir, open, readFile, rename, rm, writeFile } from 'node:fs/promises'
-import { dirname, join } from 'node:path'
+import { join } from 'node:path'
 import {
-  AgentRosterFileSchema,
   AgentSchema,
   RunSchema,
   type Agent,
@@ -16,6 +14,11 @@ import {
   type RunUpdate
 } from '../../shared/agent-roster'
 import { withFileTransactionLock } from '../file-transaction-lock'
+import {
+  persistAgentRoster,
+  readAgentRoster,
+  syncAgentRosterDirectory
+} from './agent-roster-persistence'
 
 export const AGENT_ROSTER_FILE_NAME = 'agent-roster.json'
 
@@ -28,89 +31,8 @@ const transitions: Readonly<Record<RunStatus, readonly RunStatus[]>> = {
   cancelled: []
 }
 
-const emptyRoster = (): AgentRosterFile => ({
-  version: 1,
-  agents: [],
-  runs: []
-})
-
-function isMissingFile(error: unknown): boolean {
-  return error instanceof Error && 'code' in error && error.code === 'ENOENT'
-}
-
-function validateRelationships(roster: AgentRosterFile): void {
-  const agentIds = new Set<string>()
-  const runIds = new Set<string>()
-
-  for (const agent of roster.agents) {
-    if (agentIds.has(agent.id)) {
-      throw new Error(`Duplicate Agent id: ${agent.id}`)
-    }
-    agentIds.add(agent.id)
-  }
-  for (const run of roster.runs) {
-    if (runIds.has(run.id)) {
-      throw new Error(`Duplicate Run id: ${run.id}`)
-    }
-    if (!agentIds.has(run.agentId)) {
-      throw new Error(`Run ${run.id} references a missing Agent`)
-    }
-    runIds.add(run.id)
-  }
-}
-
-async function readRoster(filePath: string): Promise<AgentRosterFile> {
-  try {
-    const roster = AgentRosterFileSchema.parse(JSON.parse(await readFile(filePath, 'utf8')))
-    validateRelationships(roster)
-    return roster
-  } catch (error) {
-    if (isMissingFile(error)) {
-      return emptyRoster()
-    }
-    throw error
-  }
-}
-
 type AgentRosterStoreOptions = {
   syncDirectory?: (directory: string) => Promise<void>
-}
-
-async function syncRosterDirectory(directory: string): Promise<void> {
-  if (process.platform === 'win32') {
-    return
-  }
-  const handle = await open(directory, 'r')
-  try {
-    await handle.sync()
-  } finally {
-    await handle.close().catch(() => undefined)
-  }
-}
-
-async function persistRoster(
-  filePath: string,
-  roster: AgentRosterFile,
-  syncDirectory: (directory: string) => Promise<void>
-): Promise<void> {
-  AgentRosterFileSchema.parse(roster)
-  validateRelationships(roster)
-  const directory = dirname(filePath)
-  const temporaryPath = `${filePath}.${process.pid}.${randomUUID()}.tmp`
-  await mkdir(directory, { recursive: true, mode: 0o700 })
-  try {
-    await writeFile(temporaryPath, `${JSON.stringify(roster, null, 2)}\n`, {
-      encoding: 'utf8',
-      mode: 0o600
-    })
-    const temporaryFile = await open(temporaryPath, 'r')
-    await temporaryFile.sync().finally(() => temporaryFile.close())
-    await rename(temporaryPath, filePath)
-    await syncDirectory(directory)
-  } catch (error) {
-    await rm(temporaryPath, { force: true }).catch(() => undefined)
-    throw error
-  }
 }
 
 export class AgentRosterStore {
@@ -129,8 +51,8 @@ export class AgentRosterStore {
     const filePath = join(directory, AGENT_ROSTER_FILE_NAME)
     return new AgentRosterStore(
       filePath,
-      await readRoster(filePath),
-      options.syncDirectory ?? syncRosterDirectory
+      await readAgentRoster(filePath),
+      options.syncDirectory ?? syncAgentRosterDirectory
     )
   }
 
@@ -148,6 +70,8 @@ export class AgentRosterStore {
       const agent = AgentSchema.parse({
         ...input,
         id: randomUUID(),
+        revision: 1,
+        references: input.references ?? { version: 1, items: [] },
         createdAt: now,
         updatedAt: now
       })
@@ -162,7 +86,12 @@ export class AgentRosterStore {
       if (index === -1) {
         throw new Error(`Agent not found: ${id}`)
       }
-      const agent = AgentSchema.parse({ ...roster.agents[index], ...update, updatedAt: Date.now() })
+      const agent = AgentSchema.parse({
+        ...roster.agents[index],
+        ...update,
+        revision: roster.agents[index].revision + 1,
+        updatedAt: Date.now()
+      })
       roster.agents[index] = agent
       return agent
     })
@@ -177,6 +106,7 @@ export class AgentRosterStore {
       const agent = AgentSchema.parse({
         ...roster.agents[index],
         lastComputerId: computerId,
+        revision: roster.agents[index].revision + 1,
         updatedAt: Date.now()
       })
       roster.agents[index] = agent
@@ -312,9 +242,9 @@ export class AgentRosterStore {
         // Why: another dorkad process or store instance may have committed since this instance
         // opened. Mutate the latest durable snapshot under the shared lock instead of overwriting it
         // with this instance's stale in-memory copy.
-        const next = structuredClone(await readRoster(this.filePath))
+        const next = structuredClone(await readAgentRoster(this.filePath))
         const result = change(next)
-        await persistRoster(this.filePath, next, this.syncDirectory)
+        await persistAgentRoster(this.filePath, next, this.syncDirectory)
         this.roster = next
         return result
       })

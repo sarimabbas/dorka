@@ -24,6 +24,8 @@ function launch(overrides: Partial<AgentTerminalLaunch> = {}): AgentTerminalLaun
       model: 'gpt-test',
       promptTemplate: 'Review carefully.',
       workingDirectory: '/workspace/repo',
+      revision: 1,
+      references: { version: 1, items: [] },
       createdAt: 1,
       updatedAt: 1
     },

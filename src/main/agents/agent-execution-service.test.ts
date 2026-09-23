@@ -81,6 +81,7 @@ describe('AgentExecutionService', () => {
     })
     expect(run).toMatchObject({
       agentId: h.agent.id,
+      agentRevision: h.agent.revision,
       computerId: 'computer-a',
       computerExecutionGeneration,
       prompt: 'Plan carefully\n\nReview the change',
@@ -90,6 +91,7 @@ describe('AgentExecutionService', () => {
       processIdentity: 'pty-incarnation-1'
     })
     expect((await AgentRosterStore.open(h.directory)).getRun(run.id)).toMatchObject({
+      agentRevision: h.agent.revision,
       computerId: 'computer-a',
       computerExecutionGeneration,
       prompt: 'Plan carefully\n\nReview the change',

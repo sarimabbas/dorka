@@ -38,6 +38,8 @@ const preset: Agent = {
   job: 'Review releases',
   harnessId: 'claude',
   promptTemplate: 'Review the release.',
+  revision: 1,
+  references: { version: 1, items: [] },
   createdAt: 1,
   updatedAt: 1
 }
