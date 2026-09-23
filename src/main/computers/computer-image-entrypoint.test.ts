@@ -20,14 +20,16 @@ describe('Computer image entrypoint', () => {
 
     expect(dockerfile).toContain('selkies-egl-desktop:26.04@sha256:')
     expect(dockerfile).not.toContain('nvidia-glx-desktop')
-    expect(script).toContain('exec setpriv --reuid=1000 --regid=1000 --init-groups /init "$@"')
+    expect(script).toContain(
+      'exec setpriv --reuid=1000 --regid=1000 --init-groups /etc/container-entrypoint.sh "$@"'
+    )
   })
 
   it('persists a private generated desktop password inside the Computer', async () => {
     const script = await readFile('docker/computer/entrypoint.sh', 'utf8')
 
     expect(script).toContain('password_file=/home/ubuntu/.dorka/desktop-password')
-    expect(script).toContain('${PASSWD:-$(openssl rand -base64 24)}')
+    expect(script).toContain("openssl rand -base64 24 | tr -d '\\n'")
     expect(script).toContain('chmod 0600 "$password_file"')
   })
 

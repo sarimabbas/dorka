@@ -13,7 +13,7 @@ install -d -o ubuntu -g ubuntu -m 0700 /home/ubuntu/.dorka/managed-pty-exits/v1
 password_file=/home/ubuntu/.dorka/desktop-password
 if [[ ! -s "$password_file" ]]; then
   umask 077
-  printf '%s' "${PASSWD:-$(openssl rand -base64 24)}" > "$password_file"
+  openssl rand -base64 24 | tr -d '\n' > "$password_file"
 fi
 chown ubuntu:ubuntu "$password_file"
 chmod 0600 "$password_file"
@@ -42,6 +42,6 @@ ssh-keygen -A
   -o KbdInteractiveAuthentication=no \
   -o PermitRootLogin=no &
 
-# Selkies' rootless s6 init remains PID 1 while sshd serves as a private-network
-# sidecar process. Container teardown terminates every remaining process.
-exec setpriv --reuid=1000 --regid=1000 --init-groups /init "$@"
+# Selkies' rootless service supervisor remains PID 1 while sshd serves as a
+# private-network sidecar process. Container teardown terminates every process.
+exec setpriv --reuid=1000 --regid=1000 --init-groups /etc/container-entrypoint.sh "$@"
