@@ -9,6 +9,7 @@ import {
   assertUnverifiable,
   redactArtifact
 } from '../../../../config/scripts/run-dorka-native-linux-acceptance.ts'
+import { selkiesServiceStatus, verifyDesktopReadiness } from './native-linux-desktop-readiness.mjs'
 const MAIN = 'dorka-computer-main'
 const FIXED_VOLUMES = [`${MAIN}-home`, `${MAIN}-workspace`, `${MAIN}-ssh-host-keys`]
 const PENDING = '/home/ubuntu/.dorka/managed-pty-exits/v1/pending'
@@ -354,13 +355,7 @@ function runAcceptance() {
       '-lc',
       'exec 3<>/dev/tcp/127.0.0.1/2222 && exec 4<>/dev/tcp/127.0.0.1/8080'
     ])
-    engine([
-      'exec',
-      names.server,
-      'bash',
-      '-lc',
-      'exec 3<>/dev/tcp/dorka-computer-main/2222 && curl -kfsS https://dorka-computer-main:8080/ >/tmp/selkies.html'
-    ])
+    const desktopPassword = verifyDesktopReadiness(engine, MAIN, names.server)
     engine(['exec', MAIN, 'curl', '-fsS', 'https://registry.npmjs.org/-/ping'])
     const fingerprint = engine([
       'exec',
@@ -390,8 +385,11 @@ function runAcceptance() {
       ]) === fingerprint,
       'Computer SSH host key changed across restart'
     )
-    const supervisor = engine(['exec', MAIN, 'supervisorctl', 'status'])
-    requireValue(!/FATAL|BACKOFF|EXITED/.test(supervisor), 'Selkies supervisor is degraded')
+    requireValue(
+      engine(['exec', MAIN, 'cat', '/home/ubuntu/.dorka/desktop-password']) === desktopPassword,
+      'Computer desktop password changed across restart'
+    )
+    const supervisor = selkiesServiceStatus(engine, MAIN)
     artifact(artifacts, 'selkies-supervisor.txt', supervisor)
     artifact(artifacts, 'computer-processes.txt', engine(['exec', MAIN, 'ps', '-ef']))
     artifact(artifacts, 'computer-inspect.json', engine(['inspect', MAIN]))
