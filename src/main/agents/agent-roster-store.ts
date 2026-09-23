@@ -1,0 +1,321 @@
+import { randomUUID } from 'node:crypto'
+import { mkdir, open, readFile, rename, rm, writeFile } from 'node:fs/promises'
+import { dirname, join } from 'node:path'
+import {
+  AgentRosterFileSchema,
+  AgentSchema,
+  ConversationSchema,
+  RunSchema,
+  type Agent,
+  type AgentCreate,
+  type AgentRosterFile,
+  type AgentUpdate,
+  type Conversation,
+  type ConversationCreate,
+  type ConversationUpdate,
+  type Run,
+  type RunCreate,
+  type RunStatus,
+  type RunTransition,
+  type RunUpdate
+} from '../../shared/agent-roster'
+
+export const AGENT_ROSTER_FILE_NAME = 'agent-roster.json'
+
+const transitions: Readonly<Record<RunStatus, readonly RunStatus[]>> = {
+  queued: ['running', 'cancelled'],
+  running: ['waiting', 'succeeded', 'failed', 'cancelled'],
+  waiting: ['running', 'failed', 'cancelled'],
+  succeeded: [],
+  failed: [],
+  cancelled: []
+}
+
+const emptyRoster = (): AgentRosterFile => ({
+  version: 1,
+  agents: [],
+  conversations: [],
+  runs: []
+})
+
+function isMissingFile(error: unknown): boolean {
+  return error instanceof Error && 'code' in error && error.code === 'ENOENT'
+}
+
+function validateRelationships(roster: AgentRosterFile): void {
+  const agentIds = new Set<string>()
+  const conversationIds = new Set<string>()
+  const conversationAgentIds = new Set<string>()
+  const runIds = new Set<string>()
+
+  for (const agent of roster.agents) {
+    if (agentIds.has(agent.id)) {
+      throw new Error(`Duplicate Agent id: ${agent.id}`)
+    }
+    agentIds.add(agent.id)
+  }
+  for (const conversation of roster.conversations) {
+    if (conversationIds.has(conversation.id)) {
+      throw new Error(`Duplicate Conversation id: ${conversation.id}`)
+    }
+    if (!agentIds.has(conversation.agentId)) {
+      throw new Error(`Conversation ${conversation.id} references a missing Agent`)
+    }
+    if (conversationAgentIds.has(conversation.agentId)) {
+      throw new Error(`Agent ${conversation.agentId} has more than one primary Conversation`)
+    }
+    conversationIds.add(conversation.id)
+    conversationAgentIds.add(conversation.agentId)
+  }
+  for (const run of roster.runs) {
+    if (runIds.has(run.id)) {
+      throw new Error(`Duplicate Run id: ${run.id}`)
+    }
+    const conversation = roster.conversations.find((item) => item.id === run.conversationId)
+    if (!agentIds.has(run.agentId) || conversation?.agentId !== run.agentId) {
+      throw new Error(`Run ${run.id} has invalid Agent or Conversation references`)
+    }
+    runIds.add(run.id)
+  }
+}
+
+async function readRoster(filePath: string): Promise<AgentRosterFile> {
+  try {
+    const roster = AgentRosterFileSchema.parse(JSON.parse(await readFile(filePath, 'utf8')))
+    validateRelationships(roster)
+    return roster
+  } catch (error) {
+    if (isMissingFile(error)) {
+      return emptyRoster()
+    }
+    throw error
+  }
+}
+
+async function persistRoster(filePath: string, roster: AgentRosterFile): Promise<void> {
+  AgentRosterFileSchema.parse(roster)
+  validateRelationships(roster)
+  const directory = dirname(filePath)
+  const temporaryPath = `${filePath}.${process.pid}.${randomUUID()}.tmp`
+  await mkdir(directory, { recursive: true, mode: 0o700 })
+  try {
+    await writeFile(temporaryPath, `${JSON.stringify(roster, null, 2)}\n`, {
+      encoding: 'utf8',
+      mode: 0o600
+    })
+    const temporaryFile = await open(temporaryPath, 'r')
+    await temporaryFile.sync().finally(() => temporaryFile.close())
+    await rename(temporaryPath, filePath)
+    const directoryHandle = await open(directory, 'r').catch(() => null)
+    await directoryHandle?.sync().catch(() => undefined)
+    await directoryHandle?.close().catch(() => undefined)
+  } catch (error) {
+    await rm(temporaryPath, { force: true }).catch(() => undefined)
+    throw error
+  }
+}
+
+export class AgentRosterStore {
+  private queue = Promise.resolve()
+
+  private constructor(
+    private readonly filePath: string,
+    private roster: AgentRosterFile
+  ) {}
+
+  static async open(directory: string): Promise<AgentRosterStore> {
+    const filePath = join(directory, AGENT_ROSTER_FILE_NAME)
+    return new AgentRosterStore(filePath, await readRoster(filePath))
+  }
+
+  getAgent(id: string): Agent | null {
+    return this.roster.agents.find((agent) => agent.id === id) ?? null
+  }
+
+  listAgents(): Agent[] {
+    return [...this.roster.agents]
+  }
+
+  createAgent(input: AgentCreate): Promise<Agent> {
+    return this.mutate((roster) => {
+      const now = Date.now()
+      const agent = AgentSchema.parse({
+        ...input,
+        memoryPolicy: input.memoryPolicy ?? 'agent',
+        id: randomUUID(),
+        createdAt: now,
+        updatedAt: now
+      })
+      roster.agents.push(agent)
+      return agent
+    })
+  }
+
+  updateAgent(id: string, update: AgentUpdate): Promise<Agent> {
+    return this.mutate((roster) => {
+      const index = roster.agents.findIndex((agent) => agent.id === id)
+      if (index === -1) {
+        throw new Error(`Agent not found: ${id}`)
+      }
+      const agent = AgentSchema.parse({ ...roster.agents[index], ...update, updatedAt: Date.now() })
+      roster.agents[index] = agent
+      return agent
+    })
+  }
+
+  moveAgent(id: string, computerId: string): Promise<Agent> {
+    return this.mutate((roster) => {
+      const index = roster.agents.findIndex((agent) => agent.id === id)
+      if (index === -1) {
+        throw new Error(`Agent not found: ${id}`)
+      }
+      const agent = AgentSchema.parse({
+        ...roster.agents[index],
+        lastComputerId: computerId,
+        updatedAt: Date.now()
+      })
+      roster.agents[index] = agent
+      return agent
+    })
+  }
+
+  getConversation(id: string): Conversation | null {
+    return this.roster.conversations.find((conversation) => conversation.id === id) ?? null
+  }
+
+  listConversations(agentId?: string): Conversation[] {
+    return this.roster.conversations.filter(
+      (conversation) => agentId === undefined || conversation.agentId === agentId
+    )
+  }
+
+  createConversation(input: ConversationCreate): Promise<Conversation> {
+    return this.mutate((roster) => {
+      if (!roster.agents.some((agent) => agent.id === input.agentId)) {
+        throw new Error(`Agent not found: ${input.agentId}`)
+      }
+      if (roster.conversations.some((conversation) => conversation.agentId === input.agentId)) {
+        throw new Error(`Agent ${input.agentId} already has a primary Conversation`)
+      }
+      const now = Date.now()
+      const conversation = ConversationSchema.parse({
+        ...input,
+        id: randomUUID(),
+        createdAt: now,
+        updatedAt: now
+      })
+      roster.conversations.push(conversation)
+      return conversation
+    })
+  }
+
+  updateConversation(id: string, update: ConversationUpdate): Promise<Conversation> {
+    return this.mutate((roster) => {
+      const index = roster.conversations.findIndex((conversation) => conversation.id === id)
+      if (index === -1) {
+        throw new Error(`Conversation not found: ${id}`)
+      }
+      const conversation = ConversationSchema.parse({
+        ...roster.conversations[index],
+        ...update,
+        updatedAt: Date.now()
+      })
+      roster.conversations[index] = conversation
+      return conversation
+    })
+  }
+
+  getRun(id: string): Run | null {
+    return this.roster.runs.find((run) => run.id === id) ?? null
+  }
+
+  listRuns(filter: { agentId?: string; conversationId?: string } = {}): Run[] {
+    return this.roster.runs.filter(
+      (run) =>
+        (filter.agentId === undefined || run.agentId === filter.agentId) &&
+        (filter.conversationId === undefined || run.conversationId === filter.conversationId)
+    )
+  }
+
+  createRun(input: RunCreate): Promise<Run> {
+    return this.mutate((roster) => {
+      const agent = roster.agents.find((item) => item.id === input.agentId)
+      const conversation = roster.conversations.find((item) => item.id === input.conversationId)
+      if (!agent) {
+        throw new Error(`Agent not found: ${input.agentId}`)
+      }
+      if (!conversation || conversation.agentId !== agent.id) {
+        throw new Error(`Conversation does not belong to Agent ${agent.id}`)
+      }
+      const computerId = input.computerId ?? agent.lastComputerId
+      if (!computerId) {
+        throw new Error('A Run requires a computerId')
+      }
+      const run = RunSchema.parse({
+        ...input,
+        computerId,
+        id: randomUUID(),
+        status: 'queued',
+        createdAt: Date.now()
+      })
+      roster.runs.push(run)
+      return run
+    })
+  }
+
+  updateRun(id: string, update: RunUpdate): Promise<Run> {
+    return this.mutate((roster) => {
+      const index = roster.runs.findIndex((run) => run.id === id)
+      if (index === -1) {
+        throw new Error(`Run not found: ${id}`)
+      }
+      const run = RunSchema.parse({ ...roster.runs[index], ...update })
+      roster.runs[index] = run
+      return run
+    })
+  }
+
+  transitionRun(id: string, transition: RunTransition): Promise<Run> {
+    return this.mutate((roster) => {
+      const index = roster.runs.findIndex((run) => run.id === id)
+      if (index === -1) {
+        throw new Error(`Run not found: ${id}`)
+      }
+      const current = roster.runs[index]
+      if (!transitions[current.status].includes(transition.status)) {
+        throw new Error(`Invalid Run transition: ${current.status} -> ${transition.status}`)
+      }
+      if (transition.result !== undefined && transition.status !== 'succeeded') {
+        throw new Error('Only a succeeded Run can record a result')
+      }
+      if (transition.error !== undefined && transition.status !== 'failed') {
+        throw new Error('Only a failed Run can record an error')
+      }
+      const now = Date.now()
+      const finished = ['succeeded', 'failed', 'cancelled'].includes(transition.status)
+      const run = RunSchema.parse({
+        ...current,
+        ...transition,
+        startedAt: current.startedAt ?? (transition.status === 'running' ? now : undefined),
+        finishedAt: finished ? now : undefined
+      })
+      roster.runs[index] = run
+      return run
+    })
+  }
+
+  private mutate<T>(change: (roster: AgentRosterFile) => T): Promise<T> {
+    const operation = this.queue.then(async () => {
+      const next = structuredClone(this.roster)
+      const result = change(next)
+      await persistRoster(this.filePath, next)
+      this.roster = next
+      return result
+    })
+    this.queue = operation.then(
+      () => undefined,
+      () => undefined
+    )
+    return operation
+  }
+}
