@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest'
-import { createComputerArgs, DORKA_SSH_PUBLIC_KEY_ENV } from './computer-runtime-command'
+import {
+  createComputerArgs,
+  DORKA_EXECUTION_GENERATION_ENV,
+  DORKA_SSH_PUBLIC_KEY_ENV
+} from './computer-runtime-command'
 
+const executionGeneration = '10000000-0000-4000-8000-000000000001'
 const publicKey = `ssh-ed25519 ${Buffer.from('public key bytes').toString('base64')} dorka-computer-alpha`
 
 describe('createComputerArgs', () => {
@@ -8,12 +13,15 @@ describe('createComputerArgs', () => {
     const args = createComputerArgs(
       { id: 'alpha', image: 'safe/image:tag' },
       'server-01',
-      publicKey
+      publicKey,
+      executionGeneration
     )
 
-    expect(args.slice(-5)).toEqual([
+    expect(args.slice(-7)).toEqual([
       '--env',
       `${DORKA_SSH_PUBLIC_KEY_ENV}=${publicKey}`,
+      '--env',
+      `${DORKA_EXECUTION_GENERATION_ENV}=${executionGeneration}`,
       '--workdir',
       '/workspace',
       'safe/image:tag'
@@ -36,14 +44,35 @@ describe('createComputerArgs', () => {
           environment: { [DORKA_SSH_PUBLIC_KEY_ENV]: 'caller-value' }
         },
         'server-01',
-        publicKey
+        publicKey,
+        executionGeneration
+      )
+    ).toThrow('is managed by Dorka')
+  })
+
+  it('reserves the managed execution generation environment variable', () => {
+    expect(() =>
+      createComputerArgs(
+        {
+          id: 'alpha',
+          image: 'safe/image:tag',
+          environment: { [DORKA_EXECUTION_GENERATION_ENV]: 'caller-value' }
+        },
+        'server-01',
+        publicKey,
+        executionGeneration
       )
     ).toThrow('is managed by Dorka')
   })
 
   it('rejects a non-ed25519 public key', () => {
     expect(() =>
-      createComputerArgs({ id: 'alpha', image: 'safe/image:tag' }, 'server-01', 'secret')
+      createComputerArgs(
+        { id: 'alpha', image: 'safe/image:tag' },
+        'server-01',
+        'secret',
+        executionGeneration
+      )
     ).toThrow('public key is invalid')
   })
 })

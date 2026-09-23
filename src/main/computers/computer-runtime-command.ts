@@ -2,8 +2,10 @@ import { posix } from 'node:path'
 import {
   DORKA_COMPUTER_LABEL,
   DORKA_COMPUTER_NETWORK,
+  DORKA_EXECUTION_GENERATION_LABEL,
   DORKA_MANAGED_LABEL,
   DORKA_SERVER_LABEL,
+  isComputerExecutionGeneration,
   type ComputerCreateSpec,
   type ComputerMountSpec
 } from '../../shared/computer-runtime'
@@ -16,6 +18,7 @@ const ENVIRONMENT_NAME_PATTERN = /^[A-Za-z_][A-Za-z0-9_]{0,127}$/
 const SSH_PUBLIC_KEY_PATTERN = /^ssh-ed25519 [A-Za-z0-9+/]+={0,2}(?: [^\r\n]+)?$/
 
 export const DORKA_SSH_PUBLIC_KEY_ENV = 'DORKA_SSH_PUBLIC_KEY'
+export const DORKA_EXECUTION_GENERATION_ENV = 'DORKA_EXECUTION_GENERATION'
 
 const DEFAULT_CPUS = 2
 const DEFAULT_MEMORY_MB = 4096
@@ -113,9 +116,13 @@ export function createComputerArgs(
   spec: ComputerCreateSpec,
   serverId: string,
   sshPublicKey: string,
+  executionGeneration: string,
   allowedMountSources: readonly string[] = []
 ): string[] {
   validateServerId(serverId)
+  if (!isComputerExecutionGeneration(executionGeneration)) {
+    throw new Error('Computer execution generation must be a UUID')
+  }
   if (!SSH_PUBLIC_KEY_PATTERN.test(sshPublicKey)) {
     throw new Error('Computer SSH public key is invalid')
   }
@@ -138,6 +145,8 @@ export function createComputerArgs(
     `${DORKA_SERVER_LABEL}=${serverId}`,
     '--label',
     `${DORKA_COMPUTER_LABEL}=${validated.id}`,
+    '--label',
+    `${DORKA_EXECUTION_GENERATION_LABEL}=${executionGeneration}`,
     '--network',
     DORKA_COMPUTER_NETWORK,
     '--cpus',
@@ -160,6 +169,7 @@ export function createComputerArgs(
     args.push('--mount', mountArgument(mount))
   }
   args.push('--env', `${DORKA_SSH_PUBLIC_KEY_ENV}=${sshPublicKey}`)
+  args.push('--env', `${DORKA_EXECUTION_GENERATION_ENV}=${executionGeneration}`)
   args.push('--workdir', '/workspace', validated.image)
   return args
 }
@@ -186,8 +196,8 @@ function validateEnvironment(environment: Record<string, string>): Record<string
     throw new Error(`Computer environment may contain at most ${MAX_ENVIRONMENT_ENTRIES} entries`)
   }
   for (const [name, value] of entries) {
-    if (name === DORKA_SSH_PUBLIC_KEY_ENV) {
-      throw new Error(`${DORKA_SSH_PUBLIC_KEY_ENV} is managed by Dorka`)
+    if (name === DORKA_SSH_PUBLIC_KEY_ENV || name === DORKA_EXECUTION_GENERATION_ENV) {
+      throw new Error(`${name} is managed by Dorka`)
     }
     if (!ENVIRONMENT_NAME_PATTERN.test(name)) {
       throw new Error(`Computer environment variable name is invalid: ${name}`)

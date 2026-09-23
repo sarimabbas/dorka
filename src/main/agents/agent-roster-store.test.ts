@@ -29,12 +29,27 @@ afterEach(async () => {
 })
 
 describe('AgentRosterStore', () => {
+  it('leaves legacy Run execution generations undefined after reload', async () => {
+    const { directory, store } = await openStore()
+    const agent = await createAgent(store)
+    const run = await store.createRun({
+      agentId: agent.id,
+      computerId: 'computer-a',
+      prompt: 'Legacy work'
+    })
+
+    const reloaded = await AgentRosterStore.open(directory)
+
+    expect(reloaded.getRun(run.id)?.computerExecutionGeneration).toBeUndefined()
+  })
+
   it('persists a terminal launch preset and reloads its Run', async () => {
     const { directory, store } = await openStore()
     const agent = await createAgent(store)
     const run = await store.createRun({
       agentId: agent.id,
       computerId: 'computer-a',
+      computerExecutionGeneration: '10000000-0000-4000-8000-000000000001',
       prompt: 'Implement it',
       terminalSessionId: 'terminal-a',
       processIdentity: 'process-a'
@@ -54,6 +69,7 @@ describe('AgentRosterStore', () => {
     expect(reloaded.getRun(run.id)).toMatchObject({
       agentId: agent.id,
       computerId: 'computer-a',
+      computerExecutionGeneration: '10000000-0000-4000-8000-000000000001',
       terminalSessionId: 'terminal-a',
       processIdentity: 'process-a',
       status: 'succeeded',

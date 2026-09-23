@@ -9,6 +9,7 @@ import {
 } from './agent-execution-service'
 import { AgentRosterStore } from './agent-roster-store'
 
+const computerExecutionGeneration = '10000000-0000-4000-8000-000000000001'
 const directories: string[] = []
 
 afterEach(async () => {
@@ -34,14 +35,29 @@ async function fixture(state: ComputerRuntimeInfo['state'] = 'running') {
     state
   }
   const inspect = vi.fn(async () => computer)
+  const getExecutionGeneration = vi.fn(async () => computerExecutionGeneration)
   const start = vi.fn(async () => ({ ...computer, state: 'running' as const }))
   const launch = vi.fn(async () => ({
     terminalSessionId: 'terminal-session-1',
     processIdentity: 'pty-incarnation-1',
     ptyId: 'pty-1'
   }))
-  const service = new AgentExecutionService(roster, { inspect, start }, launch)
-  return { agent, computer, directory, inspect, launch, roster, service, start }
+  const service = new AgentExecutionService(
+    roster,
+    { getExecutionGeneration, inspect, start },
+    launch
+  )
+  return {
+    agent,
+    computer,
+    directory,
+    getExecutionGeneration,
+    inspect,
+    launch,
+    roster,
+    service,
+    start
+  }
 }
 
 describe('AgentExecutionService', () => {
@@ -65,6 +81,7 @@ describe('AgentExecutionService', () => {
     expect(run).toMatchObject({
       agentId: h.agent.id,
       computerId: 'computer-a',
+      computerExecutionGeneration,
       prompt: 'Plan carefully\n\nReview the change',
       sourceDirectory: '/workspace/repo',
       status: 'running',
@@ -73,6 +90,7 @@ describe('AgentExecutionService', () => {
     })
     expect((await AgentRosterStore.open(h.directory)).getRun(run.id)).toMatchObject({
       computerId: 'computer-a',
+      computerExecutionGeneration,
       prompt: 'Plan carefully\n\nReview the change',
       sourceDirectory: '/workspace/repo',
       terminalSessionId: 'terminal-session-1',
@@ -97,7 +115,11 @@ describe('AgentExecutionService', () => {
     })
     const service = new AgentExecutionService(
       h.roster,
-      { inspect: h.inspect, start: h.start },
+      {
+        getExecutionGeneration: h.getExecutionGeneration,
+        inspect: h.inspect,
+        start: h.start
+      },
       h.launch,
       observe
     )
@@ -110,6 +132,24 @@ describe('AgentExecutionService', () => {
 
     expect(observe).toHaveBeenCalledWith(run.id, 'pty-1')
     await vi.waitFor(() => expect(h.roster.getRun(run.id)?.status).toBe('waiting'))
+  })
+
+  it('snapshots the generation before creating the Run', async () => {
+    const h = await fixture()
+    const generation = Promise.withResolvers<string>()
+    h.getExecutionGeneration.mockReturnValueOnce(generation.promise)
+    const createRun = vi.spyOn(h.roster, 'createRun')
+
+    const pending = h.service.run({
+      agentId: h.agent.id,
+      computerId: h.computer.id,
+      prompt: 'Review the change'
+    })
+    await vi.waitFor(() => expect(h.getExecutionGeneration).toHaveBeenCalledWith('computer-a'))
+    expect(createRun).not.toHaveBeenCalled()
+
+    generation.resolve(computerExecutionGeneration)
+    await expect(pending).resolves.toMatchObject({ computerExecutionGeneration })
   })
 
   it('records a failed Run when terminal delegation fails', async () => {

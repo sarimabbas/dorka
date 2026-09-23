@@ -41,6 +41,7 @@ export const RunSchema = z
     id: Id,
     agentId: Id,
     computerId: Id,
+    computerExecutionGeneration: z.uuid().optional(),
     status: RunStatusSchema,
     prompt: Text,
     sourceDirectory: Text.optional(),
@@ -71,7 +72,7 @@ export type AgentRosterFile = z.infer<typeof AgentRosterFileSchema>
 export type AgentCreate = Omit<Agent, 'id' | 'createdAt' | 'updatedAt' | 'lastComputerId'>
 export type AgentUpdate = Partial<AgentCreate>
 export type RunCreate = Pick<Run, 'agentId' | 'computerId' | 'prompt' | 'sourceDirectory'> &
-  Partial<Pick<Run, 'terminalSessionId' | 'processIdentity'>>
+  Partial<Pick<Run, 'computerExecutionGeneration' | 'terminalSessionId' | 'processIdentity'>>
 export type RunUpdate = Partial<Pick<Run, 'terminalSessionId' | 'processIdentity'>>
 export type RunTransition = {
   status: RunStatus

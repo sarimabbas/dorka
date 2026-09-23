@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto'
 import {
   runProcess,
   type ProcessResult,
@@ -5,6 +6,7 @@ import {
 } from '../../shared/child-process/run-process'
 import {
   DORKA_COMPUTER_LABEL,
+  DORKA_EXECUTION_GENERATION_LABEL,
   DORKA_MANAGED_LABEL,
   DORKA_SERVER_LABEL,
   type ComputerCreateSpec,
@@ -14,6 +16,10 @@ import {
   type ComputerRuntimeInfo,
   type ComputerRuntimeState
 } from '../../shared/computer-runtime'
+import {
+  isComputerEngineInspection,
+  type ComputerEngineInspection
+} from './computer-engine-inspection'
 import { ComputerRecordStore } from './computer-record-store'
 import { ComputerSshKeyStore } from './computer-ssh-key-store'
 import {
@@ -34,13 +40,6 @@ export type ComputerRuntimeManagerOptions = {
   enginePath?: string
   allowedMountSources?: readonly string[]
   execute?: ComputerCommandExecutor
-}
-
-type DockerInspection = {
-  Id: string
-  Name: string
-  Config: { Image: string; Labels: Record<string, string> }
-  State: { Running: boolean; Status: string }
 }
 
 export class ComputerRuntimeManager {
@@ -71,8 +70,13 @@ export class ComputerRuntimeManager {
       throw new Error(`Computer already exists: ${validated.id}`)
     }
 
-    await this.createContainer(validated)
-    await this.store.save([...records, { spec: validated, desiredState: 'stopped' }])
+    const record: ComputerRecord = {
+      spec: validated,
+      desiredState: 'stopped',
+      executionGeneration: randomUUID()
+    }
+    await this.createContainer(record)
+    await this.store.save([...records, record])
     return this.inspect(validated.id)
   }
 
@@ -113,9 +117,13 @@ export class ComputerRuntimeManager {
   }
 
   async inspect(id: string): Promise<ComputerRuntimeInfo> {
-    validateComputerId(id)
+    const record = await this.requireDesired(id)
     const inspection = await this.inspectReference(computerName(id))
-    return this.toRuntimeInfo(inspection, id)
+    return this.toRuntimeInfo(inspection, id, record.executionGeneration)
+  }
+
+  async getExecutionGeneration(id: string): Promise<string> {
+    return (await this.requireDesired(id)).executionGeneration
   }
 
   resolveSshIdentityFile(id: string): Promise<string> {
@@ -123,22 +131,11 @@ export class ComputerRuntimeManager {
   }
 
   async list(): Promise<ComputerRuntimeInfo[]> {
-    const result = await this.run(listComputerIdsArgs(this.options.serverId))
-    const engineIds = result.stdout.split(/\s+/).filter(Boolean)
-    if (engineIds.length === 0) {
-      return []
-    }
-    const inspections = await this.inspectReferences(engineIds)
-    return inspections.flatMap((inspection) => {
-      const id = inspection.Config.Labels[DORKA_COMPUTER_LABEL]
-      if (!id) {
-        return []
-      }
-      try {
-        return [this.toRuntimeInfo(inspection, id)]
-      } catch {
-        return []
-      }
+    const records = await this.store.load()
+    const desiredById = new Map(records.map((record) => [record.spec.id, record]))
+    return (await this.listOwnedComputers()).flatMap(({ info, executionGeneration }) => {
+      const desired = desiredById.get(info.id)
+      return desired?.executionGeneration === executionGeneration ? [info] : []
     })
   }
 
@@ -148,46 +145,59 @@ export class ComputerRuntimeManager {
 
   private async reconcileNow(): Promise<ComputerReconcileResult> {
     const desired = await this.store.load()
-    const actual = await this.list()
-    const actualById = new Map(actual.map((computer) => [computer.id, computer]))
+    const actual = await this.listOwnedComputers()
+    const actualById = new Map(actual.map((computer) => [computer.info.id, computer]))
     const desiredById = new Map(desired.map((record) => [record.spec.id, record]))
     const result: ComputerReconcileResult = { created: [], started: [], stopped: [], removed: [] }
 
     for (const record of desired) {
       let current = actualById.get(record.spec.id)
+      if (current && current.executionGeneration !== record.executionGeneration) {
+        await this.run(['rm', '--force', current.info.name])
+        current = undefined
+      }
       if (!current) {
-        await this.createContainer(record.spec)
+        await this.createContainer(record)
         result.created.push(record.spec.id)
         current = {
-          id: record.spec.id,
-          name: computerName(record.spec.id),
-          image: record.spec.image,
-          state: 'created'
+          info: {
+            id: record.spec.id,
+            name: computerName(record.spec.id),
+            image: record.spec.image,
+            state: 'created'
+          },
+          executionGeneration: record.executionGeneration
         }
       }
-      if (record.desiredState === 'running' && current.state !== 'running') {
-        await this.run(['start', current.name])
+      if (record.desiredState === 'running' && current.info.state !== 'running') {
+        await this.run(['start', current.info.name])
         result.started.push(record.spec.id)
-      } else if (record.desiredState === 'stopped' && current.state === 'running') {
-        await this.run(['stop', current.name])
+      } else if (record.desiredState === 'stopped' && current.info.state === 'running') {
+        await this.run(['stop', current.info.name])
         result.stopped.push(record.spec.id)
       }
     }
 
     for (const computer of actual) {
-      if (desiredById.has(computer.id)) {
+      if (desiredById.has(computer.info.id)) {
         continue
       }
-      await this.run(['rm', '--force', computer.name])
-      result.removed.push(computer.id)
+      await this.run(['rm', '--force', computer.info.name])
+      result.removed.push(computer.info.id)
     }
     return result
   }
 
-  private async createContainer(spec: ComputerCreateSpec): Promise<void> {
-    const publicKey = await this.sshKeys.loadOrCreatePublicKey(spec.id)
+  private async createContainer(record: ComputerRecord): Promise<void> {
+    const publicKey = await this.sshKeys.loadOrCreatePublicKey(record.spec.id)
     await this.run(
-      createComputerArgs(spec, this.options.serverId, publicKey, this.allowedMountSources)
+      createComputerArgs(
+        record.spec,
+        this.options.serverId,
+        publicKey,
+        record.executionGeneration,
+        this.allowedMountSources
+      )
     )
   }
 
@@ -207,7 +217,7 @@ export class ComputerRuntimeManager {
     )
   }
 
-  private async inspectReference(reference: string): Promise<DockerInspection> {
+  private async inspectReference(reference: string): Promise<ComputerEngineInspection> {
     const inspections = await this.inspectReferences([reference])
     if (inspections.length !== 1) {
       throw new Error(`Expected one Computer inspection for ${reference}`)
@@ -215,23 +225,55 @@ export class ComputerRuntimeManager {
     return inspections[0]
   }
 
-  private async inspectReferences(references: string[]): Promise<DockerInspection[]> {
+  private async inspectReferences(references: string[]): Promise<ComputerEngineInspection[]> {
     const result = await this.run(['inspect', ...references])
     const value: unknown = JSON.parse(result.stdout)
-    if (!Array.isArray(value) || !value.every(isDockerInspection)) {
+    if (!Array.isArray(value) || !value.every(isComputerEngineInspection)) {
       throw new Error('Docker-compatible CLI returned an invalid inspection')
     }
     return value
   }
 
-  private toRuntimeInfo(inspection: DockerInspection, expectedId: string): ComputerRuntimeInfo {
+  private async listOwnedComputers(): Promise<
+    { info: ComputerRuntimeInfo; executionGeneration: string | undefined }[]
+  > {
+    const result = await this.run(listComputerIdsArgs(this.options.serverId))
+    const engineIds = result.stdout.split(/\s+/).filter(Boolean)
+    if (engineIds.length === 0) {
+      return []
+    }
+    return (await this.inspectReferences(engineIds)).flatMap((inspection) => {
+      const id = inspection.Config.Labels[DORKA_COMPUTER_LABEL]
+      if (!id) {
+        return []
+      }
+      try {
+        return [
+          {
+            info: this.toRuntimeInfo(inspection, id),
+            executionGeneration: inspection.Config.Labels[DORKA_EXECUTION_GENERATION_LABEL]
+          }
+        ]
+      } catch {
+        return []
+      }
+    })
+  }
+
+  private toRuntimeInfo(
+    inspection: ComputerEngineInspection,
+    expectedId: string,
+    expectedExecutionGeneration?: string
+  ): ComputerRuntimeInfo {
     validateComputerId(expectedId)
     const labels = inspection.Config.Labels
     if (
       labels[DORKA_MANAGED_LABEL] !== 'true' ||
       labels[DORKA_SERVER_LABEL] !== this.options.serverId ||
       labels[DORKA_COMPUTER_LABEL] !== expectedId ||
-      inspection.Name.replace(/^\//, '') !== computerName(expectedId)
+      inspection.Name.replace(/^\//, '') !== computerName(expectedId) ||
+      (expectedExecutionGeneration !== undefined &&
+        labels[DORKA_EXECUTION_GENERATION_LABEL] !== expectedExecutionGeneration)
     ) {
       throw new Error(`Container is not owned by this Dorka server: ${expectedId}`)
     }
@@ -262,47 +304,9 @@ export class ComputerRuntimeManager {
   }
 }
 
-function parseRuntimeState(state: DockerInspection['State']): ComputerRuntimeState {
+function parseRuntimeState(state: ComputerEngineInspection['State']): ComputerRuntimeState {
   if (state.Running) {
     return 'running'
   }
   return state.Status === 'created' ? 'created' : 'stopped'
-}
-
-function isDockerInspection(value: unknown): value is DockerInspection {
-  if (!value || typeof value !== 'object') {
-    return false
-  }
-  if (!('Id' in value) || typeof value.Id !== 'string') {
-    return false
-  }
-  if (!('Name' in value) || typeof value.Name !== 'string') {
-    return false
-  }
-  if (!('Config' in value) || !value.Config || typeof value.Config !== 'object') {
-    return false
-  }
-  if (!('Image' in value.Config) || typeof value.Config.Image !== 'string') {
-    return false
-  }
-  if (!('Labels' in value.Config) || !isStringRecord(value.Config.Labels)) {
-    return false
-  }
-  if (!('State' in value) || !value.State || typeof value.State !== 'object') {
-    return false
-  }
-  return (
-    'Running' in value.State &&
-    typeof value.State.Running === 'boolean' &&
-    'Status' in value.State &&
-    typeof value.State.Status === 'string'
-  )
-}
-
-function isStringRecord(value: unknown): value is Record<string, string> {
-  return (
-    !!value &&
-    typeof value === 'object' &&
-    Object.values(value).every((item) => typeof item === 'string')
-  )
 }

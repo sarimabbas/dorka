@@ -2,6 +2,13 @@ export const DORKA_COMPUTER_NETWORK = 'dorka-runtimes'
 export const DORKA_MANAGED_LABEL = 'dev.dorka.managed'
 export const DORKA_SERVER_LABEL = 'dev.dorka.server'
 export const DORKA_COMPUTER_LABEL = 'dev.dorka.computer'
+export const DORKA_EXECUTION_GENERATION_LABEL = 'dev.dorka.execution-generation'
+
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+
+export function isComputerExecutionGeneration(value: unknown): value is string {
+  return typeof value === 'string' && UUID_PATTERN.test(value)
+}
 
 export type ComputerResourceLimits = {
   cpus?: number
@@ -29,6 +36,7 @@ export type ComputerRuntimeState = 'created' | 'running' | 'stopped'
 export type ComputerRecord = {
   spec: ComputerCreateSpec
   desiredState: ComputerDesiredState
+  executionGeneration: string
 }
 
 export type ComputerRuntimeInfo = {

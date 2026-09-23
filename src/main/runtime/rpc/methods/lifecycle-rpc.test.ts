@@ -232,6 +232,7 @@ function resultId(response: Awaited<ReturnType<typeof dispatch>>): string {
 
 class FakeComputerEngine {
   private readonly states = new Map<string, 'created' | 'running' | 'stopped'>()
+  private readonly executionGenerations = new Map<string, string>()
   private activeCreates = 0
   maxConcurrentCreates = 0
 
@@ -242,7 +243,15 @@ class FakeComputerEngine {
       this.activeCreates += 1
       this.maxConcurrentCreates = Math.max(this.maxConcurrentCreates, this.activeCreates)
       await new Promise((resolve) => setTimeout(resolve, 5))
-      this.states.set(stripName(args[args.indexOf('--name') + 1] ?? ''), 'created')
+      const id = stripName(args[args.indexOf('--name') + 1] ?? '')
+      this.states.set(id, 'created')
+      this.executionGenerations.set(
+        id,
+        (args[args.indexOf('dev.dorka.computer=' + id) + 2] ?? '').replace(
+          'dev.dorka.execution-generation=',
+          ''
+        )
+      )
       this.activeCreates -= 1
       return result('')
     }
@@ -251,7 +260,9 @@ class FakeComputerEngine {
       return result('')
     }
     if (command === 'rm') {
-      this.states.delete(stripName(args.at(-1) ?? ''))
+      const id = stripName(args.at(-1) ?? '')
+      this.states.delete(id)
+      this.executionGenerations.delete(id)
       return result('')
     }
     if (command === 'ps') {
@@ -279,7 +290,8 @@ class FakeComputerEngine {
         Labels: {
           'dev.dorka.managed': 'true',
           'dev.dorka.server': 'server-1',
-          'dev.dorka.computer': id
+          'dev.dorka.computer': id,
+          'dev.dorka.execution-generation': this.executionGenerations.get(id) ?? ''
         }
       },
       State: { Running: state === 'running', Status: state }

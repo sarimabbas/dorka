@@ -1,20 +1,38 @@
+import { randomUUID } from 'node:crypto'
 import { mkdir, readFile, rename, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
-import type { ComputerRecord } from '../../shared/computer-runtime'
+import { isComputerExecutionGeneration, type ComputerRecord } from '../../shared/computer-runtime'
 import { validateComputerSpec } from './computer-runtime-command'
 
 const STORE_FILE = 'computers.json'
 
-type StoredComputers = { version: 1; computers: ComputerRecord[] }
+type LegacyComputerRecord = Omit<ComputerRecord, 'executionGeneration'> & {
+  executionGeneration?: string
+}
+type StoredComputers = { version: 1; computers: LegacyComputerRecord[] }
 
 export class ComputerRecordStore {
   private readonly path: string
+  private loadInFlight: Promise<ComputerRecord[]> | null = null
 
   constructor(private readonly dataDirectory: string) {
     this.path = join(dataDirectory, STORE_FILE)
   }
 
-  async load(): Promise<ComputerRecord[]> {
+  load(): Promise<ComputerRecord[]> {
+    if (this.loadInFlight) {
+      return this.loadInFlight
+    }
+    const pending = this.loadAndMigrate()
+    this.loadInFlight = pending
+    void pending.then(
+      () => this.clearLoad(pending),
+      () => this.clearLoad(pending)
+    )
+    return pending
+  }
+
+  private async loadAndMigrate(): Promise<ComputerRecord[]> {
     let text: string
     try {
       text = await readFile(this.path, 'utf8')
@@ -29,10 +47,28 @@ export class ComputerRecordStore {
     if (!isStoredComputers(value)) {
       throw new Error('Invalid Computer record store')
     }
-    for (const record of value.computers) {
+    let migrated = false
+    const computers = value.computers.map((record): ComputerRecord => {
       validateComputerSpec(record.spec)
+      if (record.executionGeneration === undefined) {
+        migrated = true
+        return { ...record, executionGeneration: randomUUID() }
+      }
+      if (!isComputerExecutionGeneration(record.executionGeneration)) {
+        throw new Error('Invalid Computer execution generation')
+      }
+      return { ...record, executionGeneration: record.executionGeneration }
+    })
+    if (migrated) {
+      await this.save(computers)
     }
-    return value.computers
+    return computers
+  }
+
+  private clearLoad(pending: Promise<ComputerRecord[]>): void {
+    if (this.loadInFlight === pending) {
+      this.loadInFlight = null
+    }
   }
 
   async save(computers: ComputerRecord[]): Promise<void> {

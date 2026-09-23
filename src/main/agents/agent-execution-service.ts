@@ -31,7 +31,10 @@ export class AgentTerminalLaunchOutcomeUnknownError extends Error {
 export class AgentExecutionService {
   constructor(
     private readonly roster: AgentRosterStore,
-    private readonly computers: Pick<ComputerRuntimeManager, 'inspect' | 'start'>,
+    private readonly computers: Pick<
+      ComputerRuntimeManager,
+      'getExecutionGeneration' | 'inspect' | 'start'
+    >,
     private readonly launchTerminal: AgentTerminalLauncher,
     private readonly onTerminalCommitted?: (runId: string, ptyId: string) => void
   ) {}
@@ -44,11 +47,13 @@ export class AgentExecutionService {
     }
 
     let computer = await this.computers.inspect(validated.computerId)
+    const computerExecutionGeneration = await this.computers.getExecutionGeneration(computer.id)
     const effectivePrompt = `${agent.promptTemplate}\n\n${validated.prompt}`
     const sourceDirectory = resolveComputerSourceDirectory(agent.workingDirectory)
     const run = await this.roster.createRun({
       agentId: agent.id,
       computerId: computer.id,
+      computerExecutionGeneration,
       prompt: effectivePrompt,
       sourceDirectory
     })
