@@ -12,6 +12,21 @@ on:
       - 'config/scripts/build-windows-cli-launcher.mjs'
       - 'config/scripts/build-windows-cli-launcher.test.mjs'
       - 'config/scripts/computer-e2e-workflow.test.mjs'
+      - 'config/scripts/run-dorka-native-linux-acceptance.ts'
+      - 'config/scripts/run-dorka-native-linux-acceptance.test.ts'
+      - 'tests/e2e/fixtures/dorka-native-linux-computer/**'
+      - 'Dockerfile'
+      - 'compose.yaml'
+      - 'docker/computer/**'
+      - 'docker/server/**'
+      - 'src/main/agents/**'
+      - 'src/main/dorkad/**'
+      - 'src/main/computers/**'
+      - 'src/main/ssh/**'
+      - 'src/relay/**'
+      - 'src/shared/agent-roster.ts'
+      - 'src/shared/computer-runtime.ts'
+      - 'src/shared/managed-pty-exit-evidence.ts'
       - 'config/scripts/macos-computer-helper-owner-loss-benchmark.mjs'
       - 'config/scripts/macos-computer-helper-owner-loss-group-recovery.test.mjs'
       - 'config/scripts/macos-computer-helper-owner-loss-metrics.mjs'
@@ -55,6 +70,12 @@ on:
       - 'tests/e2e/helpers/computer-driver.ts'
       - 'tests/e2e/vitest.config.ts'
   workflow_dispatch:
+    inputs:
+      native_linux_acceptance:
+        description: Run only the native amd64 Linux Dorka acceptance lane
+        required: true
+        default: false
+        type: boolean
   schedule:
     - cron: '0 6 * * *'
 
@@ -89,6 +110,7 @@ jobs:
           pnpm vitest run --config config/vitest.config.ts
           src/main/ssh/ssh-remote-cli-launcher.test.ts
           config/scripts/computer-e2e-workflow.test.mjs
+          config/scripts/run-dorka-native-linux-acceptance.test.ts
           config/scripts/macos-computer-helper-owner-loss-group-recovery.test.mjs
           config/scripts/macos-computer-helper-owner-loss-processes.test.mjs
           config/scripts/computer-use-modifier-safety.test.mjs
@@ -145,6 +167,7 @@ jobs:
   # Hosted macOS runners cannot receive persistent Accessibility/Screen Recording
   # grants. Keep the real native build/owner-loss checks on every trigger instead.
   mac-native-owner-smoke:
+    if: github.event_name != 'workflow_dispatch' || inputs.native_linux_acceptance != true
     runs-on: macos-15
     permissions:
       contents: read
@@ -172,7 +195,7 @@ jobs:
         run: pnpm verify:computer-native
 
   linux:
-    if: github.event_name != 'pull_request'
+    if: github.event_name != 'pull_request' && (github.event_name != 'workflow_dispatch' || inputs.native_linux_acceptance != true)
     runs-on: ubuntu-22.04
     env:
       DORKA_COMPUTER_E2E: '1'
@@ -191,7 +214,7 @@ jobs:
       - run: xvfb-run --auto-servernum dbus-run-session -- pnpm test:e2e:computer --reporter=verbose tests/e2e/computer-linux.e2e.ts
 
   windows:
-    if: github.event_name != 'pull_request'
+    if: github.event_name != 'pull_request' && (github.event_name != 'workflow_dispatch' || inputs.native_linux_acceptance != true)
     runs-on: windows-latest
     env:
       DORKA_COMPUTER_E2E: '1'
@@ -206,3 +229,44 @@ jobs:
       - run: pnpm build:cli
       - run: pnpm run build:electron-vite:parallel
       - run: pnpm test:e2e:computer --reporter=verbose tests/e2e/computer-windows.e2e.ts tests/e2e/computer-windows-store.e2e.ts
+
+  native-linux-acceptance:
+    if: github.event_name == 'workflow_dispatch' && inputs.native_linux_acceptance == true
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/install-node-dependencies
+        with:
+          native-runtime: node
+      - name: Start ephemeral rootless Podman API
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install -y podman uidmap slirp4netns fuse-overlayfs
+          socket="$RUNNER_TEMP/podman.sock"
+          podman system service --time=0 "unix://$socket" >"$RUNNER_TEMP/podman-service.log" 2>&1 &
+          for _ in $(seq 1 30); do test -S "$socket" && break; sleep 1; done
+          test -S "$socket"
+          echo "DOCKER_HOST=unix://$socket" >> "$GITHUB_ENV"
+      - run: pnpm run build:cli
+      - run: pnpm test:e2e:dorka-native-linux:contracts
+      - name: Native Linux acceptance
+        env:
+          DORKA_ACCEPTANCE_SHA: ${{ github.sha }}
+          DORKA_ACCEPTANCE_ARTIFACTS: ${{ runner.temp }}/dorka-native-linux-acceptance
+          DORKA_ENGINE: podman
+        run: pnpm test:e2e:dorka-native-linux
+      - name: Upload redacted acceptance evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dorka-native-linux-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/dorka-native-linux-acceptance
+          if-no-files-found: error
+          retention-days: 14

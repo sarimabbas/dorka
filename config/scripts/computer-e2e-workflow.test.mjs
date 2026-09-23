@@ -166,7 +166,9 @@ describe('computer-use e2e workflow', () => {
       (step) => step.uses === './.github/actions/install-node-dependencies'
     )
 
-    expect(job.if).toBeUndefined()
+    expect(job.if).toBe(
+      "github.event_name != 'workflow_dispatch' || inputs.native_linux_acceptance != true"
+    )
     expect(job['runs-on']).toBe('macos-15')
     expect(checkout.with['persist-credentials']).toBe(false)
     expect(install.with['native-runtime']).toBe('electron')
