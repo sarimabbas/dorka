@@ -44,7 +44,7 @@ the server container must start and accept remote client connections.
 
 ### Recompose the existing application
 
-- [ ] Remove the temporary parallel Dorka shell entry path.
+- [x] Remove the temporary parallel Dorka shell entry path.
 - [ ] Preserve the existing application shell and tab behavior.
 - [ ] Keep the existing Settings experience with only supported sections visible.
 - [ ] Keep the existing local diff viewer.
