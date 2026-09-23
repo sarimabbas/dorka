@@ -3,15 +3,15 @@
 ## Purpose and status
 
 This forecast turns the functioning-version goal into an ordered delivery plan. It reflects
-`feat/dorka-computers` through `95015efc1` and the evidence listed below. A checked item means the
+`feat/dorka-computers` through `c62b401d8` and the evidence listed below. A checked item means the
 repository contains both implementation and named verification evidence, or the functioning-version
 goal records a completed live check. It does **not** mean the full graphical Computer MVP is proved.
 
 Current verdict: the retained shell, managed execution path, durable Run history, Computer-local Git
 identity, Run-scoped Diff, and provider-neutral Review form a functioning integration baseline.
-Native-Linux graphical-image readiness and durable exit evidence for the interval when the Server is
-offline remain open. Exact PTYs that survive restart now re-arm the incumbent exit observer after
-reconnection without relaunch or state inference.
+Native-Linux graphical-image readiness and live proof of durable exit replay for the interval when the
+Server is offline remain open. The code path now handles both exact surviving PTYs and exact certified
+exit certificates without relaunch or state inference.
 
 ## Execution flow
 
@@ -38,7 +38,7 @@ a diagnostic headless entrypoint; the full Selkies image still needs native-Linu
 | Priority | Horizon | Type | Deliverable and acceptance evidence | Dependencies | Forecast |
 | --- | --- | --- | --- | --- | --- |
 | P0 | Now | Validation | Run the standard Selkies Computer entrypoint on native Linux. Prove desktop readiness, managed SSH/relay launch, terminal streaming, and no published Computer ports. | Native amd64 Linux; rootless engine socket | 1–2 engineering days |
-| P0 | Now | Bug/validation | Complete host-certified PTY exit replay across a Server outage. Generation persistence, certified relay journal writers, and capability-gated list/ack RPCs are implemented. Add generation-fenced launch, Server projection-before-ack reconciliation, and native-Linux outage proof. Never retry or infer death from lost contact. | Managed SSH relay client; managed Run recovery; native-Linux outage fixture | 1–3 days |
+| P0 | Now | Validation | Prove host-certified PTY exit replay across a Server outage on native Linux. The full generation-fenced launch and projection-before-ack implementation is complete; verify journal creation, Server replacement, exact `running → waiting`, acknowledgement, and all negative unverifiable cases with disposable Computer volumes. | Native amd64 Linux; production Computer entrypoint and relay | 1 engineering day |
 | P0 | Now | Validation | Prove first-run `Main` provisioning on native Linux with rootless Docker and Podman, including missing-image degradation, server replacement, and Computer reconciliation. | Built Computer image; engine socket; Linux runner | 2–4 days |
 | P1 | Next | Validation | Prove two-Computer identity isolation: separate home/workspace volumes and Git identities, shared identity within one Computer, and changed identity after moving an Agent's next Run. | Native-Linux P0 evidence; two isolated repositories | 2–4 days |
 | P1 | Next | Feature | Expose honest provisioning/retry state and compact Agent/Computer selection in the retained shell, without reintroducing a parallel shell. | Stable Run lifecycle; renderer state projection | 3–5 days |
@@ -50,11 +50,11 @@ a diagnostic headless entrypoint; the full Selkies image still needs native-Linu
 | P2 | Later | Cleanup | Delete unreachable legacy modules and proprietary relay/cloud-account paths only after direct-connect, reconnect, mobile-resume, and mixed-version gates pass. | Reachability inventory and replacement coverage | Incremental; 2–4 weeks |
 
 Forecasts are engineering ranges, not calendar commitments. They assume one engineer, available
-Linux/container test infrastructure, and no migration redesign. The remaining P0 slice is realistically **3–6 engineering days**, dominated by generation-fenced
-launch, Server projection-before-ack reconciliation, and native-Linux validation. Computer record
-transactions, durable relay writers, and list/ack RPCs are complete, but they do not close mixed-version
-Server replay or outage E2E by themselves. P1 adds **1–2 weeks**. P2 should be planned only after P0
-evidence is green.
+Linux/container test infrastructure, and no migration redesign. The remaining P0 slice is realistically **2–5 engineering days**, now dominated by native-Linux
+validation. Generation-fenced launch, durable relay evidence, exact Server replay, reconnect redrive,
+and projection-before-ack are implemented and focused-tested. Graphical startup, first-run
+reconciliation, and the outage E2E can share one native-Linux fixture. P1 adds **1–2 weeks**. P2 should
+be planned only after P0 evidence is green.
 
 ## Completion evidence
 
@@ -81,9 +81,10 @@ evidence is green.
 | ✅ | Run source placement is resolved once, persisted on the Run, and passed unchanged to the managed terminal launcher | execution/launcher tests; commit `35aca87ad`; `dorka-deep-module-review.md` |
 | ✅ | Managed Computer connection hides raw SSH targets, private key paths, and global Git-provider registration timing from execution and Git callers | 39 focused tests; commit `4a0d160b8`; `dorka-deep-module-review.md` |
 | ✅ | Immutable Computer execution generations survive lifecycle/reconciliation, migrate legacy records without backfilling legacy Runs, and use cross-process crash-durable record transactions | manager/store/command/entrypoint/execution and multi-manager concurrency tests; commits `1a22d157b`, `44c7fd7b3`; `dorka-offline-exit-evidence.md` |
-| ✅ | Relay exit journal has confined bounded reads, no-clobber crash durability, certified-only writers, generation-gated list/ack RPCs, and old-peer capability honesty | journal/PTY handler/runtime tests; commits `e3ddb0d54`, `95015efc1`; Server projection remains open |
-| ✅ | Integrated focused tests, typechecks, relay build, and Node-only `dorkad` bundle | latest generation and relay-evidence slices pass 77 focused tests; relay builds for Linux/macOS/Windows targets; `build:dorkad` reports 4,594 modules and zero Electron/`node:sqlite` imports |
-| ⬜ | Native-Linux graphical image proof and generation-fenced host-certified exit evidence across the Server-offline interval | Explicitly open in `dorka-functioning-version-goal.md` and designed in `dorka-offline-exit-evidence.md`; these remain P0 |
+| ✅ | Relay exit journal has confined bounded reads, no-clobber crash durability, certified-only writers, generation-gated list/ack RPCs, and old-peer capability honesty | journal/PTY handler/runtime tests; commits `e3ddb0d54`, `95015efc1` |
+| ✅ | Managed launch is atomically generation-fenced at relay spawn; exact offline certificates project durably before ack and redrive after in-process reconnect | strict wire validation, launch/recovery/observer/store tests; commits `03d805448`, `28c1dc374`, `c62b401d8` |
+| ✅ | Integrated focused tests, typechecks, relay build, and Node-only `dorkad` bundle | final offline-evidence suite passes 113 focused tests; relay builds for Linux/macOS/Windows targets; `build:dorkad` reports 4,597 modules and zero Electron/`node:sqlite` imports |
+| ⬜ | Native-Linux graphical image, first-run reconciliation, and Server-offline exit replay proof | Explicitly open in `dorka-functioning-version-goal.md` and specified in `dorka-offline-exit-evidence.md`; implementation is complete but these release-quality E2E checks remain P0 |
 
 ## Known risks
 
@@ -91,9 +92,6 @@ evidence is green.
   the credential and filesystem model. Keep all execution-owned state on the execution host.
 - **False liveness:** a disconnected client or Server does not prove a Computer process exited.
   Preserve `live` / `unverifiable` / `exited` semantics through Run status.
-- **Launch generation race:** Run creation snapshots the selected Computer generation, but PTY launch
-  does not yet prove the connected relay advertises that same generation. A concurrent remove/create
-  must abort launch rather than produce a permanently unverifiable cross-generation Run.
 - **Engine authority:** the mounted container-engine socket can control everything owned by its
   service account. Rootless operation reduces impact but is not a security boundary by itself.
 - **Image availability:** the pinned Selkies base is currently `linux/amd64`; arm64 development may

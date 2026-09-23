@@ -537,9 +537,10 @@ PTY-exit observer. Missing handles, replaced incarnations, stopped Computers, an
 not mutate Run state. Computers and new Runs now carry an immutable execution generation, and the
 relay has a crash-durable exact-certificate journal composed into certified-only exit writers and
 capability-gated list/ack RPCs. Computer record migration and mutation are serialized across Server
-processes sharing `/data`. The remaining gap is generation-fenced launch plus Server-side
-projection-before-ack reconciliation. Authoritative completion for an exit while the Server is absent
-therefore remains open until that path and native-Linux outage evidence pass.
+processes sharing `/data`. The exact relay spawn request now fences generation before native PTY
+creation. Startup and in-process reconnect recovery
+validate bounded exact certificates, Run projection is identity-conditional and directory-synced, and
+acknowledgement follows persistence. Native-Linux outage evidence remains the release gate.
 
 ## Local development: verified path
 

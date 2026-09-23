@@ -106,10 +106,10 @@ the server container must start and accept remote client connections.
 - Server restart reconnects each active Run's running Computer once without starting stopped
   Computers or relaunching work. For an exactly reattached terminal handle and process identity, it
   now verifies Computer ownership and re-arms the incumbent PTY-exit observer. An exit observed only
-  while the Server was absent still lacks Server-side replay and remains outcome-unverifiable.
-  Immutable Computer/Run execution generations, crash-durable certified relay writers, and
-  capability-gated list/ack RPCs are implemented. Generation-fenced launch,
-  projection-before-ack recovery, and native-Linux outage proof remain open.
+  while the Server was absent now has a generation-fenced, crash-durable replay path in code.
+  Exact certificates project only the matching Run identity and are acknowledged only after durable
+  persistence; in-process reconnect also redrives reconciliation. Native-Linux outage E2E remains
+  required before claiming release-quality proof.
 - Agent skill and MCP references are not yet versioned or resolved at launch. They must remain
   separate from Computer-owned credentials, provider homes, packages, and filesystems.
 - Existing Project and Workspace language still needs a careful Dorka terminology pass. This must

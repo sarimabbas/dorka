@@ -160,20 +160,28 @@ Completed prerequisites:
   generation-gated list/ack RPCs. The additive relay capability appears only when a valid Computer
   generation marker and durable journal are available.
 
-Agent launch is not yet generation-fenced against the connected relay. A concurrent Computer
-remove/recreate can still make a newly launched Run generation-unverifiable. The Server also does not
-yet list, project, and acknowledge offline certificates, so the new relay evidence does not by itself
-change Run status.
+Commits `03d805448`, `28c1dc374`, and `c62b401d8` complete the Server seam. Managed launch carries
+the expected generation on the exact relay spawn request, which rejects mismatch before native PTY
+creation. Startup and in-process reconnect recovery list only exact candidates, validate bounded relay
+responses and certificate hashes, atomically project only the matching Run identity, and acknowledge
+only after directory-synced Run persistence. Unsupported peers and every malformed, missing, or
+mismatched case remain unverifiable.
 
 ## Delivery slice and forecast
 
-Remaining focused vertical slice:
+The implementation slice is complete. The remaining P0 work is one native-Linux outage E2E using
+only disposable repositories and Computer volumes:
 
-1. require the connected relay's advertised Computer generation to match the Run snapshot before PTY
-   launch commits;
-2. add capability-gated projection-before-ack reconciliation to the existing managed exit module;
-3. add mixed-version and fault-injection tests;
-4. run native-Linux outage E2E using only disposable repositories and Computer volumes.
+1. launch a generation-fenced managed Run;
+2. stop only the Server container;
+3. let the PTY exit and prove a pending certificate exists;
+4. replace/restart the Server and verify exact durable `running → waiting` projection;
+5. prove acknowledgement occurs only after the Run file is directory-synced;
+6. repeat negative cases for wrong generation/incarnation, changed host key, missing journal, old
+   relay capability, SSH disconnect, and failed acknowledgement.
 
-The remaining implementation is estimated at **1–3 engineering days**. The P0 gate stays open until
-generation-fenced launch, exact Run projection, and native-Linux outage evidence pass.
+Explicit user PTY close remains certified exact death and may project the neutral `waiting` state.
+Relay-wide teardown, disconnect, and unverified absence never author durable evidence. Acknowledged
+certificate pruning remains P2 operational cleanup.
+
+The remaining outage validation is estimated at **1 engineering day** on the native-Linux fixture.
