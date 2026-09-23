@@ -654,7 +654,7 @@ describe('renderer startup runtime routing', () => {
       'DORKA_RENDERER_SHUTDOWN_CHECKPOINT_ABORTED_EVENT,\n      shutdownCheckpoint.abortAfterCheckpointFailure'
     )
     expect(source).toContain(
-      'window.addEventListener(DORKA_RENDERER_UNLOAD_PREVENTED_EVENT, shutdownCheckpoint.abandonAttempt)'
+      'DORKA_RENDERER_UNLOAD_PREVENTED_EVENT,\n      shutdownCheckpoint.abandonAttempt'
     )
     expect(source).toContain("window.addEventListener('beforeunload', persistBeforeUnload)")
     expect(source.match(/window\.addEventListener\('beforeunload'/g) ?? []).toHaveLength(1)
