@@ -113,9 +113,9 @@ accept remote client connections.
   Computers or relaunching work. For an exactly reattached terminal handle and process identity, it
   verifies Computer ownership and re-arms the incumbent PTY-exit observer. Exact offline certificates
   project only the matching Run identity and are acknowledged only after durable persistence.
-  Native outage acceptance is blocked because the terminating fixture leaves its owning PTY alive,
-  so no pending certificate appears. Diagnose this with a fast PTY/certificate reproducer before one
-  final clean Selkies release run.
+  The focused PTY reproducer proved the prior fixture's interactive owning shell ignored `SIGTERM`.
+  The fixture now uses `SIGKILL`, which closes the PTY in isolation. One final clean native Selkies
+  run must still prove certificate publication, projection-before-ack, and replay end to end.
 - Agent skill and MCP references are not yet versioned or resolved at launch. They must remain
   separate from Computer-owned credentials, provider homes, packages, and filesystems.
 - Existing Project and Workspace language still needs a careful Dorka terminology pass. This must
