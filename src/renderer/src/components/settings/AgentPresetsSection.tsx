@@ -5,8 +5,9 @@ import { getAgentCatalog } from '@/lib/agent-catalog'
 import {
   AgentRosterUnsupportedError,
   createRuntimeAgentPreset,
+  getRuntimeAgentReferencesCapability,
   listRuntimeAgentPresets,
-  runtimeSupportsAgentReferences
+  type AgentReferencesCapability
 } from '@/runtime/runtime-agent-roster-client'
 import type { RuntimeClientTarget } from '@/runtime/runtime-rpc-client'
 import { Button } from '../ui/button'
@@ -64,7 +65,9 @@ export function AgentPresetsSection({
   const [presets, setPresets] = useState<Agent[] | null>(null)
   const [loadError, setLoadError] = useState<string | null>(null)
   const [unsupported, setUnsupported] = useState(false)
-  const [requirementsSupported, setRequirementsSupported] = useState(false)
+  const [requirementsCapability, setRequirementsCapability] = useState<
+    AgentReferencesCapability | 'checking'
+  >('checking')
   const [draft, setDraft] = useState<AgentPresetDraft | null>(null)
   const [saving, setSaving] = useState(false)
   const [saveError, setSaveError] = useState<string | null>(null)
@@ -73,18 +76,18 @@ export function AgentPresetsSection({
   const load = async (): Promise<void> => {
     setLoadError(null)
     setUnsupported(false)
+    setRequirementsCapability('checking')
     try {
       const runtimeTarget: RuntimeClientTarget = environmentId
         ? { kind: 'environment', environmentId }
         : { kind: 'local' }
-      const [loaded, supportsRequirements] = await Promise.all([
+      const [loaded, capability] = await Promise.all([
         listRuntimeAgentPresets(runtimeTarget),
-        runtimeSupportsAgentReferences(runtimeTarget)
+        getRuntimeAgentReferencesCapability(runtimeTarget)
       ])
-      setRequirementsSupported(supportsRequirements)
+      setRequirementsCapability(capability)
       setPresets(loaded)
     } catch (error) {
-      setRequirementsSupported(false)
       setPresets(null)
       setUnsupported(error instanceof AgentRosterUnsupportedError)
       setLoadError(errorMessage(error))
@@ -106,18 +109,18 @@ export function AgentPresetsSection({
     setDraft(null)
     setLoadError(null)
     setUnsupported(false)
-    setRequirementsSupported(false)
+    setRequirementsCapability('checking')
     const runtimeTarget: RuntimeClientTarget = environmentId
       ? { kind: 'environment', environmentId }
       : { kind: 'local' }
     void Promise.all([
       listRuntimeAgentPresets(runtimeTarget),
-      runtimeSupportsAgentReferences(runtimeTarget)
+      getRuntimeAgentReferencesCapability(runtimeTarget)
     ])
-      .then(([loaded, supportsRequirements]) => {
+      .then(([loaded, capability]) => {
         if (active) {
           setPresets(loaded)
-          setRequirementsSupported(supportsRequirements)
+          setRequirementsCapability(capability)
         }
       })
       .catch((error: unknown) => {
@@ -192,6 +195,18 @@ export function AgentPresetsSection({
               Retry
             </Button>
           ) : null}
+        </div>
+      ) : null}
+
+      {requirementsCapability === 'unverifiable' && presets ? (
+        <div
+          role="alert"
+          className="flex items-center justify-between gap-3 rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-xs text-destructive"
+        >
+          <span>Requirements support could not be verified.</span>
+          <Button type="button" variant="outline" size="xs" onClick={() => void load()}>
+            Retry
+          </Button>
         </div>
       ) : null}
 
@@ -296,7 +311,7 @@ export function AgentPresetsSection({
               key={preset.id}
               preset={preset}
               target={target}
-              requirementsSupported={requirementsSupported}
+              requirementsCapability={requirementsCapability}
               onPresetUpdated={(updated) =>
                 setPresets(
                   (current) =>

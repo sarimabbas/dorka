@@ -4,7 +4,8 @@ import type { Agent, Run } from '../../../../shared/agent-roster'
 import type { ComputerRuntimeInfo } from '../../../../shared/computer-runtime'
 import {
   listRuntimeAgentComputers,
-  runRuntimeAgentPreset
+  runRuntimeAgentPreset,
+  type AgentReferencesCapability
 } from '@/runtime/runtime-agent-roster-client'
 import type { RuntimeClientTarget } from '@/runtime/runtime-rpc-client'
 import { Button } from '../ui/button'
@@ -28,13 +29,13 @@ function errorMessage(error: unknown): string {
 export function AgentPresetRow({
   preset,
   target,
-  requirementsSupported = false,
+  requirementsCapability = 'checking',
   onPresetUpdated,
   onReloadPreset
 }: {
   preset: Agent
   target: RuntimeClientTarget
-  requirementsSupported?: boolean
+  requirementsCapability?: AgentReferencesCapability | 'checking'
   onPresetUpdated?: (agent: Agent) => void
   onReloadPreset?: () => Promise<Agent | undefined>
 }): React.JSX.Element {
@@ -58,11 +59,12 @@ export function AgentPresetRow({
             {preset.harnessId}
             {preset.model ? ` · ${preset.model}` : ''}
           </span>
-          {requirementsSupported && onPresetUpdated && onReloadPreset ? (
+          {requirementsCapability !== 'unsupported' && onPresetUpdated && onReloadPreset ? (
             <Button
               type="button"
               variant="ghost"
               size="xs"
+              disabled={requirementsCapability !== 'supported'}
               aria-expanded={requirementsOpen}
               onClick={() => {
                 setLaunchOpen(false)

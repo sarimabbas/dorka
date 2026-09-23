@@ -6,11 +6,11 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { Agent } from '../../../../shared/agent-roster'
 import {
   createRuntimeAgentPreset,
+  getRuntimeAgentReferencesCapability,
   listRuntimeAgentComputers,
   listRuntimeAgentPresets,
   listRuntimeAgentRuns,
   runRuntimeAgentPreset,
-  runtimeSupportsAgentReferences,
   updateRuntimeAgentReferences
 } from '@/runtime/runtime-agent-roster-client'
 import type * as RuntimeAgentRosterClient from '@/runtime/runtime-agent-roster-client'
@@ -21,11 +21,11 @@ vi.mock('@/runtime/runtime-agent-roster-client', async (importOriginal) => {
   return {
     ...actual,
     createRuntimeAgentPreset: vi.fn(),
+    getRuntimeAgentReferencesCapability: vi.fn(),
     listRuntimeAgentComputers: vi.fn(),
     listRuntimeAgentPresets: vi.fn(),
     listRuntimeAgentRuns: vi.fn(),
     runRuntimeAgentPreset: vi.fn(),
-    runtimeSupportsAgentReferences: vi.fn(),
     updateRuntimeAgentReferences: vi.fn()
   }
 })
@@ -35,7 +35,7 @@ const listComputers = vi.mocked(listRuntimeAgentComputers)
 const listRuns = vi.mocked(listRuntimeAgentRuns)
 const createPreset = vi.mocked(createRuntimeAgentPreset)
 const runPreset = vi.mocked(runRuntimeAgentPreset)
-const supportsReferences = vi.mocked(runtimeSupportsAgentReferences)
+const referencesCapability = vi.mocked(getRuntimeAgentReferencesCapability)
 const updateReferences = vi.mocked(updateRuntimeAgentReferences)
 const preset: Agent = {
   id: 'agent-1',
@@ -64,8 +64,8 @@ describe('AgentPresetsSection', () => {
     listRuns.mockResolvedValue([])
     createPreset.mockReset()
     runPreset.mockReset()
-    supportsReferences.mockReset()
-    supportsReferences.mockResolvedValue(false)
+    referencesCapability.mockReset()
+    referencesCapability.mockResolvedValue('unsupported')
     updateReferences.mockReset()
   })
 
@@ -163,7 +163,7 @@ describe('AgentPresetsSection', () => {
   it('edits portable requirements when the runtime advertises support', async () => {
     const user = userEvent.setup()
     listPresets.mockResolvedValue([preset])
-    supportsReferences.mockResolvedValue(true)
+    referencesCapability.mockResolvedValue('supported')
     updateReferences.mockResolvedValue({
       outcome: 'updated',
       agent: {
@@ -195,6 +195,41 @@ describe('AgentPresetsSection', () => {
       }
     )
     expect(await screen.findByRole('button', { name: 'Requirements · 1' })).toBeTruthy()
+  })
+
+  it('keeps Requirements visible with one retryable message when support is unverifiable', async () => {
+    const user = userEvent.setup()
+    listPresets.mockResolvedValue([preset])
+    referencesCapability.mockResolvedValueOnce('unverifiable').mockResolvedValueOnce('supported')
+
+    renderSection()
+
+    expect(await screen.findByText('Release reviewer')).toBeTruthy()
+    const requirements = screen.getByRole('button', { name: 'Requirements' })
+    expect(requirements.hasAttribute('disabled')).toBe(true)
+    expect(screen.getAllByRole('alert')).toHaveLength(1)
+    expect(screen.getByRole('alert').textContent).toContain(
+      'Requirements support could not be verified.'
+    )
+
+    await user.click(screen.getByRole('button', { name: 'Retry' }))
+
+    await waitFor(() => expect(referencesCapability).toHaveBeenCalledTimes(2))
+    expect(screen.getByRole('button', { name: 'Requirements' }).hasAttribute('disabled')).toBe(
+      false
+    )
+    expect(screen.queryByText('Requirements support could not be verified.')).toBeNull()
+  })
+
+  it('hides Requirements only when support is verified unsupported', async () => {
+    listPresets.mockResolvedValue([preset])
+    referencesCapability.mockResolvedValue('unsupported')
+
+    renderSection()
+
+    expect(await screen.findByText('Release reviewer')).toBeTruthy()
+    expect(screen.queryByRole('button', { name: 'Requirements' })).toBeNull()
+    expect(screen.queryByText('Requirements support could not be verified.')).toBeNull()
   })
 
   it('shows the empty state after a successful list', async () => {

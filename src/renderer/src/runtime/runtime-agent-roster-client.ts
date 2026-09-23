@@ -105,13 +105,16 @@ export async function listRuntimeAgentRuns(
   return callRuntimeRpc<Run[]>(target, 'agents.runs.list', filter)
 }
 
-export async function runtimeSupportsAgentReferences(
+export type AgentReferencesCapability = 'supported' | 'unsupported' | 'unverifiable'
+
+export async function getRuntimeAgentReferencesCapability(
   target: RuntimeClientTarget
-): Promise<boolean> {
+): Promise<AgentReferencesCapability> {
   try {
-    return (await supportsCapability(target, AGENT_REFERENCES_RUNTIME_CAPABILITY)) === true
+    const supported = await supportsCapability(target, AGENT_REFERENCES_RUNTIME_CAPABILITY)
+    return supported === null ? 'unverifiable' : supported ? 'supported' : 'unsupported'
   } catch {
-    return false
+    return 'unverifiable'
   }
 }
 
@@ -120,8 +123,11 @@ export async function updateRuntimeAgentReferences(
   request: UpdateAgentReferencesRequest
 ): Promise<AgentUpdateResult> {
   const supported = await supportsCapability(target, AGENT_REFERENCES_RUNTIME_CAPABILITY)
-  if (supported !== true) {
+  if (supported === false) {
     throw new Error('Agent requirements require a newer Dorka runtime.')
+  }
+  if (supported === null) {
+    throw new Error('Could not verify Agent requirements support.')
   }
   return callRuntimeRpc<AgentUpdateResult>(target, 'agents.references.update', request)
 }

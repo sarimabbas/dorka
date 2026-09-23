@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { AgentCreate, Run } from '../../../shared/agent-roster'
 import {
   AGENT_EXECUTION_RUNTIME_CAPABILITY,
+  AGENT_REFERENCES_RUNTIME_CAPABILITY,
   AGENT_ROSTER_RUNTIME_CAPABILITY,
   AGENT_RUN_HISTORY_RUNTIME_CAPABILITY,
   COMPUTER_LIFECYCLE_RUNTIME_CAPABILITY
@@ -13,10 +14,12 @@ import {
   AgentRosterUnsupportedError,
   AgentRunHistoryUnsupportedError,
   createRuntimeAgentPreset,
+  getRuntimeAgentReferencesCapability,
   listRuntimeAgentComputers,
   listRuntimeAgentPresets,
   listRuntimeAgentRuns,
-  runRuntimeAgentPreset
+  runRuntimeAgentPreset,
+  updateRuntimeAgentReferences
 } from './runtime-agent-roster-client'
 
 vi.mock('./local-runtime-capabilities', () => ({ ensureLocalRuntimeCapabilities: vi.fn() }))
@@ -73,6 +76,46 @@ describe('runtime agent roster client', () => {
     await expect(
       listRuntimeAgentPresets({ kind: 'environment', environmentId: 'old-host' })
     ).rejects.toBeInstanceOf(AgentRosterUnsupportedError)
+    expect(rpc).not.toHaveBeenCalled()
+  })
+
+  it('distinguishes supported, unsupported, and unverifiable Agent references', async () => {
+    supportsCapability
+      .mockResolvedValueOnce(true)
+      .mockResolvedValueOnce(false)
+      .mockRejectedValueOnce(new Error('Host unavailable'))
+
+    await expect(
+      getRuntimeAgentReferencesCapability({ kind: 'environment', environmentId: 'host-1' })
+    ).resolves.toBe('supported')
+    await expect(
+      getRuntimeAgentReferencesCapability({ kind: 'environment', environmentId: 'old-host' })
+    ).resolves.toBe('unsupported')
+    await expect(
+      getRuntimeAgentReferencesCapability({ kind: 'environment', environmentId: 'offline-host' })
+    ).resolves.toBe('unverifiable')
+  })
+
+  it('does not describe unverifiable references updates as unsupported', async () => {
+    const request = {
+      agentId: 'agent-1',
+      expectedRevision: 1,
+      references: { version: 1 as const, items: [] }
+    }
+    localCapabilities.mockResolvedValue(null)
+    supportsCapability.mockRejectedValue(new Error('Host unavailable'))
+
+    await expect(updateRuntimeAgentReferences({ kind: 'local' }, request)).rejects.toThrow(
+      'Could not verify Agent requirements support.'
+    )
+    await expect(
+      updateRuntimeAgentReferences({ kind: 'environment', environmentId: 'offline-host' }, request)
+    ).rejects.toThrow('Host unavailable')
+
+    expect(supportsCapability).toHaveBeenCalledWith(
+      'offline-host',
+      AGENT_REFERENCES_RUNTIME_CAPABILITY
+    )
     expect(rpc).not.toHaveBeenCalled()
   })
 
