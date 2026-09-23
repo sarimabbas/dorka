@@ -120,6 +120,20 @@ const getAllAgentsPaneSearchEntries = createLocalizedCatalog(() => [
     keywords: getAgentAwakeSearchKeywords()
   },
   {
+    title: translate('auto.components.settings.agents.search.agentPresets', 'Agent Presets'),
+    description: translate(
+      'auto.components.settings.agents.search.agentPresetsDescription',
+      'Save reusable terminal harness, job, model, directory, and prompt settings.'
+    ),
+    keywords: [
+      ...translateSearchKeyword('auto.components.settings.agents.search.preset', 'preset'),
+      ...translateSearchKeyword('auto.components.settings.agents.search.harness', 'harness'),
+      ...translateSearchKeyword('auto.components.settings.agents.search.job', 'job'),
+      ...translateSearchKeyword('auto.components.settings.agents.search.prompt', 'prompt'),
+      ...translateSearchKeyword('auto.components.settings.agents.search.model', 'model')
+    ]
+  },
+  {
     title: translate(
       'auto.components.settings.agents.search.agentPermissions',
       'Agent Permissions'

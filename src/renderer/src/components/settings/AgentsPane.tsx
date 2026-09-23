@@ -46,6 +46,7 @@ import {
 import { AgentAvailabilityControl, type AgentCatalogRowProps } from './AgentCatalogRow'
 import { AgentDefaultSetting } from './AgentDefaultSetting'
 import { AgentDetectionCatalog } from './AgentDetectionCatalog'
+import { AgentPresetsSection } from './AgentPresetsSection'
 
 export {
   buildAgentAvailabilitySettingsUpdate,
@@ -264,6 +265,13 @@ export function AgentsPane({
         mode={resolveAgentPermissionModeSummary({ agentDefaultArgs, agentDefaultEnv })}
         onChange={(mode) =>
           updateSettings(applyAgentPermissionMode({ mode, agentDefaultArgs, agentDefaultEnv }))
+        }
+      />
+      <AgentPresetsSection
+        target={
+          activeServerEnvironmentId
+            ? { kind: 'environment', environmentId: activeServerEnvironmentId }
+            : { kind: 'local' }
         }
       />
       <AgentDetectionCatalog

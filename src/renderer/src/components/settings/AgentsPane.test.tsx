@@ -408,6 +408,12 @@ describe('AgentsPane', () => {
     expect(matchesSettingsSearch('hide', getAgentsPaneSearchEntries())).toBe(true)
   })
 
+  it('includes agent preset search metadata', () => {
+    expect(matchesSettingsSearch('preset', getAgentsPaneSearchEntries())).toBe(true)
+    expect(matchesSettingsSearch('harness', getAgentsPaneSearchEntries())).toBe(true)
+    expect(matchesSettingsSearch('prompt', getAgentsPaneSearchEntries())).toBe(true)
+  })
+
   it('includes agent permission search metadata', () => {
     expect(matchesSettingsSearch('permission', getAgentsPaneSearchEntries())).toBe(true)
     expect(matchesSettingsSearch('yolo', getAgentsPaneSearchEntries())).toBe(true)
