@@ -54,7 +54,7 @@ the server container must start and accept remote client connections.
 
 ### Eliminate from the product UI
 
-- [ ] Remove the bottom status bar.
+- [x] Remove the bottom status bar.
 - [ ] Remove Commands and Quick Commands product surfaces.
 - [ ] Remove Tasks and Kanban navigation.
 - [ ] Remove relay setup, status, and navigation.
