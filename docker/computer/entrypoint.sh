@@ -4,7 +4,8 @@ set -euo pipefail
 : "${DORKA_SSH_PUBLIC_KEY:?DORKA_SSH_PUBLIC_KEY is required}"
 : "${DORKA_EXECUTION_GENERATION:?DORKA_EXECUTION_GENERATION is required}"
 
-mkdir -p /run/sshd /workspace /home/ubuntu/.ssh
+mkdir -p /workspace /home/ubuntu/.ssh
+install -d -o root -g root -m 0755 /run/sshd
 chown ubuntu:ubuntu /home/ubuntu /workspace /home/ubuntu/.ssh
 chmod 0700 /home/ubuntu/.ssh
 

@@ -7,6 +7,7 @@ describe('Computer image entrypoint', () => {
 
     expect(script).toContain('grep -Fvx -- "$DORKA_SSH_PUBLIC_KEY" "$authorized_keys"')
     expect(script).toContain('printf \'%s\\n\' "$DORKA_SSH_PUBLIC_KEY"')
+    expect(script).toContain('install -d -o root -g root -m 0755 /run/sshd')
     expect(script).toContain('-o PasswordAuthentication=no')
     expect(script).toContain('-o KbdInteractiveAuthentication=no')
     expect(script).not.toContain('-o PasswordAuthentication=yes')
