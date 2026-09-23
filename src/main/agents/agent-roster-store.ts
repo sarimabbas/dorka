@@ -146,11 +146,13 @@ export class AgentRosterStore {
       if (!agent) {
         throw new Error(`Agent not found: ${agentId}`)
       }
+      const input = create(structuredClone(agent))
       const run = RunSchema.parse({
-        ...create(structuredClone(agent)),
+        ...input,
         id: randomUUID(),
         agentId,
         agentRevision: agent.revision,
+        processHost: input.processHost ?? 'computer',
         status: 'queued',
         createdAt: Date.now()
       })

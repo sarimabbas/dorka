@@ -2,6 +2,7 @@ import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, describe, expect, it, vi } from 'vitest'
+import { AgentRosterFileSchema } from '../../shared/agent-roster'
 import { AGENT_ROSTER_FILE_NAME, AgentRosterStore } from './agent-roster-store'
 
 const directories: string[] = []
@@ -29,7 +30,7 @@ afterEach(async () => {
 })
 
 describe('AgentRosterStore', () => {
-  it('leaves legacy Run execution generations undefined after reload', async () => {
+  it('does not backfill placement fields on legacy Computer-hosted Runs', async () => {
     const { directory, store } = await openStore()
     const agent = await createAgent(store)
     const run = await store.createRun({
@@ -37,10 +38,18 @@ describe('AgentRosterStore', () => {
       computerId: 'computer-a',
       prompt: 'Legacy work'
     })
+    const file = join(directory, AGENT_ROSTER_FILE_NAME)
+    const persisted = AgentRosterFileSchema.parse(JSON.parse(await readFile(file, 'utf8')))
+    const legacyRun = { ...persisted.runs[0] }
+    Reflect.deleteProperty(legacyRun, 'processHost')
+    await writeFile(file, JSON.stringify({ ...persisted, runs: [legacyRun] }))
 
     const reloaded = await AgentRosterStore.open(directory)
+    await reloaded.transitionRun(run.id, { status: 'running' })
 
-    expect(reloaded.getRun(run.id)?.computerExecutionGeneration).toBeUndefined()
+    const migrated = (await AgentRosterStore.open(directory)).getRun(run.id)
+    expect(migrated?.computerExecutionGeneration).toBeUndefined()
+    expect(migrated).not.toHaveProperty('processHost')
   })
 
   it('persists a terminal launch preset and reloads its Run', async () => {
@@ -70,6 +79,7 @@ describe('AgentRosterStore', () => {
       agentId: agent.id,
       computerId: 'computer-a',
       computerExecutionGeneration: '10000000-0000-4000-8000-000000000001',
+      processHost: 'computer',
       terminalSessionId: 'terminal-a',
       processIdentity: 'process-a',
       status: 'succeeded',
@@ -139,12 +149,18 @@ describe('AgentRosterStore', () => {
 
     const created = await store.createRunForAgent(agent.id, (current) => ({
       computerId: 'computer-a',
+      processHost: 'server',
       prompt: current.promptTemplate,
       sourceDirectory: current.workingDirectory
     }))
 
     expect(created.agent).toMatchObject({ revision: 2, promptTemplate: 'Latest prompt' })
-    expect(created.run).toMatchObject({ agentRevision: 2, prompt: 'Latest prompt' })
+    expect(created.run).toMatchObject({
+      agentRevision: 2,
+      computerId: 'computer-a',
+      processHost: 'server',
+      prompt: 'Latest prompt'
+    })
   })
 
   it('keeps placement on each Run when an Agent preference changes', async () => {

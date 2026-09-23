@@ -90,6 +90,7 @@ export const RunSchema = z
     agentRevision: z.number().int().positive().optional(),
     computerId: Id,
     computerExecutionGeneration: z.uuid().optional(),
+    processHost: z.enum(['computer', 'server']).optional(),
     status: RunStatusSchema,
     prompt: Text,
     sourceDirectory: Text.optional(),
@@ -137,7 +138,12 @@ export type AgentUpdateResult =
   | { outcome: 'updated'; agent: Agent }
   | { outcome: 'conflict'; currentRevision: number }
 export type RunCreate = Pick<Run, 'agentId' | 'computerId' | 'prompt' | 'sourceDirectory'> &
-  Partial<Pick<Run, 'computerExecutionGeneration' | 'terminalSessionId' | 'processIdentity'>>
+  Partial<
+    Pick<
+      Run,
+      'computerExecutionGeneration' | 'processHost' | 'terminalSessionId' | 'processIdentity'
+    >
+  >
 export type RunUpdate = Partial<Pick<Run, 'terminalSessionId' | 'processIdentity'>>
 export type RunTransition = {
   status: RunStatus
