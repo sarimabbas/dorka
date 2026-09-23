@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 import type { DorkaRuntimeService } from '../runtime/dorka-runtime'
 import { RpcDispatcher } from '../runtime/rpc/dispatcher'
@@ -27,7 +28,6 @@ describe('dorkad RPC manifest', () => {
     expect([...dorkadNames].filter((name) => omittedNames.has(name))).toEqual([])
     expect(DORKAD_DISABLED_RUNTIME_CAPABILITIES).toEqual([
       'accounts.import-host-credentials.v1',
-      'agents.execution.v1',
       'accounts.codex-reset-credit.v1'
     ])
     expect([...dorkadNames]).toEqual(
@@ -38,6 +38,15 @@ describe('dorkad RPC manifest', () => {
         'orchestration.runCreate'
       ])
     )
+  })
+
+  it('advertises agent execution only alongside the production launcher composition', () => {
+    const entry = readFileSync(new URL('./dorkad-entry.ts', import.meta.url), 'utf8')
+
+    expect(DORKAD_DISABLED_RUNTIME_CAPABILITIES).not.toContain('agents.execution.v1')
+    expect(entry).toContain('createDorkadComputerAgentExecution(')
+    expect(entry).toContain('agentExecutionService: computerAgentExecution.service')
+    expect(entry).toContain('computerAgentExecution?.disconnectAll()')
   })
 
   it('answers omitted methods without disconnecting an older client', async () => {

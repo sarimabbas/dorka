@@ -1,4 +1,4 @@
-import { chmod, mkdir, readFile, writeFile } from 'node:fs/promises'
+import { access, chmod, mkdir, readFile, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import {
   runProcess,
@@ -20,6 +20,15 @@ export class ComputerSshKeyStore {
 
   async loadOrCreatePublicKey(computerId: string): Promise<string> {
     validateComputerId(computerId)
+    const privateKeyPath = join(this.dataDirectory, KEY_DIRECTORY, computerId, PRIVATE_KEY_FILE)
+    try {
+      return await this.loadOrCreatePublicKeyUnsafe(computerId)
+    } catch (error) {
+      throw sanitizeIdentityError(error, privateKeyPath)
+    }
+  }
+
+  private async loadOrCreatePublicKeyUnsafe(computerId: string): Promise<string> {
     const directory = join(this.dataDirectory, KEY_DIRECTORY, computerId)
     const privateKeyPath = join(directory, PRIVATE_KEY_FILE)
     const publicKeyPath = `${privateKeyPath}.pub`
@@ -71,6 +80,18 @@ export class ComputerSshKeyStore {
     return validatePublicKey(await readFile(publicKeyPath, 'utf8'))
   }
 
+  async resolvePrivateKeyPath(computerId: string): Promise<string> {
+    validateComputerId(computerId)
+    const privateKeyPath = join(this.dataDirectory, KEY_DIRECTORY, computerId, PRIVATE_KEY_FILE)
+    try {
+      await access(privateKeyPath)
+      await chmod(privateKeyPath, 0o600)
+      return privateKeyPath
+    } catch {
+      throw new Error(`Computer SSH identity is unavailable: ${computerId}`)
+    }
+  }
+
   private async runKeygen(args: string[]): Promise<ProcessResult> {
     const result = await this.execute({ program: 'ssh-keygen', args })
     if (result.code !== 0 || result.timedOut) {
@@ -87,6 +108,11 @@ function validatePublicKey(value: string): string {
     throw new Error('Computer SSH public key is invalid')
   }
   return key
+}
+
+function sanitizeIdentityError(error: unknown, privateKeyPath: string): Error {
+  const message = error instanceof Error ? error.message : String(error)
+  return new Error(message.replaceAll(privateKeyPath, '[redacted-private-key-path]'))
 }
 
 function isMissingFile(error: unknown): boolean {

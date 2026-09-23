@@ -3,7 +3,10 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import type { ComputerRuntimeInfo } from '../../shared/computer-runtime'
-import { AgentExecutionService } from './agent-execution-service'
+import {
+  AgentExecutionService,
+  AgentTerminalLaunchOutcomeUnknownError
+} from './agent-execution-service'
 import { AgentRosterStore } from './agent-roster-store'
 
 const directories: string[] = []
@@ -90,6 +93,23 @@ describe('AgentExecutionService', () => {
       error: 'SSH terminal unavailable'
     })
     expect(h.roster.listRuns()[0]?.finishedAt).toEqual(expect.any(Number))
+  })
+
+  it('leaves a committed but unverifiable launch waiting instead of claiming failure', async () => {
+    const h = await fixture()
+    h.launch.mockRejectedValueOnce(new AgentTerminalLaunchOutcomeUnknownError())
+
+    await expect(
+      h.service.run({
+        agentId: h.agent.id,
+        computerId: h.computer.id,
+        prompt: 'Review the change'
+      })
+    ).resolves.toMatchObject({ status: 'waiting' })
+
+    expect(h.roster.listRuns()[0]).toMatchObject({ status: 'waiting' })
+    expect(h.roster.listRuns()[0]).not.toHaveProperty('error')
+    expect(h.roster.listRuns()[0]?.finishedAt).toBeUndefined()
   })
 
   it('does not create a Run when the Agent or Computer cannot be resolved', async () => {

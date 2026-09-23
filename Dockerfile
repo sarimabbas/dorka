@@ -8,6 +8,7 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
 COPY . .
 RUN pnpm install --frozen-lockfile && \
     pnpm run rebuild:node && \
+    pnpm run build:relay && \
     pnpm run build:dorkad && \
     pnpm prune --prod --ignore-scripts
 
@@ -25,13 +26,15 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
     groupmod --new-name dorka node && \
     usermod --login dorka --home /data --move-home --shell /bin/bash node
 COPY --from=build /src/out/dorkad /opt/dorka/out/dorkad
+COPY --from=build /src/out/relay /opt/dorka/out/relay
 COPY --from=build /src/node_modules /opt/dorka/node_modules
 COPY --from=build /src/package.json /opt/dorka/package.json
 COPY docker/server/entrypoint.sh /usr/local/bin/dorka-server-entrypoint
 RUN chmod 0755 /usr/local/bin/dorka-server-entrypoint && mkdir -p /data && chown dorka:dorka /data
 
 ENV HOME=/data \
-    DOCKER_HOST=unix:///var/run/docker.sock
+    DOCKER_HOST=unix:///var/run/docker.sock \
+    DORKA_RELAY_PATH=/opt/dorka/out/relay
 WORKDIR /data
 VOLUME ["/data"]
 EXPOSE 6768

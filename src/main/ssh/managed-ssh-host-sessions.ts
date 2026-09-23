@@ -51,6 +51,16 @@ export class ManagedSshHostSessions {
     return promise
   }
 
+  async disconnectAll(): Promise<void> {
+    const results = await Promise.allSettled(
+      [...this.targets.keys()].map((id) => this.disconnect(id))
+    )
+    const failure = results.find((result) => result.status === 'rejected')
+    if (failure?.status === 'rejected') {
+      throw failure.reason
+    }
+  }
+
   async disconnect(targetId: string): Promise<void> {
     const target = this.targets.get(targetId)
     const session = this.sessions.get(targetId)

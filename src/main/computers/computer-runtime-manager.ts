@@ -118,6 +118,10 @@ export class ComputerRuntimeManager {
     return this.toRuntimeInfo(inspection, id)
   }
 
+  resolveSshIdentityFile(id: string): Promise<string> {
+    return this.sshKeys.resolvePrivateKeyPath(id)
+  }
+
   async list(): Promise<ComputerRuntimeInfo[]> {
     const result = await this.run(listComputerIdsArgs(this.options.serverId))
     const engineIds = result.stdout.split(/\s+/).filter(Boolean)

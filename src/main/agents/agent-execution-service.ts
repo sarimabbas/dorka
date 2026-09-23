@@ -18,6 +18,13 @@ export type AgentTerminalIdentity = {
 
 export type AgentTerminalLauncher = (launch: AgentTerminalLaunch) => Promise<AgentTerminalIdentity>
 
+export class AgentTerminalLaunchOutcomeUnknownError extends Error {
+  constructor() {
+    super('Agent terminal launch outcome is unverifiable')
+    this.name = 'AgentTerminalLaunchOutcomeUnknownError'
+  }
+}
+
 export class AgentExecutionService {
   constructor(
     private readonly roster: AgentRosterStore,
@@ -52,6 +59,9 @@ export class AgentExecutionService {
         prompt: validated.prompt
       })
     } catch (error) {
+      if (error instanceof AgentTerminalLaunchOutcomeUnknownError) {
+        return this.roster.transitionRun(run.id, { status: 'waiting' })
+      }
       const message = error instanceof Error ? error.message : String(error)
       await this.roster.transitionRun(run.id, {
         status: 'failed',

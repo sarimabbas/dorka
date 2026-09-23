@@ -14,7 +14,7 @@
 import { dirname } from 'node:path'
 import process from 'node:process'
 import { setAppEnvironment, type AppEnvironment } from '../../shared/app-environment'
-import { setSecretStore, type SecretStore } from '../../shared/secret-store'
+import { setSecretStore } from '../../shared/secret-store'
 import type { ServeReadiness } from '../server/serve-readiness'
 import * as DorkadRpc from './dorkad-rpc-server'
 import { setRuntimeBrowserCommandsFactory } from '../runtime/runtime-browser-commands-factory'
@@ -36,6 +36,7 @@ import {
   changedAiVaultSearchSettings,
   type AiVaultSearchSettings
 } from '../../shared/ai-vault-search-settings'
+import { createDorkadSecretStore } from './dorkad-secret-store'
 
 export { parseArgs }
 
@@ -71,28 +72,9 @@ function createNodeAppEnvironment(): AppEnvironment {
   }
 }
 
-/**
- * Why not silently plaintext: `isEncryptionAvailable() === false` already makes every
- * caller fall back to unsealed storage, which is a security posture, not a detail.
- * `describeProtectionGap()` gives the reason a client can surface.
- */
-function createNodeSecretStore(): SecretStore {
-  return {
-    isEncryptionAvailable: () => false,
-    encryptString: () => {
-      throw new Error('dorkad_secret_sealing_unavailable')
-    },
-    decryptString: () => {
-      throw new Error('dorkad_secret_sealing_unavailable')
-    },
-    describeProtectionGap: () =>
-      'This host has no OS keyring, so credentials are stored unencrypted. Pair from a desktop to manage secrets, or install and unlock a keyring.'
-  }
-}
-
 export function installDorkadHostAdapters(): void {
   setAppEnvironment(createNodeAppEnvironment())
-  setSecretStore(createNodeSecretStore())
+  setSecretStore(createDorkadSecretStore())
 }
 
 export type DorkadOptions = {
@@ -168,7 +150,10 @@ async function startDorkadRuntime(
   const { AgentStatusObservedPaneIdentities, AgentStatusObservedPaneIdentityCapture } =
     await import('../runtime/agent-status-observed-pane-identity')
 
+  const { createDorkadComputerAgentExecution } = await import('./dorkad-computer-agent-execution')
+
   let rpc: DorkadRpc.DorkadRuntimeRpcServer | null = null
+  let computerAgentExecution: ReturnType<typeof createDorkadComputerAgentExecution> | null = null
   let uninstallHookStatusRepublish = (): void => {}
   let uninstallObservedStatusIdentity = (): void => {}
   registerCleanup(async () => {
@@ -176,13 +161,17 @@ async function startDorkadRuntime(
       await rpc?.stop()
     } finally {
       try {
-        // Why disconnect and not shut down: the daemon must outlive this process, or an
-        // dorkad restart goes back to killing every running terminal.
-        await stopDorkadDaemon()
+        await computerAgentExecution?.disconnectAll()
       } finally {
-        uninstallObservedStatusIdentity()
-        uninstallHookStatusRepublish()
-        agentHookServer.stop()
+        try {
+          // Why disconnect and not shut down: the daemon must outlive this process, or an
+          // dorkad restart goes back to killing every running terminal.
+          await stopDorkadDaemon()
+        } finally {
+          uninstallObservedStatusIdentity()
+          uninstallHookStatusRepublish()
+          agentHookServer.stop()
+        }
       }
     }
   })
@@ -227,8 +216,13 @@ async function startDorkadRuntime(
   // constructed, and the deps hook is only ever called later, from an RPC.
   let sessionSearch: { apply(settings: AiVaultSearchSettings): void; dispose(): void } | null = null
 
+  computerAgentExecution = createDorkadComputerAgentExecution(
+    controlPlane.agents,
+    controlPlane.computers
+  )
   const runtime = new DorkaRuntimeService(store, undefined, {
     agentRosterStore: controlPlane.agents,
+    agentExecutionService: computerAgentExecution.service,
     computerRuntimeManager: controlPlane.computers,
     disabledRuntimeCapabilities: DorkadRpc.DORKAD_DISABLED_RUNTIME_CAPABILITIES,
     // Why lazy: a daemon swap replaces the provider after construction, so an eager
@@ -277,6 +271,7 @@ async function startDorkadRuntime(
       }
     }
   })
+  computerAgentExecution.attach(store, runtime)
 
   const { installDorkadSessionSearchService } = await import('./dorkad-session-search')
   sessionSearch = await installDorkadSessionSearchService({

@@ -136,7 +136,7 @@ vi.mock('./ssh-relay-session', () => ({
 import { ManagedSshHostSessions } from './managed-ssh-host-sessions'
 
 const target: SshTarget = {
-  id: 'runtime-ssh-computer:computer-1',
+  id: 'runtime-ssh-computer-computer-1',
   label: 'computer-1',
   owner: { type: 'on-demand-runtime', runtimeId: 'computer:computer-1' },
   source: 'manual',
@@ -185,6 +185,19 @@ describe('ManagedSshHostSessions', () => {
     mocks.provider = {}
     await connecting
     expect(connected).toBe(true)
+  })
+
+  it('disconnects every managed session during host shutdown', async () => {
+    const sessions = new ManagedSshHostSessions({ store: new Store() })
+    const other = { ...target, id: 'runtime-ssh-computer-computer-2' }
+    await sessions.connect(target)
+    await sessions.connect(other)
+
+    await sessions.disconnectAll()
+
+    expect(mocks.disconnect).toHaveBeenCalledWith(target.id)
+    expect(mocks.disconnect).toHaveBeenCalledWith(other.id)
+    expect(mocks.detachAndPersist).toHaveBeenCalledTimes(2)
   })
 
   it('rejects client-owned targets before opening a transport', () => {

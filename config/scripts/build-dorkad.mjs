@@ -69,6 +69,20 @@ const jsoncParserEsm = {
   }
 }
 
+/** Why: managed SSH sessions use the legacy in-process CLI fallback, whose desktop default
+ * reaches RPC families this Node host intentionally does not configure. */
+const dorkadRpcMethods = {
+  name: 'dorkad-rpc-methods',
+  setup(pluginBuild) {
+    pluginBuild.onResolve({ filter: /^\.\.\/runtime\/rpc\/methods$/ }, (args) => {
+      if (!args.importer.includes('/src/main/ssh/')) {
+        return undefined
+      }
+      return { path: join(ROOT, 'src/main/dorkad/dorkad-all-rpc-methods.ts') }
+    })
+  }
+}
+
 /** Why: optional native deps reference prebuilt .node files that may not exist here. */
 const externalNativeAddons = {
   name: 'external-native-addons',
@@ -118,7 +132,7 @@ const result = await build({
   format: 'cjs',
   outfile: OUT_FILE,
   external: EXTERNAL,
-  plugins: [jsoncParserEsm, externalNativeAddons],
+  plugins: [jsoncParserEsm, dorkadRpcMethods, externalNativeAddons],
   metafile: true,
   minify: true,
   sourcemap: false,
