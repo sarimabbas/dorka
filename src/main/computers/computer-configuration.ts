@@ -24,6 +24,7 @@ export function computerConfigurationSnapshot(
   return {
     id: record.spec.id,
     revision: record.executionGeneration,
+    desiredState: record.desiredState,
     configuration: redactConfiguration(validateComputerSpec(record.spec))
   }
 }
@@ -42,6 +43,7 @@ export function planComputerConfiguration(
     plan: {
       id: record.spec.id,
       revision: record.executionGeneration,
+      desiredState: record.desiredState,
       configuration: redactConfiguration(spec),
       replacementRequired,
       interruption: replacementRequired && record.desiredState === 'running' ? 'restart' : 'none',

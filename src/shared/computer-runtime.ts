@@ -48,6 +48,7 @@ export type RedactedComputerConfiguration = {
 export type ComputerConfigurationSnapshot = {
   id: string
   revision: string
+  desiredState: ComputerDesiredState
   configuration: RedactedComputerConfiguration
 }
 

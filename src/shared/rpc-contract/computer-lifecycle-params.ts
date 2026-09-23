@@ -84,6 +84,7 @@ export const ComputerConfigurationMutationParams = z
   .object({
     id: ComputerId,
     expectedRevision: z.uuid(),
+    expectedDesiredState: z.enum(['stopped', 'running']),
     configuration: ComputerConfiguration
   })
   .strict()

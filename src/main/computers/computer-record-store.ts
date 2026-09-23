@@ -47,6 +47,7 @@ type RecordCommit<T> = {
 }
 
 type RecordReplacementCommit<T> = {
+  expectedDesiredState?: ComputerDesiredState
   beforeCommit: (current: ComputerRecord, next: ComputerRecord) => Promise<void>
   afterCommit: (next: ComputerRecord) => Promise<T>
 }
@@ -119,7 +120,11 @@ export class ComputerRecordStore {
   ): Promise<ComputerRecordReplacement<T>> {
     return this.withRecords(async (records) => {
       const current = requireRecord(records, id)
-      if (current.executionGeneration !== expectedRevision) {
+      if (
+        current.executionGeneration !== expectedRevision ||
+        (commit.expectedDesiredState !== undefined &&
+          current.desiredState !== commit.expectedDesiredState)
+      ) {
         return { kind: 'conflict', currentRevision: current.executionGeneration }
       }
       const spec = prepare(structuredClone(current))

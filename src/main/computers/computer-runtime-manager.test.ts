@@ -263,12 +263,12 @@ describe('ComputerRuntimeManager', () => {
     execute.mockClear()
 
     const snapshot = await manager.getConfiguration('alpha')
-    const conflict = await manager.planConfiguration('alpha', replacementGeneration, {
+    const conflict = await manager.planConfiguration('alpha', replacementGeneration, 'stopped', {
       resources: { cpus: 2, memoryMb: 4096, pids: 512 },
       environment: { preserve: ['TOKEN'], set: {} },
       premounts: []
     })
-    const planned = await manager.planConfiguration('alpha', executionGeneration, {
+    const planned = await manager.planConfiguration('alpha', executionGeneration, 'stopped', {
       resources: { cpus: 4, memoryMb: 4096, pids: 512 },
       environment: { preserve: [], set: { MODE: 'new-private-value' } },
       premounts: [{ source: '/srv/dorka/shared', target: '/shared' }]
@@ -311,7 +311,7 @@ describe('ComputerRuntimeManager', () => {
     })
     execute.mockClear()
 
-    const result = await manager.replaceConfiguration('alpha', executionGeneration, {
+    const result = await manager.replaceConfiguration('alpha', executionGeneration, 'stopped', {
       resources: { cpus: 4, memoryMb: 8192, pids: 256 },
       environment: { preserve: ['TOKEN'], set: { MODE: 'replacement-value' } },
       premounts: []
@@ -340,6 +340,69 @@ describe('ComputerRuntimeManager', () => {
         environment: { TOKEN: 'preserved-value', MODE: 'replacement-value' }
       }
     })
+  })
+
+  it('reconciles the durable Computer after a replacement command fails', async () => {
+    randomUUIDMock
+      .mockReturnValueOnce(executionGeneration)
+      .mockReturnValueOnce(replacementGeneration)
+    let exists = false
+    let activeGeneration = executionGeneration
+    let failReplacementCreate = true
+    const execute = vi.fn<ComputerCommandExecutor>(async ({ args = [] }) => {
+      if (args[0] === 'ps') {
+        return processResult(exists ? 'engine-alpha\n' : '')
+      }
+      if (args[0] === 'inspect') {
+        return processResult(
+          JSON.stringify([inspection('alpha', 'created', false, serverId, activeGeneration)])
+        )
+      }
+      if (args[0] === 'rm') {
+        exists = false
+        return processResult()
+      }
+      if (args[0] === 'create') {
+        const label = args.find((arg) => arg.startsWith(`${DORKA_EXECUTION_GENERATION_LABEL}=`))
+        const generation = label?.split('=')[1] ?? activeGeneration
+        if (generation === replacementGeneration && failReplacementCreate) {
+          failReplacementCreate = false
+          return processResult('', 'injected create failure', 1)
+        }
+        activeGeneration = generation
+        exists = true
+      }
+      return processResult()
+    })
+    const manager = new ComputerRuntimeManager({
+      dataDirectory: await dataDirectory(),
+      serverId,
+      execute
+    })
+    await manager.create({ id: 'alpha', image: 'safe/image:tag' })
+    execute.mockClear()
+
+    await expect(
+      manager.replaceConfiguration('alpha', executionGeneration, 'stopped', {
+        resources: { cpus: 4, memoryMb: 4096, pids: 512 },
+        environment: { preserve: [], set: {} },
+        premounts: []
+      })
+    ).rejects.toThrow('injected create failure')
+
+    await expect(manager.getConfiguration('alpha')).resolves.toMatchObject({
+      revision: executionGeneration
+    })
+    await expect(manager.inspect('alpha')).resolves.toMatchObject({ state: 'created' })
+    expect(activeGeneration).toBe(executionGeneration)
+    expect(execute.mock.calls.map(([call]) => call.args?.[0])).toEqual([
+      'inspect',
+      'rm',
+      'create',
+      'ps',
+      'create',
+      'inspect'
+    ])
   })
 
   it.each<ComputerCreateSpec>([

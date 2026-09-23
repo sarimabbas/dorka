@@ -44,13 +44,23 @@ export const COMPUTER_LIFECYCLE_METHODS = [
     name: 'computers.configuration.plan',
     params: ComputerConfigurationMutationParams,
     handler: async (params, { runtime }) =>
-      runtime.planComputerConfiguration(params.id, params.expectedRevision, params.configuration)
+      runtime.planComputerConfiguration(
+        params.id,
+        params.expectedRevision,
+        params.expectedDesiredState,
+        params.configuration
+      )
   }),
   defineMethod({
     name: 'computers.configuration.replace',
     params: ComputerConfigurationMutationParams,
     handler: async (params, { runtime }) =>
-      runtime.replaceComputerConfiguration(params.id, params.expectedRevision, params.configuration)
+      runtime.replaceComputerConfiguration(
+        params.id,
+        params.expectedRevision,
+        params.expectedDesiredState,
+        params.configuration
+      )
   }),
   defineMethod({
     name: 'computers.gitIdentity.get',

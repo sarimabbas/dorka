@@ -186,6 +186,7 @@ describe('Agent and Computer lifecycle RPC', () => {
       await dispatch(dispatcher, 'computers.configuration.plan', {
         id: 'worker-1',
         expectedRevision: revision,
+        expectedDesiredState: 'stopped',
         configuration: {
           resources: { cpus: 4, memoryMb: 8192, pids: 512 },
           environment: { preserve: [], set: { MODE: 'private-value' } },
@@ -196,9 +197,28 @@ describe('Agent and Computer lifecycle RPC', () => {
       ok: true,
       result: { outcome: 'planned', plan: { replacementRequired: true } }
     })
+    expect(await dispatch(dispatcher, 'computers.start', { id: 'worker-1' })).toMatchObject({
+      ok: true
+    })
+    expect(
+      await dispatch(dispatcher, 'computers.configuration.replace', {
+        id: 'worker-1',
+        expectedRevision: revision,
+        expectedDesiredState: 'stopped',
+        configuration: {
+          resources: { cpus: 4, memoryMb: 8192, pids: 512 },
+          environment: { preserve: [], set: { MODE: 'private-value' } },
+          premounts: []
+        }
+      })
+    ).toMatchObject({ ok: true, result: { outcome: 'conflict' } })
+    expect(await dispatch(dispatcher, 'computers.stop', { id: 'worker-1' })).toMatchObject({
+      ok: true
+    })
     const replaced = await dispatch(dispatcher, 'computers.configuration.replace', {
       id: 'worker-1',
       expectedRevision: revision,
+      expectedDesiredState: 'stopped',
       configuration: {
         resources: { cpus: 4, memoryMb: 8192, pids: 512 },
         environment: { preserve: [], set: { MODE: 'private-value' } },

@@ -183,6 +183,7 @@ describe('ComputersSettingsPane', () => {
     const snapshot = {
       id: stoppedComputer.id,
       revision: '10000000-0000-4000-8000-000000000001',
+      desiredState: 'stopped' as const,
       configuration: {
         resources: { cpus: 2, memoryMb: 4096, pids: 512 },
         environment: ['TOKEN'],
@@ -233,6 +234,7 @@ describe('ComputersSettingsPane', () => {
       {
         id: stoppedComputer.id,
         expectedRevision: snapshot.revision,
+        expectedDesiredState: 'stopped',
         configuration: {
           resources: { cpus: 4, memoryMb: 4096, pids: 512 },
           environment: { preserve: ['TOKEN'], set: {} },
@@ -258,6 +260,7 @@ describe('ComputersSettingsPane', () => {
     const snapshot = {
       id: stoppedComputer.id,
       revision: '10000000-0000-4000-8000-000000000001',
+      desiredState: 'stopped' as const,
       configuration: {
         resources: { cpus: 2, memoryMb: 4096, pids: 512 },
         environment: [],

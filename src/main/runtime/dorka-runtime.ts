@@ -13,7 +13,11 @@ import type {
   AgentSourceControlReviewDiffRequest,
   AgentSourceControlReviewRequest
 } from '../../shared/rpc-contract/agent-source-control-params'
-import type { ComputerConfigurationInput, ComputerCreateSpec } from '../../shared/computer-runtime'
+import type {
+  ComputerConfigurationInput,
+  ComputerCreateSpec,
+  ComputerDesiredState
+} from '../../shared/computer-runtime'
 import type { AgentRosterStore } from '../agents/agent-roster-store'
 import type { AgentExecutionService } from '../agents/agent-execution-service'
 import type { ComputerRuntimeManager } from '../computers/computer-runtime-manager'
@@ -162,11 +166,13 @@ class DorkaRuntimeService extends DorkaRuntimeWithResolveWaiter {
   planComputerConfiguration(
     id: string,
     expectedRevision: string,
+    expectedDesiredState: ComputerDesiredState,
     configuration: ComputerConfigurationInput
   ) {
     return this.requireComputerRuntimeManager().planConfiguration(
       id,
       expectedRevision,
+      expectedDesiredState,
       configuration
     )
   }
@@ -174,11 +180,13 @@ class DorkaRuntimeService extends DorkaRuntimeWithResolveWaiter {
   replaceComputerConfiguration(
     id: string,
     expectedRevision: string,
+    expectedDesiredState: ComputerDesiredState,
     configuration: ComputerConfigurationInput
   ) {
     return this.requireComputerRuntimeManager().replaceConfiguration(
       id,
       expectedRevision,
+      expectedDesiredState,
       configuration
     )
   }

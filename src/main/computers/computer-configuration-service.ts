@@ -3,10 +3,11 @@ import type {
   ComputerConfigurationPlanResult,
   ComputerConfigurationReplaceResult,
   ComputerConfigurationSnapshot,
+  ComputerDesiredState,
   ComputerRecord
 } from '../../shared/computer-runtime'
 import { computerConfigurationSnapshot, planComputerConfiguration } from './computer-configuration'
-import type { ComputerRecordStore } from './computer-record-store'
+import type { ComputerRecordReplacement, ComputerRecordStore } from './computer-record-store'
 import { validateComputerId } from './computer-runtime-command'
 
 type ComputerConfigurationHost = {
@@ -14,6 +15,7 @@ type ComputerConfigurationHost = {
   allowedMountSources: readonly string[]
   runMutation: <T>(operation: () => Promise<T>) => Promise<T>
   replaceContainer: (current: ComputerRecord, next: ComputerRecord) => Promise<void>
+  recoverRuntime: () => Promise<void>
 }
 
 export class ComputerConfigurationService {
@@ -27,11 +29,15 @@ export class ComputerConfigurationService {
   async plan(
     id: string,
     expectedRevision: string,
+    expectedDesiredState: ComputerDesiredState,
     configuration: ComputerConfigurationInput
   ): Promise<ComputerConfigurationPlanResult> {
     validateComputerId(id)
     const record = await this.requireRecord(id)
-    if (record.executionGeneration !== expectedRevision) {
+    if (
+      record.executionGeneration !== expectedRevision ||
+      record.desiredState !== expectedDesiredState
+    ) {
       return { outcome: 'conflict', currentRevision: record.executionGeneration }
     }
     return {
@@ -43,26 +49,45 @@ export class ComputerConfigurationService {
   replace(
     id: string,
     expectedRevision: string,
+    expectedDesiredState: ComputerDesiredState,
     configuration: ComputerConfigurationInput
   ): Promise<ComputerConfigurationReplaceResult> {
     validateComputerId(id)
     return this.host.runMutation(async () => {
-      const replacement = await this.host.store.replaceSpec(
-        id,
-        expectedRevision,
-        (current) => {
-          const planned = planComputerConfiguration(
-            current,
-            configuration,
-            this.host.allowedMountSources
-          )
-          return planned.plan.replacementRequired ? planned.spec : null
-        },
-        {
-          beforeCommit: (current, next) => this.host.replaceContainer(current, next),
-          afterCommit: async () => undefined
+      let replacementEffectsStarted = false
+      let replacement: ComputerRecordReplacement<void>
+      try {
+        replacement = await this.host.store.replaceSpec(
+          id,
+          expectedRevision,
+          (current) => {
+            const planned = planComputerConfiguration(
+              current,
+              configuration,
+              this.host.allowedMountSources
+            )
+            return planned.plan.replacementRequired ? planned.spec : null
+          },
+          {
+            expectedDesiredState,
+            beforeCommit: (current, next) => {
+              replacementEffectsStarted = true
+              return this.host.replaceContainer(current, next)
+            },
+            afterCommit: async () => undefined
+          }
+        )
+      } catch (error) {
+        if (replacementEffectsStarted) {
+          await this.host.recoverRuntime().catch((recoveryError: unknown) => {
+            throw new AggregateError(
+              [error, recoveryError],
+              'Computer replacement and recovery failed'
+            )
+          })
         }
-      )
+        throw error
+      }
       if (replacement.kind === 'conflict') {
         return { outcome: 'conflict', currentRevision: replacement.currentRevision }
       }

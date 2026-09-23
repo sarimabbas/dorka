@@ -42,6 +42,7 @@ describe('Computer configuration', () => {
     expect(snapshot).toEqual({
       id: 'main',
       revision,
+      desiredState: 'stopped',
       configuration: {
         resources: { cpus: 2, memoryMb: 4096, pids: 512 },
         environment: ['EXISTING_TOKEN', 'FEATURE_FLAG'],

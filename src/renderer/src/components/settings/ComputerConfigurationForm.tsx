@@ -113,6 +113,7 @@ export function ComputerConfigurationForm({
         {
           id: computerId,
           expectedRevision: snapshot.revision,
+          expectedDesiredState: snapshot.desiredState,
           configuration: request
         }
       )
@@ -143,6 +144,7 @@ export function ComputerConfigurationForm({
         {
           id: computerId,
           expectedRevision: snapshot.revision,
+          expectedDesiredState: snapshot.desiredState,
           configuration: reviewed.request
         }
       )
@@ -172,7 +174,8 @@ export function ComputerConfigurationForm({
         <div>
           <p className="text-xs font-medium text-foreground">Environment</p>
           <p className="text-[11px] text-muted-foreground">
-            Existing values stay hidden. Uncheck a name to remove or replace it.
+            Ordinary variables only. Existing values stay hidden; uncheck a name to remove or
+            replace it.
           </p>
         </div>
         {snapshot.configuration.environment.map((name) => (
@@ -215,8 +218,9 @@ export function ComputerConfigurationForm({
             />
             <Input
               aria-label="Variable value"
-              placeholder="Value"
-              type="password"
+              placeholder="Value (not a secret)"
+              type="text"
+              autoComplete="off"
               value={entry.value}
               onChange={(event) =>
                 updateDraft((current) => ({

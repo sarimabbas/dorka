@@ -14,6 +14,7 @@ import {
   type ComputerConfigurationReplaceResult,
   type ComputerConfigurationSnapshot,
   type ComputerCreateSpec,
+  type ComputerDesiredState,
   type ComputerReconcileResult,
   type ComputerRecord,
   type ComputerRuntimeInfo,
@@ -67,6 +68,7 @@ export class ComputerRuntimeManager {
       store: this.store,
       allowedMountSources: this.allowedMountSources,
       runMutation: (operation) => this.runMutation(operation),
+      recoverRuntime: () => this.reconcileNow().then(() => undefined),
       replaceContainer: async (current, next) => {
         await this.inspectRecord(current)
         await this.run(['rm', '--force', computerName(current.spec.id)])
@@ -157,17 +159,19 @@ export class ComputerRuntimeManager {
   planConfiguration(
     id: string,
     expectedRevision: string,
+    expectedDesiredState: ComputerDesiredState,
     configuration: ComputerConfigurationInput
   ): Promise<ComputerConfigurationPlanResult> {
-    return this.configuration.plan(id, expectedRevision, configuration)
+    return this.configuration.plan(id, expectedRevision, expectedDesiredState, configuration)
   }
 
   replaceConfiguration(
     id: string,
     expectedRevision: string,
+    expectedDesiredState: ComputerDesiredState,
     configuration: ComputerConfigurationInput
   ): Promise<ComputerConfigurationReplaceResult> {
-    return this.configuration.replace(id, expectedRevision, configuration)
+    return this.configuration.replace(id, expectedRevision, expectedDesiredState, configuration)
   }
 
   async list(): Promise<ComputerRuntimeInfo[]> {
