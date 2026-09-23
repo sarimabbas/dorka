@@ -8,6 +8,7 @@ import type { RuntimeClientTarget } from '@/runtime/runtime-rpc-client'
 import { Badge } from '../ui/badge'
 import { Button } from '../ui/button'
 import { RunChangesPanel } from './RunChangesPanel'
+import { RunTerminalOutput } from './RunTerminalOutput'
 
 const MAX_RECENT_RUNS = 5
 
@@ -32,6 +33,7 @@ export function AgentRunHistory({
   const [runs, setRuns] = useState<Run[] | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [selectedRunId, setSelectedRunId] = useState<string | null>(null)
+  const [terminalRunId, setTerminalRunId] = useState<string | null>(null)
 
   useEffect(() => {
     let active = true
@@ -73,38 +75,50 @@ export function AgentRunHistory({
       ) : (
         <div className="space-y-2">
           {runs.map((run) => (
-            <div
-              key={run.id}
-              className="flex items-start justify-between gap-3 rounded-md border border-border bg-background px-3 py-2"
-            >
-              <div className="min-w-0 space-y-1">
-                <div className="flex flex-wrap items-center gap-1.5">
-                  <Badge variant={run.status === 'failed' ? 'destructive' : 'outline'}>
-                    {run.status}
-                  </Badge>
-                  <span className="font-mono text-[11px] text-muted-foreground">
-                    Computer: {run.computerId}
-                  </span>
-                  <span className="text-[11px] text-muted-foreground">
-                    {new Date(run.createdAt).toLocaleString()}
-                  </span>
+            <div key={run.id} className="rounded-md border border-border bg-background px-3 py-2">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0 space-y-1">
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    <Badge variant={run.status === 'failed' ? 'destructive' : 'outline'}>
+                      {run.status}
+                    </Badge>
+                    <span className="font-mono text-[11px] text-muted-foreground">
+                      Computer: {run.computerId}
+                    </span>
+                    <span className="text-[11px] text-muted-foreground">
+                      {new Date(run.createdAt).toLocaleString()}
+                    </span>
+                  </div>
+                  <p className="truncate text-xs text-foreground">{run.prompt}</p>
+                  <p className="font-mono text-[11px] text-muted-foreground">
+                    Terminal: {run.terminalSessionId ?? 'unavailable'}
+                    {run.processIdentity ? ` · Process: ${run.processIdentity}` : ''}
+                  </p>
+                  {run.error ? <p className="text-xs text-destructive">{run.error}</p> : null}
                 </div>
-                <p className="truncate text-xs text-foreground">{run.prompt}</p>
-                <p className="font-mono text-[11px] text-muted-foreground">
-                  Terminal: {run.terminalSessionId ?? 'unavailable'}
-                  {run.processIdentity ? ` · Process: ${run.processIdentity}` : ''}
-                </p>
-                {run.error ? <p className="text-xs text-destructive">{run.error}</p> : null}
+                <div className="flex shrink-0 gap-1.5">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="xs"
+                    disabled={!run.terminalSessionId}
+                    onClick={() => setTerminalRunId(terminalRunId === run.id ? null : run.id)}
+                  >
+                    {terminalRunId === run.id ? 'Hide Terminal' : 'View Terminal'}
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="xs"
+                    onClick={() => setSelectedRunId(run.id)}
+                  >
+                    Open Changes
+                  </Button>
+                </div>
               </div>
-              <Button
-                type="button"
-                variant="outline"
-                size="xs"
-                className="shrink-0"
-                onClick={() => setSelectedRunId(run.id)}
-              >
-                Open Changes
-              </Button>
+              {terminalRunId === run.id && run.terminalSessionId ? (
+                <RunTerminalOutput terminal={run.terminalSessionId} target={target} />
+              ) : null}
             </div>
           ))}
         </div>
