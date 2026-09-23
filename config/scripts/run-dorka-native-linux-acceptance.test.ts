@@ -42,7 +42,7 @@ function fixture() {
 }
 
 describe('native Linux acceptance contracts', () => {
-  it('makes the fake agent terminate its owning PTY after the offline trigger', () => {
+  it('uses a signal that an interactive owning shell cannot ignore', () => {
     const shim = readFileSync(
       resolve(
         import.meta.dirname,
@@ -52,7 +52,7 @@ describe('native Linux acceptance contracts', () => {
     )
 
     expect(shim.indexOf('while [[ ! -e "/workspace/$token.exit" ]]')).toBeLessThan(
-      shim.indexOf('kill -TERM "$PPID"')
+      shim.indexOf('kill -KILL "$PPID"')
     )
   })
 

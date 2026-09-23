@@ -15,7 +15,7 @@ fi
 printf 'DORKA_NATIVE_AGENT_READY %s\n' "$token"
 while [[ ! -e "/workspace/$token.exit" ]]; do sleep 0.2; done
 printf 'DORKA_NATIVE_AGENT_EXIT %s\n' "$token"
-# The product tracks the terminal PTY, not this child command. End the owning
-# shell so the fixture exercises an exact host-certified PTY exit while offline.
-kill -TERM "$PPID"
+# The product tracks the terminal PTY, not this child command. Interactive shells
+# ignore SIGTERM, so SIGKILL is required to end the owning shell and close the PTY.
+kill -KILL "$PPID"
 exit "${DORKA_NATIVE_AGENT_EXIT_CODE:-23}"
