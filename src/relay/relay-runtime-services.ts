@@ -1,13 +1,16 @@
+import { readFileSync } from 'node:fs'
 import { homedir } from 'node:os'
 import { join } from 'node:path'
 import { getRemoteHostPlatform } from '../main/ssh/ssh-remote-platform'
 import { parseUnameToRelayPlatform, RELAY_REMOTE_DIR } from '../main/ssh/relay-protocol'
 import { DEFAULT_AI_VAULT_SEARCH_SETTINGS } from '../shared/ai-vault-search-settings'
 import { LOCAL_EXECUTION_HOST_ID } from '../shared/execution-host'
+import { isComputerExecutionGeneration } from '../shared/computer-runtime'
 import { installInProcessSessionSearchService } from '../main/ai-vault-search/session-search-in-process-service'
 import type { RelayDispatcher } from './dispatcher'
 import { RelayContext, expandTilde } from './context'
-import { PtyHandler } from './pty-handler'
+import { PtyHandler, type PtyDurableExitEvidence } from './pty-handler'
+import { ManagedPtyExitJournal } from './managed-pty-exit-journal'
 import { FsHandler } from './fs-handler'
 import { GitHandler } from './git-handler'
 import { GitResponseStreamRegistry } from './git-response-stream'
@@ -24,6 +27,47 @@ import { RelayPtySourcePublication } from './relay-pty-source-publication'
 import { SkillInstallHandler } from './skill-install-handler'
 import { relayLogLine } from './relay-diagnostic-log'
 import { remoteCliRequestTimeoutMs } from './remote-cli-timeout'
+
+const COMPUTER_EXECUTION_GENERATION_MARKER = 'execution-generation'
+const MANAGED_PTY_EXIT_JOURNAL_ROOT = join('managed-pty-exits', 'v1')
+
+export function composeManagedPtyExitEvidence(
+  homeDirectory: string,
+  platform: NodeJS.Platform = process.platform
+): PtyDurableExitEvidence | null {
+  if (platform !== 'linux') {
+    return null
+  }
+  let computerExecutionGeneration: string
+  try {
+    const marker = readFileSync(
+      join(homeDirectory, '.dorka', COMPUTER_EXECUTION_GENERATION_MARKER),
+      'utf8'
+    )
+    const withoutNewline = marker.endsWith('\n') ? marker.slice(0, -1) : marker
+    computerExecutionGeneration = withoutNewline.endsWith('\r')
+      ? withoutNewline.slice(0, -1)
+      : withoutNewline
+  } catch {
+    return null
+  }
+  if (!isComputerExecutionGeneration(computerExecutionGeneration)) {
+    return null
+  }
+  try {
+    return Object.freeze({
+      journal: new ManagedPtyExitJournal(
+        join(homeDirectory, '.dorka', MANAGED_PTY_EXIT_JOURNAL_ROOT)
+      ),
+      computerExecutionGeneration
+    })
+  } catch (error) {
+    relayLogLine(
+      `[relay] Managed PTY exit journal disabled: ${error instanceof Error ? error.message : String(error)}`
+    )
+    return null
+  }
+}
 
 export class RelayRuntimeServices {
   readonly ptyHandler: PtyHandler
@@ -43,7 +87,8 @@ export class RelayRuntimeServices {
   ) {
     const context = new RelayContext()
     this.registerSessionHandlers(context)
-    this.ptyHandler = new PtyHandler(dispatcher, graceTimeMs)
+    const durableExitEvidence = composeManagedPtyExitEvidence(homedir())
+    this.ptyHandler = new PtyHandler(dispatcher, graceTimeMs, undefined, durableExitEvidence)
     this.ptyConsumerSessionAdapter = new SshPtyConsumerSessionAdapter(
       dispatcher,
       launchVersion,

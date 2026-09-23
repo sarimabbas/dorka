@@ -1,34 +1,82 @@
-import { closeSync, fsyncSync, openSync, readFileSync, statSync, unlinkSync } from 'node:fs'
+import { closeSync, constants, fstatSync, fsyncSync, openSync, readSync, unlinkSync } from 'node:fs'
 import {
   MAX_MANAGED_PTY_EXIT_CERTIFICATE_BYTES,
   validateManagedPtyExitCertificate,
   type ManagedPtyExitCertificateV1
 } from './managed-pty-exit-certificate'
 
-const UNSUPPORTED_DIRECTORY_FSYNC_CODES = new Set(['EINVAL', 'ENOTSUP', 'EOPNOTSUPP'])
+export type BoundedRegularFileRead =
+  | { kind: 'ok'; contents: string; bytesRead: number }
+  | { kind: 'missing' }
+  | { kind: 'not-regular' }
+  | { kind: 'too-large' }
+
+export function readBoundedRegularFile(path: string, maxBytes: number): BoundedRegularFileRead {
+  if (!Number.isSafeInteger(maxBytes) || maxBytes < 0) {
+    throw new Error('Bounded file read requires a non-negative byte limit')
+  }
+  let descriptor: number
+  try {
+    const noFollow = typeof constants.O_NOFOLLOW === 'number' ? constants.O_NOFOLLOW : 0
+    descriptor = openSync(path, constants.O_RDONLY | noFollow)
+  } catch (error) {
+    if (isMissing(error)) {
+      return { kind: 'missing' }
+    }
+    if (errorCode(error) === 'ELOOP') {
+      return { kind: 'not-regular' }
+    }
+    throw error
+  }
+
+  try {
+    const stats = fstatSync(descriptor)
+    if (!stats.isFile()) {
+      return { kind: 'not-regular' }
+    }
+    if (stats.size > maxBytes) {
+      return { kind: 'too-large' }
+    }
+    const buffer = Buffer.alloc(maxBytes + 1)
+    let bytesRead = 0
+    while (bytesRead < buffer.length) {
+      const count = readSync(descriptor, buffer, bytesRead, buffer.length - bytesRead, null)
+      if (count === 0) {
+        break
+      }
+      bytesRead += count
+    }
+    if (bytesRead > maxBytes) {
+      return { kind: 'too-large' }
+    }
+    return { kind: 'ok', contents: buffer.toString('utf8', 0, bytesRead), bytesRead }
+  } finally {
+    closeSync(descriptor)
+  }
+}
 
 export function readExistingManagedPtyExitCertificate(
   path: string,
   expectedCertificateId: string
 ): ManagedPtyExitCertificateV1 | null {
-  try {
-    if (statSync(path).size > MAX_MANAGED_PTY_EXIT_CERTIFICATE_BYTES) {
-      throw new Error(`Managed PTY exit certificate collision: ${expectedCertificateId}`)
-    }
-    const validation = validateManagedPtyExitCertificate(
-      JSON.parse(readFileSync(path, 'utf8')),
-      expectedCertificateId
-    )
-    if (!validation.ok) {
-      throw new Error(`Managed PTY exit certificate collision: ${expectedCertificateId}`)
-    }
-    return validation.certificate
-  } catch (error) {
-    if (isMissing(error)) {
-      return null
-    }
-    throw error
+  const read = readBoundedRegularFile(path, MAX_MANAGED_PTY_EXIT_CERTIFICATE_BYTES)
+  if (read.kind === 'missing') {
+    return null
   }
+  if (read.kind !== 'ok') {
+    throw new Error(`Managed PTY exit certificate collision: ${expectedCertificateId}`)
+  }
+  let parsed: unknown
+  try {
+    parsed = JSON.parse(read.contents)
+  } catch {
+    throw new Error(`Managed PTY exit certificate collision: ${expectedCertificateId}`)
+  }
+  const validation = validateManagedPtyExitCertificate(parsed, expectedCertificateId)
+  if (!validation.ok) {
+    throw new Error(`Managed PTY exit certificate collision: ${expectedCertificateId}`)
+  }
+  return validation.certificate
 }
 
 export function isAlreadyExists(error: unknown): boolean {
@@ -59,17 +107,14 @@ export function fsyncFile(path: string): void {
 }
 
 export function fsyncDirectory(path: string): void {
-  if (process.platform === 'win32') {
-    return
-  }
-  const descriptor = openSync(path, 'r')
+  const noFollow = typeof constants.O_NOFOLLOW === 'number' ? constants.O_NOFOLLOW : 0
+  const directoryOnly = typeof constants.O_DIRECTORY === 'number' ? constants.O_DIRECTORY : 0
+  const descriptor = openSync(path, constants.O_RDONLY | noFollow | directoryOnly)
   try {
-    fsyncSync(descriptor)
-  } catch (error) {
-    const code = errorCode(error)
-    if (typeof code !== 'string' || !UNSUPPORTED_DIRECTORY_FSYNC_CODES.has(code)) {
-      throw error
+    if (!fstatSync(descriptor).isDirectory()) {
+      throw new Error(`Managed PTY exit journal path is not a directory: ${path}`)
     }
+    fsyncSync(descriptor)
   } finally {
     closeSync(descriptor)
   }

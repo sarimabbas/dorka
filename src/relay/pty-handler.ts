@@ -124,6 +124,16 @@ import {
   toTerminalUnavailableCause
 } from './node-pty-unavailable-diagnosis'
 import { TERMINAL_UNAVAILABLE_RPC_ERROR_CODE } from '../shared/terminal-unavailable-cause'
+import { isComputerExecutionGeneration } from '../shared/computer-runtime'
+import {
+  MAX_MANAGED_PTY_EXIT_EVIDENCE_ITEMS,
+  type ManagedPtyExitCandidate,
+  type ManagedPtyExitJournal
+} from './managed-pty-exit-journal'
+import {
+  validateManagedPtyExitCandidate,
+  validateManagedPtyExitCertificateId
+} from './managed-pty-exit-certificate'
 
 /**
  * The shell a spawn will actually launch, resolved the same way `spawnAfterAdmission` resolves it.
@@ -255,6 +265,8 @@ type ManagedPty = {
    *  (no consumer session, or a revive replaying state some other client serialized), and absence
    *  must never be read as "nobody owns it". */
   ownerClientInstanceId?: string
+  /** Relay teardown is not process-death evidence, even if its kill reaches node-pty onExit. */
+  suppressDurableExitEvidence?: boolean
 }
 
 type RelayAgentSessionCreateResult = {
@@ -482,6 +494,61 @@ export function attachIdentityMismatches(expected: PtyIdentity, managed: PtyIden
     (expected.tabId && managed.tabId && expected.tabId !== managed.tabId)
   )
 }
+
+function requireExactFields(
+  value: Record<string, unknown>,
+  expectedFields: readonly string[],
+  requestName: string
+): void {
+  const fields = Object.keys(value).sort()
+  const expected = [...expectedFields].sort()
+  if (
+    fields.length !== expected.length ||
+    fields.some((field, index) => field !== expected[index])
+  ) {
+    throw new Error(`${requestName} has unknown or missing fields`)
+  }
+}
+
+function requireExitEvidenceGeneration(value: unknown): string {
+  if (!isComputerExecutionGeneration(value)) {
+    throw new Error('Invalid Computer execution generation')
+  }
+  return value
+}
+
+function requireExitEvidenceCandidates(value: unknown): ManagedPtyExitCandidate[] {
+  if (!Array.isArray(value) || value.length > MAX_MANAGED_PTY_EXIT_EVIDENCE_ITEMS) {
+    throw new Error(
+      `Managed PTY exit candidate count must not exceed ${MAX_MANAGED_PTY_EXIT_EVIDENCE_ITEMS}`
+    )
+  }
+  const candidates: ManagedPtyExitCandidate[] = []
+  for (const candidate of value) {
+    validateManagedPtyExitCandidate(candidate)
+    candidates.push(candidate)
+  }
+  return candidates
+}
+
+function requireExitEvidenceCertificateIds(value: unknown): string[] {
+  if (!Array.isArray(value) || value.length > MAX_MANAGED_PTY_EXIT_EVIDENCE_ITEMS) {
+    throw new Error(
+      `Managed PTY exit certificate ID count must not exceed ${MAX_MANAGED_PTY_EXIT_EVIDENCE_ITEMS}`
+    )
+  }
+  const certificateIds: string[] = []
+  const seen = new Set<string>()
+  for (const certificateId of value) {
+    validateManagedPtyExitCertificateId(certificateId)
+    if (seen.has(certificateId)) {
+      throw new Error('Managed PTY exit certificate IDs must be unique')
+    }
+    seen.add(certificateId)
+    certificateIds.push(certificateId)
+  }
+  return certificateIds
+}
 /** Returns env to merge into the PTY's spawn env. Receives spawn context so augmenters can derive per-PTY identity from paneKey.
  *  `command` is the renderer-chosen agent launch command (`pi`, `omp`, …); undefined for CLI-launched bare shells. */
 export type PtyEnvAugmenter = (ctx: {
@@ -496,6 +563,11 @@ export type PtyEnvAugmenter = (ctx: {
 export type RelayPtyWorktreeRemovalCoordinator = {
   beginWorktreePtySpawn(operationPath: string): () => void
 }
+
+export type PtyDurableExitEvidence = Readonly<{
+  journal: ManagedPtyExitJournal
+  computerExecutionGeneration: string
+}>
 
 export class PtyHandler {
   private ptys = new Map<string, ManagedPty>()
@@ -540,6 +612,7 @@ export class PtyHandler {
   // Why: augment environment on every spawn so PTYs receive current hook coordinates.
   private envAugmenters: PtyEnvAugmenter[] = []
   private readonly agentSessionOwners = new ClaimedAgentPtyOwnerRegistry()
+  private readonly durableExitEvidence: PtyDurableExitEvidence | null
   private readonly agentSessionCreateOperations = new Map<
     string,
     Promise<RelayAgentSessionCreateResult>
@@ -548,11 +621,13 @@ export class PtyHandler {
   constructor(
     dispatcher: RelayDispatcher,
     graceTimeMs = DEFAULT_GRACE_TIME_MS,
-    ptyIdMintEpoch: string = randomUUID()
+    ptyIdMintEpoch: string = randomUUID(),
+    durableExitEvidence: PtyDurableExitEvidence | null = null
   ) {
     this.dispatcher = dispatcher
     this.graceTimeMs = graceTimeMs
     this.ptyIdMintEpoch = ptyIdMintEpoch
+    this.durableExitEvidence = durableExitEvidence
     this.registerHandlers()
     this.removeLegacyCapacityListener =
       this.dispatcher.onLegacyPtyCapacity?.(() => this.handleLegacyCapacity()) ?? null
@@ -1018,6 +1093,9 @@ export class PtyHandler {
       }
       this.clearStartupCommandTimer(managed)
       this.releaseRelayIngress(managed)
+      if (!managed.suppressDurableExitEvidence) {
+        this.recordDurableExitEvidence(managed, exitCode, 'node-pty-exit')
+      }
       this.pausedOutputPtys.delete(managed.id)
       this.consumerPausedOutputPtys.delete(managed.id)
       this.flushPtyOutput(managed.id)
@@ -1071,6 +1149,68 @@ export class PtyHandler {
     }
   }
 
+  private recordDurableExitEvidence(
+    managed: ManagedPty,
+    exitCode: number,
+    evidence: 'node-pty-exit' | 'host-process-absent'
+  ): void {
+    const durable = this.durableExitEvidence
+    if (!durable) {
+      return
+    }
+    try {
+      durable.journal.record({
+        version: 1,
+        computerExecutionGeneration: durable.computerExecutionGeneration,
+        relayGeneration: this.ptyIdMintEpoch,
+        relayPtyId: managed.id,
+        ptyIncarnationId: managed.incarnationId,
+        exitCode,
+        observedAt: Date.now(),
+        evidence
+      })
+    } catch (error) {
+      process.stderr.write(
+        `[pty-handler] durable exit evidence failed for ${managed.id}: ${error instanceof Error ? error.message : String(error)}\n`
+      )
+    }
+  }
+
+  private async listExitEvidenceV1(params: Record<string, unknown>) {
+    requireExactFields(
+      params,
+      ['computerExecutionGeneration', 'candidates'],
+      'pty.listExitEvidenceV1 request'
+    )
+    const generation = requireExitEvidenceGeneration(params.computerExecutionGeneration)
+    const candidates = requireExitEvidenceCandidates(params.candidates)
+    const durable = this.durableExitEvidence
+    if (!durable || generation !== durable.computerExecutionGeneration) {
+      return { certificates: [], issues: [], bytesRead: 0, truncated: false }
+    }
+    return durable.journal.listExact(generation, candidates)
+  }
+
+  private async ackExitEvidenceV1(params: Record<string, unknown>) {
+    requireExactFields(
+      params,
+      ['computerExecutionGeneration', 'certificateIds'],
+      'pty.ackExitEvidenceV1 request'
+    )
+    const generation = requireExitEvidenceGeneration(params.computerExecutionGeneration)
+    const certificateIds = requireExitEvidenceCertificateIds(params.certificateIds)
+    const durable = this.durableExitEvidence
+    if (!durable || generation !== durable.computerExecutionGeneration) {
+      throw new Error('Managed PTY exit evidence generation is non-authoritative')
+    }
+    return {
+      acknowledgements: certificateIds.map((certificateId) => ({
+        certificateId,
+        status: durable.journal.acknowledgeExact(generation, certificateId)
+      }))
+    }
+  }
+
   private registerHandlers(): void {
     this.dispatcher.onRequest('pty.spawn', (p, context) => this.spawn(p, context))
     this.dispatcher.onRequest('pty.attach', (p, context) => this.attach(p, context))
@@ -1089,8 +1229,15 @@ export class PtyHandler {
       agentSessionCreateOperationVersion: AGENT_SESSION_CREATE_OPERATION_PROTOCOL_VERSION,
       // Additive capability: clients may request the no-process-table inventory
       // projection and consume fenced inspect evidence on this host.
-      foregroundProcessEvidenceVersion: 1
+      foregroundProcessEvidenceVersion: 1,
+      ...(this.durableExitEvidence ? { durableExitEvidenceVersion: 1 } : {})
     }))
+    if (this.durableExitEvidence) {
+      this.dispatcher.onRequest('pty.listExitEvidenceV1', (params) =>
+        this.listExitEvidenceV1(params)
+      )
+      this.dispatcher.onRequest('pty.ackExitEvidenceV1', (params) => this.ackExitEvidenceV1(params))
+    }
     this.dispatcher.onRequest('pty.listProcesses', (params) => this.listProcesses(params))
     this.dispatcher.onRequest('pty.getDefaultShell', async () => resolveDefaultShell())
     this.dispatcher.onRequest('pty.serialize', (p) => this.serialize(p))
@@ -2449,6 +2596,7 @@ export class PtyHandler {
     this.releaseRelayIngress(managed)
     this.flushPtyOutput(managed.id)
     if (evidence === 'exited') {
+      this.recordDurableExitEvidence(managed, -1, 'host-process-absent')
       this.publishReapedExit(managed)
     }
     this.notifyExitListener(managed)
@@ -3148,6 +3296,7 @@ export class PtyHandler {
     let firstError: unknown
     let hasError = false
     for (const managed of this.ptys.values()) {
+      managed.suppressDurableExitEvidence = true
       try {
         // Why mark rather than skip: the job already took the whole tree, and the
         // flag is what suppresses the redundant signal -- here in requestForceKill,
@@ -3225,6 +3374,7 @@ export class PtyHandler {
     managed: ManagedPty,
     waitForPhysicalExit: boolean
   ): Promise<void> {
+    managed.suppressDurableExitEvidence = true
     if (managed.killTimer) {
       clearTimeout(managed.killTimer)
       managed.killTimer = undefined

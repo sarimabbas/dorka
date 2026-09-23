@@ -6,11 +6,14 @@ import {
   readdirSync,
   readFileSync,
   rmSync,
+  symlinkSync,
+  unlinkSync,
   writeFileSync
 } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import { MAX_MANAGED_PTY_EXIT_CERTIFICATE_BYTES } from './managed-pty-exit-certificate'
 import {
   ManagedPtyExitJournal,
   type ManagedPtyExitCertificateDraftV1,
@@ -40,7 +43,7 @@ function candidate(value: ManagedPtyExitCertificateDraftV1 = draft()): ManagedPt
   }
 }
 
-describe('ManagedPtyExitJournal', () => {
+describe.skipIf(process.platform === 'win32')('ManagedPtyExitJournal', () => {
   let root: string
   let journal: ManagedPtyExitJournal
 
@@ -83,6 +86,40 @@ describe('ManagedPtyExitJournal', () => {
     expect(
       JSON.parse(readFileSync(join(root, 'pending', `${first.certificateId}.json`), 'utf8'))
     ).toMatchObject({ exitCode: 0 })
+  })
+
+  it.skipIf(process.platform === 'win32')(
+    'refuses symlink certificate reads without following an oversized target',
+    () => {
+      const certificate = journal.record(draft())
+      const pendingPath = join(root, 'pending', `${certificate.certificateId}.json`)
+      const outsidePath = join(root, 'outside-certificate')
+      unlinkSync(pendingPath)
+      writeFileSync(outsidePath, Buffer.alloc(1_048_576))
+      symlinkSync(outsidePath, pendingPath)
+
+      const result = journal.listExact('computer-generation-1', [candidate()])
+
+      expect(result.certificates).toEqual([])
+      expect(result.bytesRead).toBe(0)
+      expect(result.issues).toEqual([
+        { certificateId: certificate.certificateId, kind: 'corrupt', quarantined: true }
+      ])
+      expect(readFileSync(outsidePath)).toHaveLength(1_048_576)
+    }
+  )
+
+  it('quarantines oversized regular files after a bounded descriptor read', () => {
+    const certificate = journal.record(draft())
+    const pendingPath = join(root, 'pending', `${certificate.certificateId}.json`)
+    writeFileSync(pendingPath, Buffer.alloc(MAX_MANAGED_PTY_EXIT_CERTIFICATE_BYTES + 1))
+
+    const result = journal.listExact('computer-generation-1', [candidate()])
+
+    expect(result.bytesRead).toBe(0)
+    expect(result.issues).toEqual([
+      { certificateId: certificate.certificateId, kind: 'oversized', quarantined: true }
+    ])
   })
 
   it('quarantines corrupt and unsupported exact files without returning evidence', () => {
@@ -157,7 +194,9 @@ describe('ManagedPtyExitJournal', () => {
     const acknowledgedPath = join(root, 'acknowledged', `${certificate.certificateId}.json`)
     writeFileSync(acknowledgedPath, JSON.stringify({ ...certificate, exitCode: 9 }))
 
-    expect(() => journal.acknowledge(certificate.certificateId)).toThrow('certificate collision')
+    expect(() =>
+      journal.acknowledgeExact('computer-generation-1', certificate.certificateId)
+    ).toThrow('certificate collision')
     expect(existsSync(join(root, 'pending', `${certificate.certificateId}.json`))).toBe(true)
   })
 
@@ -170,12 +209,25 @@ describe('ManagedPtyExitJournal', () => {
     ])
   })
 
+  it('does not acknowledge a certificate from another Computer generation', () => {
+    const certificate = journal.record(draft())
+
+    expect(journal.acknowledgeExact('other-computer-generation', certificate.certificateId)).toBe(
+      'not-found'
+    )
+    expect(journal.listExact('computer-generation-1', [candidate()]).certificates).toEqual([
+      certificate
+    ])
+  })
+
   it('atomically moves pending evidence to acknowledged and acknowledges idempotently', () => {
     const certificate = journal.record(draft())
     const pendingPath = join(root, 'pending', `${certificate.certificateId}.json`)
     const acknowledgedPath = join(root, 'acknowledged', `${certificate.certificateId}.json`)
 
-    expect(journal.acknowledge(certificate.certificateId)).toBe('acknowledged')
+    expect(journal.acknowledgeExact('computer-generation-1', certificate.certificateId)).toBe(
+      'acknowledged'
+    )
     expect(existsSync(pendingPath)).toBe(false)
     expect(existsSync(acknowledgedPath)).toBe(true)
     expect(journal.acknowledge(certificate.certificateId)).toBe('already-acknowledged')
@@ -188,7 +240,9 @@ describe('ManagedPtyExitJournal', () => {
     const acknowledgedPath = join(root, 'acknowledged', `${certificate.certificateId}.json`)
     linkSync(pendingPath, acknowledgedPath)
 
-    expect(journal.acknowledge(certificate.certificateId)).toBe('already-acknowledged')
+    expect(journal.acknowledgeExact('computer-generation-1', certificate.certificateId)).toBe(
+      'already-acknowledged'
+    )
     expect(existsSync(pendingPath)).toBe(false)
     expect(existsSync(acknowledgedPath)).toBe(true)
   })
@@ -204,6 +258,24 @@ describe('ManagedPtyExitJournal', () => {
       'Unsupported managed PTY exit certificate version'
     )
   })
+
+  it.skipIf(process.platform === 'win32')(
+    'rejects symlink roots and journal subdirectories',
+    () => {
+      const target = join(root, 'directory-target')
+      mkdirSync(target)
+      const linkedRoot = join(root, 'linked-root')
+      symlinkSync(target, linkedRoot, 'dir')
+      expect(() => new ManagedPtyExitJournal(linkedRoot)).toThrow('not a directory')
+
+      for (const child of ['pending', 'acknowledged', 'quarantine']) {
+        const isolatedRoot = join(root, `journal-${child}`)
+        mkdirSync(isolatedRoot)
+        symlinkSync(target, join(isolatedRoot, child), 'dir')
+        expect(() => new ManagedPtyExitJournal(isolatedRoot)).toThrow('not a directory')
+      }
+    }
+  )
 
   it('creates journal directories beneath the supplied root', () => {
     const missingRoot = join(root, 'missing-parent', 'journal')

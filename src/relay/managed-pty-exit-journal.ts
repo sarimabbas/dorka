@@ -3,13 +3,12 @@ import {
   linkSync,
   lstatSync,
   mkdirSync,
-  readFileSync,
   renameSync,
   rmSync,
   unlinkSync,
   writeFileSync
 } from 'node:fs'
-import { join } from 'node:path'
+import { dirname, join } from 'node:path'
 import {
   MAX_MANAGED_PTY_EXIT_CERTIFICATE_BYTES,
   managedPtyExitCertificateId,
@@ -27,7 +26,7 @@ import {
   fsyncDirectory,
   fsyncFile,
   isAlreadyExists,
-  isMissing,
+  readBoundedRegularFile,
   readExistingManagedPtyExitCertificate,
   unlinkIfExists
 } from './managed-pty-exit-journal-filesystem'
@@ -38,7 +37,7 @@ export type {
   ManagedPtyExitCertificateV1
 } from './managed-pty-exit-certificate'
 
-const MAX_CANDIDATES = 128
+export const MAX_MANAGED_PTY_EXIT_EVIDENCE_ITEMS = 128
 const MAX_RESULT_BYTES = 1_048_576
 
 export type ManagedPtyExitJournalIssue = {
@@ -55,6 +54,7 @@ export type ManagedPtyExitListResult = {
 }
 
 export class ManagedPtyExitJournal {
+  private readonly rootDirectory: string
   private readonly pendingDirectory: string
   private readonly acknowledgedDirectory: string
   private readonly quarantineDirectory: string
@@ -63,12 +63,25 @@ export class ManagedPtyExitJournal {
     if (typeof rootDirectory !== 'string' || rootDirectory.length === 0) {
       throw new Error('Managed PTY exit journal root directory is required')
     }
+    this.rootDirectory = rootDirectory
     this.pendingDirectory = join(rootDirectory, 'pending')
     this.acknowledgedDirectory = join(rootDirectory, 'acknowledged')
     this.quarantineDirectory = join(rootDirectory, 'quarantine')
+    mkdirSync(this.rootDirectory, { recursive: true, mode: 0o700 })
+    this.requireRealDirectory(this.rootDirectory)
     mkdirSync(this.pendingDirectory, { recursive: true, mode: 0o700 })
     mkdirSync(this.acknowledgedDirectory, { recursive: true, mode: 0o700 })
     mkdirSync(this.quarantineDirectory, { recursive: true, mode: 0o700 })
+    for (const directory of [
+      this.pendingDirectory,
+      this.acknowledgedDirectory,
+      this.quarantineDirectory
+    ]) {
+      this.requireRealDirectory(directory)
+      fsyncDirectory(directory)
+    }
+    fsyncDirectory(this.rootDirectory)
+    fsyncDirectory(dirname(this.rootDirectory))
   }
 
   record(draft: ManagedPtyExitCertificateDraftV1): ManagedPtyExitCertificateV1 {
@@ -119,8 +132,10 @@ export class ManagedPtyExitJournal {
     candidates: readonly ManagedPtyExitCandidate[]
   ): ManagedPtyExitListResult {
     validateManagedPtyExitIdentity('computerExecutionGeneration', computerExecutionGeneration)
-    if (!Array.isArray(candidates) || candidates.length > MAX_CANDIDATES) {
-      throw new Error(`Managed PTY exit candidate count must not exceed ${MAX_CANDIDATES}`)
+    if (!Array.isArray(candidates) || candidates.length > MAX_MANAGED_PTY_EXIT_EVIDENCE_ITEMS) {
+      throw new Error(
+        `Managed PTY exit candidate count must not exceed ${MAX_MANAGED_PTY_EXIT_EVIDENCE_ITEMS}`
+      )
     }
 
     const certificates: ManagedPtyExitCertificateV1[] = []
@@ -143,35 +158,37 @@ export class ManagedPtyExitJournal {
       seen.add(certificateId)
 
       const path = this.pendingPath(certificateId)
-      let size: number
+      const remainingBytes = MAX_RESULT_BYTES - bytesRead
+      let read: ReturnType<typeof readBoundedRegularFile>
       try {
-        const stats = lstatSync(path)
-        if (!stats.isFile()) {
-          issues.push(this.quarantine(path, certificateId, 'corrupt'))
-          continue
-        }
-        size = stats.size
-      } catch (error) {
-        if (isMissing(error)) {
-          continue
-        }
+        read = readBoundedRegularFile(
+          path,
+          Math.min(MAX_MANAGED_PTY_EXIT_CERTIFICATE_BYTES, remainingBytes)
+        )
+      } catch {
         issues.push({ certificateId, kind: 'unreadable', quarantined: false })
         continue
       }
-      if (size > MAX_MANAGED_PTY_EXIT_CERTIFICATE_BYTES) {
+      if (read.kind === 'missing') {
+        continue
+      }
+      if (read.kind === 'not-regular') {
+        issues.push(this.quarantine(path, certificateId, 'corrupt'))
+        continue
+      }
+      if (read.kind === 'too-large') {
+        if (remainingBytes < MAX_MANAGED_PTY_EXIT_CERTIFICATE_BYTES) {
+          truncated = true
+          break
+        }
         issues.push(this.quarantine(path, certificateId, 'oversized'))
         continue
       }
-      if (bytesRead + size > MAX_RESULT_BYTES) {
-        truncated = true
-        break
-      }
 
+      bytesRead += read.bytesRead
       let parsed: unknown
       try {
-        const contents = readFileSync(path, 'utf8')
-        bytesRead += Buffer.byteLength(contents)
-        parsed = JSON.parse(contents)
+        parsed = JSON.parse(read.contents)
       } catch {
         issues.push(this.quarantine(path, certificateId, 'corrupt'))
         continue
@@ -196,11 +213,33 @@ export class ManagedPtyExitJournal {
   }
 
   acknowledge(certificateId: string): 'acknowledged' | 'already-acknowledged' | 'not-found' {
+    return this.acknowledgeCertificate(certificateId)
+  }
+
+  acknowledgeExact(
+    computerExecutionGeneration: string,
+    certificateId: string
+  ): 'acknowledged' | 'already-acknowledged' | 'not-found' {
+    validateManagedPtyExitIdentity('computerExecutionGeneration', computerExecutionGeneration)
+    return this.acknowledgeCertificate(certificateId, computerExecutionGeneration)
+  }
+
+  private acknowledgeCertificate(
+    certificateId: string,
+    computerExecutionGeneration?: string
+  ): 'acknowledged' | 'already-acknowledged' | 'not-found' {
     validateManagedPtyExitCertificateId(certificateId)
     const pendingPath = this.pendingPath(certificateId)
     const acknowledgedPath = join(this.acknowledgedDirectory, `${certificateId}.json`)
     const pending = readExistingManagedPtyExitCertificate(pendingPath, certificateId)
     const acknowledged = readExistingManagedPtyExitCertificate(acknowledgedPath, certificateId)
+    if (
+      computerExecutionGeneration !== undefined &&
+      pending?.computerExecutionGeneration !== computerExecutionGeneration &&
+      acknowledged?.computerExecutionGeneration !== computerExecutionGeneration
+    ) {
+      return 'not-found'
+    }
     if (acknowledged) {
       if (
         pending &&
@@ -238,6 +277,12 @@ export class ManagedPtyExitJournal {
     unlinkIfExists(pendingPath)
     fsyncDirectory(this.pendingDirectory)
     return 'acknowledged'
+  }
+
+  private requireRealDirectory(path: string): void {
+    if (!lstatSync(path).isDirectory()) {
+      throw new Error(`Managed PTY exit journal path is not a directory: ${path}`)
+    }
   }
 
   private pendingPath(certificateId: string): string {

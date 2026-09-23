@@ -1,7 +1,7 @@
 import { vi } from 'vitest'
 import type { Mock } from 'vitest'
 import * as ptyChildProcessInspection from './pty-child-process-inspection'
-import { PtyHandler } from './pty-handler'
+import { PtyHandler, type PtyDurableExitEvidence } from './pty-handler'
 import type { RelayDispatcher } from './dispatcher'
 
 export const TEST_PTY_ID_MINT_EPOCH = 'test-mint-epoch'
@@ -12,8 +12,16 @@ export function testPtyId(sequence: number): string {
   return `pty2:${encodeURIComponent(TEST_PTY_ID_MINT_EPOCH)}:${sequence}`
 }
 
-export function createTestPtyHandler(dispatcher: MockDispatcher): PtyHandler {
-  return new PtyHandler(dispatcher as unknown as RelayDispatcher, undefined, TEST_PTY_ID_MINT_EPOCH)
+export function createTestPtyHandler(
+  dispatcher: MockDispatcher,
+  durableExitEvidence: PtyDurableExitEvidence | null = null
+): PtyHandler {
+  return new PtyHandler(
+    dispatcher as unknown as RelayDispatcher,
+    undefined,
+    TEST_PTY_ID_MINT_EPOCH,
+    durableExitEvidence
+  )
 }
 
 export type TestRequestContext = {
@@ -89,6 +97,7 @@ export type PtyHandlerTestMocks = {
   mockPtySpawn: Mock
   mockPtyInstance: MockPtyInstance
   mockCreateShellPromptReadinessProbe: Mock
+  durableExitEvidence?: PtyDurableExitEvidence | null
 }
 
 /** Mirrors the shared beforeEach: pin the platform, reset node-pty mocks, build handler + dispatcher. */
@@ -97,7 +106,12 @@ export function beginPtyHandlerTest(mocks: PtyHandlerTestMocks): {
   handler: PtyHandler
   originalPlatform: PropertyDescriptor | undefined
 } {
-  const { mockPtySpawn, mockPtyInstance, mockCreateShellPromptReadinessProbe } = mocks
+  const {
+    mockPtySpawn,
+    mockPtyInstance,
+    mockCreateShellPromptReadinessProbe,
+    durableExitEvidence = null
+  } = mocks
   const originalPlatform = Object.getOwnPropertyDescriptor(process, 'platform')
   Object.defineProperty(process, 'platform', { configurable: true, value: 'linux' })
   vi.useFakeTimers()
@@ -120,7 +134,7 @@ export function beginPtyHandlerTest(mocks: PtyHandlerTestMocks): {
   mockPtySpawn.mockReturnValue({ ...mockPtyInstance })
 
   const dispatcher = createMockDispatcher()
-  const handler = createTestPtyHandler(dispatcher)
+  const handler = createTestPtyHandler(dispatcher, durableExitEvidence)
   return { dispatcher, handler, originalPlatform }
 }
 
