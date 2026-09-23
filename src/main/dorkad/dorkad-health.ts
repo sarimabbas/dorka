@@ -11,6 +11,7 @@
 import { createHash } from 'node:crypto'
 import { readFileSync } from 'node:fs'
 import process from 'node:process'
+import type { DorkadControlPlaneHealth } from './dorkad-control-plane'
 import { checkDaemonHealth, type DaemonHealth } from '../daemon/daemon-health'
 import {
   daemonOwnsFreshPersistentPtys,
@@ -64,6 +65,8 @@ export type DorkadHealth = {
   arch: string
   pid: number
   terminalDaemon: TerminalDaemonHealth
+  /** Added for dorkad control-plane hosts; optional for mixed-version readiness readers. */
+  controlPlane?: DorkadControlPlaneHealth
 }
 
 /**
@@ -146,7 +149,10 @@ export async function collectTerminalDaemonHealth(): Promise<TerminalDaemonHealt
   }
 }
 
-export async function collectDorkadHealth(buildVersion: string): Promise<DorkadHealth> {
+export async function collectDorkadHealth(
+  buildVersion: string,
+  controlPlane?: DorkadControlPlaneHealth
+): Promise<DorkadHealth> {
   return {
     buildHash: computeDorkadBuildHash(),
     buildVersion,
@@ -155,6 +161,7 @@ export async function collectDorkadHealth(buildVersion: string): Promise<DorkadH
     platform: process.platform,
     arch: process.arch,
     pid: process.pid,
-    terminalDaemon: await collectTerminalDaemonHealth()
+    terminalDaemon: await collectTerminalDaemonHealth(),
+    ...(controlPlane ? { controlPlane } : {})
   }
 }

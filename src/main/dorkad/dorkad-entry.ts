@@ -11,6 +11,7 @@
  * the runtime factory, but only when an Electron serve sidecar or an operator-supplied
  * Chromium proves available at startup.
  */
+import { dirname } from 'node:path'
 import process from 'node:process'
 import { setAppEnvironment, type AppEnvironment } from '../../shared/app-environment'
 import { setSecretStore, type SecretStore } from '../../shared/secret-store'
@@ -156,6 +157,7 @@ async function startDorkadRuntime(
   const { startDorkadDaemon, stopDorkadDaemon } = await import('./dorkad-daemon-supervision')
   const { daemonOwnsFreshPersistentPtys } = await import('../daemon/daemon-init')
   const { collectDorkadHealth } = await import('./dorkad-health')
+  const { createDorkadControlPlane } = await import('./dorkad-control-plane')
   // Why importable here: the singleton's module tree never reaches Electron, and dorkad supplies
   // its persistence and endpoint paths explicitly below.
   const { agentHookServer } = await import('../agent-hooks/server')
@@ -189,6 +191,9 @@ async function startDorkadRuntime(
   const runtimeUserDataPath = getAppEnvironment().getPath('userData')
   initDorkaProfilePaths()
   const profile = ensureActiveDorkaProfile(runtimeUserDataPath)
+  const controlPlane = await createDorkadControlPlane({
+    dataDirectory: dirname(profile.dataFile)
+  })
   const observedPaneIdentities = new AgentStatusObservedPaneIdentities()
   const observedStatusCapture = new AgentStatusObservedPaneIdentityCapture(observedPaneIdentities)
   // Why a real Store: without one every persistence-backed RPC throws `runtime_unavailable`
@@ -358,7 +363,7 @@ async function startDorkadRuntime(
     // Why in the readiness payload: this is the one message a supervisor and a deploy
     // transaction both read, and a green dorkad with a dead daemon is exactly the
     // looks-healthy-but-useless state they must not activate.
-    health: await collectDorkadHealth(getAppEnvironment().getVersion())
+    health: await collectDorkadHealth(getAppEnvironment().getVersion(), controlPlane.health)
   }
 
   await new ServeReadinessPublisher().publish(readiness, {
