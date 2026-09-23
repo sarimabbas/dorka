@@ -249,9 +249,11 @@ function bashOperations() {
         settled = true
         safeStderr.end()
         cleanup()
-        if (signal?.aborted) reject(new Error('aborted'))
-        else if (timedOut) reject(new Error('timeout:' + timeout))
-        else resolvePromise({ exitCode: code })
+        if (signal?.aborted) {
+          reject(new Error('Dorka Computer command outcome is unverifiable after cancellation'))
+        } else if (timedOut) {
+          reject(new Error('Dorka Computer command outcome is unverifiable after timeout:' + timeout))
+        } else resolvePromise({ exitCode: code })
       })
       child.stdin.end()
     })

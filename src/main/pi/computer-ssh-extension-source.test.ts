@@ -197,7 +197,7 @@ describe('getPiComputerSshExtensionSource', () => {
     expect(child.kill).toHaveBeenCalledOnce()
     child.emit('close', null)
 
-    await expect(result).rejects.toThrow('aborted')
+    await expect(result).rejects.toThrow('outcome is unverifiable after cancellation')
     expect(chunks.join('')).toBe('hellobad key [private key]')
   })
 
@@ -214,6 +214,6 @@ describe('getPiComputerSshExtensionSource', () => {
     await vi.advanceTimersByTimeAsync(2000)
     expect(child.kill).toHaveBeenCalledOnce()
     child.emit('close', null)
-    await expect(result).rejects.toThrow('timeout:2')
+    await expect(result).rejects.toThrow('outcome is unverifiable after timeout:2')
   })
 })
