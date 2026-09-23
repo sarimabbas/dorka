@@ -74,8 +74,12 @@ function preflight(names) {
     'engine must be native linux/amd64'
   )
   requireValue(
-    Number(command('df', ['-Pk', '.']).split(/\s+/).at(-3)) >= 62914560,
-    'requires 60 GiB free'
+    Number(
+      command('df', ['-Pk', info.store?.graphRoot ?? '.'])
+        .split(/\s+/)
+        .at(-3)
+    ) >= 62914560,
+    'requires 60 GiB free in the container image store'
   )
   requireValue(engine(['ps', '-aq', '--filter', `name=^${MAIN}$`]) === '', `${MAIN} already exists`)
   requireValue(
@@ -83,7 +87,7 @@ function preflight(names) {
     'fixed volumes already exist'
   )
   requireValue(
-    engine(['network', 'inspect', 'dorka-runtimes'], { allowFailure: true }) === '',
+    engine(['network', 'ls', '-q', '--filter', 'name=^dorka-runtimes$']) === '',
     'dorka-runtimes already exists'
   )
   command('git', ['diff', '--quiet'])
@@ -128,7 +132,7 @@ function cleanup(names, artifacts) {
     engine(['ps', '-aq', '--filter', `label=${names.label}`]),
     engine(['volume', 'ls', '-q', '--filter', `name=^${MAIN}-`]),
     engine(['volume', 'ls', '-q', '--filter', `label=${names.label}`]),
-    engine(['network', 'inspect', 'dorka-runtimes'], { allowFailure: true })
+    engine(['network', 'ls', '-q', '--filter', 'name=^dorka-runtimes$'])
   ].filter(Boolean)
   artifact(artifacts, 'cleanup.json', { attempted: true, failures, residue })
   return [...failures, ...residue]
