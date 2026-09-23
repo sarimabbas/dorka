@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import {
   managedPtyExitCertificateId,
+  serializeManagedPtyExitCertificate,
   type ManagedPtyExitCertificateDraftV1
 } from '../../shared/managed-pty-exit-evidence'
 import { requestManagedDurableExitEvidence } from './managed-durable-exit-evidence'
@@ -40,7 +41,7 @@ function requestFixture(listResponse: unknown = undefined, ackResponse: unknown 
         listResponse ?? {
           certificates: [cert],
           issues: [],
-          bytesRead: 100,
+          bytesRead: Buffer.byteLength(serializeManagedPtyExitCertificate(cert)),
           truncated: false
         }
       )
@@ -129,6 +130,42 @@ describe('managed durable exit evidence relay client', () => {
     const capability = await requestManagedDurableExitEvidence(h.request)
 
     await expect(capability?.listExact([CANDIDATE])).rejects.toThrow(message)
+  })
+
+  it('rejects a relay byte count inconsistent with canonical certificate bytes', async () => {
+    const cert = certificate()
+    const h = requestFixture({
+      certificates: [cert],
+      issues: [],
+      bytesRead: Buffer.byteLength(serializeManagedPtyExitCertificate(cert)) - 1,
+      truncated: false
+    })
+    const capability = await requestManagedDurableExitEvidence(h.request)
+
+    await expect(capability?.listExact([CANDIDATE])).rejects.toThrow('byte count')
+  })
+
+  it('independently enforces the aggregate canonical certificate budget', async () => {
+    const candidates = Array.from({ length: 128 }, (_, index) => ({
+      relayPtyId: `${String(index).padStart(4, '0')}-${'p'.repeat(4_080)}`,
+      ptyIncarnationId: `${String(index).padStart(4, '0')}-${'i'.repeat(4_080)}`
+    }))
+    const certificates = candidates.map((candidate) =>
+      certificate({
+        relayGeneration: 'r'.repeat(4_096),
+        relayPtyId: candidate.relayPtyId,
+        ptyIncarnationId: candidate.ptyIncarnationId
+      })
+    )
+    const h = requestFixture({
+      certificates,
+      issues: [],
+      bytesRead: 1,
+      truncated: false
+    })
+    const capability = await requestManagedDurableExitEvidence(h.request)
+
+    await expect(capability?.listExact(candidates)).rejects.toThrow('byte budget')
   })
 
   it('bounds request arrays and strictly validates acknowledgements', async () => {

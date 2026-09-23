@@ -11,7 +11,10 @@ import type { AgentRosterStore } from '../agents/agent-roster-store'
 import { ComputerGitIdentityManager } from '../computers/computer-git-identity'
 import type { ComputerRuntimeManager } from '../computers/computer-runtime-manager'
 import type { DorkaRuntimeService } from '../runtime/dorka-runtime'
-import { ManagedSshHostSessions } from '../ssh/managed-ssh-host-sessions'
+import {
+  ManagedSshHostSessions,
+  type ManagedSshHostConnection
+} from '../ssh/managed-ssh-host-sessions'
 import { ManagedRunPtyExitObserver } from './managed-run-pty-exit-observer'
 
 export type DorkadManagedRunRecoveryResult = {
@@ -63,7 +66,18 @@ export function createDorkadComputerAgentExecution(
       runExitObserver?.dispose()
       runExitObserver = new ManagedRunPtyExitObserver(agents, runtime)
       runtimeAuthority = runtime
-      sessions = new ManagedSshHostSessions({ store, runtime })
+      sessions = new ManagedSshHostSessions({
+        store,
+        runtime,
+        onReconnectReady: (connectionId, connection) =>
+          reconcileReconnectedManagedComputerRuns({
+            agents,
+            connection,
+            connectionId,
+            runExitObserver,
+            runtime: runtimeAuthority
+          })
+      })
       host = createManagedComputerHostProjector({ computers, sessions })
       launch = createManagedComputerAgentTerminalLauncher({ host, runtime })
       sourceControlAuthority = new ComputerRunSourceControl({
@@ -91,6 +105,32 @@ export function createDorkadComputerAgentExecution(
       await sessions?.disconnectAll()
     }
   }
+}
+
+export async function reconcileReconnectedManagedComputerRuns(options: {
+  agents: Pick<AgentRosterStore, 'listRuns'>
+  connection: ManagedSshHostConnection
+  connectionId: string
+  runExitObserver: Pick<ManagedRunPtyExitObserver, 'reconcileAfterConnect'> | null
+  runtime: Pick<DorkaRuntimeService, 'getExactTerminalPtyId'> | null
+}): Promise<void> {
+  const prefix = 'runtime-ssh-computer-'
+  if (!options.connectionId.startsWith(prefix) || !options.runExitObserver || !options.runtime) {
+    return
+  }
+  const computerId = options.connectionId.slice(prefix.length)
+  if (!computerId) {
+    return
+  }
+  const runs = options.agents.listRuns().filter((run) => run.computerId === computerId)
+  if (!runs.some((run) => run.status === 'running' || run.status === 'waiting')) {
+    return
+  }
+  await options.runExitObserver.reconcileAfterConnect(
+    { connectionId: options.connectionId, ...options.connection },
+    runs,
+    options.runtime
+  )
 }
 
 export async function recoverPersistedManagedComputerRunHosts(options: {

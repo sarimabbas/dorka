@@ -2,7 +2,10 @@ import { describe, expect, it, vi } from 'vitest'
 import type { Run } from '../../shared/agent-roster'
 import type { ComputerRuntimeInfo } from '../../shared/computer-runtime'
 import type { ManagedComputerConnection } from '../agents/managed-computer-host-projector'
-import { recoverPersistedManagedComputerRunHosts } from './dorkad-computer-agent-execution'
+import {
+  reconcileReconnectedManagedComputerRuns,
+  recoverPersistedManagedComputerRunHosts
+} from './dorkad-computer-agent-execution'
 
 function ptyId(id: string, computerId: string): string {
   return `ssh:runtime-ssh-computer-${computerId}@@pty2:${id}:2`
@@ -34,6 +37,45 @@ function connection(computerId: string): ManagedComputerConnection {
     git: undefined
   }
 }
+
+describe('managed Computer reconnect recovery', () => {
+  it('reconciles active persisted Runs once without starting or reconnecting the Computer', async () => {
+    const runs = [
+      run('run-1', 'computer-1', 'running'),
+      run('run-2', 'computer-1', 'waiting'),
+      run('run-3', 'computer-1', 'succeeded'),
+      run('run-4', 'computer-2', 'running')
+    ]
+    const reconcileAfterConnect = vi.fn(async () => undefined)
+    const runtime = { getExactTerminalPtyId: vi.fn(() => null) }
+
+    await reconcileReconnectedManagedComputerRuns({
+      agents: { listRuns: () => runs },
+      connection: {},
+      connectionId: 'runtime-ssh-computer-computer-1',
+      runExitObserver: { reconcileAfterConnect },
+      runtime
+    })
+
+    expect(reconcileAfterConnect).toHaveBeenCalledWith(
+      { connectionId: 'runtime-ssh-computer-computer-1' },
+      runs.slice(0, 3),
+      runtime
+    )
+  })
+
+  it('skips reconnect reconciliation when the Computer has no active Run', async () => {
+    const reconcileAfterConnect = vi.fn(async () => undefined)
+    await reconcileReconnectedManagedComputerRuns({
+      agents: { listRuns: () => [run('run-1', 'computer-1', 'succeeded')] },
+      connection: {},
+      connectionId: 'runtime-ssh-computer-computer-1',
+      runExitObserver: { reconcileAfterConnect },
+      runtime: { getExactTerminalPtyId: vi.fn(() => null) }
+    })
+    expect(reconcileAfterConnect).not.toHaveBeenCalled()
+  })
+})
 
 describe('persisted managed Computer Run recovery', () => {
   it('deduplicates running Computers without relaunching or changing Run records', async () => {

@@ -14,6 +14,10 @@ const PROVIDER_READY_INTERVAL_MS = 25
 export type ManagedSshHostSessionsOptions = {
   store: Store
   runtime?: DorkaRuntimeService
+  onReconnectReady?: (
+    targetId: string,
+    connection: ManagedSshHostConnection
+  ) => void | Promise<void>
 }
 
 export type ManagedSshHostConnection = {
@@ -154,7 +158,11 @@ export class ManagedSshHostSessions {
     }
     const promise = session
       .reconnect(connection, target.relayGracePeriodSeconds)
-      .then(() => waitForSshPtyProvider(targetId))
+      .then(async () => {
+        await waitForSshPtyProvider(targetId)
+        const projected = await this.projectConnection(targetId)
+        await this.options.onReconnectReady?.(targetId, projected)
+      })
       .catch(() => undefined)
       .finally(() => {
         if (this.reconnecting.get(targetId) === promise) {

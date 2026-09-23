@@ -7,6 +7,7 @@ const mocks = vi.hoisted(() => {
   let connectError: Error | null = null
   let registerProviderOnEstablish = true
   let durableExitEvidence: object | undefined
+  let relayLost: (() => void) | null = null
   let callbacks: { onStateChange: (targetId: string, state: SshConnectionState) => void } | null =
     null
   const connect = vi.fn(async (target: SshTarget) => {
@@ -54,6 +55,12 @@ const mocks = vi.hoisted(() => {
     },
     get callbacks() {
       return callbacks
+    },
+    get relayLost() {
+      return relayLost
+    },
+    set relayLost(value: (() => void) | null) {
+      relayLost = value
     },
     get durableExitEvidence() {
       return durableExitEvidence
@@ -117,7 +124,11 @@ vi.mock('./ssh-relay-session', () => ({
   SshRelaySession: class {
     private state = 'idle'
 
-    setOnRelayLost() {}
+    constructor(private readonly targetId: string) {}
+
+    setOnRelayLost(callback: (targetId: string) => void) {
+      mocks.relayLost = () => callback(this.targetId)
+    }
 
     async establish() {
       await mocks.establish()
@@ -167,6 +178,7 @@ describe('ManagedSshHostSessions', () => {
     mocks.connectError = null
     mocks.registerProviderOnEstablish = true
     mocks.durableExitEvidence = undefined
+    mocks.relayLost = null
     mocks.connect.mockClear()
     mocks.disconnect.mockClear()
     mocks.establish.mockClear()
@@ -213,6 +225,32 @@ describe('ManagedSshHostSessions', () => {
     mocks.provider = {}
     await connecting
     expect(connected).toBe(true)
+  })
+
+  it('calls reconnect-ready exactly once after the replacement provider is ready', async () => {
+    const onReconnectReady = vi.fn(async () => undefined)
+    const sessions = new ManagedSshHostSessions({ store, onReconnectReady })
+    await sessions.connect(target)
+
+    mocks.relayLost?.()
+    await vi.waitFor(() => expect(onReconnectReady).toHaveBeenCalledOnce())
+
+    expect(onReconnectReady).toHaveBeenCalledWith(target.id, {})
+    expect(mocks.reconnect).toHaveBeenCalledOnce()
+  })
+
+  it('does not loop when reconnect reconciliation fails', async () => {
+    const onReconnectReady = vi.fn(async () => {
+      throw new Error('evidence list failed')
+    })
+    const sessions = new ManagedSshHostSessions({ store, onReconnectReady })
+    await sessions.connect(target)
+
+    mocks.relayLost?.()
+    await vi.waitFor(() => expect(onReconnectReady).toHaveBeenCalledOnce())
+    await new Promise((resolve) => setTimeout(resolve, 10))
+
+    expect(mocks.reconnect).toHaveBeenCalledOnce()
   })
 
   it('disconnects every managed session during host shutdown', async () => {

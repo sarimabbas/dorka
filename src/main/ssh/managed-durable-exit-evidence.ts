@@ -1,8 +1,10 @@
 import {
+  MAX_MANAGED_PTY_EXIT_CERTIFICATE_BYTES,
   MAX_MANAGED_PTY_EXIT_EVIDENCE_ITEMS,
   isManagedExecutionUuid,
   isManagedPtyExitRecord,
   managedPtyExitCertificateId,
+  serializeManagedPtyExitCertificate,
   validateManagedPtyExitCandidate,
   validateManagedPtyExitCertificate,
   validateManagedPtyExitCertificateId,
@@ -102,6 +104,7 @@ function validateListResponse(
   )
   const certificates: ManagedPtyExitCertificateV1[] = []
   const seen = new Set<string>()
+  let canonicalBytes = 0
   for (const candidate of value.certificates) {
     if (!isManagedPtyExitRecord(candidate) || typeof candidate.certificateId !== 'string') {
       throw new Error('Managed PTY exit certificate is malformed')
@@ -120,8 +123,19 @@ function validateListResponse(
     ) {
       throw new Error('Managed PTY exit certificate identity is unverifiable')
     }
+    const certificateBytes = Buffer.byteLength(serializeManagedPtyExitCertificate(certificate))
+    canonicalBytes += certificateBytes
+    if (
+      certificateBytes > MAX_MANAGED_PTY_EXIT_CERTIFICATE_BYTES ||
+      canonicalBytes > MAX_RESULT_BYTES
+    ) {
+      throw new Error('Managed PTY exit certificate byte budget is unverifiable')
+    }
     seen.add(certificate.certificateId)
     certificates.push(certificate)
+  }
+  if (canonicalBytes !== value.bytesRead) {
+    throw new Error('Managed PTY exit evidence byte count is unverifiable')
   }
   return certificates
 }

@@ -29,13 +29,16 @@ async function createRun(status: RunStatus = 'running') {
   const run = await roster.createRun({
     agentId: agent.id,
     computerId: 'computer-1',
-    prompt: 'Build carefully'
+    computerExecutionGeneration: '10000000-0000-4000-8000-000000000001',
+    prompt: 'Build carefully',
+    terminalSessionId: 'terminal-live',
+    processIdentity: 'process-live'
   })
   await roster.transitionRun(run.id, { status: 'running' })
   if (status !== 'running') {
     await roster.transitionRun(run.id, { status })
   }
-  return { roster, runId: run.id }
+  return { agentId: agent.id, roster, runId: run.id }
 }
 
 function exitRuntime() {
@@ -96,13 +99,21 @@ function certificate(overrides: Record<string, unknown> = {}) {
 function reconciliationFixture(status: RunStatus = 'running') {
   let current = persistedRun(status)
   const order: string[] = []
-  const transitionRunningRunToWaiting = vi.fn(async () => {
-    order.push('persist')
-    if (current.status === 'running') {
-      current = { ...current, status: 'waiting' }
+  const transitionRunningRunToWaitingIfIdentity = vi.fn(
+    async (_id: string, expected: Partial<Run>) => {
+      order.push('persist')
+      if (
+        current.status === 'running' &&
+        current.computerId === expected.computerId &&
+        current.computerExecutionGeneration === expected.computerExecutionGeneration &&
+        current.terminalSessionId === expected.terminalSessionId &&
+        current.processIdentity === expected.processIdentity
+      ) {
+        current = { ...current, status: 'waiting' }
+      }
+      return current
     }
-    return current
-  })
+  )
   const acknowledgeExact = vi.fn(async () => {
     order.push('ack')
   })
@@ -123,7 +134,7 @@ function reconciliationFixture(status: RunStatus = 'running') {
   }
   const roster = {
     getRun: vi.fn(() => current),
-    transitionRunningRunToWaiting
+    transitionRunningRunToWaitingIfIdentity
   }
   const observer = new ManagedRunPtyExitObserver(roster, runtime)
   return {
@@ -144,7 +155,7 @@ function reconciliationFixture(status: RunStatus = 'running') {
 }
 
 describe('managed Run PTY exit observation', () => {
-  it('moves a running Run to waiting after certified process death', async () => {
+  it('projects a certified live pty.shutdown death to neutral waiting', async () => {
     const { roster, runId } = await createRun()
     const h = exitRuntime()
     const observer = new ManagedRunPtyExitObserver(roster, h.runtime)
@@ -223,11 +234,62 @@ describe('managed Run PTY exit observation', () => {
 
   it('does not acknowledge when Run persistence fails', async () => {
     const h = reconciliationFixture()
-    h.roster.transitionRunningRunToWaiting.mockRejectedValueOnce(new Error('disk full'))
+    h.roster.transitionRunningRunToWaitingIfIdentity.mockRejectedValueOnce(new Error('disk full'))
 
     await h.observer.reconcileAfterConnect(h.connection, [h.current], h.runtime)
 
     expect(h.acknowledgeExact).not.toHaveBeenCalled()
+  })
+
+  it('does not acknowledge after a post-rename directory sync failure', async () => {
+    const directory = await mkdtemp(join(tmpdir(), 'dorka-managed-run-exit-'))
+    directories.push(directory)
+    let failSync = false
+    const roster = await AgentRosterStore.open(directory, {
+      syncDirectory: async () => {
+        if (failSync) {
+          throw new Error('directory fsync failed')
+        }
+      }
+    })
+    const agent = await roster.createAgent({
+      name: 'Builder',
+      character: { color: 'blue', variant: 'owl' },
+      job: 'Build',
+      harnessId: 'codex',
+      promptTemplate: 'Build carefully'
+    })
+    const run = await roster.createRun({
+      agentId: agent.id,
+      computerId: 'computer-1',
+      computerExecutionGeneration: COMPUTER_GENERATION,
+      prompt: 'work',
+      terminalSessionId: 'terminal-offline',
+      processIdentity: `${APP_PTY_ID}:${INCARNATION}`
+    })
+    await roster.transitionRun(run.id, { status: 'running' })
+    const acknowledgeExact = vi.fn(async () => undefined)
+    const connection: ManagedComputerConnection = {
+      connectionId: CONNECTION_ID,
+      executionHostId: `ssh:${CONNECTION_ID}`,
+      git: undefined,
+      durableExitEvidence: {
+        generation: COMPUTER_GENERATION,
+        listExact: async () => [certificate()],
+        acknowledgeExact
+      }
+    }
+    const runtime = {
+      subscribeToPtyExit: vi.fn(() => vi.fn()),
+      getExactTerminalPtyId: vi.fn(() => null)
+    }
+    const observer = new ManagedRunPtyExitObserver(roster, runtime)
+    failSync = true
+
+    await observer.reconcileAfterConnect(connection, [roster.getRun(run.id) ?? run], runtime)
+
+    expect(roster.getRun(run.id)?.status).toBe('running')
+    expect(acknowledgeExact).not.toHaveBeenCalled()
   })
 
   it('replays harmlessly when acknowledgement fails', async () => {
@@ -294,19 +356,24 @@ describe('managed Run PTY exit observation', () => {
     await h.observer.reconcileAfterConnect(h.connection, [h.current], h.runtime)
 
     expect(h.current.status).toBe('succeeded')
-    expect(h.roster.transitionRunningRunToWaiting).not.toHaveBeenCalled()
+    expect(h.roster.transitionRunningRunToWaitingIfIdentity).not.toHaveBeenCalled()
     expect(h.acknowledgeExact).toHaveBeenCalledOnce()
   })
 
-  it('does not acknowledge after the persisted Run identity changes', async () => {
-    const h = reconciliationFixture('waiting')
-    h.roster.getRun.mockImplementationOnce(() => ({
-      ...h.current,
-      processIdentity: `${APP_PTY_ID}:40000000-0000-4000-8000-000000000004`
-    }))
+  it('does not mutate or acknowledge when a running Run identity changes after listing', async () => {
+    const h = reconciliationFixture()
+    const original = h.current
+    h.listExact.mockImplementationOnce(async () => {
+      h.setCurrent({
+        ...original,
+        processIdentity: `${APP_PTY_ID}:40000000-0000-4000-8000-000000000004`
+      })
+      return [certificate()]
+    })
 
-    await h.observer.reconcileAfterConnect(h.connection, [h.current], h.runtime)
+    await h.observer.reconcileAfterConnect(h.connection, [original], h.runtime)
 
+    expect(h.current.status).toBe('running')
     expect(h.acknowledgeExact).not.toHaveBeenCalled()
   })
 
@@ -328,12 +395,20 @@ describe('managed Run PTY exit observation', () => {
 
   it('unsubscribes every observed PTY on disposal', async () => {
     const first = await createRun()
-    const second = await createRun()
+    const second = await first.roster.createRun({
+      agentId: first.agentId,
+      computerId: 'computer-1',
+      computerExecutionGeneration: COMPUTER_GENERATION,
+      prompt: 'Second',
+      terminalSessionId: 'terminal-second',
+      processIdentity: 'process-second'
+    })
+    await first.roster.transitionRun(second.id, { status: 'running' })
     const h = exitRuntime()
     const observer = new ManagedRunPtyExitObserver(first.roster, h.runtime)
 
     observer.observe(first.runId, 'pty-1')
-    observer.observe(second.runId, 'pty-2')
+    observer.observe(second.id, 'pty-2')
     observer.dispose()
 
     expect(h.unsubscribes).toHaveLength(2)

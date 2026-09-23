@@ -71,7 +71,27 @@ async function readRoster(filePath: string): Promise<AgentRosterFile> {
   }
 }
 
-async function persistRoster(filePath: string, roster: AgentRosterFile): Promise<void> {
+type AgentRosterStoreOptions = {
+  syncDirectory?: (directory: string) => Promise<void>
+}
+
+async function syncRosterDirectory(directory: string): Promise<void> {
+  if (process.platform === 'win32') {
+    return
+  }
+  const handle = await open(directory, 'r')
+  try {
+    await handle.sync()
+  } finally {
+    await handle.close().catch(() => undefined)
+  }
+}
+
+async function persistRoster(
+  filePath: string,
+  roster: AgentRosterFile,
+  syncDirectory: (directory: string) => Promise<void>
+): Promise<void> {
   AgentRosterFileSchema.parse(roster)
   validateRelationships(roster)
   const directory = dirname(filePath)
@@ -85,9 +105,7 @@ async function persistRoster(filePath: string, roster: AgentRosterFile): Promise
     const temporaryFile = await open(temporaryPath, 'r')
     await temporaryFile.sync().finally(() => temporaryFile.close())
     await rename(temporaryPath, filePath)
-    const directoryHandle = await open(directory, 'r').catch(() => null)
-    await directoryHandle?.sync().catch(() => undefined)
-    await directoryHandle?.close().catch(() => undefined)
+    await syncDirectory(directory)
   } catch (error) {
     await rm(temporaryPath, { force: true }).catch(() => undefined)
     throw error
@@ -99,12 +117,20 @@ export class AgentRosterStore {
 
   private constructor(
     private readonly filePath: string,
-    private roster: AgentRosterFile
+    private roster: AgentRosterFile,
+    private readonly syncDirectory: (directory: string) => Promise<void>
   ) {}
 
-  static async open(directory: string): Promise<AgentRosterStore> {
+  static async open(
+    directory: string,
+    options: AgentRosterStoreOptions = {}
+  ): Promise<AgentRosterStore> {
     const filePath = join(directory, AGENT_ROSTER_FILE_NAME)
-    return new AgentRosterStore(filePath, await readRoster(filePath))
+    return new AgentRosterStore(
+      filePath,
+      await readRoster(filePath),
+      options.syncDirectory ?? syncRosterDirectory
+    )
   }
 
   getAgent(id: string): Agent | null {
@@ -201,13 +227,38 @@ export class AgentRosterStore {
   }
 
   transitionRunningRunToWaiting(id: string): Promise<Run> {
+    const current = this.getRun(id)
+    if (!current) {
+      return Promise.reject(new Error(`Run not found: ${id}`))
+    }
+    return this.transitionRunningRunToWaitingIfIdentity(id, {
+      computerId: current.computerId,
+      computerExecutionGeneration: current.computerExecutionGeneration,
+      terminalSessionId: current.terminalSessionId,
+      processIdentity: current.processIdentity
+    })
+  }
+
+  transitionRunningRunToWaitingIfIdentity(
+    id: string,
+    expected: Pick<
+      Run,
+      'computerId' | 'computerExecutionGeneration' | 'terminalSessionId' | 'processIdentity'
+    >
+  ): Promise<Run> {
     return this.mutate((roster) => {
       const index = roster.runs.findIndex((run) => run.id === id)
       if (index === -1) {
         throw new Error(`Run not found: ${id}`)
       }
       const current = roster.runs[index]
-      if (current.status !== 'running') {
+      if (
+        current.status !== 'running' ||
+        current.computerId !== expected.computerId ||
+        current.computerExecutionGeneration !== expected.computerExecutionGeneration ||
+        current.terminalSessionId !== expected.terminalSessionId ||
+        current.processIdentity !== expected.processIdentity
+      ) {
         return current
       }
       const run = RunSchema.parse({ ...current, status: 'waiting' })
@@ -249,7 +300,7 @@ export class AgentRosterStore {
     const operation = this.queue.then(async () => {
       const next = structuredClone(this.roster)
       const result = change(next)
-      await persistRoster(this.filePath, next)
+      await persistRoster(this.filePath, next, this.syncDirectory)
       this.roster = next
       return result
     })

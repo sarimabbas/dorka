@@ -1,7 +1,7 @@
 import { mkdtemp, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { afterEach, describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { AGENT_ROSTER_FILE_NAME, AgentRosterStore } from './agent-roster-store'
 
 const directories: string[] = []
@@ -167,6 +167,58 @@ describe('AgentRosterStore', () => {
     )
 
     expect((await AgentRosterStore.open(directory)).getRun(run.id)?.status).toBe('queued')
+  })
+
+  it('rejects a post-rename directory sync failure without committing in-memory success', async () => {
+    let failSync = false
+    const syncDirectory = vi.fn(async () => {
+      if (failSync) {
+        throw new Error('directory fsync failed')
+      }
+    })
+    const directory = await mkdtemp(join(tmpdir(), 'orca-agent-roster-'))
+    directories.push(directory)
+    const store = await AgentRosterStore.open(directory, { syncDirectory })
+    const agent = await createAgent(store)
+    const identity = {
+      computerId: 'computer-a',
+      computerExecutionGeneration: '10000000-0000-4000-8000-000000000001',
+      terminalSessionId: 'terminal-a',
+      processIdentity: 'process-a'
+    }
+    const run = await store.createRun({
+      agentId: agent.id,
+      prompt: 'Persist exactly',
+      ...identity
+    })
+    await store.transitionRun(run.id, { status: 'running' })
+    failSync = true
+
+    await expect(store.transitionRunningRunToWaitingIfIdentity(run.id, identity)).rejects.toThrow(
+      'directory fsync failed'
+    )
+    expect(store.getRun(run.id)?.status).toBe('running')
+  })
+
+  it('changes a running Run only when its complete persisted identity matches', async () => {
+    const { store } = await openStore()
+    const agent = await createAgent(store)
+    const identity = {
+      computerId: 'computer-a',
+      computerExecutionGeneration: '10000000-0000-4000-8000-000000000001',
+      terminalSessionId: 'terminal-a',
+      processIdentity: 'process-a'
+    }
+    const run = await store.createRun({ agentId: agent.id, prompt: 'Exact', ...identity })
+    await store.transitionRun(run.id, { status: 'running' })
+
+    await store.transitionRunningRunToWaitingIfIdentity(run.id, {
+      ...identity,
+      processIdentity: 'replacement-process'
+    })
+    expect(store.getRun(run.id)?.status).toBe('running')
+    await store.transitionRunningRunToWaitingIfIdentity(run.id, identity)
+    expect(store.getRun(run.id)?.status).toBe('waiting')
   })
 
   it('validates version 1 records loaded from disk without migration', async () => {

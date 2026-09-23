@@ -56,7 +56,17 @@ export function managedPtyExitCertificateId(
 export function serializeManagedPtyExitCertificate(
   certificate: ManagedPtyExitCertificateV1
 ): string {
-  return `${JSON.stringify(certificate)}\n`
+  return `${JSON.stringify({
+    version: certificate.version,
+    computerExecutionGeneration: certificate.computerExecutionGeneration,
+    relayGeneration: certificate.relayGeneration,
+    relayPtyId: certificate.relayPtyId,
+    ptyIncarnationId: certificate.ptyIncarnationId,
+    exitCode: certificate.exitCode,
+    observedAt: certificate.observedAt,
+    evidence: certificate.evidence,
+    certificateId: certificate.certificateId
+  })}\n`
 }
 
 export function validateManagedPtyExitDraft(

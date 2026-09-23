@@ -177,6 +177,19 @@ describe.skipIf(process.platform === 'win32')('PtyHandler durable exit evidence'
     })
   })
 
+  it('journals an exact live pty.shutdown death', async () => {
+    const spawned = await spawnWithExit()
+    const shutdown = dispatcher.callRequest('pty.shutdown', { id: PTY_ID, immediate: true })
+    spawned.exit({ exitCode: 0 })
+    await shutdown
+
+    expect(
+      journal.listExact(COMPUTER_GENERATION, [
+        { relayPtyId: PTY_ID, ptyIncarnationId: spawned.incarnationId }
+      ]).certificates
+    ).toMatchObject([{ evidence: 'node-pty-exit' }])
+  })
+
   it('records only an exact host-proven process absence on the reap path', async () => {
     const spawned = await spawnWithExit(424_242)
     vi.spyOn(ptyShellUtils, 'isProcessAlive').mockReturnValue(false)
@@ -190,7 +203,7 @@ describe.skipIf(process.platform === 'win32')('PtyHandler durable exit evidence'
     ).toMatchObject([{ exitCode: -1, evidence: 'host-process-absent' }])
   })
 
-  it('does not write for misses, empty inventory, grace cleanup, or relay shutdown', async () => {
+  it('does not write for misses, empty inventory, grace cleanup, or relay-wide shutdown', async () => {
     const record = vi.spyOn(journal, 'record')
     await expect(
       dispatcher.callRequest('pty.attach', { id: 'missing', expectedIncarnationId: 'inc' })
