@@ -419,21 +419,11 @@ function runAcceptance() {
       'managed Run identity is incomplete'
     )
     waitFor('agent marker', 6e4, () =>
-      command(
-        'node',
-        [
-          'out/cli/index.js',
-          '--pairing-code',
-          current.pairing,
-          'terminal',
-          'read',
-          '--terminal',
-          launched.terminalSessionId ?? '',
-          '--limit',
-          '200',
-          '--json'
-        ],
-        { allowFailure: true }
+      JSON.stringify(
+        rpc(current.pairing, 'terminal.read', {
+          terminal: launched.terminalSessionId ?? '',
+          limit: 200
+        })
       ).includes('DORKA_NATIVE_AGENT_READY')
         ? true
         : void 0

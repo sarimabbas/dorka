@@ -70,6 +70,8 @@ describe('native Linux acceptance contracts', () => {
     expect(build).toContain("const RUNTIME_CLIENT_OUT_FILE = join(OUT_DIR, 'runtime-client.js')")
     expect(runtime).toContain(':/opt/dorka/out/dorkad/runtime-client.js`')
     expect(runtime).toContain("import {RuntimeClient} from './out/dorkad/runtime-client.js'")
+    expect(runtime).toContain("rpc(current.pairing, 'terminal.read'")
+    expect(runtime).not.toContain("'out/cli/index.js'")
   })
 
   it('pulls registry bases without trying to pull the local fixture base', () => {
