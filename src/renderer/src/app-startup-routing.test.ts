@@ -296,14 +296,9 @@ describe('renderer startup runtime routing', () => {
 
     expect(source).toContain("import('../components/UpdateCard').then")
     expect(source).toContain("import('../components/contextual-tours/ContextualTourOverlay').then")
-    expect(source).toContain("import('../components/setup-guide/SetupGuideTelemetryObserver').then")
     expect(source).not.toContain("from '../components/UpdateCard'")
     expect(source).not.toContain("from '../components/contextual-tours/ContextualTourOverlay'")
-    expect(source).not.toContain("from '../components/setup-guide/SetupGuideTelemetryObserver'")
-    expect(source).toContain('const shouldMountSetupGuideTelemetryObserver = persistedUIReady')
-    expect(source).not.toContain(
-      "const shouldMountSetupGuideTelemetryObserver = persistedUIReady && activeModal === 'setup-guide'"
-    )
+    expect(source).not.toContain('SetupGuideTelemetryObserver')
   })
 
   it('keeps crash-report listeners eager while lazy-loading the dialog surface', () => {

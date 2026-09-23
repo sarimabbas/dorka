@@ -1,12 +1,9 @@
-import { TOGGLE_QUICK_COMMANDS_MENU_EVENT } from '@/lib/quick-commands-menu-events'
-import { TOGGLE_WORKSPACE_BOARD_EVENT } from '@/components/sidebar/useWorkspaceBoardPanel'
 import { activateTabNumberShortcut } from '@/lib/tab-number-shortcuts'
 import { emitCmdJRowIndexJump } from '@/lib/cmd-j-row-index-jump'
 import { getVisibleWorktreeShortcutTargets } from '@/components/sidebar/visible-worktrees'
 import { activateAndRevealWorkspace } from '@/lib/worktree-activation'
 import { deleteHoveredWorkspaceImmediately } from '@/components/sidebar/hovered-workspace-delete'
 import { isFloatingWorkspacePanelFocused } from '@/lib/floating-workspace-terminal-actions'
-import { isGitRepoKind } from '../../../../shared/repo-kind'
 import { useAppStore } from '../../store'
 import { toggleAgentDashboardFromShortcut } from './agent-dashboard-command'
 import { openNewWorkspaceFromShortcut } from './new-workspace-command'
@@ -18,12 +15,6 @@ export function registerWorkspaceShortcutIpcBridge(unsubs: (() => void)[]): void
       if (store.activeView === 'terminal' && store.activeWorktreeId !== null) {
         store.openModal('quick-open')
       }
-    })
-  )
-
-  unsubs.push(
-    window.api.ui.onToggleQuickCommandsMenu(() => {
-      window.dispatchEvent(new CustomEvent(TOGGLE_QUICK_COMMANDS_MENU_EVENT))
     })
   )
 
@@ -45,19 +36,6 @@ export function registerWorkspaceShortcutIpcBridge(unsubs: (() => void)[]): void
     )
   }
 
-  if (window.api.ui.onOpenWorkspaceBoard) {
-    unsubs.push(
-      window.api.ui.onOpenWorkspaceBoard(() => {
-        const store = useAppStore.getState()
-        if (store.activeView === 'settings') {
-          return
-        }
-        store.setSidebarOpen(true)
-        window.dispatchEvent(new CustomEvent(TOGGLE_WORKSPACE_BOARD_EVENT))
-      })
-    )
-  }
-
   if (window.api.ui.onToggleAgentDashboard) {
     unsubs.push(
       window.api.ui.onToggleAgentDashboard(() => {
@@ -67,16 +45,6 @@ export function registerWorkspaceShortcutIpcBridge(unsubs: (() => void)[]): void
       })
     )
   }
-
-  unsubs.push(
-    window.api.ui.onOpenTasks(() => {
-      const store = useAppStore.getState()
-      if (store.activeView === 'settings' || !store.repos.some((repo) => isGitRepoKind(repo))) {
-        return
-      }
-      store.openTaskPage()
-    })
-  )
 
   unsubs.push(
     window.api.ui.onJumpToWorktreeIndex((index) => {

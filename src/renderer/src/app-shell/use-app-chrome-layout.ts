@@ -20,7 +20,9 @@ export type AppChromeLayout = ReturnType<typeof useAppChromeLayout>
  * workspace owns the tab strip, and which surfaces stay mounted — from store state.
  */
 export function useAppChromeLayout() {
-  const activeView = useAppStore((s) => s.activeView)
+  const storedActiveView = useAppStore((s) => s.activeView)
+  const activeView =
+    storedActiveView === 'tasks' || storedActiveView === 'mobile' ? 'terminal' : storedActiveView
   const sidebarOpen = useAppStore((s) => s.sidebarOpen)
   const rightSidebarOpen = useAppStore((s) => s.rightSidebarOpen)
   const rightSidebarTab = useAppStore((s) => s.rightSidebarTab)

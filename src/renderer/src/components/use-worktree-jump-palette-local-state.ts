@@ -1,4 +1,4 @@
-import { useDeferredValue, useMemo, useRef, useState } from 'react'
+import { useDeferredValue, useRef, useState } from 'react'
 import { useShallow } from 'zustand/react/shallow'
 import type { WorktreePaletteRequestGuard } from '@/lib/worktree-palette-create-action'
 import {
@@ -6,8 +6,6 @@ import {
   type PaletteFilterState
 } from '@/components/cmd-j/palette-filter'
 import { useAppStore } from '@/store'
-import { parseCmdJTaskSourceUrl } from '@/lib/worktree-palette-task-url-match'
-import { getWorktreePaletteCreateActionState } from '@/lib/worktree-palette-create-action'
 import type { CmdJActiveGroupSnapshot } from '@/components/cmd-j/quick-action-context'
 import type { WorkspaceVisibleTabType } from '../../../shared/tab-types'
 import type { PaletteItem } from './worktree-jump-palette-model'
@@ -32,14 +30,10 @@ export function useWorktreeJumpPaletteLocalState({
   // Keyboard handlers must see the current query before effects flush.
   // react-doctor-disable-next-line react-doctor/no-ref-current-in-render
   liveQueryRef.current = query
-  const taskSourceUrl = useMemo(() => parseCmdJTaskSourceUrl(query), [query])
-  const paletteSearchQuery = taskSourceUrl ? query.trim() : deferredQuery.trim()
-  const deferredCreateAction = useMemo(
-    () => getWorktreePaletteCreateActionState({ query: deferredQuery }),
-    [deferredQuery]
-  )
-  const createWorktreeName = taskSourceUrl ? query.trim() : deferredCreateAction.createWorktreeName
-  const showCreateAction = deferredCreateAction.showCreateAction || taskSourceUrl !== null
+  const taskSourceUrl = null
+  const paletteSearchQuery = deferredQuery.trim()
+  const createWorktreeName = deferredQuery.trim()
+  const showCreateAction = false
   const [selectedItemId, setSelectedItemId] = useState('')
   const latestQueryRef = useRef('')
   const autoSelectedItemIdRef = useRef<string | null>(null)
