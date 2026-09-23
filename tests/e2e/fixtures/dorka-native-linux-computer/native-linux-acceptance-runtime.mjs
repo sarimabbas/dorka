@@ -135,14 +135,23 @@ function preflight(names) {
 }
 function cleanup(names, artifacts) {
   const failures = []
+  const run = (args) => spawnSync(process.env.DORKA_ENGINE ?? 'podman', args, { encoding: 'utf8' })
   const attempt = (args) => {
-    const result = spawnSync(process.env.DORKA_ENGINE ?? 'podman', args, { encoding: 'utf8' })
+    const result = run(args)
     if (result.status !== 0 && !/no such|not found|does not exist/i.test(result.stderr)) {
       failures.push(`${args[0]} ${args[1] ?? ''}`)
     }
   }
+  const list = (args) => {
+    const result = run(args)
+    if (result.status !== 0) {
+      failures.push(`${args[0]} ${args[1] ?? ''}`)
+      return ''
+    }
+    return result.stdout.trim()
+  }
   attempt(['rm', '-f', names.server, ...COMPUTERS])
-  for (const id of engine(['ps', '-aq', '--filter', `label=${names.label}`])
+  for (const id of list(['ps', '-aq', '--filter', `label=${names.label}`])
     .split('\n')
     .filter(Boolean)) {
     attempt(['rm', '-f', id])
@@ -150,7 +159,7 @@ function cleanup(names, artifacts) {
   for (const volume of [names.serverData, ...FIXED_VOLUMES]) {
     attempt(['volume', 'rm', '-f', volume])
   }
-  for (const id of engine(['volume', 'ls', '-q', '--filter', `label=${names.label}`])
+  for (const id of list(['volume', 'ls', '-q', '--filter', `label=${names.label}`])
     .split('\n')
     .filter(Boolean)) {
     attempt(['volume', 'rm', '-f', id])
@@ -160,13 +169,11 @@ function cleanup(names, artifacts) {
   }
   attempt(['image', 'rm', '-f', names.computerImage, names.computerBaseImage, names.serverImage])
   const residue = [
-    ...COMPUTERS.map((computer) => engine(['ps', '-aq', '--filter', `name=^${computer}$`])),
-    engine(['ps', '-aq', '--filter', `label=${names.label}`]),
-    ...FIXED_VOLUMES.map((volume) =>
-      engine(['volume', 'ls', '-q', '--filter', `name=^${volume}$`])
-    ),
-    engine(['volume', 'ls', '-q', '--filter', `label=${names.label}`]),
-    engine(['network', 'ls', '-q', '--filter', 'name=^dorka-runtimes$'])
+    ...COMPUTERS.map((computer) => list(['ps', '-aq', '--filter', `name=^${computer}$`])),
+    list(['ps', '-aq', '--filter', `label=${names.label}`]),
+    ...FIXED_VOLUMES.map((volume) => list(['volume', 'ls', '-q', '--filter', `name=^${volume}$`])),
+    list(['volume', 'ls', '-q', '--filter', `label=${names.label}`]),
+    list(['network', 'ls', '-q', '--filter', 'name=^dorka-runtimes$'])
   ].filter(Boolean)
   artifact(artifacts, 'cleanup.json', { attempted: true, failures, residue })
   return [...failures, ...residue]
@@ -340,8 +347,10 @@ function runAcceptance() {
   let failure
   let imageIds = {}
   let engineFacts
+  let ownsRuntimeResources = false
   try {
     engineFacts = preflight(names)
+    ownsRuntimeResources = true
     const built = Date.now()
     build(names, artifacts)
     imageIds = {
@@ -519,7 +528,10 @@ function runAcceptance() {
     if (failure) {
       captureFailureDiagnostics(names, artifacts, failure)
     }
-    const residue = cleanup(names, artifacts)
+    const residue = ownsRuntimeResources ? cleanup(names, artifacts) : []
+    if (!ownsRuntimeResources) {
+      artifact(artifacts, 'cleanup.json', { attempted: false, failures: [], residue })
+    }
     const summary = {
       schemaVersion: 1,
       commit: command('git', ['rev-parse', 'HEAD']),
@@ -531,7 +543,7 @@ function runAcceptance() {
       },
       images: imageIds,
       cases,
-      cleanup: { attempted: true, residue }
+      cleanup: { attempted: ownsRuntimeResources, residue }
     }
     artifact(artifacts, 'summary.json', summary)
     if (residue.length > 0) {
@@ -543,6 +555,9 @@ function runAcceptance() {
       resolve(artifacts, 'exit-code'),
       `${failure ? 1 : 0}
 `
+    )
+    process.stdout.write(
+      `DORKA_NATIVE_LINUX_ACCEPTANCE=${failure ? 'FAIL' : 'PASS'}\nartifacts=${artifacts}\n`
     )
   }
   if (failure) {

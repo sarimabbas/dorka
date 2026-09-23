@@ -1,8 +1,8 @@
 # Dorka native Linux + macOS self-service E2E runbook
 
-The automated native gate in sections 0–3 was last verified on 2026-09-23 at commit `06e25b716`
-on native amd64 Docker 28.3.3. Sections 4 onward are the optional operator-driven paired-client
-extension; they preserve the same safety and cleanup boundaries but are not part of the automated gate.
+This runbook defines two unambiguous gates. The **native release gate** is sections 0–3 and was last
+verified on 2026-09-23 at commit `06e25b716` on native amd64 Docker 28.3.3. The **controlled
+paired-client E2E gate** is the complete runbook: sections 0–9 are all required, including exact cleanup.
 
 ## Purpose and pass condition
 
@@ -17,7 +17,7 @@ macOS Dorka client
   -> sibling dorka-computer-main container
 ```
 
-The run passes only when:
+The controlled paired-client E2E gate passes only when:
 
 1. the repository's automated native-Linux acceptance gate passes;
 2. a macOS client pairs through the private SSH tunnel;
@@ -140,21 +140,7 @@ test "$(df -Pk "$store" | awk 'NR==2 {print $4}')" -ge 62914560
 
 Expected: exit 0 (at least 60 GiB free).
 
-## 2. Install and run contract checks
-
-Run on the **Linux host**:
-
-```bash
-corepack pnpm install --frozen-lockfile
-corepack pnpm run build:cli
-corepack pnpm test:e2e:dorka-native-linux:contracts
-```
-
-Expected: install/build succeed and all native acceptance contract tests pass.
-
-**Stop** on any failure. Do not run the expensive native gate with a broken contract suite.
-
-## 3. Run the automated native release gate
+## 2. Run the one-command native release gate
 
 Run on the **Linux host**:
 
@@ -163,8 +149,19 @@ export DORKA_ACCEPTANCE_SHA="$DORKA_E2E_SHA"
 export DORKA_ACCEPTANCE_ARTIFACTS="$DORKA_E2E_ARTIFACTS/native-acceptance"
 export DORKA_ENGINE
 export DOCKER_HOST
-corepack pnpm test:e2e:dorka-native-linux
+corepack pnpm run test:e2e:dorka-native-linux:self-service
 ```
+
+The command installs locked dependencies without package lifecycle scripts, runs the fast contract
+suite, and starts the existing native acceptance harness. It does not build the desktop app or install
+a global CLI because neither is used by this gate.
+
+**Stop** on any failure. A preflight rejection writes bounded failure evidence but does not clean up
+fixed-name resources because the run did not acquire ownership of them.
+
+## 3. Verify the automated verdict
+
+For the rootful fallback, keep `DORKA_ACCEPTANCE_ALLOW_ROOTFUL=1` exported. The harness itself:
 
 For the rootful fallback, keep `DORKA_ACCEPTANCE_ALLOW_ROOTFUL=1` exported. The harness itself:
 
@@ -180,7 +177,14 @@ For the rootful fallback, keep `DORKA_ACCEPTANCE_ALLOW_ROOTFUL=1` exported. The 
 - redacts retained pairing URLs, keys, and tokens;
 - removes its containers, volumes, images, and networks in `finally`.
 
-Expected:
+Expected terminal verdict:
+
+```text
+DORKA_NATIVE_LINUX_ACCEPTANCE=PASS
+artifacts=/home/<user>/dorka-self-e2e-<sha>/native-acceptance
+```
+
+Verify the retained result:
 
 ```bash
 test "$(cat "$DORKA_E2E_ARTIFACTS/native-acceptance/exit-code")" = 0

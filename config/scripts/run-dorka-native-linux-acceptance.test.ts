@@ -178,6 +178,26 @@ describe('native Linux acceptance contracts', () => {
     expect(fixture).not.toContain("'computers.create'")
   })
 
+  it('does not clean fixed resources after a rejected preflight and prints its verdict', () => {
+    const runtime = readFileSync(
+      resolve(
+        import.meta.dirname,
+        '../../tests/e2e/fixtures/dorka-native-linux-computer/native-linux-acceptance-runtime.mjs'
+      ),
+      'utf8'
+    )
+    const packageJson = JSON.parse(
+      readFileSync(resolve(import.meta.dirname, '../../package.json'), 'utf8')
+    )
+
+    expect(runtime).toContain('ownsRuntimeResources = false')
+    expect(runtime).toContain('ownsRuntimeResources ? cleanup(names, artifacts) : []')
+    expect(runtime).toContain("DORKA_NATIVE_LINUX_ACCEPTANCE=${failure ? 'FAIL' : 'PASS'}")
+    expect(packageJson.scripts['test:e2e:dorka-native-linux:self-service']).toContain(
+      'pnpm install --frozen-lockfile --ignore-scripts'
+    )
+  })
+
   it('redacts pairing credentials, tokens, and private keys', () => {
     const input =
       'dorka://pair?token=secret\n{"deviceToken":"secret","url":"dorka://pair?x"}\n-----BEGIN OPENSSH PRIVATE KEY-----\nsecret\n-----END OPENSSH PRIVATE KEY-----'

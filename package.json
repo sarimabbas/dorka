@@ -143,6 +143,7 @@
     "test:e2e:computer": "vitest run --config tests/e2e/vitest.config.ts",
     "test:e2e:dorka-native-linux": "node config/scripts/run-dorka-native-linux-acceptance.ts",
     "test:e2e:dorka-native-linux:contracts": "vitest run --config config/vitest.config.ts config/scripts/run-dorka-native-linux-acceptance.test.ts",
+    "test:e2e:dorka-native-linux:self-service": "pnpm install --frozen-lockfile --ignore-scripts && pnpm run test:e2e:dorka-native-linux:contracts && pnpm run test:e2e:dorka-native-linux",
     "bench:idle-cpu": "pnpm run ensure:electron-runtime && node config/scripts/run-idle-cpu-benchmark.mjs",
     "bench:spinners": "pnpm run ensure:electron-runtime && node tests/tools/benchmarks/spinner-rendering/run.mjs",
     "bench:macos-computer-helper-owner-loss": "node config/scripts/macos-computer-helper-owner-loss-benchmark.mjs",
