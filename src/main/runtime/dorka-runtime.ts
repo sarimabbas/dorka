@@ -23,6 +23,7 @@ import {
   AGENT_EXECUTION_RUNTIME_CAPABILITY,
   AGENT_ROSTER_RUNTIME_CAPABILITY,
   AGENT_RUN_HISTORY_RUNTIME_CAPABILITY,
+  AGENT_SOURCE_CONTROL_RUNTIME_CAPABILITY,
   COMPUTER_GIT_IDENTITY_RUNTIME_CAPABILITY,
   COMPUTER_LIFECYCLE_RUNTIME_CAPABILITY,
   type RuntimeCapability
@@ -54,6 +55,9 @@ function withLifecycleCapabilityHonesty(
   }
   if (!deps?.computerRuntimeManager) {
     disabled.add(COMPUTER_LIFECYCLE_RUNTIME_CAPABILITY)
+  }
+  if (!deps?.computerRunSourceControl) {
+    disabled.add(AGENT_SOURCE_CONTROL_RUNTIME_CAPABILITY)
   }
   if (!deps?.computerGitIdentity) {
     disabled.add(COMPUTER_GIT_IDENTITY_RUNTIME_CAPABILITY)

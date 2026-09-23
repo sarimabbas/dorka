@@ -131,6 +131,7 @@ export const ACCOUNT_IMPORT_RUNTIME_CAPABILITY = 'accounts.import-host-credentia
 export const AGENT_ROSTER_RUNTIME_CAPABILITY = 'agents.roster.v1' as const
 export const AGENT_RUN_HISTORY_RUNTIME_CAPABILITY = 'agents.run-history.v1' as const
 export const AGENT_EXECUTION_RUNTIME_CAPABILITY = 'agents.execution.v1' as const
+export const AGENT_SOURCE_CONTROL_RUNTIME_CAPABILITY = 'agents.source-control.v1' as const
 export const COMPUTER_LIFECYCLE_RUNTIME_CAPABILITY = 'computers.lifecycle.v1' as const
 export const COMPUTER_GIT_IDENTITY_RUNTIME_CAPABILITY = 'computers.git-identity.v1' as const
 // Why: older hosts cannot reconcile terminal.create's mutation after losing the reply, so clients may only retry unknown outcomes when advertised.
@@ -383,6 +384,7 @@ export const RUNTIME_CAPABILITIES = [
   AGENT_ROSTER_RUNTIME_CAPABILITY,
   AGENT_RUN_HISTORY_RUNTIME_CAPABILITY,
   AGENT_EXECUTION_RUNTIME_CAPABILITY,
+  AGENT_SOURCE_CONTROL_RUNTIME_CAPABILITY,
   COMPUTER_LIFECYCLE_RUNTIME_CAPABILITY,
   COMPUTER_GIT_IDENTITY_RUNTIME_CAPABILITY,
   CODEX_RESET_CREDIT_RUNTIME_CAPABILITY,

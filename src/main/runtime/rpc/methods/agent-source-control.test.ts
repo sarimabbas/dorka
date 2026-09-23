@@ -4,6 +4,7 @@ import type {
   GitDiffResult
 } from '../../../../shared/git-diff-compare-types'
 import type { GitStatusResult } from '../../../../shared/git-status-types'
+import { AGENT_SOURCE_CONTROL_RUNTIME_CAPABILITY } from '../../../../shared/protocol-version'
 import { DorkaRuntimeService } from '../../dorka-runtime'
 import { RpcDispatcher } from '../dispatcher'
 import { AGENT_SOURCE_CONTROL_METHODS } from './agent-source-control'
@@ -13,6 +14,24 @@ async function dispatch(dispatcher: RpcDispatcher, method: string, params: unkno
 }
 
 describe('Run source-control RPC', () => {
+  it('advertises source control only when its service is composed', () => {
+    const unavailable = new DorkaRuntimeService()
+    const service = {
+      status: vi.fn(),
+      diff: vi.fn(),
+      review: vi.fn(),
+      reviewDiff: vi.fn()
+    }
+    const available = new DorkaRuntimeService(null, undefined, {
+      computerRunSourceControl: service
+    })
+
+    expect(unavailable.getStatus().capabilities).not.toContain(
+      AGENT_SOURCE_CONTROL_RUNTIME_CAPABILITY
+    )
+    expect(available.getStatus().capabilities).toContain(AGENT_SOURCE_CONTROL_RUNTIME_CAPABILITY)
+  })
+
   it('exposes only strict run-scoped request fields', () => {
     const methods = new Map(AGENT_SOURCE_CONTROL_METHODS.map((method) => [method.name, method]))
 

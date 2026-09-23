@@ -1,27 +1,19 @@
-import { Suspense, useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Loader2 } from 'lucide-react'
 import type { GitDiffResult } from '../../../../shared/git-diff-compare-types'
 import type { GitStatusEntry, GitStatusResult } from '../../../../shared/git-status-types'
-import { DiffViewer } from '@/components/editor/editor-lazy-views'
-import { detectLanguage } from '@/lib/language-detect'
-import { createRunDiffDataSource } from '@/runtime/run-diff-data-source'
+import { createRunDiffDataSource, type RunDiffDataSource } from '@/runtime/run-diff-data-source'
 import type { RuntimeClientTarget } from '@/runtime/runtime-rpc-client'
 import { Badge } from '../ui/badge'
 import { Button } from '../ui/button'
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '../ui/sheet'
-
-type LoadState<T> =
-  | { kind: 'loading' }
-  | { kind: 'error'; message: string }
-  | { kind: 'ready'; value: T }
-
-function errorMessage(error: unknown): string {
-  const message =
-    error instanceof Error && error.message ? error.message : 'Changes could not be loaded.'
-  return message.toLowerCase().includes('unverifiable')
-    ? `Changes are unverifiable: ${message}`
-    : message
-}
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs'
+import {
+  RunFileDiffPreview,
+  runChangesErrorMessage,
+  type RunChangesLoadState
+} from './RunFileDiffPreview'
+import { RunChangesReview } from './RunChangesReview'
 
 export function RunChangesPanel({
   runId,
@@ -57,10 +49,29 @@ function RunChangesContent({
   target: RuntimeClientTarget
 }): React.JSX.Element {
   const source = useMemo(() => createRunDiffDataSource(target, runId), [runId, target])
+  return (
+    <Tabs defaultValue="working-tree" className="min-h-0 flex-1 gap-0">
+      <div className="border-b border-border px-3">
+        <TabsList variant="line">
+          <TabsTrigger value="working-tree">Working Tree</TabsTrigger>
+          <TabsTrigger value="review">Review</TabsTrigger>
+        </TabsList>
+      </div>
+      <TabsContent value="working-tree" className="min-h-0">
+        <RunChangesWorkingTree source={source} />
+      </TabsContent>
+      <TabsContent value="review" className="min-h-0">
+        <RunChangesReview source={source} />
+      </TabsContent>
+    </Tabs>
+  )
+}
+
+function RunChangesWorkingTree({ source }: { source: RunDiffDataSource }): React.JSX.Element {
   const [statusRequest, setStatusRequest] = useState(0)
-  const [status, setStatus] = useState<LoadState<GitStatusResult>>({ kind: 'loading' })
+  const [status, setStatus] = useState<RunChangesLoadState<GitStatusResult>>({ kind: 'loading' })
   const [selected, setSelected] = useState<GitStatusEntry | null>(null)
-  const [diff, setDiff] = useState<LoadState<GitDiffResult> | null>(null)
+  const [diff, setDiff] = useState<RunChangesLoadState<GitDiffResult> | null>(null)
 
   useEffect(() => {
     let active = true
@@ -76,7 +87,7 @@ function RunChangesContent({
       })
       .catch((error: unknown) => {
         if (active) {
-          setStatus({ kind: 'error', message: errorMessage(error) })
+          setStatus({ kind: 'error', message: runChangesErrorMessage(error) })
         }
       })
     return () => {
@@ -99,7 +110,7 @@ function RunChangesContent({
       })
       .catch((error: unknown) => {
         if (active) {
-          setDiff({ kind: 'error', message: errorMessage(error) })
+          setDiff({ kind: 'error', message: runChangesErrorMessage(error) })
         }
       })
     return () => {
@@ -166,60 +177,12 @@ function RunChangesContent({
         )}
       </aside>
       <div className="flex min-w-0 flex-1 flex-col bg-editor-surface">
-        <RunSelectedDiff sourceKey={source.cacheKey} selected={selected} diff={diff} />
+        <RunFileDiffPreview
+          modelKey={`${source.cacheKey}:${selected?.area ?? ''}:${selected?.path ?? ''}`}
+          filePath={selected?.path ?? null}
+          diff={diff}
+        />
       </div>
     </div>
-  )
-}
-
-function RunSelectedDiff({
-  sourceKey,
-  selected,
-  diff
-}: {
-  sourceKey: string
-  selected: GitStatusEntry | null
-  diff: LoadState<GitDiffResult> | null
-}): React.JSX.Element {
-  if (!selected) {
-    return <p className="m-auto text-sm text-muted-foreground">Select a changed file.</p>
-  }
-  if (!diff || diff.kind === 'loading') {
-    return (
-      <p role="status" className="m-auto flex items-center gap-2 text-sm text-muted-foreground">
-        <Loader2 className="size-4 animate-spin" />
-        Loading {selected.path}…
-      </p>
-    )
-  }
-  if (diff.kind === 'error') {
-    return (
-      <p role="alert" className="m-auto max-w-lg px-6 text-center text-sm text-destructive">
-        {diff.message}
-      </p>
-    )
-  }
-  if (diff.value.kind === 'binary') {
-    return (
-      <p className="m-auto text-sm text-muted-foreground">
-        Text diff is unavailable for this binary file.
-      </p>
-    )
-  }
-  return (
-    <Suspense
-      fallback={<p className="m-auto text-sm text-muted-foreground">Loading diff viewer…</p>}
-    >
-      <DiffViewer
-        modelKey={`${sourceKey}:${selected.area}:${selected.path}`}
-        originalContent={diff.value.originalContent}
-        modifiedContent={diff.value.modifiedContent}
-        largeDiffRenderLimit={diff.value.largeDiffRenderLimit}
-        language={detectLanguage(selected.path)}
-        filePath={selected.path}
-        relativePath={selected.path}
-        sideBySide
-      />
-    </Suspense>
   )
 }

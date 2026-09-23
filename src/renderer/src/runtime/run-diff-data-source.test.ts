@@ -1,15 +1,27 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { callRuntimeRpc } from './runtime-rpc-client'
-import { createRunDiffDataSource } from './run-diff-data-source'
+import { AGENT_SOURCE_CONTROL_RUNTIME_CAPABILITY } from '../../../shared/protocol-version'
+import { ensureLocalRuntimeCapabilities } from './local-runtime-capabilities'
+import { callRuntimeRpc, runtimeEnvironmentSupportsCapability } from './runtime-rpc-client'
+import { createRunDiffDataSource, RunSourceControlUnsupportedError } from './run-diff-data-source'
 
-vi.mock('./runtime-rpc-client', () => ({ callRuntimeRpc: vi.fn() }))
+vi.mock('./local-runtime-capabilities', () => ({ ensureLocalRuntimeCapabilities: vi.fn() }))
+vi.mock('./runtime-rpc-client', () => ({
+  callRuntimeRpc: vi.fn(),
+  runtimeEnvironmentSupportsCapability: vi.fn()
+}))
 
+const localCapabilities = vi.mocked(ensureLocalRuntimeCapabilities)
+const supportsCapability = vi.mocked(runtimeEnvironmentSupportsCapability)
 const rpc = vi.mocked(callRuntimeRpc)
 const target = { kind: 'environment' as const, environmentId: 'server-1' }
 
 describe('run diff data source', () => {
   beforeEach(() => {
     rpc.mockReset()
+    localCapabilities.mockReset()
+    supportsCapability.mockReset()
+    localCapabilities.mockResolvedValue([AGENT_SOURCE_CONTROL_RUNTIME_CAPABILITY])
+    supportsCapability.mockResolvedValue(true)
   })
 
   it('isolates every request and cache identity by run id', async () => {
@@ -78,11 +90,48 @@ describe('run diff data source', () => {
     expect(gitStatus).not.toHaveBeenCalled()
   })
 
+  it.each([
+    ['local', { kind: 'local' as const }],
+    ['remote', target]
+  ])('fails cleanly before calling an unsupported %s runtime', async (kind, runtimeTarget) => {
+    if (kind === 'local') {
+      localCapabilities.mockResolvedValue([])
+    } else {
+      supportsCapability.mockResolvedValue(false)
+    }
+    const source = createRunDiffDataSource(runtimeTarget, 'run-1')
+
+    await expect(source.getStatus()).rejects.toBeInstanceOf(RunSourceControlUnsupportedError)
+    await expect(source.getDiff({ path: 'src/a.ts', area: 'unstaged' })).rejects.toBeInstanceOf(
+      RunSourceControlUnsupportedError
+    )
+    await expect(source.getReview('origin/main')).rejects.toBeInstanceOf(
+      RunSourceControlUnsupportedError
+    )
+    await expect(
+      source.getReviewDiff({ baseRef: 'origin/main', filePath: 'src/a.ts' })
+    ).rejects.toBeInstanceOf(RunSourceControlUnsupportedError)
+
+    expect(rpc).not.toHaveBeenCalled()
+  })
+
+  it('rejects an invalid base ref before probing or calling the runtime', async () => {
+    const source = createRunDiffDataSource(target, 'run-1')
+
+    expect(() => source.validateReviewBaseRef('   ')).toThrow('valid non-empty Git base ref')
+    await expect(source.getReview('--upload-pack=bad')).rejects.toThrow(
+      'valid non-empty Git base ref'
+    )
+
+    expect(supportsCapability).not.toHaveBeenCalled()
+    expect(rpc).not.toHaveBeenCalled()
+  })
+
   it('sends only review RPC schema fields', async () => {
     rpc.mockResolvedValue({})
     const source = createRunDiffDataSource(target, 'run-1')
 
-    await source.getReview('origin/main')
+    await source.getReview(' origin/main ')
     await source.getReviewDiff({
       baseRef: 'origin/main',
       filePath: 'src/new.ts',
