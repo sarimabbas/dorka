@@ -126,7 +126,8 @@ describe('ComputersSettingsPane', () => {
     expect(screen.getByRole('button', { name: 'Retry' })).toBeEnabled()
   })
 
-  it('capability-gates runtimes without computer lifecycle support', async () => {
+  it('offers Server pairing when the local runtime has no Computer control plane', async () => {
+    const user = userEvent.setup()
     mocks.callRuntimeRpc.mockResolvedValueOnce({ capabilities: [] })
 
     render(<ComputersSettingsPane settings={settings} />)
@@ -134,6 +135,13 @@ describe('ComputersSettingsPane', () => {
     expect(
       await screen.findByText('Connect a Dorka Server to manage Computers.')
     ).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Server settings' }))
+    expect(mocks.openSettingsTarget).toHaveBeenCalledWith({
+      pane: 'servers',
+      repoId: null,
+      intent: 'add-remote-dorka-server'
+    })
+    expect(mocks.openSettingsPage).toHaveBeenCalledOnce()
     expect(mocks.callRuntimeRpc).toHaveBeenCalledOnce()
     expect(mocks.callRuntimeRpc).not.toHaveBeenCalledWith(
       expect.anything(),
