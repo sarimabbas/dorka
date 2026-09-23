@@ -68,10 +68,11 @@ the server container must start and accept remote client connections.
 - [x] Compose `ComputerRuntimeManager` during `dorkad` startup.
 - [x] Expose the minimal authenticated Agent and Computer control-plane operations.
 - [x] Provision an idempotent `Main` Computer and first Agent.
-- [ ] Connect the tested Agent execution seam to a concrete Computer SSH launcher and the existing PTY/session path.
+- [x] Connect the Agent execution seam to a concrete managed-Computer SSH launcher and the existing PTY/session path.
 - [x] Record the selected `computerId`, terminal session identity, and process identity on each launched Run.
 - [x] Support validated ordinary environment variables and exact operator-allowlisted Computer premounts.
 - [x] Provision one persistent server-owned SSH control key per Computer, inject only its public key, and disable password authentication.
+- [x] Package the incumbent relay with the server image and compose the Node-safe managed SSH session owner in `dorkad`.
 - [x] Keep Computer lifecycle mutation ordering inside `ComputerRuntimeManager`.
 - [x] Omit unconfigured artifact, account, and plugin RPC families from the `dorkad` bundle and capability catalog.
 
@@ -92,15 +93,17 @@ the server container must start and accept remote client connections.
   because the safety fixture intentionally had no remote or provider credentials.
 - The existing local Diff and Review implementation remains in the application, but Review has not
   yet been moved onto Computer-local `git`/`gh` execution and credentials.
-- The Agent execution module now validates placement, starts the Computer, passes a stable Run id to
-  one terminal launcher interface, and durably records Run session/process identity. Managed
-  Computers now receive a server-owned public control key. The Node-safe SSH host-session adapter,
-  direct remote terminal launch seam, and production composition are still missing, so this is not
-  yet an end-to-end Agent launch.
+- The Agent execution path now validates placement, starts the Computer, connects its hidden managed
+  SSH target, launches `pi`, `claude`, or `codex` through the incumbent remote PTY/session path, and
+  durably records Run session/process identity. Post-spawn uncertainty becomes a waiting Run instead
+  of a false failure. The path is production-composed in `dorkad`, but still needs a real-image
+  Podman/Docker launch plus restart/reattach proof before the end-to-end loop is considered proven.
 - Computer SSH host keys now live in a dedicated managed volume, preserving host identity across
   normal container replacement without exposing host or user SSH material.
 - Existing Project and Workspace language still needs a careful Dorka terminology pass. This must
   not erase useful git/worktree distinctions.
+- Server restart currently recreates managed SSH relay sessions best-effort. Persisted Run identity
+  is not yet authoritatively reconciled back to `live`, `unverifiable`, or `exited` after restart.
 - Browser-hosted graphical Computer desktops remain a post-MVP runtime integration.
 
 ## Explicitly deferred unless required for the smoke test
