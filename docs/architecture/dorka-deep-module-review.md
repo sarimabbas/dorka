@@ -2,7 +2,7 @@
 
 ## Scope and verdict
 
-This review covers the Agent, Run, Computer, and Server vertical slice through `c18d2083f`. It applies
+This review covers the Agent, Run, Computer, and Server vertical slice through `e2ee00657`. It applies
 Ousterhout's deep-module criteria: information hiding, interface leverage, temporal coupling, policy
 ownership, error vocabulary, and deletion opportunity.
 
@@ -98,18 +98,17 @@ input as ordinary, non-secret configuration.
 
 ### Agent references are portable and fail closed
 
-Commits `09c4e4384` through `c18d2083f` add a strict names-only reference set without storing paths,
-commands, URLs, environment, credentials, or package data on the Agent. Lazy v1→v2 roster migration
-runs under the existing locked mutation path. Revision-fenced updates and `createRunForAgent` resolve
-the latest durable Agent and stamp its revision atomically. Preparation failures remain queued→failed;
-only the terminal-launch phase may project an unverifiable spawn to waiting. A stopped Computer is not
-started when the Server lacks a resolver. The existing managed host projector now exposes the already
-registered SSH filesystem provider, and MCP configuration candidates have stable IDs.
+Commits `09c4e4384` through `e2ee00657` add a strict names-only reference set without storing paths,
+commands, URLs, environment, credentials, or package data on the Agent. Lazy v1→v2 migration,
+revision-fenced updates, and `createRunForAgent` atomically snapshot the latest durable revision.
+Preparation failures remain queued→failed; only the terminal-launch phase may project an unverifiable
+spawn to waiting.
 
-The resolver remains intentionally unadvertised. The next deepening step is one Computer-local resolver
-that reuses skill discovery and bounded MCP inspection, then an additive update/inspection RPC and
-capability-gated UI. Until that composition lands, non-empty requirements fail before Computer start or
-terminal spawn rather than being silently ignored.
+The composed resolver uses the managed Computer's incumbent SSH filesystem provider, generation-fences
+its evidence, reuses skill discovery, bounds MCP reads, and rejects unavailable or wrong-scope facts.
+Remote transport failures propagate instead of becoming evidence of absence. `agents.references.update`
+reuses the store CAS, while `agents.references.v1` is advertised only when both the roster and enforcing
+execution service are present. The compact inline editor hides itself from old or unverifiable runtimes.
 
 ### Agent and Run records no longer lose cross-instance writes
 
@@ -120,15 +119,15 @@ change remains behind the existing store boundary and does not alter PTY ownersh
 
 ## Ranked remaining findings
 
-| Rank | Verdict | Finding                                                                                                                          | Required direction                                                                                                                                            |
-| ---- | ------- | -------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1    | Next    | Replacement recovery still exposes a temporal store callback protocol and has no durable in-progress intent for process crashes. | Deepen the existing configuration/reconciler seam into one recoverable operation; persist intent and let startup reconciliation complete or roll it back.     |
-| 2    | Next    | Exact-string premount allowlisting does not canonicalize execution-host symlinks.                                                | Resolve and validate canonical operator-owned sources immediately before engine creation; document the remaining filesystem TOCTOU boundary.                  |
-| 3    | Next    | Cross-entity Agent/Run/Computer/Server rules are split between `DorkaRuntimeService` pass-throughs and dorkad composition.       | Deepen the existing dorkad control plane and let `DorkaRuntimeService` remain the capability boundary that delegates to it. Do not add a facade or transport. |
-| 4    | Next    | Agent requirements have a deep persistence/launch seam but no Computer-local implementation.                                     | Reuse managed SSH filesystem projection, existing skill discovery, and bounded MCP inspection; advertise editing only after launch enforcement is composed.   |
-| 5    | Next    | The configuration renderer still combines remote state, editor state, validation, and most fields in one large component.        | Extract one reviewed-configuration state machine plus substantive environment and premount editors; avoid cosmetic wrappers.                                  |
-| 6    | Later   | Capability requirements and response parsing are duplicated between RPC method arrays and renderer clients.                      | Add lifecycle-operation descriptors with params, result schema, and capability metadata while preserving method strings and envelopes.                        |
-| 7    | Later   | Run and Computer UI behavior classifies some failures by matching prose.                                                         | Add an additive, allowlisted domain error vocabulary while retaining human messages and mixed-version fallback.                                               |
+| Rank | Verdict | Finding                                                                                                                          | Required direction                                                                                                                                               |
+| ---- | ------- | -------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1    | Next    | Replacement recovery still exposes a temporal store callback protocol and has no durable in-progress intent for process crashes. | Deepen the existing configuration/reconciler seam into one recoverable operation; persist intent and let startup reconciliation complete or roll it back.        |
+| 2    | Next    | Exact-string premount allowlisting does not canonicalize execution-host symlinks.                                                | Resolve and validate canonical operator-owned sources immediately before engine creation; document the remaining filesystem TOCTOU boundary.                     |
+| 3    | Next    | Cross-entity Agent/Run/Computer/Server rules are split between `DorkaRuntimeService` pass-throughs and dorkad composition.       | Deepen the existing dorkad control plane and let `DorkaRuntimeService` remain the capability boundary that delegates to it. Do not add a facade or transport.    |
+| 4    | Next    | Managed skill discovery still carries an optional host bag and launch resolution reconnects before terminal launch.              | Deepen the existing host projector into one Computer execution-host lease; keep Orca SSH/filesystem/PTY adapters internal and avoid a second provider framework. |
+| 5    | Next    | The configuration renderer still combines remote state, editor state, validation, and most fields in one large component.        | Extract one reviewed-configuration state machine plus substantive environment and premount editors; avoid cosmetic wrappers.                                     |
+| 6    | Later   | Capability requirements and response parsing are duplicated between RPC method arrays and renderer clients.                      | Add lifecycle-operation descriptors with params, result schema, and capability metadata while preserving method strings and envelopes.                           |
+| 7    | Later   | Run and Computer UI behavior classifies some failures by matching prose.                                                         | Add an additive, allowlisted domain error vocabulary while retaining human messages and mixed-version fallback.                                                  |
 
 ## Modules to preserve
 
