@@ -152,7 +152,7 @@ function build(names, artifacts) {
   const build2 = (tag, file, extra = []) => {
     const output = engine([
       'build',
-      '--pull=always',
+      '--pull',
       '--platform',
       'linux/amd64',
       '--label',
