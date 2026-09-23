@@ -49,7 +49,7 @@ the server container must start and accept remote client connections.
 - [x] Keep the existing Settings experience with only supported sections visible.
 - [ ] Keep the existing local diff viewer.
 - [ ] Keep PR Review using credentials and tools inside the selected Computer.
-- [ ] Keep Automations for scheduled or repeated Agent launches.
+- [x] Keep Automations for scheduled or repeated Agent launches.
 - [ ] Apply Dorka terminology and restrained visual polish without changing the UI paradigm.
 
 ### Eliminate from the product UI
@@ -58,8 +58,8 @@ the server container must start and accept remote client connections.
 - [ ] Remove Commands and Quick Commands product surfaces.
 - [x] Remove Tasks and Kanban navigation.
 - [ ] Remove relay setup, status, and navigation.
-- [ ] Remove dedicated GitHub integration and sign-in surfaces.
-- [ ] Remove dedicated Linear integration and sign-in surfaces.
+- [x] Remove dedicated GitHub integration and sign-in surfaces.
+- [x] Remove dedicated Linear integration and sign-in surfaces.
 
 ### Runtime integration
 
