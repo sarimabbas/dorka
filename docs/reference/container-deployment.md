@@ -11,16 +11,20 @@ client -> :6768 dorka-server -> /var/run/docker.sock -> sibling Computers
 
 ## Start the server
 
-The server image downloads the pinned Orca AppImage release, extracts it at
-build time, and runs it as the unprivileged `dorka` user. `/data` holds the
+The multi-stage server image installs the checkout's locked dependencies, runs
+`pnpm run build:dorkad`, and copies the plain Node server plus its production
+modules into the runtime image. It does not download an Orca release or start
+Electron. The server runs as the unprivileged `dorka` user. `/data` holds the
 server profile and must remain persistent.
 
 ### Docker
 
-Rootful Docker uses the default socket:
+Rootful Docker uses the default socket. Build and start the current checkout:
 
 ```bash
 docker compose up -d --build
+docker compose ps
+docker compose logs dorka-server
 ```
 
 For rootless Docker, point `DORKA_ENGINE_SOCKET` at the daemon owned by your
@@ -34,7 +38,7 @@ docker compose up -d --build
 The bind mount always appears as `/var/run/docker.sock` inside the server, and
 `DOCKER_HOST=unix:///var/run/docker.sock` tells the bundled Docker CLI where to
 connect. The entrypoint adds the unprivileged server user to the socket's
-numeric group at startup.
+numeric group at startup, then runs `node /opt/dorka/out/dorkad/dorkad.js`.
 
 ### Podman
 

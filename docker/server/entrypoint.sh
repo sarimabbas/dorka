@@ -15,4 +15,4 @@ else
 fi
 
 chown dorka:dorka /data
-exec gosu dorka /opt/dorka/AppRun "$@"
+exec gosu dorka node /opt/dorka/out/dorkad/dorkad.js "$@"
