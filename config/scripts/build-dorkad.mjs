@@ -42,6 +42,8 @@ const WATCHER_OUT_FILE = join(OUT_DIR, 'parcel-watcher-process-entry.js')
 // dorkad restart would SIGKILL every running terminal.
 const DAEMON_ENTRY = join(ROOT, 'src/main/daemon/daemon-entry.ts')
 const DAEMON_OUT_FILE = join(OUT_DIR, 'daemon-entry.js')
+const RUNTIME_CLIENT_ENTRY = join(ROOT, 'src/cli/runtime/client.ts')
+const RUNTIME_CLIENT_OUT_FILE = join(OUT_DIR, 'runtime-client.js')
 const AGENT_BROWSER_NAME = `agent-browser-${platform()}-${arch()}${process.platform === 'win32' ? '.exe' : ''}`
 const OUT_FILE = join(OUT_DIR, 'dorkad.js')
 const AGENT_BROWSER_SOURCE = join(ROOT, 'node_modules', 'agent-browser', 'bin', AGENT_BROWSER_NAME)
@@ -107,7 +109,19 @@ function buildForkedChild(entryPoint, outfile) {
 
 const childResults = await Promise.all([
   buildForkedChild(WATCHER_ENTRY, WATCHER_OUT_FILE),
-  buildForkedChild(DAEMON_ENTRY, DAEMON_OUT_FILE)
+  buildForkedChild(DAEMON_ENTRY, DAEMON_OUT_FILE),
+  build({
+    entryPoints: [RUNTIME_CLIENT_ENTRY],
+    bundle: true,
+    platform: 'node',
+    target: 'node18',
+    format: 'cjs',
+    outfile: RUNTIME_CLIENT_OUT_FILE,
+    metafile: true,
+    minify: true,
+    sourcemap: false,
+    logLevel: 'error'
+  })
 ])
 
 const result = await build({

@@ -56,6 +56,22 @@ describe('native Linux acceptance contracts', () => {
     )
   })
 
+  it('ships and extracts the standalone RPC client used by the native host', () => {
+    const build = readFileSync(resolve(import.meta.dirname, 'build-dorkad.mjs'), 'utf8')
+    const runtime = readFileSync(
+      resolve(
+        import.meta.dirname,
+        '../../tests/e2e/fixtures/dorka-native-linux-computer/native-linux-acceptance-runtime.mjs'
+      ),
+      'utf8'
+    )
+
+    expect(build).toContain("const RUNTIME_CLIENT_ENTRY = join(ROOT, 'src/cli/runtime/client.ts')")
+    expect(build).toContain("const RUNTIME_CLIENT_OUT_FILE = join(OUT_DIR, 'runtime-client.js')")
+    expect(runtime).toContain(':/opt/dorka/out/dorkad/runtime-client.js`')
+    expect(runtime).toContain("import {RuntimeClient} from './out/dorkad/runtime-client.js'")
+  })
+
   it('pulls registry bases without trying to pull the local fixture base', () => {
     const common = { tag: 'acceptance:latest', label: 'dev.dorka.acceptance-run=test' }
     expect(acceptanceBuildArgs({ ...common, file: 'docker/computer/Dockerfile' })).toContain(

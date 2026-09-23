@@ -178,7 +178,7 @@ function build(names, artifacts) {
   )
 }
 function rpc(pairing, method, params = void 0) {
-  const source = `import {RuntimeClient} from './out/cli/runtime/client.js';const c=new RuntimeClient(undefined,30000,process.env.DORKA_PAIRING_CODE);const r=await c.call(process.argv[1],JSON.parse(process.argv[2]));process.stdout.write(JSON.stringify(r.result));`
+  const source = `import {RuntimeClient} from './out/dorkad/runtime-client.js';const c=new RuntimeClient(undefined,30000,process.env.DORKA_PAIRING_CODE);const r=await c.call(process.argv[1],JSON.parse(process.argv[2]));process.stdout.write(JSON.stringify(r.result));`
   return JSON.parse(
     command('node', ['--input-type=module', '-e', source, method, JSON.stringify(params)], {
       env: { DORKA_PAIRING_CODE: pairing }
@@ -221,6 +221,12 @@ function startServer(names, port, image) {
   ])
   engine(['network', 'connect', 'dorka-runtimes', names.server])
   engine(['start', names.server])
+  mkdirSync(resolve(ROOT, 'out', 'dorkad'), { recursive: true })
+  engine([
+    'cp',
+    `${names.server}:/opt/dorka/out/dorkad/runtime-client.js`,
+    resolve(ROOT, 'out', 'dorkad', 'runtime-client.js')
+  ])
 }
 function ready(names, artifacts, suffix) {
   const value = waitFor('dorkad readiness', 18e4, () => {
@@ -259,8 +265,13 @@ function captureFailureDiagnostics(names, artifacts, failure) {
     'failure.txt',
     failure instanceof Error ? (failure.stack ?? failure.message) : String(failure)
   )
+  const containers = new Set(
+    engine(['ps', '-a', '--format', '{{.Names}}'], { allowFailure: true })
+      .split('\n')
+      .filter(Boolean)
+  )
   for (const container of [names.server, MAIN]) {
-    if (engine(['inspect', container], { allowFailure: true }) === '') {
+    if (!containers.has(container)) {
       continue
     }
     artifact(
