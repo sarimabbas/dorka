@@ -44,6 +44,12 @@ import {
 } from './agent-roster-params'
 import { CreateAgentSessionParams, EnsureAgentSessionParams } from './agent-session-params'
 import {
+  AgentSourceControlDiffParams,
+  AgentSourceControlReviewDiffParams,
+  AgentSourceControlReviewParams,
+  AgentSourceControlStatusParams
+} from './agent-source-control-params'
+import {
   AiVaultListSessionsParams,
   AiVaultPrepareSessionResumeParams,
   AiVaultSessionTitlesParams
@@ -607,6 +613,10 @@ export const RPC_PARAMS_BY_METHOD = {
   'agents.list': ListAgentsParams,
   'agents.move': MoveAgentParams,
   'agents.run': RunAgentParams,
+  'agents.sourceControl.diff': AgentSourceControlDiffParams,
+  'agents.sourceControl.review': AgentSourceControlReviewParams,
+  'agents.sourceControl.reviewDiff': AgentSourceControlReviewDiffParams,
+  'agents.sourceControl.status': AgentSourceControlStatusParams,
   'aiVault.listSessions': AiVaultListSessionsParams,
   'aiVault.prepareSessionResume': AiVaultPrepareSessionResumeParams,
   'aiVault.resolveSessionTitles': AiVaultSessionTitlesParams,

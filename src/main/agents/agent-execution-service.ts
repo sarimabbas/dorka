@@ -3,6 +3,7 @@ import { RunAgentParams, type RunAgentRequest } from '../../shared/rpc-contract/
 import type { ComputerRuntimeInfo } from '../../shared/computer-runtime'
 import type { AgentRosterStore } from './agent-roster-store'
 import type { ComputerRuntimeManager } from '../computers/computer-runtime-manager'
+import { resolveComputerSourceDirectory } from './managed-computer-host-projector'
 
 export type AgentTerminalLaunch = {
   runId: string
@@ -43,7 +44,8 @@ export class AgentExecutionService {
     const run = await this.roster.createRun({
       agentId: agent.id,
       computerId: computer.id,
-      prompt: validated.prompt
+      prompt: validated.prompt,
+      sourceDirectory: resolveComputerSourceDirectory(agent.workingDirectory)
     })
     await this.roster.transitionRun(run.id, { status: 'running' })
 

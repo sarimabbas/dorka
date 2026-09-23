@@ -33,6 +33,8 @@ describe('dorkad RPC manifest', () => {
     expect([...dorkadNames]).toEqual(
       expect.arrayContaining([
         'github.prForBranch',
+        'agents.sourceControl.status',
+        'agents.sourceControl.reviewDiff',
         'linear.listIssues',
         'pairing.getEndpoints',
         'orchestration.runCreate'
@@ -40,13 +42,22 @@ describe('dorkad RPC manifest', () => {
     )
   })
 
-  it('advertises agent execution only alongside the production launcher composition', () => {
+  it('advertises agent execution and source control only with their shared host composition', () => {
     const entry = readFileSync(new URL('./dorkad-entry.ts', import.meta.url), 'utf8')
+    const composition = readFileSync(
+      new URL('./dorkad-computer-agent-execution.ts', import.meta.url),
+      'utf8'
+    )
 
     expect(DORKAD_DISABLED_RUNTIME_CAPABILITIES).not.toContain('agents.execution.v1')
     expect(entry).toContain('createDorkadComputerAgentExecution(')
     expect(entry).toContain('agentExecutionService: computerAgentExecution.service')
+    expect(entry).toContain('computerRunSourceControl: computerAgentExecution.sourceControl')
     expect(entry).toContain('computerAgentExecution?.disconnectAll()')
+    expect(composition.match(/createManagedComputerHostProjector\(/g)).toHaveLength(1)
+    expect(composition).toContain('createManagedComputerAgentTerminalLauncher({ host, runtime })')
+    expect(composition).toContain('new ComputerRunSourceControl({')
+    expect(composition).toContain('host\n      })')
   })
 
   it('answers omitted methods without disconnecting an older client', async () => {

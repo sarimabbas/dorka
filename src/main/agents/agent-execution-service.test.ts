@@ -24,7 +24,8 @@ async function fixture(state: ComputerRuntimeInfo['state'] = 'running') {
     character: { color: 'blue', variant: 'owl' },
     job: 'Plan work',
     harnessId: 'codex',
-    promptTemplate: 'Plan carefully'
+    promptTemplate: 'Plan carefully',
+    workingDirectory: '/workspace/repo'
   })
   const computer: ComputerRuntimeInfo = {
     id: 'computer-a',
@@ -63,12 +64,14 @@ describe('AgentExecutionService', () => {
       agentId: h.agent.id,
       computerId: 'computer-a',
       prompt: 'Review the change',
+      sourceDirectory: '/workspace/repo',
       status: 'running',
       terminalSessionId: 'terminal-session-1',
       processIdentity: 'pty-incarnation-1'
     })
     expect((await AgentRosterStore.open(h.directory)).getRun(run.id)).toMatchObject({
       computerId: 'computer-a',
+      sourceDirectory: '/workspace/repo',
       terminalSessionId: 'terminal-session-1',
       processIdentity: 'pty-incarnation-1'
     })

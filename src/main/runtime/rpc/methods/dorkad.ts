@@ -50,6 +50,7 @@ import { STRUCTURED_AGENT_SESSION_METHODS } from './structured-agent-session'
 import { AGENT_HOOK_METHODS } from './agent-hooks'
 import { AGENT_LAUNCH_METHODS } from './agent-launch'
 import { AGENT_ROSTER_METHODS } from './agent-roster'
+import { AGENT_SOURCE_CONTROL_METHODS } from './agent-source-control'
 import { COMPUTER_LIFECYCLE_METHODS } from './computer-lifecycle'
 
 // Dorkad does not configure artifact, account, or plugin services. Keeping those declarations
@@ -69,6 +70,7 @@ export const DORKAD_RPC_METHOD_GROUPS = {
     ...STRUCTURED_AGENT_SESSION_METHODS,
     ...AGENT_LAUNCH_METHODS,
     ...AGENT_ROSTER_METHODS,
+    ...AGENT_SOURCE_CONTROL_METHODS,
     ...COMPUTER_LIFECYCLE_METHODS,
     ...TERMINAL_METHODS,
     ...TERMINAL_ORPHAN_METHODS,

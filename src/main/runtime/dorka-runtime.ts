@@ -5,10 +5,16 @@ import { registerWorktreeChangeInvalidator } from '../ipc/worktree-change-invali
 import { registerDetectedWorktreeScanInvalidation } from '../ipc/worktrees/listing/register-detected-worktree-scan-invalidation'
 import type { AgentCreate } from '../../shared/agent-roster'
 import type { RunAgentRequest } from '../../shared/rpc-contract/agent-roster-params'
+import type {
+  AgentSourceControlDiffRequest,
+  AgentSourceControlReviewDiffRequest,
+  AgentSourceControlReviewRequest
+} from '../../shared/rpc-contract/agent-source-control-params'
 import type { ComputerCreateSpec } from '../../shared/computer-runtime'
 import type { AgentRosterStore } from '../agents/agent-roster-store'
 import type { AgentExecutionService } from '../agents/agent-execution-service'
 import type { ComputerRuntimeManager } from '../computers/computer-runtime-manager'
+import type { ComputerRunSourceControlService } from '../agents/computer-run-source-control'
 
 type BaseRuntimeConstructorParams = ConstructorParameters<typeof DorkaRuntimeWithResolveWaiter>
 type BaseRuntimeDependencies = NonNullable<BaseRuntimeConstructorParams[2]>
@@ -17,6 +23,7 @@ export type DorkaLifecycleRpcDependencies = {
   agentRosterStore?: AgentRosterStore
   agentExecutionService?: AgentExecutionService
   computerRuntimeManager?: ComputerRuntimeManager
+  computerRunSourceControl?: ComputerRunSourceControlService
 }
 
 type DorkaRuntimeDependencies = BaseRuntimeDependencies & DorkaLifecycleRpcDependencies
@@ -25,6 +32,7 @@ class DorkaRuntimeService extends DorkaRuntimeWithResolveWaiter {
   private readonly agentRosterStore?: AgentRosterStore
   private readonly agentExecutionService?: AgentExecutionService
   private readonly computerRuntimeManager?: ComputerRuntimeManager
+  private readonly computerRunSourceControl?: ComputerRunSourceControlService
 
   constructor(
     store: BaseRuntimeConstructorParams[0] = null,
@@ -35,6 +43,7 @@ class DorkaRuntimeService extends DorkaRuntimeWithResolveWaiter {
     this.agentRosterStore = deps?.agentRosterStore
     this.agentExecutionService = deps?.agentExecutionService
     this.computerRuntimeManager = deps?.computerRuntimeManager
+    this.computerRunSourceControl = deps?.computerRunSourceControl
     // Why: the runtime listing re-runs a scan the worktree-change generation overtook and re-lists
     // through this runtime's scan cache, so a worktree change must reach both. The desktop IPC
     // module registers the generation bump at load; a headless host never loads it.
@@ -65,6 +74,22 @@ class DorkaRuntimeService extends DorkaRuntimeWithResolveWaiter {
     return this.agentExecutionService.run(request)
   }
 
+  getRunSourceControlStatus(runId: string) {
+    return this.requireComputerRunSourceControl().status(runId)
+  }
+
+  getRunSourceControlDiff(request: AgentSourceControlDiffRequest) {
+    return this.requireComputerRunSourceControl().diff(request)
+  }
+
+  getRunSourceControlReview(request: AgentSourceControlReviewRequest) {
+    return this.requireComputerRunSourceControl().review(request)
+  }
+
+  getRunSourceControlReviewDiff(request: AgentSourceControlReviewDiffRequest) {
+    return this.requireComputerRunSourceControl().reviewDiff(request)
+  }
+
   listRuntimeComputers() {
     return this.requireComputerRuntimeManager().list()
   }
@@ -83,6 +108,13 @@ class DorkaRuntimeService extends DorkaRuntimeWithResolveWaiter {
 
   removeRuntimeComputer(id: string) {
     return this.requireComputerRuntimeManager().remove(id)
+  }
+
+  private requireComputerRunSourceControl(): ComputerRunSourceControlService {
+    if (!this.computerRunSourceControl) {
+      throw new Error('Computer Run source control is unavailable')
+    }
+    return this.computerRunSourceControl
   }
 
   private requireAgentRosterStore(): AgentRosterStore {

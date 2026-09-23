@@ -7,6 +7,7 @@ import {
   createManagedComputerAgentTerminalLauncher,
   resolveComputerCwd
 } from './managed-computer-agent-terminal-launcher'
+import { createManagedComputerHostProjector } from './managed-computer-host-projector'
 
 function launch(overrides: Partial<AgentTerminalLaunch> = {}): AgentTerminalLaunch {
   return {
@@ -35,8 +36,10 @@ function launch(overrides: Partial<AgentTerminalLaunch> = {}): AgentTerminalLaun
 }
 
 function fixture() {
-  const resolveSshIdentityFile = vi.fn(async () => '/server/private/alpha/id_ed25519')
-  const connect = vi.fn(async () => undefined)
+  const resolveSshIdentityFile = vi.fn(
+    async (_computerId: string) => '/server/private/alpha/id_ed25519'
+  )
+  const connect = vi.fn(async (_target: object) => undefined)
   const createTerminalInWorkspaceScope = vi.fn(
     async (
       _scope: TerminalWorkspaceLaunchScope,
@@ -50,9 +53,12 @@ function fixture() {
       title: 'Reviewer'
     })
   )
-  const launcher = createManagedComputerAgentTerminalLauncher({
+  const host = createManagedComputerHostProjector({
     computers: { resolveSshIdentityFile },
-    sessions: { connect },
+    sessions: { connect }
+  })
+  const launcher = createManagedComputerAgentTerminalLauncher({
+    host,
     runtime: { createTerminalInWorkspaceScope }
   })
   return { connect, createTerminalInWorkspaceScope, launcher, resolveSshIdentityFile }

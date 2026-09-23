@@ -223,6 +223,7 @@ async function startDorkadRuntime(
   const runtime = new DorkaRuntimeService(store, undefined, {
     agentRosterStore: controlPlane.agents,
     agentExecutionService: computerAgentExecution.service,
+    computerRunSourceControl: computerAgentExecution.sourceControl,
     computerRuntimeManager: controlPlane.computers,
     disabledRuntimeCapabilities: DorkadRpc.DORKAD_DISABLED_RUNTIME_CAPABILITIES,
     // Why lazy: a daemon swap replaces the provider after construction, so an eager
