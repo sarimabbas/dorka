@@ -9,7 +9,9 @@ install -d -o root -g root -m 0755 /run/sshd
 chown ubuntu:ubuntu /home/ubuntu /workspace /home/ubuntu/.ssh
 chmod 0700 /home/ubuntu/.ssh
 
-install -d -o root -g root -m 0755 /home/ubuntu/.dorka
+# Sticky, group-writable storage lets the unprivileged relay publish its own
+# files without allowing it to replace the root-owned generation marker.
+install -d -o root -g ubuntu -m 1770 /home/ubuntu/.dorka
 install -d -o ubuntu -g ubuntu -m 0700 /home/ubuntu/.dorka/managed-pty-exits/v1
 password_file=/home/ubuntu/.dorka/desktop-password
 if [[ ! -s "$password_file" ]]; then

@@ -37,7 +37,7 @@ describe('Computer image entrypoint', () => {
   it('writes a root-authored generation marker and leaves a private relay journal parent', async () => {
     const script = await readFile('docker/computer/entrypoint.sh', 'utf8')
 
-    expect(script).toContain('install -d -o root -g root -m 0755 /home/ubuntu/.dorka')
+    expect(script).toContain('install -d -o root -g ubuntu -m 1770 /home/ubuntu/.dorka')
     expect(script).toContain(
       'install -d -o ubuntu -g ubuntu -m 0700 /home/ubuntu/.dorka/managed-pty-exits/v1'
     )
