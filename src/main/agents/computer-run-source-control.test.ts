@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import type { Run } from '../../shared/agent-roster'
+import type { ComputerRuntimeInfo } from '../../shared/computer-runtime'
 import type { GitBranchCompareResult, GitDiffResult } from '../../shared/git-diff-compare-types'
 import type { GitStatusResult } from '../../shared/git-status-types'
 import type { IGitProvider } from '../providers/types'
@@ -52,17 +53,17 @@ function fixture(runRecord: Run | null = run()) {
   const getBranchDiff = vi.fn(async (): Promise<GitDiffResult[]> => [])
   const isGitRepoAsync = vi.fn(async () => ({ isRepo: true, rootPath: '/workspace/original' }))
   const provider = { getStatus, getDiff, getBranchCompare, getBranchDiff, isGitRepoAsync }
-  const inspect = vi.fn(async (id: string) => ({
+  const inspect = vi.fn(async (id: string): Promise<ComputerRuntimeInfo> => ({
     id,
     name: `dorka-computer-${id}`,
     image: 'test',
-    state: 'running' as const
+    state: 'running'
   }))
-  const start = vi.fn(async (id: string) => ({
+  const start = vi.fn(async (id: string): Promise<ComputerRuntimeInfo> => ({
     id,
     name: `dorka-computer-${id}`,
     image: 'test',
-    state: 'running' as const
+    state: 'running'
   }))
   const connect = vi.fn(async (computerId: string) => ({
     id: `runtime-ssh-computer-${computerId}`,
@@ -106,6 +107,22 @@ describe('ComputerRunSourceControl', () => {
     expect(h.connect).toHaveBeenCalledWith('computer-a')
     expect(h.getGitProvider).toHaveBeenCalledWith('runtime-ssh-computer-computer-a')
     expect(h.isGitRepoAsync).toHaveBeenCalledWith('/workspace/original')
+    expect(h.getStatus).toHaveBeenCalledWith('/workspace/original')
+  })
+
+  it('wakes a stopped Run Computer before reading source control', async () => {
+    const h = fixture()
+    h.inspect.mockResolvedValueOnce({
+      id: 'computer-a',
+      name: 'dorka-computer-computer-a',
+      image: 'test',
+      state: 'stopped'
+    })
+
+    await h.authority.status('run-1')
+
+    expect(h.start).toHaveBeenCalledWith('computer-a')
+    expect(h.connect).toHaveBeenCalledWith('computer-a')
     expect(h.getStatus).toHaveBeenCalledWith('/workspace/original')
   })
 

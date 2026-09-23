@@ -11,6 +11,7 @@ import { Button } from '../ui/button'
 import { Label } from '../ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select'
 import { Textarea } from '../ui/textarea'
+import { AgentRunHistory } from './AgentRunHistory'
 
 type ComputerLoadState =
   | { kind: 'loading' }
@@ -31,6 +32,7 @@ export function AgentPresetRow({
   target: RuntimeClientTarget
 }): React.JSX.Element {
   const [launchOpen, setLaunchOpen] = useState(false)
+  const [runHistoryVersion, setRunHistoryVersion] = useState(0)
   return (
     <div>
       <div className="flex items-start justify-between gap-4 px-3 py-2.5">
@@ -59,8 +61,10 @@ export function AgentPresetRow({
           preset={preset}
           target={target}
           onClose={() => setLaunchOpen(false)}
+          onRunCreated={() => setRunHistoryVersion((version) => version + 1)}
         />
       ) : null}
+      <AgentRunHistory agentId={preset.id} target={target} refreshKey={runHistoryVersion} />
     </div>
   )
 }
@@ -68,11 +72,13 @@ export function AgentPresetRow({
 function AgentPresetLaunchForm({
   preset,
   target,
-  onClose
+  onClose,
+  onRunCreated
 }: {
   preset: Agent
   target: RuntimeClientTarget
   onClose: () => void
+  onRunCreated: () => void
 }): React.JSX.Element {
   const computerSelectId = useId()
   const promptId = useId()
@@ -117,13 +123,13 @@ function AgentPresetLaunchForm({
     setError(null)
     setRun(null)
     try {
-      setRun(
-        await runRuntimeAgentPreset(target, {
-          agentId: preset.id,
-          computerId,
-          prompt: taskPrompt
-        })
-      )
+      const created = await runRuntimeAgentPreset(target, {
+        agentId: preset.id,
+        computerId,
+        prompt: taskPrompt
+      })
+      setRun(created)
+      onRunCreated()
     } catch (cause) {
       setError(errorMessage(cause))
     } finally {

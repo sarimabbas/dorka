@@ -8,6 +8,7 @@ import {
   createRuntimeAgentPreset,
   listRuntimeAgentComputers,
   listRuntimeAgentPresets,
+  listRuntimeAgentRuns,
   runRuntimeAgentPreset
 } from '@/runtime/runtime-agent-roster-client'
 import type * as RuntimeAgentRosterClient from '@/runtime/runtime-agent-roster-client'
@@ -20,12 +21,14 @@ vi.mock('@/runtime/runtime-agent-roster-client', async (importOriginal) => {
     createRuntimeAgentPreset: vi.fn(),
     listRuntimeAgentComputers: vi.fn(),
     listRuntimeAgentPresets: vi.fn(),
+    listRuntimeAgentRuns: vi.fn(),
     runRuntimeAgentPreset: vi.fn()
   }
 })
 
 const listPresets = vi.mocked(listRuntimeAgentPresets)
 const listComputers = vi.mocked(listRuntimeAgentComputers)
+const listRuns = vi.mocked(listRuntimeAgentRuns)
 const createPreset = vi.mocked(createRuntimeAgentPreset)
 const runPreset = vi.mocked(runRuntimeAgentPreset)
 const preset: Agent = {
@@ -49,6 +52,8 @@ describe('AgentPresetsSection', () => {
   beforeEach(() => {
     listPresets.mockReset()
     listComputers.mockReset()
+    listRuns.mockReset()
+    listRuns.mockResolvedValue([])
     createPreset.mockReset()
     runPreset.mockReset()
   })
@@ -61,6 +66,29 @@ describe('AgentPresetsSection', () => {
     expect(await screen.findByText('Release reviewer')).toBeTruthy()
     expect(screen.getByText('Review releases')).toBeTruthy()
     expect(listPresets).toHaveBeenCalledWith({ kind: 'local' })
+  })
+
+  it('shows persisted Runs under their Agent with Computer and terminal identity', async () => {
+    listPresets.mockResolvedValue([preset])
+    listRuns.mockResolvedValue([
+      {
+        id: 'run-persisted',
+        agentId: preset.id,
+        computerId: 'runner-1',
+        status: 'succeeded',
+        prompt: 'Review the release.',
+        terminalSessionId: 'term-persisted',
+        processIdentity: 'pty-persisted',
+        createdAt: 10,
+        finishedAt: 20
+      }
+    ])
+
+    renderSection()
+
+    expect(await screen.findByText('Computer: runner-1')).toBeTruthy()
+    expect(screen.getByText('Terminal: term-persisted · Process: pty-persisted')).toBeTruthy()
+    expect(listRuns).toHaveBeenCalledWith({ kind: 'local' }, { agentId: preset.id })
   })
 
   it('launches inline on a selectable Computer and reports the returned identity', async () => {

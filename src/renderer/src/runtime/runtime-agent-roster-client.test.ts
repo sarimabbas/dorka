@@ -3,6 +3,7 @@ import type { AgentCreate, Run } from '../../../shared/agent-roster'
 import {
   AGENT_EXECUTION_RUNTIME_CAPABILITY,
   AGENT_ROSTER_RUNTIME_CAPABILITY,
+  AGENT_RUN_HISTORY_RUNTIME_CAPABILITY,
   COMPUTER_LIFECYCLE_RUNTIME_CAPABILITY
 } from '../../../shared/protocol-version'
 import { ensureLocalRuntimeCapabilities } from './local-runtime-capabilities'
@@ -10,9 +11,11 @@ import { callRuntimeRpc, runtimeEnvironmentSupportsCapability } from './runtime-
 import {
   AgentExecutionUnsupportedError,
   AgentRosterUnsupportedError,
+  AgentRunHistoryUnsupportedError,
   createRuntimeAgentPreset,
   listRuntimeAgentComputers,
   listRuntimeAgentPresets,
+  listRuntimeAgentRuns,
   runRuntimeAgentPreset
 } from './runtime-agent-roster-client'
 
@@ -40,6 +43,28 @@ describe('runtime agent roster client', () => {
     await expect(listRuntimeAgentPresets({ kind: 'local' })).resolves.toEqual([])
 
     expect(rpc).toHaveBeenCalledWith({ kind: 'local' }, 'agents.list', {})
+  })
+
+  it('capability-gates filtered Run history and sends only agentId', async () => {
+    localCapabilities.mockResolvedValue([AGENT_RUN_HISTORY_RUNTIME_CAPABILITY])
+    rpc.mockResolvedValue([])
+
+    await expect(listRuntimeAgentRuns({ kind: 'local' }, { agentId: 'agent-1' })).resolves.toEqual(
+      []
+    )
+
+    expect(rpc).toHaveBeenCalledWith({ kind: 'local' }, 'agents.runs.list', {
+      agentId: 'agent-1'
+    })
+  })
+
+  it('does not call a runtime without Run history capability', async () => {
+    supportsCapability.mockResolvedValue(false)
+
+    await expect(
+      listRuntimeAgentRuns({ kind: 'environment', environmentId: 'old-host' })
+    ).rejects.toBeInstanceOf(AgentRunHistoryUnsupportedError)
+    expect(rpc).not.toHaveBeenCalled()
   })
 
   it('does not call an unsupported runtime', async () => {

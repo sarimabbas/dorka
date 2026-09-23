@@ -4,7 +4,10 @@ import type { RuntimeCommandSurfaceHost } from './dorka-runtime-core'
 import { registerWorktreeChangeInvalidator } from '../ipc/worktree-change-invalidators'
 import { registerDetectedWorktreeScanInvalidation } from '../ipc/worktrees/listing/register-detected-worktree-scan-invalidation'
 import type { AgentCreate } from '../../shared/agent-roster'
-import type { RunAgentRequest } from '../../shared/rpc-contract/agent-roster-params'
+import type {
+  ListRunsRequest,
+  RunAgentRequest
+} from '../../shared/rpc-contract/agent-roster-params'
 import type {
   AgentSourceControlDiffRequest,
   AgentSourceControlReviewDiffRequest,
@@ -19,6 +22,7 @@ import type { ComputerGitIdentityService } from '../computers/computer-git-ident
 import {
   AGENT_EXECUTION_RUNTIME_CAPABILITY,
   AGENT_ROSTER_RUNTIME_CAPABILITY,
+  AGENT_RUN_HISTORY_RUNTIME_CAPABILITY,
   COMPUTER_GIT_IDENTITY_RUNTIME_CAPABILITY,
   COMPUTER_LIFECYCLE_RUNTIME_CAPABILITY,
   type RuntimeCapability
@@ -43,6 +47,7 @@ function withLifecycleCapabilityHonesty(
   const disabled = new Set<RuntimeCapability>(deps?.disabledRuntimeCapabilities)
   if (!deps?.agentRosterStore) {
     disabled.add(AGENT_ROSTER_RUNTIME_CAPABILITY)
+    disabled.add(AGENT_RUN_HISTORY_RUNTIME_CAPABILITY)
   }
   if (!deps?.agentExecutionService) {
     disabled.add(AGENT_EXECUTION_RUNTIME_CAPABILITY)
@@ -87,6 +92,10 @@ class DorkaRuntimeService extends DorkaRuntimeWithResolveWaiter {
 
   createRosterAgent(input: AgentCreate) {
     return this.requireAgentRosterStore().createAgent(input)
+  }
+
+  listRosterRuns(filter: ListRunsRequest) {
+    return this.requireAgentRosterStore().listRuns(filter)
   }
 
   async moveRosterAgent(agentId: string, computerId: string) {

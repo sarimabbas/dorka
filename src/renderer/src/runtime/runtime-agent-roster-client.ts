@@ -3,10 +3,14 @@ import type { ComputerRuntimeInfo } from '../../../shared/computer-runtime'
 import {
   AGENT_EXECUTION_RUNTIME_CAPABILITY,
   AGENT_ROSTER_RUNTIME_CAPABILITY,
+  AGENT_RUN_HISTORY_RUNTIME_CAPABILITY,
   COMPUTER_LIFECYCLE_RUNTIME_CAPABILITY,
   type RuntimeCapability
 } from '../../../shared/protocol-version'
-import type { RunAgentRequest } from '../../../shared/rpc-contract/agent-roster-params'
+import type {
+  ListRunsRequest,
+  RunAgentRequest
+} from '../../../shared/rpc-contract/agent-roster-params'
 import { ensureLocalRuntimeCapabilities } from './local-runtime-capabilities'
 import {
   callRuntimeRpc,
@@ -28,6 +32,13 @@ export class AgentExecutionUnsupportedError extends Error {
   }
 }
 
+export class AgentRunHistoryUnsupportedError extends Error {
+  constructor() {
+    super('Run history requires a newer Dorka runtime.')
+    this.name = 'AgentRunHistoryUnsupportedError'
+  }
+}
+
 async function supportsCapability(
   target: RuntimeClientTarget,
   capability: RuntimeCapability
@@ -41,7 +52,10 @@ async function supportsCapability(
 async function assertCapability(
   target: RuntimeClientTarget,
   capability: RuntimeCapability,
-  UnsupportedError: typeof AgentRosterUnsupportedError | typeof AgentExecutionUnsupportedError,
+  UnsupportedError:
+    | typeof AgentRosterUnsupportedError
+    | typeof AgentExecutionUnsupportedError
+    | typeof AgentRunHistoryUnsupportedError,
   verificationMessage: string
 ): Promise<void> {
   const supported = await supportsCapability(target, capability)
@@ -74,6 +88,19 @@ async function assertAgentExecutionSupported(target: RuntimeClientTarget): Promi
 export async function listRuntimeAgentPresets(target: RuntimeClientTarget): Promise<Agent[]> {
   await assertAgentRosterSupported(target)
   return callRuntimeRpc<Agent[]>(target, 'agents.list', {})
+}
+
+export async function listRuntimeAgentRuns(
+  target: RuntimeClientTarget,
+  filter: ListRunsRequest = {}
+): Promise<Run[]> {
+  await assertCapability(
+    target,
+    AGENT_RUN_HISTORY_RUNTIME_CAPABILITY,
+    AgentRunHistoryUnsupportedError,
+    'Could not verify Run history support.'
+  )
+  return callRuntimeRpc<Run[]>(target, 'agents.runs.list', filter)
 }
 
 export async function createRuntimeAgentPreset(

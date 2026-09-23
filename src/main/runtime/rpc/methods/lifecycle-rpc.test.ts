@@ -12,6 +12,7 @@ import { DorkaRuntimeService } from '../../dorka-runtime'
 import {
   AGENT_EXECUTION_RUNTIME_CAPABILITY,
   AGENT_ROSTER_RUNTIME_CAPABILITY,
+  AGENT_RUN_HISTORY_RUNTIME_CAPABILITY,
   COMPUTER_GIT_IDENTITY_RUNTIME_CAPABILITY,
   COMPUTER_LIFECYCLE_RUNTIME_CAPABILITY,
   RUNTIME_CAPABILITIES
@@ -33,6 +34,7 @@ describe('Agent and Computer lifecycle RPC', () => {
       'agents.create',
       'agents.move',
       'agents.run',
+      'agents.runs.list',
       'computers.list',
       'computers.create',
       'computers.start',
@@ -44,6 +46,11 @@ describe('Agent and Computer lifecycle RPC', () => {
 
     expect(expected.every((name) => methods.has(name))).toBe(true)
     expect(methods.get('agents.list')?.params?.safeParse({ extra: true }).success).toBe(false)
+    expect(methods.get('agents.runs.list')?.params?.safeParse({}).success).toBe(true)
+    expect(
+      methods.get('agents.runs.list')?.params?.safeParse({ agentId: 'agent-1', path: '/tmp' })
+        .success
+    ).toBe(false)
     expect(
       methods.get('agents.run')?.params?.safeParse({
         agentId: 'agent-1',
@@ -57,6 +64,7 @@ describe('Agent and Computer lifecycle RPC', () => {
         .success
     ).toBe(false)
     expect(RUNTIME_CAPABILITIES).toContain(AGENT_ROSTER_RUNTIME_CAPABILITY)
+    expect(RUNTIME_CAPABILITIES).toContain(AGENT_RUN_HISTORY_RUNTIME_CAPABILITY)
     expect(RUNTIME_CAPABILITIES).toContain(AGENT_EXECUTION_RUNTIME_CAPABILITY)
     expect(
       methods.get('computers.gitIdentity.set')?.params?.safeParse({
@@ -88,6 +96,7 @@ describe('Agent and Computer lifecycle RPC', () => {
     const capabilities = new DorkaRuntimeService().getStatus().capabilities
 
     expect(capabilities).not.toContain(AGENT_ROSTER_RUNTIME_CAPABILITY)
+    expect(capabilities).not.toContain(AGENT_RUN_HISTORY_RUNTIME_CAPABILITY)
     expect(capabilities).not.toContain(AGENT_EXECUTION_RUNTIME_CAPABILITY)
     expect(capabilities).not.toContain(COMPUTER_LIFECYCLE_RUNTIME_CAPABILITY)
     expect(capabilities).not.toContain(COMPUTER_GIT_IDENTITY_RUNTIME_CAPABILITY)
@@ -162,6 +171,18 @@ describe('Agent and Computer lifecycle RPC', () => {
         terminalSessionId: 'session-1',
         processIdentity: 'process-1'
       }
+    })
+    expect(
+      await dispatch(dispatcher, 'agents.runs.list', { agentId: resultId(createdAgent) })
+    ).toMatchObject({
+      ok: true,
+      result: [
+        {
+          agentId: resultId(createdAgent),
+          computerId: 'worker-1',
+          terminalSessionId: 'session-1'
+        }
+      ]
     })
     expect(await dispatch(dispatcher, 'computers.stop', { id: 'worker-1' })).toMatchObject({
       ok: true,

@@ -39,6 +39,7 @@ import { AgentLaunch, AgentLaunchReplay } from './agent-launch-params'
 import {
   CreateAgentParams,
   ListAgentsParams,
+  ListRunsParams,
   MoveAgentParams,
   RunAgentParams
 } from './agent-roster-params'
@@ -614,6 +615,7 @@ export const RPC_PARAMS_BY_METHOD = {
   'agents.list': ListAgentsParams,
   'agents.move': MoveAgentParams,
   'agents.run': RunAgentParams,
+  'agents.runs.list': ListRunsParams,
   'agents.sourceControl.diff': AgentSourceControlDiffParams,
   'agents.sourceControl.review': AgentSourceControlReviewParams,
   'agents.sourceControl.reviewDiff': AgentSourceControlReviewDiffParams,

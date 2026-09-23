@@ -6,6 +6,12 @@ const Text = z.string().trim().min(1)
 
 export const ListAgentsParams = z.object({}).strict()
 
+export const ListRunsParams = z
+  .object({
+    agentId: Id.optional()
+  })
+  .strict()
+
 export const CreateAgentParams = z
   .object({
     name: Text,
@@ -33,4 +39,5 @@ export const RunAgentParams = z
   })
   .strict()
 
+export type ListRunsRequest = z.infer<typeof ListRunsParams>
 export type RunAgentRequest = z.infer<typeof RunAgentParams>

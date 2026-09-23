@@ -1,0 +1,225 @@
+import { Suspense, useEffect, useMemo, useState } from 'react'
+import { Loader2 } from 'lucide-react'
+import type { GitDiffResult } from '../../../../shared/git-diff-compare-types'
+import type { GitStatusEntry, GitStatusResult } from '../../../../shared/git-status-types'
+import { DiffViewer } from '@/components/editor/editor-lazy-views'
+import { detectLanguage } from '@/lib/language-detect'
+import { createRunDiffDataSource } from '@/runtime/run-diff-data-source'
+import type { RuntimeClientTarget } from '@/runtime/runtime-rpc-client'
+import { Badge } from '../ui/badge'
+import { Button } from '../ui/button'
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '../ui/sheet'
+
+type LoadState<T> =
+  | { kind: 'loading' }
+  | { kind: 'error'; message: string }
+  | { kind: 'ready'; value: T }
+
+function errorMessage(error: unknown): string {
+  const message =
+    error instanceof Error && error.message ? error.message : 'Changes could not be loaded.'
+  return message.toLowerCase().includes('unverifiable')
+    ? `Changes are unverifiable: ${message}`
+    : message
+}
+
+export function RunChangesPanel({
+  runId,
+  target,
+  open,
+  onOpenChange
+}: {
+  runId: string
+  target: RuntimeClientTarget
+  open: boolean
+  onOpenChange: (open: boolean) => void
+}): React.JSX.Element {
+  return (
+    <Sheet open={open} onOpenChange={onOpenChange}>
+      <SheetContent className="w-[min(92vw,1100px)] sm:max-w-[min(92vw,1100px)]">
+        <div className="border-b border-border pr-8">
+          <SheetHeader>
+            <SheetTitle>Run Changes</SheetTitle>
+            <SheetDescription>Run: {runId}</SheetDescription>
+          </SheetHeader>
+        </div>
+        <RunChangesContent runId={runId} target={target} />
+      </SheetContent>
+    </Sheet>
+  )
+}
+
+function RunChangesContent({
+  runId,
+  target
+}: {
+  runId: string
+  target: RuntimeClientTarget
+}): React.JSX.Element {
+  const source = useMemo(() => createRunDiffDataSource(target, runId), [runId, target])
+  const [statusRequest, setStatusRequest] = useState(0)
+  const [status, setStatus] = useState<LoadState<GitStatusResult>>({ kind: 'loading' })
+  const [selected, setSelected] = useState<GitStatusEntry | null>(null)
+  const [diff, setDiff] = useState<LoadState<GitDiffResult> | null>(null)
+
+  useEffect(() => {
+    let active = true
+    setStatus({ kind: 'loading' })
+    setSelected(null)
+    setDiff(null)
+    void source
+      .getStatus()
+      .then((value) => {
+        if (active) {
+          setStatus({ kind: 'ready', value })
+        }
+      })
+      .catch((error: unknown) => {
+        if (active) {
+          setStatus({ kind: 'error', message: errorMessage(error) })
+        }
+      })
+    return () => {
+      active = false
+    }
+  }, [source, statusRequest])
+
+  useEffect(() => {
+    if (!selected) {
+      return
+    }
+    let active = true
+    setDiff({ kind: 'loading' })
+    void source
+      .getDiff(selected)
+      .then((value) => {
+        if (active) {
+          setDiff({ kind: 'ready', value })
+        }
+      })
+      .catch((error: unknown) => {
+        if (active) {
+          setDiff({ kind: 'error', message: errorMessage(error) })
+        }
+      })
+    return () => {
+      active = false
+    }
+  }, [selected, source])
+
+  if (status.kind === 'loading') {
+    return (
+      <div
+        role="status"
+        className="flex flex-1 items-center justify-center gap-2 px-6 text-sm text-muted-foreground"
+      >
+        <Loader2 className="size-4 animate-spin" />
+        Connecting to the Run-owned Computer. A stopped Computer will be woken first.
+      </div>
+    )
+  }
+  if (status.kind === 'error') {
+    return (
+      <div className="flex flex-1 items-center justify-center px-6">
+        <div className="max-w-lg space-y-3 text-center">
+          <p role="alert" className="text-sm text-destructive">
+            {status.message}
+          </p>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => setStatusRequest((value) => value + 1)}
+          >
+            Retry
+          </Button>
+        </div>
+      </div>
+    )
+  }
+
+  const entries = status.value.entries
+  return (
+    <div className="flex min-h-0 flex-1">
+      <aside className="scrollbar-sleek w-64 shrink-0 overflow-y-auto border-r border-border p-2">
+        {entries.length === 0 ? (
+          <p className="px-2 py-3 text-xs text-muted-foreground">No staged or unstaged changes.</p>
+        ) : (
+          <div className="space-y-1">
+            {entries.map((entry) => {
+              const entryKey = source.getDiffCacheKey(entry)
+              const current = selected ? source.getDiffCacheKey(selected) === entryKey : false
+              return (
+                <button
+                  key={entryKey}
+                  type="button"
+                  data-current={current}
+                  className="flex w-full items-start justify-between gap-2 rounded-md px-2 py-2 text-left hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring data-[current=true]:bg-accent"
+                  onClick={() => setSelected(entry)}
+                >
+                  <span className="min-w-0 truncate font-mono text-xs">{entry.path}</span>
+                  <Badge variant="hostContext">{entry.area}</Badge>
+                </button>
+              )
+            })}
+          </div>
+        )}
+      </aside>
+      <div className="flex min-w-0 flex-1 flex-col bg-editor-surface">
+        <RunSelectedDiff sourceKey={source.cacheKey} selected={selected} diff={diff} />
+      </div>
+    </div>
+  )
+}
+
+function RunSelectedDiff({
+  sourceKey,
+  selected,
+  diff
+}: {
+  sourceKey: string
+  selected: GitStatusEntry | null
+  diff: LoadState<GitDiffResult> | null
+}): React.JSX.Element {
+  if (!selected) {
+    return <p className="m-auto text-sm text-muted-foreground">Select a changed file.</p>
+  }
+  if (!diff || diff.kind === 'loading') {
+    return (
+      <p role="status" className="m-auto flex items-center gap-2 text-sm text-muted-foreground">
+        <Loader2 className="size-4 animate-spin" />
+        Loading {selected.path}…
+      </p>
+    )
+  }
+  if (diff.kind === 'error') {
+    return (
+      <p role="alert" className="m-auto max-w-lg px-6 text-center text-sm text-destructive">
+        {diff.message}
+      </p>
+    )
+  }
+  if (diff.value.kind === 'binary') {
+    return (
+      <p className="m-auto text-sm text-muted-foreground">
+        Text diff is unavailable for this binary file.
+      </p>
+    )
+  }
+  return (
+    <Suspense
+      fallback={<p className="m-auto text-sm text-muted-foreground">Loading diff viewer…</p>}
+    >
+      <DiffViewer
+        modelKey={`${sourceKey}:${selected.area}:${selected.path}`}
+        originalContent={diff.value.originalContent}
+        modifiedContent={diff.value.modifiedContent}
+        largeDiffRenderLimit={diff.value.largeDiffRenderLimit}
+        language={detectLanguage(selected.path)}
+        filePath={selected.path}
+        relativePath={selected.path}
+        sideBySide
+      />
+    </Suspense>
+  )
+}

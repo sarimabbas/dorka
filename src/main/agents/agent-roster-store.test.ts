@@ -61,6 +61,33 @@ describe('AgentRosterStore', () => {
     })
   })
 
+  it('filters persisted Runs by Agent after reload', async () => {
+    const { directory, store } = await openStore()
+    const firstAgent = await createAgent(store)
+    const secondAgent = await store.createAgent({
+      name: 'Reviewer',
+      character: { color: 'green', variant: 'orb' },
+      job: 'Review the change',
+      harnessId: 'claude',
+      promptTemplate: 'Review carefully.'
+    })
+    const firstRun = await store.createRun({
+      agentId: firstAgent.id,
+      computerId: 'computer-a',
+      prompt: 'First'
+    })
+    await store.createRun({
+      agentId: secondAgent.id,
+      computerId: 'computer-b',
+      prompt: 'Second'
+    })
+
+    const reloaded = await AgentRosterStore.open(directory)
+
+    expect(reloaded.listRuns({ agentId: firstAgent.id })).toEqual([firstRun])
+    expect(reloaded.listRuns()).toHaveLength(2)
+  })
+
   it('keeps placement on each Run when an Agent preference changes', async () => {
     const { store } = await openStore()
     const agent = await createAgent(store)
