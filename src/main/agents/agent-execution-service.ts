@@ -44,43 +44,47 @@ export class AgentExecutionService {
 
   async run(request: RunAgentRequest): Promise<Run> {
     const validated = RunAgentParams.parse(request)
-    const agent = this.roster.getAgent(validated.agentId)
-    if (!agent) {
+    if (!this.roster.getAgent(validated.agentId)) {
       throw new Error(`Agent not found: ${validated.agentId}`)
     }
 
     let computer = await this.computers.inspect(validated.computerId)
     const computerExecutionGeneration = await this.computers.getExecutionGeneration(computer.id)
-    const effectivePrompt = `${agent.promptTemplate}\n\n${validated.prompt}`
-    const sourceDirectory = resolveComputerSourceDirectory(agent.workingDirectory)
-    const run = await this.roster.createRun({
-      agentId: agent.id,
-      agentRevision: agent.revision,
+    const { agent, run } = await this.roster.createRunForAgent(validated.agentId, (current) => ({
       computerId: computer.id,
       computerExecutionGeneration,
-      prompt: effectivePrompt,
-      sourceDirectory
-    })
-    let identity: AgentTerminalIdentity
+      prompt: `${current.promptTemplate}\n\n${validated.prompt}`,
+      sourceDirectory: resolveComputerSourceDirectory(current.workingDirectory)
+    }))
+    const launch = {
+      runId: run.id,
+      agent,
+      computer,
+      computerExecutionGeneration,
+      prompt: run.prompt,
+      sourceDirectory: run.sourceDirectory ?? '/workspace'
+    }
+    if (agent.references.items.length > 0 && !this.resolveReferences) {
+      const error = new Error('Agent requirements cannot be resolved by this Dorka Server')
+      await this.failQueuedRun(run.id, error)
+      throw error
+    }
     try {
       if (computer.state !== 'running') {
         computer = await this.computers.start(computer.id)
-      }
-      const launch = {
-        runId: run.id,
-        agent,
-        computer,
-        computerExecutionGeneration,
-        prompt: effectivePrompt,
-        sourceDirectory
+        launch.computer = computer
       }
       if (agent.references.items.length > 0) {
-        if (!this.resolveReferences) {
-          throw new Error('Agent requirements cannot be resolved by this Dorka Server')
-        }
-        await this.resolveReferences(launch)
+        await this.resolveReferences?.(launch)
       }
-      await this.roster.transitionRun(run.id, { status: 'running' })
+    } catch (error) {
+      await this.failQueuedRun(run.id, error)
+      throw error
+    }
+
+    await this.roster.transitionRun(run.id, { status: 'running' })
+    let identity: AgentTerminalIdentity
+    try {
       identity = await this.launchTerminal(launch)
     } catch (error) {
       if (error instanceof AgentTerminalLaunchOutcomeUnknownError) {
@@ -100,5 +104,13 @@ export class AgentExecutionService {
       this.onTerminalCommitted?.(run.id, identity.ptyId)
     }
     return committed
+  }
+
+  private async failQueuedRun(runId: string, error: unknown): Promise<void> {
+    const message = error instanceof Error ? error.message : String(error)
+    await this.roster.transitionRun(runId, {
+      status: 'failed',
+      error: message || 'Agent launch preparation failed'
+    })
   }
 }

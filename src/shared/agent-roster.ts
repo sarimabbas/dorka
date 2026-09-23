@@ -8,18 +8,11 @@ const ReferenceName = z
   .trim()
   .min(1)
   .max(200)
-  .refine(
-    (value) =>
-      [...value].every((character) => {
-        const code = character.charCodeAt(0)
-        return code >= 32 && code !== 127
-      }),
-    'Reference names cannot contain controls'
+  .regex(
+    /^[A-Za-z0-9](?:[A-Za-z0-9._ -]{0,198}[A-Za-z0-9])?$/,
+    'Reference names must be portable names'
   )
-  .refine(
-    (value) => !value.includes('/') && !value.includes('\\'),
-    'References use names, not paths'
-  )
+  .refine((value) => value !== '.' && value !== '..', 'References use names, not paths')
 
 export const AgentCharacterSchema = z
   .object({
@@ -143,10 +136,7 @@ export type AgentUpdate = Partial<AgentCreate>
 export type AgentUpdateResult =
   | { outcome: 'updated'; agent: Agent }
   | { outcome: 'conflict'; currentRevision: number }
-export type RunCreate = Pick<
-  Run,
-  'agentId' | 'agentRevision' | 'computerId' | 'prompt' | 'sourceDirectory'
-> &
+export type RunCreate = Pick<Run, 'agentId' | 'computerId' | 'prompt' | 'sourceDirectory'> &
   Partial<Pick<Run, 'computerExecutionGeneration' | 'terminalSessionId' | 'processIdentity'>>
 export type RunUpdate = Partial<Pick<Run, 'terminalSessionId' | 'processIdentity'>>
 export type RunTransition = {

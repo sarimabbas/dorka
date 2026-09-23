@@ -134,18 +134,28 @@ export class AgentRosterStore {
   }
 
   createRun(input: RunCreate): Promise<Run> {
+    return this.createRunForAgent(input.agentId, () => input).then(({ run }) => run)
+  }
+
+  createRunForAgent(
+    agentId: string,
+    create: (agent: Agent) => Omit<RunCreate, 'agentId'>
+  ): Promise<{ agent: Agent; run: Run }> {
     return this.mutate((roster) => {
-      if (!roster.agents.some((agent) => agent.id === input.agentId)) {
-        throw new Error(`Agent not found: ${input.agentId}`)
+      const agent = roster.agents.find((candidate) => candidate.id === agentId)
+      if (!agent) {
+        throw new Error(`Agent not found: ${agentId}`)
       }
       const run = RunSchema.parse({
-        ...input,
+        ...create(structuredClone(agent)),
         id: randomUUID(),
+        agentId,
+        agentRevision: agent.revision,
         status: 'queued',
         createdAt: Date.now()
       })
       roster.runs.push(run)
-      return run
+      return { agent: structuredClone(agent), run }
     })
   }
 

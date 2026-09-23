@@ -131,6 +131,22 @@ describe('AgentRosterStore', () => {
     })
   })
 
+  it('atomically snapshots the latest durable Agent revision into a Run', async () => {
+    const { directory, store } = await openStore()
+    const agent = await createAgent(store)
+    const second = await AgentRosterStore.open(directory)
+    await second.updateAgent(agent.id, agent.revision, { promptTemplate: 'Latest prompt' })
+
+    const created = await store.createRunForAgent(agent.id, (current) => ({
+      computerId: 'computer-a',
+      prompt: current.promptTemplate,
+      sourceDirectory: current.workingDirectory
+    }))
+
+    expect(created.agent).toMatchObject({ revision: 2, promptTemplate: 'Latest prompt' })
+    expect(created.run).toMatchObject({ agentRevision: 2, prompt: 'Latest prompt' })
+  })
+
   it('keeps placement on each Run when an Agent preference changes', async () => {
     const { store } = await openStore()
     const agent = await createAgent(store)

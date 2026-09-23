@@ -29,6 +29,10 @@ describe('AgentReferenceSetSchema', () => {
   it('rejects paths, commands, environment, and arbitrary resource metadata', () => {
     for (const item of [
       { kind: 'skill', name: '../review', scope: 'global' },
+      { kind: 'skill', name: '.', scope: 'global' },
+      { kind: 'skill', name: '..', scope: 'global' },
+      { kind: 'skill', name: 'review\u0085hidden', scope: 'global' },
+      { kind: 'skill', name: 'review.', scope: 'global' },
       { kind: 'mcp-server', name: 'linear', configId: 'workspace', command: 'npx evil' },
       { kind: 'mcp-server', name: 'linear', configId: 'workspace', environment: { TOKEN: 'x' } }
     ]) {

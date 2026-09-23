@@ -155,8 +155,8 @@ describe('AgentExecutionService', () => {
     await expect(pending).resolves.toMatchObject({ computerExecutionGeneration })
   })
 
-  it('fails before spawn when non-empty Agent requirements have no resolver', async () => {
-    const h = await fixture()
+  it('fails before Computer start or spawn when requirements have no resolver', async () => {
+    const h = await fixture('stopped')
     await h.roster.updateAgent(h.agent.id, h.agent.revision, {
       references: {
         version: 1,
@@ -172,6 +172,7 @@ describe('AgentExecutionService', () => {
       })
     ).rejects.toThrow('requirements cannot be resolved')
 
+    expect(h.start).not.toHaveBeenCalled()
     expect(h.launch).not.toHaveBeenCalled()
     expect(h.roster.listRuns({ agentId: h.agent.id })).toEqual([
       expect.objectContaining({
@@ -180,6 +181,41 @@ describe('AgentExecutionService', () => {
         error: 'Agent requirements cannot be resolved by this Dorka Server',
         startedAt: undefined
       })
+    ])
+  })
+
+  it('treats resolver errors as pre-launch failures even when they use the launch error type', async () => {
+    const h = await fixture()
+    await h.roster.updateAgent(h.agent.id, h.agent.revision, {
+      references: {
+        version: 1,
+        items: [{ kind: 'skill', name: 'code-review', scope: 'either' }]
+      }
+    })
+    const service = new AgentExecutionService(
+      h.roster,
+      {
+        getExecutionGeneration: h.getExecutionGeneration,
+        inspect: h.inspect,
+        start: h.start
+      },
+      h.launch,
+      undefined,
+      async () => {
+        throw new AgentTerminalLaunchOutcomeUnknownError()
+      }
+    )
+
+    await expect(
+      service.run({
+        agentId: h.agent.id,
+        computerId: h.computer.id,
+        prompt: 'Review the change'
+      })
+    ).rejects.toThrow('outcome is unverifiable')
+    expect(h.launch).not.toHaveBeenCalled()
+    expect(h.roster.listRuns({ agentId: h.agent.id })).toEqual([
+      expect.objectContaining({ status: 'failed', startedAt: undefined })
     ])
   })
 
