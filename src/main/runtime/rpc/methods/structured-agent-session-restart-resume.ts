@@ -52,7 +52,7 @@ export const STRUCTURED_AGENT_SESSION_RESTART_RESUME_METHODS = [
     }
   }),
   defineMethod({
-    // Reattach only, no send. No Orca surface calls it now — the desktop prompt's single action is
+    // Reattach only, no send. No Dorka surface calls it now — the desktop prompt's single action is
     // resume-and-continue — but it is a PUBLISHED wire method, so dropping it is a wire removal an
     // older or non-desktop client would meet as an unknown method.
     name: 'agentSession.restartResume',

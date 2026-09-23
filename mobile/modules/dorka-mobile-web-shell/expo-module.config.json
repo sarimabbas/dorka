@@ -1,0 +1,9 @@
+{
+  "platforms": ["ios", "android"],
+  "ios": {
+    "modules": ["DorkaMobileWebShellModule"]
+  },
+  "android": {
+    "modules": ["expo.modules.dorkamobilewebshell.DorkaMobileWebShellModule"]
+  }
+}

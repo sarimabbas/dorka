@@ -20,14 +20,14 @@ The runner bundles the actual cache, coalescer and parser. Only command-result a
 Both phases preserve remembered-host updates while probes succeed or fail and isolate native, Ubuntu WSL, Debian WSL and two connection IDs. `results.json` records Node26.6; `electron-results.json` records installed Electron43.7 / Node24.21 running without an app window. Both runs pass all controls. This is compatibility evidence, not a historical packaged-binary reproduction.
 
 ```sh
-ORCA_BACKGROUND_LAUNCH=1 node --expose-gc docs/audits/gitlab-known-host-retirement/reproduce.cjs
-ORCA_BACKGROUND_LAUNCH=1 node node_modules/vitest/vitest.mjs run --config config/vitest.config.ts src/main/gitlab/gitlab-known-host-retirement.test.ts src/main/gitlab/gitlab-known-host-probe.test.ts src/main/gitlab/gitlab-known-host-probe-wsl-fallback.test.ts src/main/git/coalesced-probe.test.ts src/main/gitlab/client-mr-auth-rate-limit.test.ts
+DORKA_BACKGROUND_LAUNCH=1 node --expose-gc docs/audits/gitlab-known-host-retirement/reproduce.cjs
+DORKA_BACKGROUND_LAUNCH=1 node node_modules/vitest/vitest.mjs run --config config/vitest.config.ts src/main/gitlab/gitlab-known-host-retirement.test.ts src/main/gitlab/gitlab-known-host-probe.test.ts src/main/gitlab/gitlab-known-host-probe-wsl-fallback.test.ts src/main/git/coalesced-probe.test.ts src/main/gitlab/client-mr-auth-rate-limit.test.ts
 ```
 
 For the installed macOS Electron binary:
 
 ```sh
-ELECTRON_RUN_AS_NODE=1 ORCA_BACKGROUND_LAUNCH=1 node_modules/electron/dist/Electron.app/Contents/MacOS/Electron --expose-gc docs/audits/gitlab-known-host-retirement/reproduce.cjs docs/audits/gitlab-known-host-retirement/electron-results.json
+ELECTRON_RUN_AS_NODE=1 DORKA_BACKGROUND_LAUNCH=1 node_modules/electron/dist/Electron.app/Contents/MacOS/Electron --expose-gc docs/audits/gitlab-known-host-retirement/reproduce.cjs docs/audits/gitlab-known-host-retirement/electron-results.json
 ```
 
 The runner is portable; that executable path is macOS-specific. Thirty-two focused tests pass, including eight new retention/lifecycle/scope controls. Running those eight against the original source produces six failures and two passing controls. Node typecheck, focused lint (including artifact type-aware/casting scans), and the changed-code quality gate pass. The original product module and reused coalescer match named main `291b4ddd6f1c1af480169885e0fda7f9c78ff053`.

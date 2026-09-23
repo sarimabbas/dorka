@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import type { RpcContext } from '../../../core'
 import type { OrchestrationDb } from '../../../../orchestration/db'
-import type { OrcaRuntimeService } from '../../../../orca-runtime'
+import type { DorkaRuntimeService } from '../../../../dorka-runtime'
 import { openDecisionGateFromMessage } from '../../../../orchestration/coordinator-decision-gates'
 import { applyEscalationToDispatch } from '../../../../orchestration/coordinator-escalation-triage'
 import { createOrchestrationRpcHarness } from '../rpc-test-harness'
@@ -10,7 +10,7 @@ import { createRootDispatch } from '../../../../orchestration/db/root-dispatch-t
 describe('orchestration.send Dispatch authority', () => {
   const harness = createOrchestrationRpcHarness()
   let db: OrchestrationDb
-  let runtime: OrcaRuntimeService
+  let runtime: DorkaRuntimeService
   let ctx: RpcContext
 
   function setup(): void {

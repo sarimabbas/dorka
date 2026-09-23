@@ -2,7 +2,7 @@ import { existsSync, mkdirSync, readFileSync, realpathSync } from 'node:fs'
 import { homedir } from 'node:os'
 import { basename, dirname, join, resolve } from 'node:path'
 import { writeFileAtomically } from './codex-accounts/fs-utils'
-import { getOrcaManagedCodexHomePath } from './codex/codex-home-paths'
+import { getDorkaManagedCodexHomePath } from './codex/codex-home-paths'
 import { upsertProjectTrustLevel } from './codex/config-toml-trust'
 import { runExclusivelyForCodexTrustConfig } from './codex/codex-trust-config-mutation-queue'
 
@@ -13,7 +13,7 @@ export type AgentTrustPreset = 'cursor' | 'copilot' | 'codex' | 'antigravity'
  * Codex so the agent's "Do you trust this folder?" menu does not fire on
  * first launch.
  *
- * Why: Orca's "drop URL into agent input as a draft" flow injects the URL
+ * Why: Dorka's "drop URL into agent input as a draft" flow injects the URL
  * via bracketed-paste once the TUI is up. If the trust menu intercepts the
  * keystrokes (each menu reads a single character or numbered option), the
  * paste either selects an arbitrary option or quits the session. Pre-writing
@@ -165,9 +165,9 @@ export function markAntigravityWorkspaceTrusted(workspacePath: string): void {
 export function markCodexProjectTrusted(workspacePath: string): Promise<void> {
   const absPath = resolveCodexProjectTrustRoot(workspacePath)
   const systemTomlPath = join(homedir(), '.codex', 'config.toml')
-  // Why: Orca-launched Codex runs with an Orca-owned CODEX_HOME, so the trust
+  // Why: Dorka-launched Codex runs with an Dorka-owned CODEX_HOME, so the trust
   // preset must also update the runtime config Codex will actually read.
-  const runtimeTomlPath = join(getOrcaManagedCodexHomePath(), 'config.toml')
+  const runtimeTomlPath = join(getDorkaManagedCodexHomePath(), 'config.toml')
   // Why (#16441): hook installs now await a codex app-server grant, so an
   // unqueued write here can land inside their capture->restore window and be
   // reverted. Same runtime-before-system lock order the installer takes.
@@ -219,7 +219,7 @@ function canonicalize(p: string): string {
   // Why: macOS reports `/tmp/x` and `/private/tmp/x` as the same inode, but
   // both Cursor and Copilot's trust comparators run realpath() before the
   // string compare. Mirror that so a worktree under a symlinked parent
-  // (orca caches realpath()'d worktree paths) matches the agent's lookup.
+  // (dorka caches realpath()'d worktree paths) matches the agent's lookup.
   try {
     if (existsSync(p)) {
       return realpathSync.native(p)

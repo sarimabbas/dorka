@@ -125,15 +125,15 @@ describe('omp session option catalog', () => {
     expect(override(['-m', 'opus'])).toBe(false)
   })
 
-  it('switches mid-session with /orca-model <selector>, which omp resolves exactly', () => {
+  it('switches mid-session with /dorka-model <selector>, which omp resolves exactly', () => {
     const midSession = OMP_SESSION_OPTION_CATALOG.modelApply.midSession
     expect(midSession).toMatchObject({ kind: 'command' })
     if (midSession?.kind !== 'command') {
       throw new Error('expected a command apply')
     }
     const command = midSession.build('minimax-cn/MiniMax-M3')
-    expect(command).toBe('/orca-model minimax-cn/MiniMax-M3')
+    expect(command).toBe('/dorka-model minimax-cn/MiniMax-M3')
     expect(parseBuiltSessionOptionCommand(midSession.build, command)).toBe('minimax-cn/MiniMax-M3')
-    expect(parseBuiltSessionOptionCommand(midSession.build, '/orca-model ')).toBeNull()
+    expect(parseBuiltSessionOptionCommand(midSession.build, '/dorka-model ')).toBeNull()
   })
 })

@@ -1,23 +1,23 @@
 import { describe, expect, test } from 'vitest'
 import type { ComputerListAppsResult, ComputerSnapshotResult } from '../../src/shared/runtime-types'
 import {
-  ensureOrcaRuntimeLaunched,
+  ensureDorkaRuntimeLaunched,
   findRoleIndex,
   parseJsonOutput,
-  runOrcaCli,
-  stopOrcaRuntime
+  runDorkaCli,
+  stopDorkaRuntime
 } from './helpers/computer-driver'
 
 const isWindows = process.platform === 'win32'
-const e2eOptIn = process.env.ORCA_COMPUTER_E2E === '1'
+const e2eOptIn = process.env.DORKA_COMPUTER_E2E === '1'
 
 describe.skipIf(!isWindows || !e2eOptIn)('computer-use Windows e2e (Calculator)', () => {
   test('Calculator windows are discoverable by title and clickable', async () => {
-    await ensureOrcaRuntimeLaunched()
+    await ensureDorkaRuntimeLaunched()
     await launchCalculator()
     try {
       const apps = parseJsonOutput<{ result: ComputerListAppsResult }>(
-        (await runOrcaCli(['computer', 'list-apps', '--json'])).stdout
+        (await runDorkaCli(['computer', 'list-apps', '--json'])).stdout
       )
       // Windows 2025 hosts Calculator as win32calc; older images use ApplicationFrameHost.
       const calculatorApp = apps.result.apps.find(
@@ -29,7 +29,7 @@ describe.skipIf(!isWindows || !e2eOptIn)('computer-use Windows e2e (Calculator)'
 
       const state = parseJsonOutput<{ result: ComputerSnapshotResult }>(
         (
-          await runOrcaCli([
+          await runDorkaCli([
             'computer',
             'get-app-state',
             '--app',
@@ -51,7 +51,7 @@ describe.skipIf(!isWindows || !e2eOptIn)('computer-use Windows e2e (Calculator)'
       expect(clickIndex, state.result.snapshot.treeText).toBeGreaterThanOrEqual(0)
       const clicked = parseJsonOutput<{ result: ComputerSnapshotResult }>(
         (
-          await runOrcaCli([
+          await runDorkaCli([
             'computer',
             'click',
             '--app',
@@ -66,7 +66,7 @@ describe.skipIf(!isWindows || !e2eOptIn)('computer-use Windows e2e (Calculator)'
       expect(clicked.result.snapshot.elementCount).toBeGreaterThan(0)
     } finally {
       await killCalculator()
-      await stopOrcaRuntime()
+      await stopDorkaRuntime()
     }
   })
 })

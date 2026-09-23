@@ -39,7 +39,7 @@ type ApplySelectorInput = {
   expectedMembershipSha256?: string
   membership: CellAdmissionMembership
   // Why a marker rather than reading 'migration-only' directly: that state is an
-  // admission class, not a drain signal (orca-relay-operations.md:229-233).
+  // admission class, not a drain signal (dorka-relay-operations.md:229-233).
   // Evacuation targets, Asia `--mode rollback`, a failed wave's re-isolate and
   // newly registered cells all sit there durably while holding hosts. Only the
   // same-cap isolate step names cells here; every write out of 'migration-only'

@@ -3,7 +3,7 @@
 Run from the repository root with Docker running:
 
 ```sh
-ORCA_BACKGROUND_LAUNCH=1 node config/scripts/run-daemon-scope-lifetime-docker.mjs --baseline <git-ref>
+DORKA_BACKGROUND_LAUNCH=1 node config/scripts/run-daemon-scope-lifetime-docker.mjs --baseline <git-ref>
 ```
 
 This starts real systemd and a user manager in a temporary Linux container. Docker must support privileged containers and a writable cgroup v2 mount. On Docker Desktop this uses its Linux VM. The runner removes its container and image afterward.
@@ -14,4 +14,4 @@ Four cycles cover graceful SIGTERM, SIGKILL, ordinary exit, and SIGKILL of the d
 
 This proves the lifetime cleanup mechanism against real Linux process and systemd behavior. It does not reproduce a user's complete workload or assert that every reported OOM has this cause.
 
-`ORCA_DOCKER` overrides the Docker executable. `ORCA_DOCKER_PLATFORM` overrides the Linux architecture.
+`DORKA_DOCKER` overrides the Docker executable. `DORKA_DOCKER_PLATFORM` overrides the Linux architecture.

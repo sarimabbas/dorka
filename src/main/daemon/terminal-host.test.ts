@@ -184,7 +184,7 @@ describe('TerminalHost', () => {
       // ECHO enabled when it arrives. The flush waits for the prompt draw
       // plus a short delay so readline has switched the PTY into raw mode
       // first. Otherwise the command would be visibly double-echoed.
-      lastSubprocess._onDataCb?.('\x1b]777;orca-shell-ready\x07')
+      lastSubprocess._onDataCb?.('\x1b]777;dorka-shell-ready\x07')
       expect(lastSubprocess.write).not.toHaveBeenCalled()
 
       lastSubprocess._onDataCb?.('\r\nuser@host $ ')
@@ -206,7 +206,7 @@ describe('TerminalHost', () => {
           streamClient: { onData: vi.fn(), onExit: vi.fn() }
         })
 
-        lastSubprocess._onDataCb?.('\x1b]777;orca-shell-ready\x07\r\nuser@host $ ')
+        lastSubprocess._onDataCb?.('\x1b]777;dorka-shell-ready\x07\r\nuser@host $ ')
         vi.advanceTimersByTime(29)
         expect(lastSubprocess.write).not.toHaveBeenCalled()
 

@@ -14,7 +14,7 @@ import type { WorkspaceSessionState } from '../../../shared/workspace-session-st
 vi.mock('electron', () => ({
   app: {
     getPath: () => tmpdir(),
-    getName: () => 'orca-test',
+    getName: () => 'dorka-test',
     getVersion: () => '0.0.0-test',
     isPackaged: false,
     on: () => {},
@@ -73,8 +73,8 @@ function session(activeTabId: string): WorkspaceSessionState {
 describe('persisted state survives a save/load round trip', () => {
   it('reloads settings, secrets and both session partitions unchanged', () => {
     const dataFile = join(
-      realpathSync(mkdtempSync(join(tmpdir(), 'orca-store-round-trip-'))),
-      'orca-data.json'
+      realpathSync(mkdtempSync(join(tmpdir(), 'dorka-store-round-trip-'))),
+      'dorka-data.json'
     )
     const written = openStore(dataFile)
     written.updateSettings({
@@ -101,7 +101,7 @@ describe('persisted state survives a save/load round trip', () => {
     expect(Buffer.from(onDisk.settings.opencodeSessionCookie, 'base64').toString('utf8')).toContain(
       'cookie-é-value'
     )
-    expect(bytes.toString('utf8')).not.toContain('orca-secret-slot-')
+    expect(bytes.toString('utf8')).not.toContain('dorka-secret-slot-')
 
     const reloaded = openStore(dataFile)
     expect(reloaded.getSettings().opencodeSessionCookie).toBe(before.settings.opencodeSessionCookie)

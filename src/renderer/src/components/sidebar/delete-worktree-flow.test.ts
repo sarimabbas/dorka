@@ -567,7 +567,7 @@ describe('delete worktree flow', () => {
         isMainWorktree: true
       }
     ])
-    mocks.state.repos = [{ id: 'repo-1', displayName: 'orca' }]
+    mocks.state.repos = [{ id: 'repo-1', displayName: 'dorka' }]
 
     runWorktreeDelete('main')
 
@@ -575,7 +575,7 @@ describe('delete worktree flow', () => {
     expect(mocks.state.removeWorktree).not.toHaveBeenCalled()
     expect(mocks.state.openModal).toHaveBeenCalledWith('confirm-remove-folder', {
       repoId: 'repo-1',
-      displayName: 'orca',
+      displayName: 'dorka',
       hostId: 'local'
     })
   })
@@ -592,15 +592,15 @@ describe('delete worktree flow', () => {
       }
     ])
     mocks.state.repos = [
-      { id: 'repo-1', displayName: 'local orca' },
-      { id: 'repo-1', displayName: 'provisioned orca', connectionId: 'runtime-ssh-one' }
+      { id: 'repo-1', displayName: 'local dorka' },
+      { id: 'repo-1', displayName: 'provisioned dorka', connectionId: 'runtime-ssh-one' }
     ]
 
     runWorktreeDelete('main')
 
     expect(mocks.state.openModal).toHaveBeenCalledWith('confirm-remove-folder', {
       repoId: 'repo-1',
-      displayName: 'provisioned orca',
+      displayName: 'provisioned dorka',
       hostId: 'ssh:runtime-ssh-one'
     })
   })

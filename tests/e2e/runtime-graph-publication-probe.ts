@@ -9,7 +9,7 @@
  * yet: on 2026-09-16 an injected 250 ms renderer busy-wait produced zero entries
  * even though `longtask` is in `supportedEntryTypes`, so a zero there means
  * "oracle unproven", not "no long task happened". Run with
- * ORCA_TYPING_BENCH_GRAPH_PROBE_SELFTEST_MS and require a non-zero
+ * DORKA_TYPING_BENCH_GRAPH_PROBE_SELFTEST_MS and require a non-zero
  * `selfTestLongTaskMs` before believing any long-task number. That number comes
  * from the entry the busy-wait actually ran in (see `partitionSelfTestLongTask`),
  * so unrelated work cannot satisfy it, and the same entry is withheld from every
@@ -18,7 +18,7 @@
  * Renderer-side per-publication build time is unavailable here; attribute it
  * with a separate --cpu-profile run instead.
  *
- * Keep this out of acceptance timing runs (gate: ORCA_TYPING_BENCH_GRAPH_PROBE=1).
+ * Keep this out of acceptance timing runs (gate: DORKA_TYPING_BENCH_GRAPH_PROBE=1).
  */
 import type { ElectronApplication, Page } from '@stablyai/playwright-test'
 
@@ -58,13 +58,13 @@ export type RuntimeGraphPublicationProbeSnapshot = {
 }
 
 type MainProbeGlobals = {
-  __orcaGraphPublicationMainProbe?: {
+  __dorkaGraphPublicationMainProbe?: {
     stop: () => { count: number; handlerMs: number[]; atEpochMs: number[] }
   }
 }
 
 type RendererProbeWindow = Window & {
-  __orcaGraphPublicationRendererProbe?: {
+  __dorkaGraphPublicationRendererProbe?: {
     stop: () => { timeOrigin: number; longTasks: { start: number; duration: number }[] }
   }
 }
@@ -170,12 +170,12 @@ export async function startRuntimeGraphPublicationProbe(
     registry.set(channel, wrapped)
     // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: main-process bag read back only by the paired stop() call in this same run.
     const globals = globalThis as unknown as MainProbeGlobals
-    globals.__orcaGraphPublicationMainProbe = {
+    globals.__dorkaGraphPublicationMainProbe = {
       stop: () => {
         if (registry.get(channel) === wrapped) {
           registry.set(channel, original)
         }
-        delete globals.__orcaGraphPublicationMainProbe
+        delete globals.__dorkaGraphPublicationMainProbe
         return publications
       }
     }
@@ -184,7 +184,7 @@ export async function startRuntimeGraphPublicationProbe(
 
   const renderer = await page.evaluate((): string => {
     const probeWindow: RendererProbeWindow = window
-    if (probeWindow.__orcaGraphPublicationRendererProbe) {
+    if (probeWindow.__dorkaGraphPublicationRendererProbe) {
       return 'already-installed'
     }
     const supported = PerformanceObserver.supportedEntryTypes ?? []
@@ -203,13 +203,13 @@ export async function startRuntimeGraphPublicationProbe(
     } catch (error) {
       return `longtask-observer-unavailable ${String(error)}`
     }
-    probeWindow.__orcaGraphPublicationRendererProbe = {
+    probeWindow.__dorkaGraphPublicationRendererProbe = {
       stop: () => {
         for (const entry of observer.takeRecords()) {
           longTasks.push({ start: entry.startTime, duration: entry.duration })
         }
         observer.disconnect()
-        delete probeWindow.__orcaGraphPublicationRendererProbe
+        delete probeWindow.__dorkaGraphPublicationRendererProbe
         return { timeOrigin: performance.timeOrigin, longTasks }
       }
     }
@@ -230,14 +230,14 @@ export async function stopRuntimeGraphPublicationProbe(
       ? await electronApp.evaluate(() => {
           // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: reads back the bag installed by startRuntimeGraphPublicationProbe in this run.
           const globals = globalThis as unknown as MainProbeGlobals
-          return globals.__orcaGraphPublicationMainProbe?.stop() ?? null
+          return globals.__dorkaGraphPublicationMainProbe?.stop() ?? null
         })
       : null
   const rendererResult =
     start.renderer === 'installed'
       ? await page.evaluate(() => {
           const probeWindow: RendererProbeWindow = window
-          return probeWindow.__orcaGraphPublicationRendererProbe?.stop() ?? null
+          return probeWindow.__dorkaGraphPublicationRendererProbe?.stop() ?? null
         })
       : null
 

@@ -167,16 +167,16 @@ describe('preflight', () => {
     await expect(detectInstalledAgents()).resolves.toEqual(['claude', 'cursor'])
   })
 
-  it('does not report Claude Agent Teams when only the Orca shim is present', async () => {
+  it('does not report Claude Agent Teams when only the Dorka shim is present', async () => {
     execFileAsyncMock.mockImplementation(async (command, args) => {
       if (command !== 'which') {
         throw new Error(`unexpected command ${String(command)}`)
       }
-      if (String(args[0]) === 'orca') {
+      if (String(args[0]) === 'dorka') {
         return {
           environmentResolved: true,
           code: 0,
-          stdout: '/Applications/Orca.app/Contents/MacOS/orca\n',
+          stdout: '/Applications/Dorka.app/Contents/MacOS/dorka\n',
           stderr: '',
           timedOut: false
         }
@@ -187,7 +187,7 @@ describe('preflight', () => {
     await expect(detectInstalledAgents()).resolves.toEqual([])
   })
 
-  it('reports Claude Agent Teams when both Orca and Claude are present', async () => {
+  it('reports Claude Agent Teams when both Dorka and Claude are present', async () => {
     execFileAsyncMock.mockImplementation(async (command, args) => {
       if (command !== 'which') {
         throw new Error(`unexpected command ${String(command)}`)
@@ -201,11 +201,11 @@ describe('preflight', () => {
           timedOut: false
         }
       }
-      if (String(args[0]) === 'orca') {
+      if (String(args[0]) === 'dorka') {
         return {
           environmentResolved: true,
           code: 0,
-          stdout: '/Applications/Orca.app/Contents/MacOS/orca\n',
+          stdout: '/Applications/Dorka.app/Contents/MacOS/dorka\n',
           stderr: '',
           timedOut: false
         }
@@ -234,11 +234,11 @@ describe('preflight', () => {
           timedOut: false
         }
       }
-      if (String(args[0]) === 'orca') {
+      if (String(args[0]) === 'dorka') {
         return {
           environmentResolved: true,
           code: 0,
-          stdout: '/mock/windows/programs/orca.cmd\n',
+          stdout: '/mock/windows/programs/dorka.cmd\n',
           stderr: '',
           timedOut: false
         }
@@ -403,7 +403,7 @@ describe('preflight', () => {
         return {
           environmentResolved: true,
           code: 0,
-          stdout: '__ORCA_AGENT_PATH__claude\t/home/test/.local/bin/claude\n',
+          stdout: '__DORKA_AGENT_PATH__claude\t/home/test/.local/bin/claude\n',
           stderr: '',
           timedOut: false
         }
@@ -423,14 +423,14 @@ describe('preflight', () => {
       value: 'win32'
     })
     runWslProcessMock.mockImplementation(async ({ script }: { script: string }) => {
-      expect(script).not.toContain("'orca'")
-      expect(script).not.toContain("'orca-dev'")
-      expect(script).not.toContain("'orca-ide'")
+      expect(script).not.toContain("'dorka'")
+      expect(script).not.toContain("'dorka-dev'")
+      expect(script).not.toContain("'dorka-ide'")
       if (script.includes("'claude'")) {
         return {
           environmentResolved: true,
           code: 0,
-          stdout: '__ORCA_AGENT_PATH__claude\t/home/test/.local/bin/claude\n',
+          stdout: '__DORKA_AGENT_PATH__claude\t/home/test/.local/bin/claude\n',
           stderr: '',
           timedOut: false
         }
@@ -485,7 +485,7 @@ describe('preflight', () => {
         return {
           environmentResolved: true,
           code: 0,
-          stdout: '__ORCA_AGENT_PATH__claude\t/home/test/.local/bin/claude\n',
+          stdout: '__DORKA_AGENT_PATH__claude\t/home/test/.local/bin/claude\n',
           stderr: '',
           timedOut: false
         }
@@ -515,7 +515,7 @@ describe('preflight', () => {
         return {
           environmentResolved: true,
           code: 0,
-          stdout: '__ORCA_AGENT_PATH__codex\t/home/test/.local/bin/codex\n',
+          stdout: '__DORKA_AGENT_PATH__codex\t/home/test/.local/bin/codex\n',
           stderr: '',
           timedOut: false
         }

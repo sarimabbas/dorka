@@ -20,7 +20,7 @@ import { firstParam } from '../../../../src/navigation/route-param-reader'
  *
  * Encoding does not save a `.` or `..` id, which it leaves unchanged, and that pathname fails the
  * bridge's own segment rule. Handing it over anyway reaches the phone as an `init` naming no
- * screen, which the page answers with "Update Orca to open this workspace" — a failure screen in
+ * screen, which the page answers with "Update Dorka to open this workspace" — a failure screen in
  * place of the native panel sitting right behind this switch. So the route asks the schema first
  * and stays native when the answer is no, which is where every route starts.
  *

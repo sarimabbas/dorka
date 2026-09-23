@@ -7,7 +7,7 @@ import type { ProjectExecutionRuntimeResolution } from '../../../../shared/proje
 import type { StartupCommandDelivery } from '../../../../shared/codex-startup-delivery'
 import type { GlobalSettings } from '../../../../shared/global-settings-types'
 import type { TerminalStartupCwdMissingDirFallback } from '../../../../shared/terminal-startup-cwd'
-import type { OrcaRuntimeService } from '../../../runtime/orca-runtime'
+import type { DorkaRuntimeService } from '../../../runtime/dorka-runtime'
 import type { Store } from '../../../persistence'
 import type { PtySpawnResult } from '../../../providers/types'
 import type { CodexAccountSelectionTarget } from '../../../codex-accounts/runtime-selection'
@@ -78,7 +78,7 @@ export type AdoptStablePaneResult = {
 }
 
 export type PtySpawnIpcDeps = {
-  runtime?: OrcaRuntimeService
+  runtime?: DorkaRuntimeService
   store?: Store
   getSettings?: () => GlobalSettings
   getSelectedCodexHomePath?: GetSelectedCodexHomePath

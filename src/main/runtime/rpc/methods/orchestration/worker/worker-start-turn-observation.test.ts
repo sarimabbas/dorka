@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import type { RuntimeTerminalPromptDelivery } from '../../../../../../shared/runtime-terminal-contracts'
-import type { OrcaRuntimeService } from '../../../../orca-runtime'
+import type { DorkaRuntimeService } from '../../../../dorka-runtime'
 import { observeWorkerTurnStart } from './worker-start-turn-observation'
 
 function delivery(
@@ -19,12 +19,12 @@ function delivery(
 }
 
 function runtimeObserving(result: RuntimeTerminalPromptDelivery): {
-  runtime: OrcaRuntimeService
+  runtime: DorkaRuntimeService
   observe: ReturnType<typeof vi.fn>
 } {
   const observe = vi.fn().mockResolvedValue(result)
   return {
-    runtime: { observeTerminalAgentPrompt: observe } as unknown as OrcaRuntimeService,
+    runtime: { observeTerminalAgentPrompt: observe } as unknown as DorkaRuntimeService,
     observe
   }
 }

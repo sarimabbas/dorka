@@ -14,8 +14,8 @@ import {
 type ExecMock = Mock<GitRemoteExec>
 
 const REPO_PATH = '/repo-root'
-const FORK_URL = 'git@github.com:contributor/orca.git'
-const FORK_REMOTE = 'pr-contributor-orca'
+const FORK_URL = 'git@github.com:contributor/dorka.git'
+const FORK_REMOTE = 'pr-contributor-dorka'
 
 function forkTarget(overrides: Partial<GitPushTarget> = {}): GitPushTarget {
   return {
@@ -72,7 +72,7 @@ function removeCalls(exec: ExecMock): string[][] {
 }
 
 describe('cleanupUnusedWorktreePushTargetRemoteWithExec', () => {
-  it('removes an Orca-created fork remote that nothing else uses', async () => {
+  it('removes an Dorka-created fork remote that nothing else uses', async () => {
     const exec = makeExec()
     await cleanupUnusedWorktreePushTargetRemoteWithExec(
       REPO_PATH,
@@ -98,7 +98,7 @@ describe('cleanupUnusedWorktreePushTargetRemoteWithExec', () => {
     }
   })
 
-  it('keeps a remote Orca did not create (remoteCreated falsy)', async () => {
+  it('keeps a remote Dorka did not create (remoteCreated falsy)', async () => {
     const exec = makeExec()
     await cleanupUnusedWorktreePushTargetRemoteWithExec(
       REPO_PATH,
@@ -110,9 +110,9 @@ describe('cleanupUnusedWorktreePushTargetRemoteWithExec', () => {
     expect(removeCalls(exec)).toEqual([])
     // Why: the store flag alone can't rule out ownership -- on-demand
     // materialization (#17828) never sets it, so cleanup also probes the
-    // repo-local `orca-created` config provenance before bailing.
+    // repo-local `dorka-created` config provenance before bailing.
     expect(exec).toHaveBeenCalledWith(
-      ['config', '--get', `remote.${FORK_REMOTE}.orca-created`],
+      ['config', '--get', `remote.${FORK_REMOTE}.dorka-created`],
       REPO_PATH
     )
   })
@@ -169,7 +169,7 @@ describe('cleanupUnusedWorktreePushTargetRemoteWithExec', () => {
         // Same fork URL (https form), different sanitized remote name.
         'repo-1::/wt/b': forkTarget({
           remoteName: 'fork-2',
-          remoteUrl: 'https://github.com/contributor/orca.git'
+          remoteUrl: 'https://github.com/contributor/dorka.git'
         })
       }),
       exec
@@ -236,7 +236,7 @@ describe('cleanupUnusedWorktreePushTargetRemoteWithExec', () => {
   })
 
   it('keeps the remote when its URL no longer matches the fork (repurposed by the user)', async () => {
-    const exec = makeExec({ getUrl: 'git@github.com:someone-else/orca.git' })
+    const exec = makeExec({ getUrl: 'git@github.com:someone-else/dorka.git' })
     await cleanupUnusedWorktreePushTargetRemoteWithExec(
       REPO_PATH,
       'repo-1::/wt/a',
@@ -249,7 +249,7 @@ describe('cleanupUnusedWorktreePushTargetRemoteWithExec', () => {
 
   it('removes a remote owned only via git-config provenance (lazily materialized, #17828)', async () => {
     // Why: on-demand materialization never sets the store's `remoteCreated`
-    // flag, so ownership must also be provable from `remote.<name>.orca-created`.
+    // flag, so ownership must also be provable from `remote.<name>.dorka-created`.
     const exec = makeExec({ branchConfig: 'true' })
     await cleanupUnusedWorktreePushTargetRemoteWithExec(
       REPO_PATH,
@@ -342,8 +342,8 @@ describe('sameGitHubRemoteUrl', () => {
   it('matches SSH and HTTPS forms of the same GitHub fork', () => {
     expect(
       sameGitHubRemoteUrl(
-        'git@github.com:contributor/orca.git',
-        'https://github.com/contributor/orca.git'
+        'git@github.com:contributor/dorka.git',
+        'https://github.com/contributor/dorka.git'
       )
     ).toBe(true)
   })
@@ -351,8 +351,8 @@ describe('sameGitHubRemoteUrl', () => {
   it('is case-insensitive on owner/repo', () => {
     expect(
       sameGitHubRemoteUrl(
-        'git@github.com:Contributor/Orca.git',
-        'git@github.com:contributor/orca.git'
+        'git@github.com:Contributor/Dorka.git',
+        'git@github.com:contributor/dorka.git'
       )
     ).toBe(true)
   })
@@ -360,8 +360,8 @@ describe('sameGitHubRemoteUrl', () => {
   it('does not match different forks', () => {
     expect(
       sameGitHubRemoteUrl(
-        'git@github.com:contributor/orca.git',
-        'git@github.com:someone-else/orca.git'
+        'git@github.com:contributor/dorka.git',
+        'git@github.com:someone-else/dorka.git'
       )
     ).toBe(false)
   })
@@ -369,14 +369,14 @@ describe('sameGitHubRemoteUrl', () => {
   it('falls back to exact equality for non-GitHub hosts', () => {
     expect(
       sameGitHubRemoteUrl(
-        'git@gitlab.com:contributor/orca.git',
-        'git@gitlab.com:contributor/orca.git'
+        'git@gitlab.com:contributor/dorka.git',
+        'git@gitlab.com:contributor/dorka.git'
       )
     ).toBe(true)
     expect(
       sameGitHubRemoteUrl(
-        'git@gitlab.com:contributor/orca.git',
-        'https://gitlab.com/contributor/orca.git'
+        'git@gitlab.com:contributor/dorka.git',
+        'https://gitlab.com/contributor/dorka.git'
       )
     ).toBe(false)
   })

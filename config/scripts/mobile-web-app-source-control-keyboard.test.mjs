@@ -85,7 +85,7 @@ describeClosure(
       //
       // Under mkdtemp rather than in `mobile/src/platform/`: the overrides census walks that tree
       // in a parallel worker, and a planted `.web.ts` there is an unlisted override to it.
-      const root = mkdtempSync(join(tmpdir(), 'orca-keyboard-census-'))
+      const root = mkdtempSync(join(tmpdir(), 'dorka-keyboard-census-'))
       const subscriber =
         'import { Keyboard } from "react-native"\nKeyboard.addListener("x", () => {})\n'
       try {

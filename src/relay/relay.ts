@@ -1,10 +1,10 @@
 #!/usr/bin/env node
 
-// Orca Relay — remote-host daemon and reconnect bridge entry point.
+// Dorka Relay — remote-host daemon and reconnect bridge entry point.
 
 import { parseRelayLaunchOptions, readRelayEndpointCredential } from './relay-launch-options'
 import { runRelayConnectChannel } from './relay-connect-channel'
-import { runRelayOrcaCliChannel } from './relay-orca-cli-channel'
+import { runRelayDorkaCliChannel } from './relay-dorka-cli-channel'
 import { runRelayDaemon } from './relay-daemon'
 import { relayLogLine } from './relay-diagnostic-log'
 
@@ -15,8 +15,8 @@ async function main(): Promise<void> {
     return
   }
   if (options.cliMode) {
-    const marker = process.argv.indexOf('--orca-cli')
-    await runRelayOrcaCliChannel(
+    const marker = process.argv.indexOf('--dorka-cli')
+    await runRelayDorkaCliChannel(
       options.sockPath,
       marker === -1 ? [] : process.argv.slice(marker + 1),
       readRelayEndpointCredential(options.credentialFile)

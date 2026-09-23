@@ -25,10 +25,10 @@ The original tests called `executeClosePane` after a close decision. A separate 
 From the repository root with the existing dependencies installed:
 
 ```sh
-ORCA_BACKGROUND_LAUNCH=1 node docs/audits/pending-split-close/reproduce.mjs
+DORKA_BACKGROUND_LAUNCH=1 node docs/audits/pending-split-close/reproduce.mjs
 ```
 
-The script runs the actual close hook, layout binding, pane-close handler, IPC transport, daemon server, and daemon adapter. React registration and unrelated presentation/status callbacks are mocked. Daemon cases use temporary sockets, synthetic history, and the existing fake subprocess fixture; no real shell or Orca window is launched. It cleans its temporary configuration and invokes Vitest through the repository's cross-platform `runProcess`.
+The script runs the actual close hook, layout binding, pane-close handler, IPC transport, daemon server, and daemon adapter. React registration and unrelated presentation/status callbacks are mocked. Daemon cases use temporary sockets, synthetic history, and the existing fake subprocess fixture; no real shell or Dorka window is launched. It cleans its temporary configuration and invokes Vitest through the repository's cross-platform `runProcess`.
 
 `fix.patch` is reversed only inside a temporary Vite source transform for the baseline. Working files remain unchanged. New helper/test sources remain present, but the baseline close hook cannot call the helper. Source hashes and exact cases are recorded in `results.json`:
 

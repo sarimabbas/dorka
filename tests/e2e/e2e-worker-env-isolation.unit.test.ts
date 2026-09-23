@@ -11,7 +11,7 @@ import { describe, expect, it } from 'vitest'
  *
  * That is not a hypothetical: a parking-delay override written this way shrank the terminal
  * cold-park delay from 30s to 2s for later specs, which unmounted panes those specs still needed.
- * Use `test.use({ orcaAppExtraEnv })`, which Playwright scopes to the file.
+ * Use `test.use({ dorkaAppExtraEnv })`, which Playwright scopes to the file.
  */
 const E2E_ROOT = resolve(__dirname)
 
@@ -75,17 +75,17 @@ describe('e2e worker env isolation', () => {
 
   it('detects the shape it is meant to catch', () => {
     // Guards the regex itself: a green that cannot go red would pass this whole file forever.
-    expect(MODULE_SCOPE_ENV_WRITE.test("process.env.ORCA_E2E_X ??= '1'")).toBe(true)
-    expect(MODULE_SCOPE_ENV_WRITE.test("process.env.ORCA_E2E_X = '1'")).toBe(true)
-    expect(MODULE_SCOPE_ENV_WRITE.test('delete process.env.ORCA_E2E_X')).toBe(true)
-    expect(MODULE_SCOPE_ENV_WRITE.test("Object.assign(process.env, { ORCA_E2E_X: '1' })")).toBe(
+    expect(MODULE_SCOPE_ENV_WRITE.test("process.env.DORKA_E2E_X ??= '1'")).toBe(true)
+    expect(MODULE_SCOPE_ENV_WRITE.test("process.env.DORKA_E2E_X = '1'")).toBe(true)
+    expect(MODULE_SCOPE_ENV_WRITE.test('delete process.env.DORKA_E2E_X')).toBe(true)
+    expect(MODULE_SCOPE_ENV_WRITE.test("Object.assign(process.env, { DORKA_E2E_X: '1' })")).toBe(
       true
     )
     // Reads, and writes nested in any body, stay legal.
-    expect(MODULE_SCOPE_ENV_WRITE.test('const x = Number(process.env.ORCA_E2E_X) || 500')).toBe(
+    expect(MODULE_SCOPE_ENV_WRITE.test('const x = Number(process.env.DORKA_E2E_X) || 500')).toBe(
       false
     )
-    expect(MODULE_SCOPE_ENV_WRITE.test("  process.env.ORCA_E2E_X = '1'")).toBe(false)
-    expect(MODULE_SCOPE_ENV_WRITE.test("if (process.env.ORCA_E2E_X === '1') {")).toBe(false)
+    expect(MODULE_SCOPE_ENV_WRITE.test("  process.env.DORKA_E2E_X = '1'")).toBe(false)
+    expect(MODULE_SCOPE_ENV_WRITE.test("if (process.env.DORKA_E2E_X === '1') {")).toBe(false)
   })
 })

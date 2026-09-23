@@ -97,10 +97,10 @@ function totalOnlyUsageRecord(timestamp: string, totalInputTokens: number): stri
 
 beforeEach(() => {
   delete process.env.CODEX_HOME
-  fakeHomeDir = mkdtempSync(join(tmpdir(), 'orca-codex-usage-home-'))
-  userDataDir = mkdtempSync(join(tmpdir(), 'orca-codex-usage-user-data-'))
-  previousUserDataPath = process.env.ORCA_USER_DATA_PATH
-  process.env.ORCA_USER_DATA_PATH = userDataDir
+  fakeHomeDir = mkdtempSync(join(tmpdir(), 'dorka-codex-usage-home-'))
+  userDataDir = mkdtempSync(join(tmpdir(), 'dorka-codex-usage-user-data-'))
+  previousUserDataPath = process.env.DORKA_USER_DATA_PATH
+  process.env.DORKA_USER_DATA_PATH = userDataDir
   homedirMock.mockReturnValue(fakeHomeDir)
   getPathMock.mockImplementation((name: string) => {
     if (name === 'userData') {
@@ -119,15 +119,15 @@ afterEach(() => {
     process.env.CODEX_HOME = originalCodexHome
   }
   if (previousUserDataPath === undefined) {
-    delete process.env.ORCA_USER_DATA_PATH
+    delete process.env.DORKA_USER_DATA_PATH
   } else {
-    process.env.ORCA_USER_DATA_PATH = previousUserDataPath
+    process.env.DORKA_USER_DATA_PATH = previousUserDataPath
   }
   vi.clearAllMocks()
 })
 
 describe('getCodexSessionsDirectory', () => {
-  it('defaults to Orca-managed Codex runtime sessions', () => {
+  it('defaults to Dorka-managed Codex runtime sessions', () => {
     expect(getCodexSessionsDirectory()).toBe(
       join(userDataDir, 'codex-runtime-home', 'home', 'sessions')
     )
@@ -143,7 +143,7 @@ describe('getCodexSessionsDirectory', () => {
 })
 
 describe('listCodexSessionFiles', () => {
-  it('scans both Orca-managed and system Codex session homes', async () => {
+  it('scans both Dorka-managed and system Codex session homes', async () => {
     const runtimeSessionsDir = join(userDataDir, 'codex-runtime-home', 'home', 'sessions')
     const systemSessionsDir = join(fakeHomeDir, '.codex', 'sessions')
     mkdirSync(runtimeSessionsDir, { recursive: true })
@@ -165,7 +165,7 @@ describe('listCodexSessionFiles', () => {
     mkdirSync(systemSessionsDir, { recursive: true })
     mkdirSync(accountSessionsDir, { recursive: true })
     writeFileSync(
-      join(userDataDir, 'codex-accounts', 'acct-1', 'home', '.orca-managed-home'),
+      join(userDataDir, 'codex-accounts', 'acct-1', 'home', '.dorka-managed-home'),
       'acct-1\n',
       'utf-8'
     )
@@ -203,7 +203,7 @@ describe('listCodexSessionFiles', () => {
     const externalSessionsDir = join(externalHome, 'sessions')
     mkdirSync(accountDir, { recursive: true })
     mkdirSync(externalSessionsDir, { recursive: true })
-    writeFileSync(join(externalHome, '.orca-managed-home'), 'acct-redirected\n', 'utf-8')
+    writeFileSync(join(externalHome, '.dorka-managed-home'), 'acct-redirected\n', 'utf-8')
     writeFileSync(join(externalSessionsDir, 'unrelated.jsonl'), '{}\n', 'utf-8')
     symlinkSync(
       externalHome,
@@ -220,7 +220,7 @@ describe('listCodexSessionFiles', () => {
     const externalSessionsDir = join(fakeHomeDir, 'redirected-sessions')
     mkdirSync(accountHome, { recursive: true })
     mkdirSync(externalSessionsDir, { recursive: true })
-    writeFileSync(join(accountHome, '.orca-managed-home'), 'acct-redirected-sessions\n', 'utf-8')
+    writeFileSync(join(accountHome, '.dorka-managed-home'), 'acct-redirected-sessions\n', 'utf-8')
     writeFileSync(join(externalSessionsDir, 'unrelated.jsonl'), '{}\n', 'utf-8')
     symlinkSync(
       externalSessionsDir,
@@ -254,7 +254,7 @@ describe('listCodexSessionFiles', () => {
       userDataDir,
       'codex-runtime-home',
       'home',
-      '.orca-session-copies'
+      '.dorka-session-copies'
     )
     const systemSessionsDir = join(fakeHomeDir, '.codex', 'sessions')
     mkdirSync(runtimeSessionsDir, { recursive: true })
@@ -292,7 +292,7 @@ describe('listCodexSessionFiles', () => {
       userDataDir,
       'codex-runtime-home',
       'home',
-      '.orca-session-copies'
+      '.dorka-session-copies'
     )
     const systemSessionsDir = join(fakeHomeDir, '.codex', 'sessions')
     mkdirSync(runtimeSessionsDir, { recursive: true })
@@ -331,7 +331,7 @@ describe('listCodexSessionFiles', () => {
       userDataDir,
       'codex-runtime-home',
       'home',
-      '.orca-session-copies'
+      '.dorka-session-copies'
     )
     const systemSessionsDir = join(fakeHomeDir, '.codex', 'sessions')
     mkdirSync(runtimeSessionsDir, { recursive: true })
@@ -624,7 +624,7 @@ describe('listCodexSessionFiles', () => {
       userDataDir,
       'codex-runtime-home',
       'home',
-      '.orca-session-copies'
+      '.dorka-session-copies'
     )
     const systemSessionsDir = join(fakeHomeDir, '.codex', 'sessions')
     mkdirSync(runtimeSessionsDir, { recursive: true })
@@ -705,7 +705,7 @@ describe('listCodexSessionFiles', () => {
   // suffix-only — double-counting the copied prefix against the managed copy.
   it('does not reuse a pre-bridge cache once the source became suffix-only', async () => {
     const runtimeSessionsDir = join(userDataDir, 'codex-runtime-home', 'home', 'sessions')
-    const markerDir = join(userDataDir, 'codex-runtime-home', 'home', '.orca-session-copies')
+    const markerDir = join(userDataDir, 'codex-runtime-home', 'home', '.dorka-session-copies')
     const systemSessionsDir = join(fakeHomeDir, '.codex', 'sessions')
     mkdirSync(runtimeSessionsDir, { recursive: true })
     mkdirSync(systemSessionsDir, { recursive: true })
@@ -766,7 +766,7 @@ describe('listCodexSessionFiles', () => {
       userDataDir,
       'codex-runtime-home',
       'home',
-      '.orca-session-copies'
+      '.dorka-session-copies'
     )
     const systemSessionsDir = join(fakeHomeDir, '.codex', 'sessions')
     mkdirSync(runtimeSessionsDir, { recursive: true })

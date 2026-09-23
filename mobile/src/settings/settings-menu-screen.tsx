@@ -27,7 +27,7 @@ export default function SettingsMenuScreen({
             label: 'Privacy Policy',
             icon: Shield,
             external: true,
-            onPress: () => void openExternal('https://www.onorca.dev/privacy')
+            onPress: () => void openExternal('https://www.ondorka.dev/privacy')
           },
           {
             label: 'Support',

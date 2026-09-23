@@ -74,7 +74,7 @@ beforeAll(async () => {
   if (!bundles) {
     return
   }
-  scratch = await mkdtemp(join(tmpdir(), 'orca-mobile-web-app-render-'))
+  scratch = await mkdtemp(join(tmpdir(), 'dorka-mobile-web-app-render-'))
   const built = await buildMobileWebAppBundle({ outDir: join(scratch, 'bundle') })
   const { outDir } = built
   routeChunks = built.routeChunks
@@ -105,8 +105,8 @@ beforeAll(async () => {
   server = served.server
   origin = served.origin
   // CI runs this against the runner's Google Chrome rather than paying for a browser download,
-  // the same reason and the same override shape as the orcad browser-provider job.
-  const executablePath = process.env.ORCA_MOBILE_WEB_RENDER_BROWSER
+  // the same reason and the same override shape as the dorkad browser-provider job.
+  const executablePath = process.env.DORKA_MOBILE_WEB_RENDER_BROWSER
   browser = await chromium.launch({ headless: true, ...(executablePath ? { executablePath } : {}) })
 }, 180_000)
 
@@ -205,14 +205,14 @@ async function waitForRoute({ page, errors, uncaught }, route, awaitText) {
   // Polled on a timer rather than Playwright's default animation frames, which a page that never
   // paints never delivers.
   const cause = await race(
-    page.waitForFunction(() => document.documentElement.dataset.orcaWebEntry === 'mounted', {
+    page.waitForFunction(() => document.documentElement.dataset.dorkaWebEntry === 'mounted', {
       timeout: 30_000,
       polling: 250
     })
   )
   if (cause) {
     const state = await page.evaluate(
-      () => document.documentElement.dataset.orcaWebEntry ?? 'absent'
+      () => document.documentElement.dataset.dorkaWebEntry ?? 'absent'
     )
     throw named(cause, `never mounted (entry ${state})`)
   }
@@ -227,7 +227,7 @@ async function waitForRoute({ page, errors, uncaught }, route, awaitText) {
   }
   // Folded into the errors the caller already asserts empty: a throw the boundary caught paints
   // nothing and logs nothing a `pageerror` listener hears, so this is the only place it shows up.
-  for (const fault of await page.evaluate(() => globalThis.__orcaRenderCheckFaults ?? [])) {
+  for (const fault of await page.evaluate(() => globalThis.__dorkaRenderCheckFaults ?? [])) {
     errors.push(`page fault: ${fault}`)
   }
 }
@@ -245,8 +245,8 @@ async function render(route, awaitText, { shellRoute = { pathname: route }, ...s
   // What the page believes it is: read off the document rather than off the double, so a tree that
   // mounted without a session, or against a session it invented, is not a passing render.
   const session = await opened.page.evaluate(() => ({
-    sessionId: document.documentElement.dataset.orcaWebSessionId ?? null,
-    buildId: document.documentElement.dataset.orcaWebBuildId ?? null
+    sessionId: document.documentElement.dataset.dorkaWebSessionId ?? null,
+    buildId: document.documentElement.dataset.dorkaWebBuildId ?? null
   }))
   // The document is served at "/" and the page rewrites its own path before it renders; without
   // that, every route below would be expo-router's Unmatched screen.
@@ -267,7 +267,7 @@ async function render(route, awaitText, { shellRoute = { pathname: route }, ...s
 const paintReports = (page, name) =>
   page.evaluate(
     (paint) =>
-      (globalThis.__orcaRenderCheckNotifies ?? []).filter((frame) => frame.name === paint).length,
+      (globalThis.__dorkaRenderCheckNotifies ?? []).filter((frame) => frame.name === paint).length,
     name
   )
 
@@ -277,7 +277,9 @@ async function renderWithoutTree({ shellRoute } = {}) {
   // Read straight after `load` and not polled: the entry decides this synchronously, inside the
   // script `load` waits for, so a state that is not settled by now is never going to settle.
   await page.goto(`${origin}/`, { waitUntil: 'load' })
-  const entry = await page.evaluate(() => document.documentElement.dataset.orcaWebEntry ?? 'absent')
+  const entry = await page.evaluate(
+    () => document.documentElement.dataset.dorkaWebEntry ?? 'absent'
+  )
   const rootChildren = await page.evaluate(() => document.getElementById('root').childElementCount)
   const text = await page.evaluate(() => document.body.innerText)
   const url = await page.evaluate(() => location.pathname + location.search)
@@ -288,7 +290,7 @@ async function renderWithoutTree({ shellRoute } = {}) {
 describe('the shell policy this page is tested under', () => {
   it('is the same on both platforms, so one render check covers both', async () => {
     const swift = await readFile(
-      join(projectDir, 'mobile/modules/orca-mobile-web-shell/ios/MobileWebShellCsp.swift'),
+      join(projectDir, 'mobile/modules/dorka-mobile-web-shell/ios/MobileWebShellCsp.swift'),
       'utf8'
     )
     expect(parseCspDirectives(swift, 'static let header = [', '].joined')).toBe(cspHeader)
@@ -454,7 +456,7 @@ describeRender('the Route A page in a real browser', () => {
     expect(text).not.toContain(UNMATCHED)
   }, 60_000)
 
-  // Both files routes reach OrcaMobileWebShellView from their native file, whose module calls
+  // Both files routes reach DorkaMobileWebShellView from their native file, whose module calls
   // requireNativeViewManager at import and throws in a browser. The manifest defers every route
   // behind `import()`, so that throw is invisible until the page opens this route — which is why
   // it needs a `.web.tsx` sibling and why proving it costs a render of the route itself.
@@ -536,7 +538,7 @@ describeRender('the Route A page in a real browser', () => {
     const { entry, errors, text, url } = await renderWithoutTree({ shellRoute: null })
     expect(entry).toBe('shell-too-old')
     expect(errors).toEqual([])
-    expect(text).toContain('Update Orca to open this workspace')
+    expect(text).toContain('Update Dorka to open this workspace')
     // Never the route tree at `/`: that is the Unmatched screen with a worse explanation.
     expect(text).not.toContain(UNMATCHED)
     expect(url).toBe('/')
@@ -552,7 +554,7 @@ describeRender('the Route A page in a real browser', () => {
       const reported = await opened.page
         .waitForFunction(
           () => {
-            const faults = globalThis.__orcaRenderCheckFaults ?? []
+            const faults = globalThis.__dorkaRenderCheckFaults ?? []
             return faults.length > 0 ? faults : null
           },
           { timeout: 30_000, polling: 250 }
@@ -594,7 +596,7 @@ describeRender('the Route A page in a real browser', () => {
       })
       await opened.page.goto(`${origin}/`, { waitUntil: 'load' })
       await opened.page.waitForFunction(
-        () => document.documentElement.dataset.orcaWebEntry === 'mounted',
+        () => document.documentElement.dataset.dorkaWebEntry === 'mounted',
         { timeout: 30_000, polling: 250 }
       )
       // Mounted, and nothing drawn: the body is the fallback's, which is what the old seam
@@ -609,7 +611,7 @@ describeRender('the Route A page in a real browser', () => {
       await waitForRoute(opened, HOST_ROUTE, SHELL_HOST.name)
       await opened.page.waitForFunction(
         (name) =>
-          (globalThis.__orcaRenderCheckNotifies ?? []).filter((frame) => frame.name === name)
+          (globalThis.__dorkaRenderCheckNotifies ?? []).filter((frame) => frame.name === name)
             .length > 0,
         paintName,
         { timeout: 30_000, polling: 250 }
@@ -655,7 +657,7 @@ describeRender('the Route A page in a real browser', () => {
       arrive()
       await opened.page.waitForFunction(
         (name) =>
-          (globalThis.__orcaRenderCheckNotifies ?? []).filter((frame) => frame.name === name)
+          (globalThis.__dorkaRenderCheckNotifies ?? []).filter((frame) => frame.name === name)
             .length > 0,
         paintName,
         { timeout: 30_000, polling: 250 }
@@ -689,10 +691,10 @@ describeRender('the Route A page in a real browser', () => {
     // The absence that says refused rather than handed off. A page that stayed put because the
     // notify crossed and the shell did the pushing looks identical on this document otherwise;
     // the case below it grants `navigate` and asserts this same frame present.
-    const notifies = await page.evaluate(() => globalThis.__orcaRenderCheckNotifies ?? [])
+    const notifies = await page.evaluate(() => globalThis.__dorkaRenderCheckNotifies ?? [])
     expect(notifies.filter((frame) => frame.name === 'navigate')).toEqual([])
     // Not a page fault either: a refused target is the page declining to move, not a throw.
-    expect(await page.evaluate(() => globalThis.__orcaRenderCheckFaults ?? [])).toEqual([])
+    expect(await page.evaluate(() => globalThis.__dorkaRenderCheckFaults ?? [])).toEqual([])
     expect(errors).toEqual([])
     await page.close()
   }, 60_000)
@@ -770,7 +772,7 @@ describeRender('the stack the page Back button rests on', () => {
     await opened.page.goto(`${origin}/`, { waitUntil: 'load' })
     await waitForRoute(opened, HOST_ROUTE, SHELL_HOST.name)
     const url = await clickAndSettle(opened.page, '[aria-label="Back to hosts"]')
-    const notifies = await opened.page.evaluate(() => globalThis.__orcaRenderCheckNotifies ?? [])
+    const notifies = await opened.page.evaluate(() => globalThis.__dorkaRenderCheckNotifies ?? [])
     expect(notifies.filter((frame) => frame.name === 'navigate')).toEqual([
       { v: bridgeVersion, type: 'notify', name: 'navigate', href: '/' }
     ])

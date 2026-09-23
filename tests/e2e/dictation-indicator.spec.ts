@@ -1,4 +1,4 @@
-import { expect, test } from './helpers/orca-app'
+import { expect, test } from './helpers/dorka-app'
 import type { Page } from '@stablyai/playwright-test'
 
 type MeterFixture = {
@@ -33,59 +33,59 @@ async function setDictationVisualState(
 }
 
 async function pauseForRecordedProof(page: Page): Promise<void> {
-  if (process.env.ORCA_E2E_RECORD_VIDEO === '1') {
+  if (process.env.DORKA_E2E_RECORD_VIDEO === '1') {
     await page.waitForTimeout(700)
   }
 }
 
-test('dictation grapes react across the visible recording lifecycle', async ({ orcaPage }) => {
+test('dictation grapes react across the visible recording lifecycle', async ({ dorkaPage }) => {
   const quiet = { level: 0, isSpeaking: false, isClipping: false }
-  await setDictationVisualState(orcaPage, 'listening', quiet)
+  await setDictationVisualState(dorkaPage, 'listening', quiet)
 
-  const indicator = orcaPage.getByTestId('dictation-indicator')
+  const indicator = dorkaPage.getByTestId('dictation-indicator')
   const status = indicator.getByRole('status')
   await expect(indicator).toBeVisible()
   await expect(status).toHaveText('Listening')
   await expect(indicator.getByTestId('dictation-grapes').locator('span')).toHaveCount(9)
   await expect(indicator.getByRole('button', { name: 'Stop dictation' })).toBeVisible()
-  await orcaPage.emulateMedia({ reducedMotion: 'reduce' })
+  await dorkaPage.emulateMedia({ reducedMotion: 'reduce' })
   await expect(indicator.getByTestId('dictation-grapes').locator('span').first()).toHaveCSS(
     'transition-property',
     'none'
   )
-  await orcaPage.emulateMedia({ reducedMotion: 'no-preference' })
-  await pauseForRecordedProof(orcaPage)
+  await dorkaPage.emulateMedia({ reducedMotion: 'no-preference' })
+  await pauseForRecordedProof(dorkaPage)
 
   const speaking = {
     level: 0.76,
     isSpeaking: true,
     isClipping: false
   }
-  await setDictationVisualState(orcaPage, 'listening', speaking)
+  await setDictationVisualState(dorkaPage, 'listening', speaking)
   await expect(indicator.getByText('Speaking')).toBeVisible()
   await expect(status).toHaveText('Listening')
-  await pauseForRecordedProof(orcaPage)
+  await pauseForRecordedProof(dorkaPage)
 
   const clipping = { ...speaking, level: 1, isClipping: true }
-  await setDictationVisualState(orcaPage, 'listening', clipping)
+  await setDictationVisualState(dorkaPage, 'listening', clipping)
   await expect(status).toHaveText('Too loud')
   await expect(indicator).toHaveClass(/text-destructive/)
-  await pauseForRecordedProof(orcaPage)
+  await pauseForRecordedProof(dorkaPage)
 
   await setDictationVisualState(
-    orcaPage,
+    dorkaPage,
     'listening',
     speaking,
     'The visualizer follows every word without covering the workspace.'
   )
   await expect(
-    orcaPage.getByText('The visualizer follows every word without covering the workspace.')
+    dorkaPage.getByText('The visualizer follows every word without covering the workspace.')
   ).toBeVisible()
   await expect(status).toHaveText('Listening')
-  await pauseForRecordedProof(orcaPage)
+  await pauseForRecordedProof(dorkaPage)
 
-  await setDictationVisualState(orcaPage, 'stopping', quiet)
+  await setDictationVisualState(dorkaPage, 'stopping', quiet)
   await expect(status).toHaveText('Processing…')
   await expect(indicator.getByRole('button', { name: 'Stop dictation' })).toHaveCount(0)
-  await pauseForRecordedProof(orcaPage)
+  await pauseForRecordedProof(dorkaPage)
 })

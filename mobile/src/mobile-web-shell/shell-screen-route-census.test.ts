@@ -19,7 +19,7 @@ const PAGE_ROUTE_REGISTRY = join(
  * given, and asks it in one place.
  *
  * A route the schema refuses is dropped to `null` by `bridge-host.ts` and reaches the phone as an
- * `init` naming no screen, which the page answers with "Update Orca to open this workspace" — a
+ * `init` naming no screen, which the page answers with "Update Dorka to open this workspace" — a
  * failure screen in place of the native screen sitting right behind the switch. Three routes had
  * each grown their own copy of the call and two had none at all, which is the state this census
  * ends: the predicate is `shellScreenRoute`, and a switch that spells it itself has a second

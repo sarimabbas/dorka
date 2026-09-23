@@ -169,14 +169,14 @@ resource "google_compute_instance_template" "relay_gce_cell" {
   name_prefix    = "${substr("${local.relay_gce_name}-${each.value.hostname}", 0, 52)}-"
   machine_type   = each.value.machine_type
   can_ip_forward = false
-  tags           = ["orca-relay-cell"]
+  tags           = ["dorka-relay-cell"]
   labels = merge(
     local.relay_shared_labels,
     {
-      orca-relay-role = "cell"
-      orca-relay-cell = each.key
+      dorka-relay-role = "cell"
+      dorka-relay-cell = each.key
     },
-    each.value.region == var.region ? {} : { orca-relay-region = each.value.region }
+    each.value.region == var.region ? {} : { dorka-relay-region = each.value.region }
   )
 
   disk {

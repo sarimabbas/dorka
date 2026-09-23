@@ -20,9 +20,9 @@ const FILE_GROUPS = [
   {
     label: 'runtime removal',
     files: [
-      join(__dirname, 'orca-runtime-pty-foreground-process-reads.ts'),
-      join(__dirname, 'orca-runtime-resolve-worktree-removal-target.ts'),
-      join(__dirname, 'orca-runtime-remove-managed-worktree.ts')
+      join(__dirname, 'dorka-runtime-pty-foreground-process-reads.ts'),
+      join(__dirname, 'dorka-runtime-resolve-worktree-removal-target.ts'),
+      join(__dirname, 'dorka-runtime-remove-managed-worktree.ts')
     ]
   }
 ] as const

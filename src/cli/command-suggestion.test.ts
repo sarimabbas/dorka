@@ -12,19 +12,19 @@ const specs: CommandSpec[] = [
     ],
     destructive: true,
     summary: 'Remove a worktree',
-    usage: 'orca worktree rm',
+    usage: 'dorka worktree rm',
     allowedFlags: []
   },
   {
     path: ['worktree', 'list'],
     summary: 'List worktrees',
-    usage: 'orca worktree list',
+    usage: 'dorka worktree list',
     allowedFlags: []
   },
   {
     path: ['terminal', 'send'],
     summary: 'Send input',
-    usage: 'orca terminal send',
+    usage: 'dorka terminal send',
     allowedFlags: []
   },
   {
@@ -33,14 +33,14 @@ const specs: CommandSpec[] = [
     path: ['emulator', 'kill'],
     destructive: true,
     summary: 'Kill the emulator',
-    usage: 'orca emulator kill',
+    usage: 'dorka emulator kill',
     allowedFlags: []
   },
   {
     path: ['terminal', 'stop'],
     hidden: true,
     summary: 'Deprecated terminal stop',
-    usage: 'orca terminal stop',
+    usage: 'dorka terminal stop',
     allowedFlags: []
   }
 ]
@@ -129,7 +129,7 @@ describe('unknownCommandData', () => {
     const data = unknownCommandData(specs, ['worktree', 'remov'])
     expect(data.suggestions).toContain('worktree rm')
     expect(data.nextSteps[0]).toContain('Did you mean')
-    expect(data.nextSteps[0]).toContain('orca worktree rm')
+    expect(data.nextSteps[0]).toContain('dorka worktree rm')
   })
 
   it('produces empty nextSteps when nothing is close', () => {

@@ -22,7 +22,7 @@ export type NativeChatLinkActions = {
   closeLinkActions: (dismissed?: LinkActionRequest) => void
 }
 
-/** Transcript links: file targets open in Orca, http(s) targets offer the same
+/** Transcript links: file targets open in Dorka, http(s) targets offer the same
  *  destination popover the terminal shows. */
 export function useNativeChatLinkActions(
   context: NativeChatFileLinkContext | null,

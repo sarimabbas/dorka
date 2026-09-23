@@ -351,7 +351,7 @@ export function RemoteBrowserPagePane({
         <RemoteBrowserPageContextMenu
           contextMenu={contextMenu}
           onDismiss={() => setContextMenu(null)}
-          onOpenLinkInOrcaBrowser={() => {
+          onOpenLinkInDorkaBrowser={() => {
             const linkUrl = contextMenu.linkUrl!
             setContextMenu(null)
             void openWorkspaceBrowserTab({

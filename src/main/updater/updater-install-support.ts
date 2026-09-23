@@ -56,12 +56,12 @@ export abstract class UpdaterInstallSupport extends UpdaterCheckState {
         { phase, version: version || null },
         {
           level: 'warn',
-          message: 'Update install deferred while hosting orca serve'
+          message: 'Update install deferred while hosting dorka serve'
         }
       )
     }
     this.sendErrorStatus(
-      'This orca serve process was not started by an update-capable supervisor. Keep it running and update Orca through its service manager.',
+      'This dorka serve process was not started by an update-capable supervisor. Keep it running and update Dorka through its service manager.',
       true
     )
     return true
@@ -86,8 +86,8 @@ export abstract class UpdaterInstallSupport extends UpdaterCheckState {
    */
   protected getPreCommitInstallFailureMessage(): string {
     return process.platform === 'darwin'
-      ? 'Could not restart to install the update. Quit and reopen Orca, then try again.'
-      : 'Could not start the update installer. Orca remains open.'
+      ? 'Could not restart to install the update. Quit and reopen Dorka, then try again.'
+      : 'Could not start the update installer. Dorka remains open.'
   }
 
   /**

@@ -171,8 +171,8 @@ const MOBILE_ZOD_PACKAGE = join(mobileDir, 'node_modules', 'zod')
 const ZOD_JITLESS_BANNER =
   'globalThis.__zod_globalConfig ??= {}; globalThis.__zod_globalConfig.jitless = true;'
 
-const ROUTE_MANIFEST_PLUGIN_NAME = 'orca-route-manifest'
-const LUCIDE_PLUGIN_NAME = 'orca-lucide-barrel-provider'
+const ROUTE_MANIFEST_PLUGIN_NAME = 'dorka-route-manifest'
+const LUCIDE_PLUGIN_NAME = 'dorka-lucide-barrel-provider'
 
 /** The entry output's name, so classifying the outputs never has to guess which one it is. */
 const ENTRY_CHUNK_NAME = 'entry'
@@ -564,7 +564,7 @@ export async function buildMobileWebAppBundle({
     // answers 403, the path being in no manifest. Empty rather than an asset: a WebView document
     // has no tab for an icon, and the bundle's images are route assets named by their own bytes.
     '<link rel="icon" href="data:," />\n' +
-    `<title>Orca</title>\n${MOBILE_WEB_APP_ROOT_RESET}\n</head>\n<body>\n<div id="root"></div>\n` +
+    `<title>Dorka</title>\n${MOBILE_WEB_APP_ROOT_RESET}\n</head>\n<body>\n<div id="root"></div>\n` +
     `<script type="module" src="/${scriptAsset.path}"></script>\n</body>\n</html>\n`
   const indexBytes = Buffer.from(html, 'utf8')
   const indexAsset = {

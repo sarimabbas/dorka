@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 
 import {
   inventoryRemoteInstallDirs,
-  ORCAD_INSTALL_MODEL,
+  DORKAD_INSTALL_MODEL,
   RELAY_INSTALL_MODEL,
   remoteInstallDirName,
   remoteInstallDirOwner,
@@ -12,12 +12,12 @@ import {
 } from './remote-install-model'
 
 const RELAY_DIRS = ['relay-0.1.0+abcdef123456', 'relay-v0.1.0', 'relay-1.2.3']
-const ORCAD_DIRS = ['orcad-0.1.0+abcdef123456', 'orcad-v0.1.0', 'orcad-1.2.3']
+const DORKAD_DIRS = ['dorkad-0.1.0+abcdef123456', 'dorkad-v0.1.0', 'dorkad-1.2.3']
 
 describe('remote install namespace', () => {
   it('names each model its own version dir', () => {
     expect(remoteInstallDirName(RELAY_INSTALL_MODEL, '0.1.0+aa')).toBe('relay-0.1.0+aa')
-    expect(remoteInstallDirName(ORCAD_INSTALL_MODEL, '0.1.0+aa')).toBe('orcad-0.1.0+aa')
+    expect(remoteInstallDirName(DORKAD_INSTALL_MODEL, '0.1.0+aa')).toBe('dorkad-0.1.0+aa')
   })
 
   it('keeps the relay listing pattern byte-identical to the one it shipped with', () => {
@@ -35,36 +35,36 @@ describe('remote install namespace', () => {
 })
 
 describe('GC ownership — each model collects only its own namespace', () => {
-  it.each(ORCAD_DIRS)('the relay never permits GC of %s', (dirName) => {
-    expect(remoteInstallDirOwner(dirName)).toBe('orcad')
+  it.each(DORKAD_DIRS)('the relay never permits GC of %s', (dirName) => {
+    expect(remoteInstallDirOwner(dirName)).toBe('dorkad')
     expect(remoteInstallGcPermits(RELAY_INSTALL_MODEL, dirName)).toBe(false)
   })
 
-  it.each(RELAY_DIRS)('orcad never permits GC of %s', (dirName) => {
+  it.each(RELAY_DIRS)('dorkad never permits GC of %s', (dirName) => {
     expect(remoteInstallDirOwner(dirName)).toBe('relay')
-    expect(remoteInstallGcPermits(ORCAD_INSTALL_MODEL, dirName)).toBe(false)
+    expect(remoteInstallGcPermits(DORKAD_INSTALL_MODEL, dirName)).toBe(false)
   })
 
   it('permits each model its own dirs and its own tombstones', () => {
     expect(remoteInstallGcPermits(RELAY_INSTALL_MODEL, 'relay-0.1.0+aa')).toBe(true)
-    expect(remoteInstallGcPermits(ORCAD_INSTALL_MODEL, 'orcad-0.1.0+aa')).toBe(true)
-    expect(remoteInstallGcPermits(ORCAD_INSTALL_MODEL, 'orcad-0.1.0+aa.gc-tombstone.12.34')).toBe(
+    expect(remoteInstallGcPermits(DORKAD_INSTALL_MODEL, 'dorkad-0.1.0+aa')).toBe(true)
+    expect(remoteInstallGcPermits(DORKAD_INSTALL_MODEL, 'dorkad-0.1.0+aa.gc-tombstone.12.34')).toBe(
       true
     )
   })
 
   it('claims nothing it did not create', () => {
-    for (const name of ['.orca-remote', 'orcad', 'relayish-0.1.0', 'orcad-notaversion', 'node']) {
+    for (const name of ['.dorka-remote', 'dorkad', 'relayish-0.1.0', 'dorkad-notaversion', 'node']) {
       expect(remoteInstallDirOwner(name)).toBeNull()
       expect(remoteInstallGcPermits(RELAY_INSTALL_MODEL, name)).toBe(false)
-      expect(remoteInstallGcPermits(ORCAD_INSTALL_MODEL, name)).toBe(false)
+      expect(remoteInstallGcPermits(DORKAD_INSTALL_MODEL, name)).toBe(false)
     }
   })
 
   it('groups a mixed listing without losing anything to the wrong owner', () => {
-    const inventory = inventoryRemoteInstallDirs([...RELAY_DIRS, ...ORCAD_DIRS, 'something-else'])
+    const inventory = inventoryRemoteInstallDirs([...RELAY_DIRS, ...DORKAD_DIRS, 'something-else'])
     expect(inventory.relay).toEqual(RELAY_DIRS)
-    expect(inventory.orcad).toEqual(ORCAD_DIRS)
+    expect(inventory.dorkad).toEqual(DORKAD_DIRS)
     expect(inventory.unknown).toEqual(['something-else'])
   })
 })

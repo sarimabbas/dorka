@@ -65,10 +65,10 @@ describe('buildAiVaultResumeCommand', () => {
         sessionId: 'session-1',
         cwd: '/repo/app',
         platform: 'darwin',
-        codexHome: '/Users/ada/Library/Application Support/Orca/codex-runtime-home/home'
+        codexHome: '/Users/ada/Library/Application Support/Dorka/codex-runtime-home/home'
       })
     ).toBe(
-      "cd '/repo/app' && CODEX_HOME='/Users/ada/Library/Application Support/Orca/codex-runtime-home/home' codex resume 'session-1'"
+      "cd '/repo/app' && CODEX_HOME='/Users/ada/Library/Application Support/Dorka/codex-runtime-home/home' codex resume 'session-1'"
     )
 
     expect(
@@ -77,10 +77,10 @@ describe('buildAiVaultResumeCommand', () => {
         sessionId: 'session-1',
         cwd: 'C:\\Users\\Ada Lovelace\\repo',
         platform: 'win32',
-        codexHome: 'C:\\Users\\Ada\\AppData\\Roaming\\Orca\\codex-runtime-home\\home'
+        codexHome: 'C:\\Users\\Ada\\AppData\\Roaming\\Dorka\\codex-runtime-home\\home'
       })
     ).toBe(
-      'cmd /d /s /c "cd /d ""C:\\Users\\Ada Lovelace\\repo"" && set ""CODEX_HOME=C:\\Users\\Ada\\AppData\\Roaming\\Orca\\codex-runtime-home\\home"" && codex resume ""session-1"""'
+      'cmd /d /s /c "cd /d ""C:\\Users\\Ada Lovelace\\repo"" && set ""CODEX_HOME=C:\\Users\\Ada\\AppData\\Roaming\\Dorka\\codex-runtime-home\\home"" && codex resume ""session-1"""'
     )
   })
 
@@ -169,12 +169,12 @@ describe('buildAiVaultResumeShellCommand env removal', () => {
   const base = {
     resumeCommand: "codex 'resume' 'sid'",
     cwd: '/repo',
-    clearEnvNames: ['CODEX_HOME', 'ORCA_CODEX_HOME']
+    clearEnvNames: ['CODEX_HOME', 'DORKA_CODEX_HOME']
   }
 
   it('carries the removal on the agent under a POSIX shell', () => {
     expect(buildAiVaultResumeShellCommand({ ...base, platform: 'darwin' })).toBe(
-      "cd '/repo' && env -u CODEX_HOME -u ORCA_CODEX_HOME codex 'resume' 'sid'"
+      "cd '/repo' && env -u CODEX_HOME -u DORKA_CODEX_HOME codex 'resume' 'sid'"
     )
   })
 
@@ -188,7 +188,7 @@ describe('buildAiVaultResumeShellCommand env removal', () => {
     })
 
     expect(command).toBe(
-      "cd '/repo' && CODEX_HOME='/home/a/.codex-work' env -u ORCA_CODEX_HOME codex 'resume' 'sid'"
+      "cd '/repo' && CODEX_HOME='/home/a/.codex-work' env -u DORKA_CODEX_HOME codex 'resume' 'sid'"
     )
     expect(command).not.toContain('-u CODEX_HOME')
   })
@@ -202,7 +202,7 @@ describe('buildAiVaultResumeShellCommand env removal', () => {
         codexHome: '/c/users/a/.codex-work'
       })
     ).toBe(
-      "cd '/repo' && CODEX_HOME='/c/users/a/.codex-work' env -u ORCA_CODEX_HOME codex 'resume' 'sid'"
+      "cd '/repo' && CODEX_HOME='/c/users/a/.codex-work' env -u DORKA_CODEX_HOME codex 'resume' 'sid'"
     )
   })
 
@@ -218,7 +218,7 @@ describe('buildAiVaultResumeShellCommand env removal', () => {
     expect(command).not.toContain('env -u')
     expect(command).toBe(
       'Remove-Item Env:CODEX_HOME -ErrorAction SilentlyContinue; ' +
-        'Remove-Item Env:ORCA_CODEX_HOME -ErrorAction SilentlyContinue; ' +
+        'Remove-Item Env:DORKA_CODEX_HOME -ErrorAction SilentlyContinue; ' +
         "Set-Location -LiteralPath '/repo'; codex 'resume' 'sid'"
     )
   })
@@ -232,7 +232,7 @@ describe('buildAiVaultResumeShellCommand env removal', () => {
         shell: 'cmd'
       })
     ).toBe(
-      'set "CODEX_HOME=" & set "ORCA_CODEX_HOME=" & cd /d "C:\\repo" && codex \'resume\' \'sid\''
+      'set "CODEX_HOME=" & set "DORKA_CODEX_HOME=" & cd /d "C:\\repo" && codex \'resume\' \'sid\''
     )
   })
 })

@@ -100,7 +100,7 @@ beforeEach(() => {
   dependencies.lifecycle.length = 0
   dependencies.params = { hostId: 'host-1', worktreeId: 'wt-1', name: 'my worktree' }
   Object.assign(globalThis, { __DEV__: true })
-  dependencies.storage.set('orca:mobileWebShellEnabled', 'true')
+  dependencies.storage.set('dorka:mobileWebShellEnabled', 'true')
 })
 
 describe('the native file explorer route that hands off to the shell', () => {
@@ -168,7 +168,7 @@ describe('the native file explorer route that hands off to the shell', () => {
   })
 
   it('renders the native panel with the flag off, which is every store build', async () => {
-    dependencies.storage.set('orca:mobileWebShellEnabled', 'false')
+    dependencies.storage.set('dorka:mobileWebShellEnabled', 'false')
     await renderExplorer()
     expect(dependencies.routes).toEqual([])
   })

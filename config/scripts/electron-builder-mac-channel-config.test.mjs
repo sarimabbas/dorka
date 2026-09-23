@@ -5,14 +5,14 @@ const require = createRequire(import.meta.url)
 const electronBuilderConfig = require('../electron-builder.config.cjs')
 
 const MUTABLE_BUILD_ENV = [
-  'ORCA_MAC_HOURLY',
-  'ORCA_MAC_DAILY',
-  'ORCA_MAC_ADHOC',
-  'ORCA_MAC_RELEASE',
-  'ORCA_HOURLY_BUILD_VERSION',
-  'ORCA_DAILY_BUILD_VERSION',
-  'ORCA_ADHOC_BUILD_VERSION',
-  'ORCA_LOCAL_BUILD_VERSION'
+  'DORKA_MAC_HOURLY',
+  'DORKA_MAC_DAILY',
+  'DORKA_MAC_ADHOC',
+  'DORKA_MAC_RELEASE',
+  'DORKA_HOURLY_BUILD_VERSION',
+  'DORKA_DAILY_BUILD_VERSION',
+  'DORKA_ADHOC_BUILD_VERSION',
+  'DORKA_LOCAL_BUILD_VERSION'
 ]
 
 /** Re-requires the config under a temporary env, then restores env and module cache. */
@@ -39,19 +39,19 @@ function withEnv(env, assert) {
   }
 }
 
-const withHourlyEnv = (assert) => withEnv({ ORCA_MAC_HOURLY: '1' }, assert)
-const withDailyEnv = (assert) => withEnv({ ORCA_MAC_DAILY: '1' }, assert)
-const withAdhocEnv = (assert) => withEnv({ ORCA_MAC_ADHOC: '1' }, assert)
+const withHourlyEnv = (assert) => withEnv({ DORKA_MAC_HOURLY: '1' }, assert)
+const withDailyEnv = (assert) => withEnv({ DORKA_MAC_DAILY: '1' }, assert)
+const withAdhocEnv = (assert) => withEnv({ DORKA_MAC_ADHOC: '1' }, assert)
 
 describe('electron-builder mac channel config', () => {
   // Why: Squirrel.Mac swaps the .app in place only when the replacement carries the
   // same bundle id and a valid Developer ID signature. A hourly built on the local
-  // (com.stablyai.orca.local, ad-hoc) identity would be un-installable over a real
-  // Orca — the whole point of the channel.
+  // (com.stablyai.dorka.local, ad-hoc) identity would be un-installable over a real
+  // Dorka — the whole point of the channel.
   it('builds hourly artifacts with the release signing identity', () => {
     withHourlyEnv((config) => {
       expect(config.mac.appId).toBeUndefined()
-      expect(config.appId).toBe('com.stablyai.orca')
+      expect(config.appId).toBe('com.stablyai.dorka')
       expect(config.mac.hardenedRuntime).toBe(true)
       expect(config.forceCodeSigning).toBe(true)
     })
@@ -65,7 +65,7 @@ describe('electron-builder mac channel config', () => {
     withHourlyEnv((config) => {
       expect(config.mac.notarize).toBe(true)
     })
-    withEnv({ ORCA_MAC_RELEASE: '1' }, (config) => {
+    withEnv({ DORKA_MAC_RELEASE: '1' }, (config) => {
       expect(config.mac.notarize).toBe(true)
     })
     expect(electronBuilderConfig.mac.notarize).toBe(false)
@@ -76,17 +76,17 @@ describe('electron-builder mac channel config', () => {
   // break update checks for every real user.
   it('publishes hourly builds to the separate hourly repo', () => {
     withHourlyEnv((config) => {
-      expect(config.publish).toMatchObject({ repo: 'orca-hourly', releaseType: 'prerelease' })
+      expect(config.publish).toMatchObject({ repo: 'dorka-hourly', releaseType: 'prerelease' })
     })
     expect(electronBuilderConfig.publish).toMatchObject({
-      repo: 'orca',
+      repo: 'dorka',
       releaseType: 'draft'
     })
   })
 
   it('stamps hourly packages with the hourly version', () => {
     withEnv(
-      { ORCA_MAC_HOURLY: '1', ORCA_HOURLY_BUILD_VERSION: '1.4.160-hourly.202607281400' },
+      { DORKA_MAC_HOURLY: '1', DORKA_HOURLY_BUILD_VERSION: '1.4.160-hourly.202607281400' },
       (config) => {
         expect(config.extraMetadata).toEqual({ version: '1.4.160-hourly.202607281400' })
       }
@@ -94,21 +94,21 @@ describe('electron-builder mac channel config', () => {
   })
 
   // Why adhoc carries the identical mac identity to hourly: it installs over a
-  // real Orca through the same updater path, so the same signing and the same TCC
+  // real Dorka through the same updater path, so the same signing and the same TCC
   // argument apply. Only the destination repo differs.
   it('builds adhoc artifacts with the release identity and its own repo', () => {
     withAdhocEnv((config) => {
-      expect(config.appId).toBe('com.stablyai.orca')
+      expect(config.appId).toBe('com.stablyai.dorka')
       expect(config.mac.hardenedRuntime).toBe(true)
       expect(config.mac.notarize).toBe(true)
       expect(config.forceCodeSigning).toBe(true)
-      expect(config.publish).toMatchObject({ repo: 'orca-adhoc', releaseType: 'prerelease' })
+      expect(config.publish).toMatchObject({ repo: 'dorka-adhoc', releaseType: 'prerelease' })
     })
   })
 
   it('stamps adhoc packages with the adhoc version', () => {
     withEnv(
-      { ORCA_MAC_ADHOC: '1', ORCA_ADHOC_BUILD_VERSION: '1.4.160-adhoc.20260728140533' },
+      { DORKA_MAC_ADHOC: '1', DORKA_ADHOC_BUILD_VERSION: '1.4.160-adhoc.20260728140533' },
       (config) => {
         expect(config.extraMetadata).toEqual({ version: '1.4.160-adhoc.20260728140533' })
       }
@@ -117,17 +117,17 @@ describe('electron-builder mac channel config', () => {
 
   it('builds daily artifacts with the release identity and its own repo', () => {
     withDailyEnv((config) => {
-      expect(config.appId).toBe('com.stablyai.orca')
+      expect(config.appId).toBe('com.stablyai.dorka')
       expect(config.mac.hardenedRuntime).toBe(true)
       expect(config.mac.notarize).toBe(true)
       expect(config.forceCodeSigning).toBe(true)
-      expect(config.publish).toMatchObject({ repo: 'orca-daily', releaseType: 'prerelease' })
+      expect(config.publish).toMatchObject({ repo: 'dorka-daily', releaseType: 'prerelease' })
     })
   })
 
   it('stamps daily packages with the daily version', () => {
     withEnv(
-      { ORCA_MAC_DAILY: '1', ORCA_DAILY_BUILD_VERSION: '1.4.160-daily.202607281300' },
+      { DORKA_MAC_DAILY: '1', DORKA_DAILY_BUILD_VERSION: '1.4.160-daily.202607281300' },
       (config) => {
         expect(config.extraMetadata).toEqual({ version: '1.4.160-daily.202607281300' })
       }
@@ -136,7 +136,7 @@ describe('electron-builder mac channel config', () => {
 
   // Why: the dev channels share every packaging decision except where they
   // publish, so a future edit that collapses them must not also collapse the
-  // repos — a branch or daily build landing in orca-hourly would be offered to
+  // repos — a branch or daily build landing in dorka-hourly would be offered to
   // everyone riding main's hourlies.
   it('keeps the dev channels on separate repos', () => {
     withHourlyEnv((hourly) => {

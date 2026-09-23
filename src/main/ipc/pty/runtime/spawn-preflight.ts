@@ -11,7 +11,7 @@ import {
   getCodexSelectionTargetForPty,
   resolveCodexHomeAfterManagedAuthReadiness,
   shouldSkipCodexHomeEnvForWindowsShell,
-  shouldStripInheritedOrcaCodexHome,
+  shouldStripInheritedDorkaCodexHome,
   isCodexStatusHooksEnabled,
   codexHomePathsEqual
 } from '../host-env/codex-home'
@@ -39,7 +39,7 @@ import { isAgentStatusHooksEnabled } from '../../../agent-hooks/managed-agent-ho
 import { resolveLocalWindowsTerminalRuntimeOptions } from '../../../../shared/local-windows-terminal-runtime'
 import { resolveLocalProjectRuntimeForWorktreeId } from '../../../local-project-runtime-resolution'
 import { resolvePathEnvKey } from '../../../pty/windows-environment-path'
-import { stampWslOrchestrationCompatibilityHost } from '../../../pty/wsl-orca-env'
+import { stampWslOrchestrationCompatibilityHost } from '../../../pty/wsl-dorka-env'
 import { ensureCodexStateDbBackfillRecoveryStarted } from '../../../codex/codex-state-db-backfill-recovery'
 import { clearProviderPtyState } from '../provider/state-cleanup'
 import { awaitExplicitPiOmpGuestReadiness } from '../../../agent-hooks/wsl-pi-omp-guest-readiness'
@@ -180,12 +180,12 @@ export async function prepareRuntimePtySpawn(
   }
   const sshScopedEnv = stripRemotePaneEnvWhenHooksDisabled(args.connectionId, args.env)
   ctx.env = ctx.claudeAuth ? { ...sshScopedEnv, ...ctx.claudeAuth.envPatch } : sshScopedEnv
-  ctx.requestedAgentTeamsPath = ctx.env?.ORCA_AGENT_TEAMS_TEAM_ID
+  ctx.requestedAgentTeamsPath = ctx.env?.DORKA_AGENT_TEAMS_TEAM_ID
     ? ctx.env[resolvePathEnvKey(ctx.env, process.platform)]
     : undefined
   ctx.env = ctx.deps.stripSequencedStartupResumeArgv(ctx.env, codexResumeLaunch)
   if (args.preAllocatedHandle) {
-    ctx.env = { ...ctx.env, ORCA_TERMINAL_HANDLE: args.preAllocatedHandle }
+    ctx.env = { ...ctx.env, DORKA_TERMINAL_HANDLE: args.preAllocatedHandle }
   }
   const selectLaunchCodexHome = async (): Promise<string | null> =>
     (await ctx.deps.getSelectedCodexHomePath?.(ctx.codexSelectionTarget, ctx.env, {
@@ -247,9 +247,9 @@ export async function prepareRuntimePtySpawn(
     shouldSkipCodexHomeEnvForWindowsShell(ctx.daemonShellOverride, ctx.cwd) &&
     !ctx.selectedCodexHomePath
   const ptySettings = ctx.isDaemonHostSpawn ? ctx.deps.getSettings?.() : undefined
-  ctx.stripInheritedOrcaCodexHome =
+  ctx.stripInheritedDorkaCodexHome =
     ctx.isDaemonHostSpawn &&
-    shouldStripInheritedOrcaCodexHome({
+    shouldStripInheritedDorkaCodexHome({
       target: ctx.codexSelectionTarget,
       selectedCodexHomePath: ctx.selectedCodexHomePath,
       skipCodexHomeEnv: ctx.skipCodexHomeEnv,
@@ -279,7 +279,7 @@ export async function prepareRuntimePtySpawn(
         userDataPath: getAppEnvironment().getPath('userData'),
         selectedCodexHomePath: ctx.selectedCodexHomePath,
         skipCodexHomeEnv: ctx.skipCodexHomeEnv,
-        stripInheritedOrcaCodexHome: ctx.stripInheritedOrcaCodexHome,
+        stripInheritedDorkaCodexHome: ctx.stripInheritedDorkaCodexHome,
         launchCommand: ctx.launchCommand,
         launchAgent: isTuiAgent(args.launchAgent) ? args.launchAgent : undefined,
         isWsl: shouldSkipCodexHomeEnvForWindowsShell(ctx.daemonShellOverride, ctx.cwd),

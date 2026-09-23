@@ -7,30 +7,30 @@
 // assignment out of the dotfiles is the only way to see a relocated data dir.
 export const REMOTE_NODE_PATH_PROBE_SCRIPT = `
 command -v node 2>/dev/null
-orca_dotfile_dirs() {
-  orca_var_name=$1
-  orca_dirs=$2
-  for orca_file in "$HOME/.profile" "$HOME/.bash_profile" "$HOME/.bashrc" "$HOME/.zprofile" "$HOME/.zshrc"
+dorka_dotfile_dirs() {
+  dorka_var_name=$1
+  dorka_dirs=$2
+  for dorka_file in "$HOME/.profile" "$HOME/.bash_profile" "$HOME/.bashrc" "$HOME/.zprofile" "$HOME/.zshrc"
   do
-    [ -r "$orca_file" ] || continue
-    orca_dir_from_file=$(sed -n "s/^[[:space:]]*export[[:space:]][[:space:]]*$orca_var_name[[:space:]]*=[[:space:]]*//p; s/^[[:space:]]*$orca_var_name[[:space:]]*=[[:space:]]*//p" "$orca_file" | tail -n 1)
-    case "$orca_dir_from_file" in
-      \\"*\\") orca_dir_from_file=\${orca_dir_from_file#\\"}; orca_dir_from_file=\${orca_dir_from_file%%\\"*} ;;
-      \\'*\\') orca_dir_from_file=\${orca_dir_from_file#\\'}; orca_dir_from_file=\${orca_dir_from_file%%\\'*} ;;
-      *) orca_dir_from_file=\${orca_dir_from_file%%[[:space:]]*} ;;
+    [ -r "$dorka_file" ] || continue
+    dorka_dir_from_file=$(sed -n "s/^[[:space:]]*export[[:space:]][[:space:]]*$dorka_var_name[[:space:]]*=[[:space:]]*//p; s/^[[:space:]]*$dorka_var_name[[:space:]]*=[[:space:]]*//p" "$dorka_file" | tail -n 1)
+    case "$dorka_dir_from_file" in
+      \\"*\\") dorka_dir_from_file=\${dorka_dir_from_file#\\"}; dorka_dir_from_file=\${dorka_dir_from_file%%\\"*} ;;
+      \\'*\\') dorka_dir_from_file=\${dorka_dir_from_file#\\'}; dorka_dir_from_file=\${dorka_dir_from_file%%\\'*} ;;
+      *) dorka_dir_from_file=\${dorka_dir_from_file%%[[:space:]]*} ;;
     esac
-    case "$orca_dir_from_file" in
-      '$XDG_DATA_HOME'*) orca_dir_from_file="\${XDG_DATA_HOME:-$HOME/.local/share}\${orca_dir_from_file#'$XDG_DATA_HOME'}" ;;
-      '$HOME'*) orca_dir_from_file="$HOME\${orca_dir_from_file#'$HOME'}" ;;
-      "~/"*) orca_dir_from_file="$HOME/\${orca_dir_from_file#\\~/}" ;;
+    case "$dorka_dir_from_file" in
+      '$XDG_DATA_HOME'*) dorka_dir_from_file="\${XDG_DATA_HOME:-$HOME/.local/share}\${dorka_dir_from_file#'$XDG_DATA_HOME'}" ;;
+      '$HOME'*) dorka_dir_from_file="$HOME\${dorka_dir_from_file#'$HOME'}" ;;
+      "~/"*) dorka_dir_from_file="$HOME/\${dorka_dir_from_file#\\~/}" ;;
     esac
-    [ -n "$orca_dir_from_file" ] && orca_dirs="$orca_dirs
-$orca_dir_from_file"
+    [ -n "$dorka_dir_from_file" ] && dorka_dirs="$dorka_dirs
+$dorka_dir_from_file"
   done
-  printf '%s\\n' "$orca_dirs"
+  printf '%s\\n' "$dorka_dirs"
 }
 nvm_dirs=\${NVM_DIR:-"$HOME/.nvm"}
-nvm_dirs=$(orca_dotfile_dirs NVM_DIR "$nvm_dirs")
+nvm_dirs=$(dorka_dotfile_dirs NVM_DIR "$nvm_dirs")
 printf '%s\\n' "$nvm_dirs" | while IFS= read -r nvm_dir
 do
   [ -n "$nvm_dir" ] || continue
@@ -40,7 +40,7 @@ do
   done
 done
 mise_dirs=\${MISE_DATA_DIR:-\${XDG_DATA_HOME:-$HOME/.local/share}/mise}
-mise_dirs=$(orca_dotfile_dirs MISE_DATA_DIR "$mise_dirs")
+mise_dirs=$(dorka_dotfile_dirs MISE_DATA_DIR "$mise_dirs")
 printf '%s\\n' "$mise_dirs" | while IFS= read -r mise_dir
 do
   [ -n "$mise_dir" ] || continue

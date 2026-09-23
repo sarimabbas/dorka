@@ -420,7 +420,7 @@ describe('RelayDispatcher', () => {
   it('detaches the primary client when its write throws (frame lost, trigger reconnect)', () => {
     // Regression: a primary-client write throw dropped the frame (possibly
     // pty.data/pty.exit) with no resend AND without notifying detach, so the
-    // owning Orca's reconnect + PTY-reattach path never engaged until the ~20s
+    // owning Dorka's reconnect + PTY-reattach path never engaged until the ~20s
     // keepalive timeout — output/pane-death were silently lost in the meantime.
     let throwOnWrite = false
     const detachDispatcher = new RelayDispatcher((data) => {
@@ -433,7 +433,7 @@ describe('RelayDispatcher', () => {
       const detachListener = vi.fn()
       detachDispatcher.onClientDetached(detachListener)
 
-      // A frame the owning Orca must not silently miss (e.g. a pane exit).
+      // A frame the owning Dorka must not silently miss (e.g. a pane exit).
       throwOnWrite = true
       detachDispatcher.notify('pty.exit', { id: 'pty-1', code: 0 })
 

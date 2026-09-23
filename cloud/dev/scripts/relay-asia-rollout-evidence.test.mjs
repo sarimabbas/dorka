@@ -90,7 +90,7 @@ function loadReport({
     readerQueuedBytesPeak: slow > 0 ? 1_024 : 0,
     generatorCpuPercent: 25, generatorEventLoopP99Ms: 20, generatorRssGrowthMiB: 10,
     readerQueueEvidence: slow > 0 ? [{
-      origin: 'https://c4.relay-staging.onorca.dev',
+      origin: 'https://c4.relay-staging.ondorka.dev',
       baselineBytes: 128,
       peakBytes: 1_152,
       increaseBytes: 1_024
@@ -122,7 +122,7 @@ function canaryInput(overrides = {}, cellId = 'production-gce-c27') {
     configuredSteadySeconds: 300,
     configuredSpliceHoldSeconds: 60,
     relayAsiaLoadPrincipalCount: 1,
-    assignedCellOrigins: [`https://${cellId.split('-').at(-1)}.relay.onorca.dev`]
+    assignedCellOrigins: [`https://${cellId.split('-').at(-1)}.relay.ondorka.dev`]
   })
   return {
     ...sourceInput(), cellId, startedAt: start.toISOString(), endedAt: canaryEnd.toISOString(),
@@ -272,7 +272,7 @@ for (const [label, mutate, message] of [
 }
 
 test('rejects staging evidence from a non-canonical repository', () => {
-  assert.throws(() => buildStagingEvidence(stagingInput({ repository: 'fork/orca-cloud' })), /repository/)
+  assert.throws(() => buildStagingEvidence(stagingInput({ repository: 'fork/dorka-cloud' })), /repository/)
 })
 
 test('rejects mismatched staging provenance, digest, topology, or age', () => {
@@ -359,8 +359,8 @@ test('rejects C27 evidence from a different selector generation', () => {
 
 test('rejects a C27 canary whose control was placed on another cell', () => {
   for (const origins of [
-    ['https://c28.relay.onorca.dev'],
-    ['https://c27.relay.onorca.dev', 'https://c28.relay.onorca.dev'],
+    ['https://c28.relay.ondorka.dev'],
+    ['https://c27.relay.ondorka.dev', 'https://c28.relay.ondorka.dev'],
     [],
     undefined
   ]) {
@@ -391,7 +391,7 @@ test('builds and verifies a C30 canary from C30 runtime metrics and placement', 
 
 test('rejects a C30 canary that C30 did not serve', () => {
   const onLaunchCell = canaryInput({}, c30)
-  onLaunchCell.loadReport.assignedCellOrigins = ['https://c27.relay.onorca.dev']
+  onLaunchCell.loadReport.assignedCellOrigins = ['https://c27.relay.ondorka.dev']
   assert.throws(() => buildProductionCanaryEvidence(onLaunchCell), /C30 canary load was not placed only on C30/)
   assert.throws(() => buildProductionCanaryEvidence(canaryInput({
     logs: completeLogs('production-gce-c27', canaryEnd)

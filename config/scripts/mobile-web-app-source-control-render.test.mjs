@@ -73,7 +73,7 @@ const C4_GRANTS = ['navigate', 'storage', 'externalLink', 'haptics', 'native.cli
  * queue — is a refusal the screens have their own state for, and a double that answered them would
  * be the place domain behaviour is decided rather than a transport.
  */
-const REPLIES = { 'github.repoSlug': { owner: 'orca', repo: 'orca' } }
+const REPLIES = { 'github.repoSlug': { owner: 'dorka', repo: 'dorka' } }
 
 const bundles = mobileWebAppDependenciesPresent()
 const describeRender = bundles ? describe : describe.skip
@@ -94,13 +94,13 @@ beforeAll(async () => {
   cspHeader = await readShellCsp()
   bridgeVersion = await readBridgeProtocolVersion()
   faultGrant = await readBridgeFaultGrant()
-  scratch = await mkdtemp(join(tmpdir(), 'orca-mobile-web-app-source-control-'))
+  scratch = await mkdtemp(join(tmpdir(), 'dorka-mobile-web-app-source-control-'))
   const built = await buildMobileWebAppBundle({ outDir: join(scratch, 'bundle') })
   routeChunks = built.routeChunks
   const served = await createBundleServer({ outDir: built.outDir, cspHeader })
   server = served.server
   origin = served.origin
-  const executablePath = process.env.ORCA_MOBILE_WEB_RENDER_BROWSER
+  const executablePath = process.env.DORKA_MOBILE_WEB_RENDER_BROWSER
   browser = await chromium.launch({ headless: true, ...(executablePath ? { executablePath } : {}) })
 }, 240_000)
 
@@ -158,7 +158,7 @@ async function waitForRoute({ page, errors }, route, awaitText) {
   const named = (what) =>
     new Error(`${route} ${what}: ${errors.join(' | ') || 'no page or console error'}`)
   try {
-    await page.waitForFunction(() => document.documentElement.dataset.orcaWebEntry === 'mounted', {
+    await page.waitForFunction(() => document.documentElement.dataset.dorkaWebEntry === 'mounted', {
       timeout: 60_000,
       polling: 250
     })
@@ -175,7 +175,7 @@ async function waitForRoute({ page, errors }, route, awaitText) {
   }
   // A route that threw under the page's own error boundary names itself here rather than timing
   // out as a page that never mounted.
-  for (const fault of await page.evaluate(() => globalThis.__orcaRenderCheckFaults ?? [])) {
+  for (const fault of await page.evaluate(() => globalThis.__dorkaRenderCheckFaults ?? [])) {
     errors.push(`page fault: ${fault}`)
   }
 }
@@ -245,7 +245,7 @@ describeRender(
       // cannot pass against a header the app does not use.
       expect(cspHeader).toContain("img-src 'self' data: https:")
       const swift = await readFile(
-        join(projectDir, 'mobile/modules/orca-mobile-web-shell/ios/MobileWebShellCsp.swift'),
+        join(projectDir, 'mobile/modules/dorka-mobile-web-shell/ios/MobileWebShellCsp.swift'),
         'utf8'
       )
       // The other shell says the same thing, which no served header can show.

@@ -63,7 +63,7 @@ vi.mock('./telemetry/cohort-classifier', () => ({
 
 describe('Store', () => {
   beforeEach(() => {
-    testState.dir = mkdtempSync(join(tmpdir(), 'orca-test-'))
+    testState.dir = mkdtempSync(join(tmpdir(), 'dorka-test-'))
     trackMock.mockReset()
     getCohortAtEmitMock.mockReset()
     getCohortAtEmitMock.mockReturnValue({ nth_repo_added: 2 })
@@ -204,7 +204,7 @@ describe('Store', () => {
 
   it('loads state from an explicit profile data file path', async () => {
     const profileDataDirectory = join(testState.dir, 'profiles', 'local-default')
-    const profileDataFile = join(profileDataDirectory, 'orca-data.json')
+    const profileDataFile = join(profileDataDirectory, 'dorka-data.json')
     mkdirSync(profileDataDirectory, { recursive: true })
     writeDataFile({
       schemaVersion: 1,
@@ -233,16 +233,16 @@ describe('Store', () => {
       repos: [
         makeRepo({
           id: 'local-repo',
-          path: '/Users/alice/orca',
-          displayName: 'Orca',
-          upstream: { owner: 'StablyAI', repo: 'Orca' }
+          path: '/Users/alice/dorka',
+          displayName: 'Dorka',
+          upstream: { owner: 'StablyAI', repo: 'Dorka' }
         }),
         makeRepo({
           id: 'remote-repo',
-          path: '/home/alice/orca',
-          displayName: 'orca',
+          path: '/home/alice/dorka',
+          displayName: 'dorka',
           connectionId: 'gpu-vm',
-          upstream: { owner: 'stablyai', repo: 'orca' }
+          upstream: { owner: 'stablyai', repo: 'dorka' }
         })
       ]
     })
@@ -260,13 +260,13 @@ describe('Store', () => {
         id: 'local-repo',
         projectId: 'github:stablyai/orca',
         hostId: 'local',
-        path: '/Users/alice/orca'
+        path: '/Users/alice/dorka'
       }),
       expect.objectContaining({
         id: 'remote-repo',
         projectId: 'github:stablyai/orca',
         hostId: 'ssh:gpu-vm',
-        path: '/home/alice/orca'
+        path: '/home/alice/dorka'
       })
     ])
 

@@ -25,8 +25,8 @@ function observePending(source) {
 }
 
 function loadSources({
-  graph = process.env.ORCA_SSH_READER_GRAPH ?? 'worktree',
-  variant = process.env.ORCA_SSH_READER_VARIANT ?? 'fixed',
+  graph = process.env.DORKA_SSH_READER_GRAPH ?? 'worktree',
+  variant = process.env.DORKA_SSH_READER_VARIANT ?? 'fixed',
   read = readText
 } = {}) {
   assert.ok(graph === 'worktree' || graph === 'main')

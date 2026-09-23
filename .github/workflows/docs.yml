@@ -174,7 +174,7 @@ jobs:
           fi
           echo "commit_sha=$commit_sha" >> "$GITHUB_OUTPUT"
 
-          # Stable tags cut before the docs package was merged are valid Orca
+          # Stable tags cut before the docs package was merged are valid Dorka
           # releases, but cannot produce a docs deployment. Skip them before
           # requesting the protected production environment.
           docs_source_available=false
@@ -210,7 +210,7 @@ jobs:
     timeout-minutes: 15
     environment:
       name: docs-production
-      url: https://www.onorca.dev/docs
+      url: https://www.ondorka.dev/docs
     env:
       VERCEL_TELEMETRY_DISABLED: '1'
     steps:

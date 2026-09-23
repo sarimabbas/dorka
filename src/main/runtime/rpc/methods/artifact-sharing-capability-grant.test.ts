@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'vitest'
 import { getDefaultSettings } from '../../../../shared/constants'
-import { OrcaRuntimeService } from '../../orca-runtime'
+import { DorkaRuntimeService } from '../../dorka-runtime'
 import { SettingsUpdate } from './client-settings-schemas'
 
-function runtimeWithSharing(artifactSharingEnabled: unknown): OrcaRuntimeService {
-  return new OrcaRuntimeService({
+function runtimeWithSharing(artifactSharingEnabled: unknown): DorkaRuntimeService {
+  return new DorkaRuntimeService({
     getSettings: () => ({ ...getDefaultSettings('/tmp'), artifactSharingEnabled })
   } as never)
 }

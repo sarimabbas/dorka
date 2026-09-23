@@ -1,7 +1,7 @@
 import { existsSync, readFileSync } from 'node:fs'
 import path from 'node:path'
 import type { Page, TestInfo } from '@playwright/test'
-import { test, expect } from './helpers/orca-app'
+import { test, expect } from './helpers/dorka-app'
 import {
   execInTerminal,
   sendToTerminal,
@@ -23,27 +23,27 @@ type LinkTarget = { x: number; y: number; mouseTrackingMode: string }
 type LinkMode = 'http' | 'osc'
 
 async function startMouseAwareLinkFixture(
-  orcaPage: Page,
+  dorkaPage: Page,
   testInfo: TestInfo,
   linkMode: LinkMode = 'http'
 ): Promise<{ mouseLogPath: string; ptyId: string; target: LinkTarget }> {
-  await waitForSessionReady(orcaPage)
-  await waitForActiveWorktree(orcaPage)
-  await ensureTerminalVisible(orcaPage)
-  await waitForActiveTerminalManager(orcaPage)
-  await waitForPaneCount(orcaPage, 1)
+  await waitForSessionReady(dorkaPage)
+  await waitForActiveWorktree(dorkaPage)
+  await ensureTerminalVisible(dorkaPage)
+  await waitForActiveTerminalManager(dorkaPage)
+  await waitForPaneCount(dorkaPage, 1)
 
-  const ptyId = await waitForActivePanePtyId(orcaPage)
+  const ptyId = await waitForActivePanePtyId(dorkaPage)
   const mouseLogPath = testInfo.outputPath('child-mouse-reports.log')
   await execInTerminal(
-    orcaPage,
+    dorkaPage,
     ptyId,
     `node ${JSON.stringify(FIXTURE_PATH)} ${JSON.stringify(mouseLogPath)} ${linkMode}`
   )
   const renderedLinkText = linkMode === 'osc' ? OSC_LINK_TEXT : LINK
-  await waitForTerminalOutput(orcaPage, 'LINK_MOUSE_READY')
+  await waitForTerminalOutput(dorkaPage, 'LINK_MOUSE_READY')
 
-  const target = await orcaPage.evaluate((linkText) => {
+  const target = await dorkaPage.evaluate((linkText) => {
     const state = window.__store?.getState()
     const worktreeId = state?.activeWorktreeId
     const tabId = worktreeId ? state?.activeTabIdByWorktree?.[worktreeId] : null
@@ -92,70 +92,70 @@ async function expectChildMouseReports(mouseLogPath: string): Promise<void> {
     .toBeGreaterThan(0)
 }
 
-async function expectOrcaOwnedMouseOutcome(mouseLogPath: string): Promise<void> {
+async function expectDorkaOwnedMouseOutcome(mouseLogPath: string): Promise<void> {
   await new Promise<void>((resolve) => setTimeout(resolve, 1_000))
   expect(childMouseReportCount(mouseLogPath)).toBe(0)
 }
 
 test.describe('terminal link click ownership', () => {
-  test('an Orca-owned plain link click emits no child PTY mouse frames', async ({
-    orcaPage
+  test('an Dorka-owned plain link click emits no child PTY mouse frames', async ({
+    dorkaPage
   }, testInfo) => {
-    const { mouseLogPath, ptyId, target } = await startMouseAwareLinkFixture(orcaPage, testInfo)
-    await orcaPage.mouse.click(target.x, target.y)
+    const { mouseLogPath, ptyId, target } = await startMouseAwareLinkFixture(dorkaPage, testInfo)
+    await dorkaPage.mouse.click(target.x, target.y)
 
-    await expect(orcaPage.locator('[data-terminal-link-action-popover]')).toBeVisible()
-    await expect(orcaPage.locator('[data-terminal-link-destination]')).toHaveText(LINK)
+    await expect(dorkaPage.locator('[data-terminal-link-action-popover]')).toBeVisible()
+    await expect(dorkaPage.locator('[data-terminal-link-destination]')).toHaveText(LINK)
 
-    await expectOrcaOwnedMouseOutcome(mouseLogPath)
+    await expectDorkaOwnedMouseOutcome(mouseLogPath)
 
-    await sendToTerminal(orcaPage, ptyId, 'q')
+    await sendToTerminal(dorkaPage, ptyId, 'q')
   })
 
-  test('an Orca-owned OSC link click emits no child PTY mouse frames', async ({
-    orcaPage
+  test('an Dorka-owned OSC link click emits no child PTY mouse frames', async ({
+    dorkaPage
   }, testInfo) => {
     const { mouseLogPath, ptyId, target } = await startMouseAwareLinkFixture(
-      orcaPage,
+      dorkaPage,
       testInfo,
       'osc'
     )
-    await orcaPage.mouse.move(target.x, target.y)
-    await expect(orcaPage.locator('.xterm-hover')).toHaveCount(1)
-    await orcaPage.mouse.click(target.x, target.y)
+    await dorkaPage.mouse.move(target.x, target.y)
+    await expect(dorkaPage.locator('.xterm-hover')).toHaveCount(1)
+    await dorkaPage.mouse.click(target.x, target.y)
 
-    await expect(orcaPage.locator('[data-terminal-link-action-popover]')).toBeVisible()
-    await expect(orcaPage.locator('[data-terminal-link-destination]')).toHaveText(LINK)
-    await expectOrcaOwnedMouseOutcome(mouseLogPath)
+    await expect(dorkaPage.locator('[data-terminal-link-action-popover]')).toBeVisible()
+    await expect(dorkaPage.locator('[data-terminal-link-destination]')).toHaveText(LINK)
+    await expectDorkaOwnedMouseOutcome(mouseLogPath)
 
-    await sendToTerminal(orcaPage, ptyId, 'q')
+    await sendToTerminal(dorkaPage, ptyId, 'q')
   })
 
   test('a plain click stays child-owned when link actions are disabled', async ({
-    orcaPage
+    dorkaPage
   }, testInfo) => {
-    const { mouseLogPath, ptyId, target } = await startMouseAwareLinkFixture(orcaPage, testInfo)
-    await orcaPage.evaluate(async () => {
+    const { mouseLogPath, ptyId, target } = await startMouseAwareLinkFixture(dorkaPage, testInfo)
+    await dorkaPage.evaluate(async () => {
       await window.__store?.getState().updateSettings({ terminalLinkActionPopoverEnabled: false })
     })
 
-    await orcaPage.mouse.click(target.x, target.y)
+    await dorkaPage.mouse.click(target.x, target.y)
 
-    await expect(orcaPage.locator('[data-terminal-link-action-popover]')).toHaveCount(0)
+    await expect(dorkaPage.locator('[data-terminal-link-action-popover]')).toHaveCount(0)
     await expectChildMouseReports(mouseLogPath)
-    await sendToTerminal(orcaPage, ptyId, 'q')
+    await sendToTerminal(dorkaPage, ptyId, 'q')
   })
 
-  test('a drag across a link stays child-owned', async ({ orcaPage }, testInfo) => {
-    const { mouseLogPath, ptyId, target } = await startMouseAwareLinkFixture(orcaPage, testInfo)
+  test('a drag across a link stays child-owned', async ({ dorkaPage }, testInfo) => {
+    const { mouseLogPath, ptyId, target } = await startMouseAwareLinkFixture(dorkaPage, testInfo)
 
-    await orcaPage.mouse.move(target.x, target.y)
-    await orcaPage.mouse.down()
-    await orcaPage.mouse.move(target.x + 12, target.y + 12, { steps: 3 })
-    await orcaPage.mouse.up()
+    await dorkaPage.mouse.move(target.x, target.y)
+    await dorkaPage.mouse.down()
+    await dorkaPage.mouse.move(target.x + 12, target.y + 12, { steps: 3 })
+    await dorkaPage.mouse.up()
 
-    await expect(orcaPage.locator('[data-terminal-link-action-popover]')).toHaveCount(0)
+    await expect(dorkaPage.locator('[data-terminal-link-action-popover]')).toHaveCount(0)
     await expectChildMouseReports(mouseLogPath)
-    await sendToTerminal(orcaPage, ptyId, 'q')
+    await sendToTerminal(dorkaPage, ptyId, 'q')
   })
 })

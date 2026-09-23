@@ -9,11 +9,11 @@ test('selects the newest fresh aggregate-only regional rehome inventory', () => 
   const result = parseRegionalRehomeInventory([
     {
       timestamp: '2026-08-14T11:58:00Z',
-      textPayload: '[orca-relay] regional rehome inventory active=2 awaitingReceipt=1 targetRegistered=1 completedLast24Hours=9 abortedLast24Hours=0 oldestActiveAgeMs=30000'
+      textPayload: '[dorka-relay] regional rehome inventory active=2 awaitingReceipt=1 targetRegistered=1 completedLast24Hours=9 abortedLast24Hours=0 oldestActiveAgeMs=30000'
     },
     {
       timestamp: '2026-08-14T11:50:00Z',
-      textPayload: '[orca-relay] regional rehome inventory active=1 awaitingReceipt=0 targetRegistered=1 completedLast24Hours=8 abortedLast24Hours=0 oldestActiveAgeMs=none'
+      textPayload: '[dorka-relay] regional rehome inventory active=1 awaitingReceipt=0 targetRegistered=1 completedLast24Hours=8 abortedLast24Hours=0 oldestActiveAgeMs=none'
     }
   ], { now, maxAgeMs: 5 * 60_000 })
   assert.deepEqual(result, {
@@ -32,7 +32,7 @@ test('reads a line the director grew a field on, wherever the field sits', () =>
   const result = parseRegionalRehomeInventory([{
     timestamp: '2026-08-14T11:58:00Z',
     textPayload:
-      '[orca-relay] regional rehome inventory hostNotArrivedLast24Hours=4 active=2' +
+      '[dorka-relay] regional rehome inventory hostNotArrivedLast24Hours=4 active=2' +
       ' awaitingReceipt=1 targetRegistered=1 completedLast24Hours=9 abortedLast24Hours=7' +
       ' oldestActiveAgeMs=30000 someFieldFromALaterRelease=11'
   }], { now, maxAgeMs: 5 * 60_000 })
@@ -46,7 +46,7 @@ test('reports an unmeasured host-not-arrived count as absent, not as zero', () =
     parseRegionalRehomeInventory([{
       timestamp: '2026-08-14T11:58:00Z',
       textPayload:
-        '[orca-relay] regional rehome inventory active=0 awaitingReceipt=0 targetRegistered=0' +
+        '[dorka-relay] regional rehome inventory active=0 awaitingReceipt=0 targetRegistered=0' +
         ' completedLast24Hours=0 abortedLast24Hours=0 oldestActiveAgeMs=none' +
         (value === null ? '' : ` hostNotArrivedLast24Hours=${value}`)
     }], { now, maxAgeMs: 5 * 60_000 })
@@ -58,17 +58,17 @@ test('reports an unmeasured host-not-arrived count as absent, not as zero', () =
 test('rejects stale, malformed, and identity-bearing lookalikes', () => {
   assert.throws(() => parseRegionalRehomeInventory([{
     timestamp: '2026-08-14T11:00:00Z',
-    textPayload: '[orca-relay] regional rehome inventory active=0 awaitingReceipt=0 targetRegistered=0 completedLast24Hours=0 abortedLast24Hours=0 oldestActiveAgeMs=none'
+    textPayload: '[dorka-relay] regional rehome inventory active=0 awaitingReceipt=0 targetRegistered=0 completedLast24Hours=0 abortedLast24Hours=0 oldestActiveAgeMs=none'
   }], { now, maxAgeMs: 5 * 60_000 }), /stale/)
   assert.throws(() => parseRegionalRehomeInventory([{
     timestamp: '2026-08-14T11:59:00Z',
-    textPayload: '[orca-relay] regional rehome inventory active=0 hostId=secret'
+    textPayload: '[dorka-relay] regional rehome inventory active=0 hostId=secret'
   }], { now }), /no aggregate/)
 })
 
 test('keeps out an identity-bearing field riding along on a complete line', () => {
   const complete =
-    '[orca-relay] regional rehome inventory active=0 awaitingReceipt=0 targetRegistered=0' +
+    '[dorka-relay] regional rehome inventory active=0 awaitingReceipt=0 targetRegistered=0' +
     ' completedLast24Hours=0 abortedLast24Hours=0 oldestActiveAgeMs=none'
   for (const extra of [' hostId=secret', ' userId=someone@example.test', ' note=a b']) {
     assert.throws(
@@ -84,7 +84,7 @@ test('keeps out an identity-bearing field riding along on a complete line', () =
 
 test('refuses a line missing a required field, or repeating one', () => {
   const missing =
-    '[orca-relay] regional rehome inventory active=0 awaitingReceipt=0 targetRegistered=0' +
+    '[dorka-relay] regional rehome inventory active=0 awaitingReceipt=0 targetRegistered=0' +
     ' completedLast24Hours=0 oldestActiveAgeMs=none'
   assert.throws(
     () => parseRegionalRehomeInventory(
@@ -125,7 +125,7 @@ test('publishes every parsed counter in the operator step summary', () => {
   const evidence = parseRegionalRehomeInventory([{
     timestamp: '2026-08-14T11:58:00Z',
     textPayload:
-      '[orca-relay] regional rehome inventory active=0 awaitingReceipt=0 targetRegistered=0' +
+      '[dorka-relay] regional rehome inventory active=0 awaitingReceipt=0 targetRegistered=0' +
       ' completedLast24Hours=0 abortedLast24Hours=0 hostNotArrivedLast24Hours=0 oldestActiveAgeMs=none'
   }], { now, maxAgeMs: 5 * 60_000 })
   for (const key of Object.keys(evidence)) {

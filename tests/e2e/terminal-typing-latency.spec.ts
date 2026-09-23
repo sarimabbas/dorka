@@ -2,7 +2,7 @@ import type { Page } from '@stablyai/playwright-test'
 import { randomUUID } from 'node:crypto'
 import { rmSync, writeFileSync } from 'node:fs'
 import path from 'node:path'
-import { test, expect } from './helpers/orca-app'
+import { test, expect } from './helpers/dorka-app'
 import {
   focusActiveTerminalInput,
   getTerminalContent,
@@ -61,32 +61,32 @@ function median(values: number[]): number {
 
 test.describe('Terminal typing latency', () => {
   test('interactive prompt echoes typed keys without visible lag', async ({
-    orcaPage,
+    dorkaPage,
     testRepoPath
   }, testInfo) => {
-    await waitForSessionReady(orcaPage)
-    await waitForActiveWorktree(orcaPage)
-    await ensureTerminalVisible(orcaPage)
-    await waitForActiveTerminalManager(orcaPage, 30_000)
+    await waitForSessionReady(dorkaPage)
+    await waitForActiveWorktree(dorkaPage)
+    await ensureTerminalVisible(dorkaPage)
+    await waitForActiveTerminalManager(dorkaPage, 30_000)
 
-    const ptyId = await waitForActivePanePtyId(orcaPage)
+    const ptyId = await waitForActivePanePtyId(dorkaPage)
     const runId = randomUUID()
-    const scriptPath = path.join(testRepoPath, `.orca-typing-benchmark-${runId}.mjs`)
+    const scriptPath = path.join(testRepoPath, `.dorka-typing-benchmark-${runId}.mjs`)
     writeFileSync(scriptPath, interactivePromptScript(runId))
     let commandSent = false
     try {
-      await sendToTerminal(orcaPage, ptyId, `node ${JSON.stringify(scriptPath)}\r`)
+      await sendToTerminal(dorkaPage, ptyId, `node ${JSON.stringify(scriptPath)}\r`)
       commandSent = true
-      await waitForTerminalOutput(orcaPage, `TYPING_READY_${runId}`, 10_000)
-      await focusActiveTerminalInput(orcaPage)
+      await waitForTerminalOutput(dorkaPage, `TYPING_READY_${runId}`, 10_000)
+      await focusActiveTerminalInput(dorkaPage)
 
       const latencies: number[] = []
       for (const [index, char] of [...KEY_LATENCY_SAMPLES].entries()) {
         const seq = index + 1
         const marker = `TYPING_KEY_${runId}_${seq}`
         const start = performance.now()
-        await orcaPage.keyboard.type(char)
-        await waitForMarkerLatency(orcaPage, marker, MAX_WORST_KEY_LATENCY_MS)
+        await dorkaPage.keyboard.type(char)
+        await waitForMarkerLatency(dorkaPage, marker, MAX_WORST_KEY_LATENCY_MS)
         latencies.push(performance.now() - start)
       }
 
@@ -103,7 +103,7 @@ test.describe('Terminal typing latency', () => {
       expect(worstLatency).toBeLessThan(MAX_WORST_KEY_LATENCY_MS)
     } finally {
       if (commandSent) {
-        await sendToTerminal(orcaPage, ptyId, '\x03').catch(() => undefined)
+        await sendToTerminal(dorkaPage, ptyId, '\x03').catch(() => undefined)
       }
       rmSync(scriptPath, { force: true })
     }

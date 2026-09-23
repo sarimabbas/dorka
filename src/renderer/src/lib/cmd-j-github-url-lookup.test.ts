@@ -31,7 +31,7 @@ describe('lookupCmdJGitHubUrlWorkItem', () => {
 
   it('looks up by owner/repo and returns null without a repo or on failure', async () => {
     const link = {
-      slug: { owner: 'stablyai', repo: 'orca', host: 'github.com' },
+      slug: { owner: 'stablyai', repo: 'dorka', host: 'github.com' },
       type: 'issue' as const,
       number: 14198
     }
@@ -54,7 +54,7 @@ describe('lookupCmdJGitHubUrlWorkItem', () => {
     expect(lookupGitHubWorkItemByOwnerRepoForSource).toHaveBeenCalledWith(
       expect.objectContaining({
         owner: 'stablyai',
-        repo: 'orca',
+        repo: 'dorka',
         host: 'github.com',
         number: 14198,
         type: 'issue'

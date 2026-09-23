@@ -3,8 +3,8 @@ import type {
   RuntimeMobileSessionBrowserTab,
   RuntimeMobileSessionTabsSnapshot
 } from '../../shared/runtime-types'
-import { OrcaRuntimeWithCloseStructuredAgentSessionTab } from './orca-runtime-close-structured-agent-session-tab'
-import { OrcaRuntimeWithReconcileHeadlessMobileSessionBrowserTabs } from './orca-runtime-reconcile-headless-mobile-session-browser-tabs'
+import { DorkaRuntimeWithCloseStructuredAgentSessionTab } from './dorka-runtime-close-structured-agent-session-tab'
+import { DorkaRuntimeWithReconcileHeadlessMobileSessionBrowserTabs } from './dorka-runtime-reconcile-headless-mobile-session-browser-tabs'
 
 const rendererPage: RuntimeMobileSessionBrowserTab = {
   type: 'browser',
@@ -51,7 +51,7 @@ function reconcile(
   existing: RuntimeMobileSessionTabsSnapshot = snapshot
 ): RuntimeMobileSessionTabsSnapshot | undefined {
   const storeMobileSessionSnapshot = vi.fn()
-  const runtime = OrcaRuntimeWithReconcileHeadlessMobileSessionBrowserTabs.prototype as unknown as {
+  const runtime = DorkaRuntimeWithReconcileHeadlessMobileSessionBrowserTabs.prototype as unknown as {
     reconcileHeadlessMobileSessionBrowserTabs(
       worktreeId: string,
       existing: RuntimeMobileSessionTabsSnapshot
@@ -127,7 +127,7 @@ it('does not republish when a client row merely sits before a renderer row', () 
 
 it('keeps the renderer publication epoch when selecting a client-hosted browser tab', () => {
   const storeMobileSessionSnapshot = vi.fn()
-  const runtime = OrcaRuntimeWithCloseStructuredAgentSessionTab.prototype as unknown as {
+  const runtime = DorkaRuntimeWithCloseStructuredAgentSessionTab.prototype as unknown as {
     markHeadlessBrowserSessionTabActive(
       worktreeId: string,
       browserPageId: string,

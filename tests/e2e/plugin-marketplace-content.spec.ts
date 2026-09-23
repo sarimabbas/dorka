@@ -12,7 +12,7 @@ import { pathToFileURL } from 'node:url'
 import { promisify } from 'node:util'
 import type { Page, TestInfo } from '@stablyai/playwright-test'
 import { expect, test } from '@stablyai/playwright-test'
-import { createRestartSession } from './helpers/orca-restart'
+import { createRestartSession } from './helpers/dorka-restart'
 
 const execFileAsync = promisify(execFile)
 
@@ -48,9 +48,9 @@ async function commitRepository(
     repository,
     [
       '-c',
-      'user.name=Orca Test',
+      'user.name=Dorka Test',
       '-c',
-      'user.email=orca-test@example.invalid',
+      'user.email=dorka-test@example.invalid',
       'commit',
       '--quiet',
       '-m',
@@ -98,7 +98,7 @@ async function configureFixtureGit(home: string, repositories: string): Promise<
 }
 
 async function createMarketplaceFixture(): Promise<MarketplaceFixture> {
-  const root = await mkdtemp(join(tmpdir(), 'orca-marketplace-e2e-'))
+  const root = await mkdtemp(join(tmpdir(), 'dorka-marketplace-e2e-'))
   const repositories = join(root, 'repositories')
   const home = join(root, 'home')
   await mkdir(repositories, { recursive: true })
@@ -106,35 +106,35 @@ async function createMarketplaceFixture(): Promise<MarketplaceFixture> {
   const gitEnvironment = await configureFixtureGit(home, repositories)
   await copyLaunchPlugin(
     repositories,
-    'orca-portuguese',
-    'stablyai.orca-portuguese',
+    'dorka-portuguese',
+    'stablyai.dorka-portuguese',
     gitEnvironment
   )
   await copyLaunchPlugin(
     repositories,
-    'orca-multipass-recipes',
-    'stablyai.orca-multipass-recipes',
+    'dorka-multipass-recipes',
+    'stablyai.dorka-multipass-recipes',
     gitEnvironment
   )
   await copyLaunchPlugin(
     repositories,
-    'orca-navigation-shortcuts',
-    'stablyai.orca-navigation-shortcuts',
+    'dorka-navigation-shortcuts',
+    'stablyai.dorka-navigation-shortcuts',
     gitEnvironment
   )
 
-  const marketplaceRepository = join(repositories, 'orca-plugins.git')
+  const marketplaceRepository = join(repositories, 'dorka-plugins.git')
   await mkdir(marketplaceRepository, { recursive: true })
   await writeFile(
-    join(marketplaceRepository, 'orca-marketplace.json'),
+    join(marketplaceRepository, 'dorka-marketplace.json'),
     `${JSON.stringify(
       {
-        name: 'Orca Plugins',
+        name: 'Dorka Plugins',
         owner: 'stablyai',
         plugins: [
-          ['stablyai.orca-portuguese', 'orca-portuguese', 'languages'],
-          ['stablyai.orca-multipass-recipes', 'orca-multipass-recipes', 'vm-recipes'],
-          ['stablyai.orca-navigation-shortcuts', 'orca-navigation-shortcuts', 'keybindings']
+          ['stablyai.dorka-portuguese', 'dorka-portuguese', 'languages'],
+          ['stablyai.dorka-multipass-recipes', 'dorka-multipass-recipes', 'vm-recipes'],
+          ['stablyai.dorka-navigation-shortcuts', 'dorka-navigation-shortcuts', 'keybindings']
         ].map(([id, repository, category]) => ({
           id,
           source: {
@@ -204,7 +204,7 @@ async function enableInstalledPluginThroughUi(
 }
 
 async function applyInstalledLanguage(page: Page): Promise<void> {
-  const languageId = 'plugin:stablyai.orca-portuguese/pt-BR'
+  const languageId = 'plugin:stablyai.dorka-portuguese/pt-BR'
   await page.evaluate(() => {
     const state = window.__store?.getState()
     if (!state) {
@@ -215,7 +215,7 @@ async function applyInstalledLanguage(page: Page): Promise<void> {
   await expect(page.locator('[data-settings-section="appearance"]')).toBeVisible()
   await page.evaluate(() => window.__store?.setState({ settingsSearchQuery: 'Language' }))
   await page.getByRole('combobox', { name: 'Language' }).click()
-  await page.getByRole('option', { name: 'pt-BR — stablyai.orca-portuguese', exact: true }).click()
+  await page.getByRole('option', { name: 'pt-BR — stablyai.dorka-portuguese', exact: true }).click()
   await expect
     .poll(() => page.evaluate(() => window.__store?.getState().settings?.uiLanguage))
     .toBe(languageId)
@@ -239,10 +239,10 @@ async function runMarketplaceJourney(page: Page): Promise<void> {
     .toMatchObject({
       sources: [expect.objectContaining({ official: true, stale: false })],
       listings: expect.arrayContaining([
-        expect.objectContaining({ pluginKey: 'stablyai.orca-portuguese', official: true }),
-        expect.objectContaining({ pluginKey: 'stablyai.orca-multipass-recipes', official: true }),
+        expect.objectContaining({ pluginKey: 'stablyai.dorka-portuguese', official: true }),
+        expect.objectContaining({ pluginKey: 'stablyai.dorka-multipass-recipes', official: true }),
         expect.objectContaining({
-          pluginKey: 'stablyai.orca-navigation-shortcuts',
+          pluginKey: 'stablyai.dorka-navigation-shortcuts',
           official: true
         })
       ])
@@ -250,19 +250,19 @@ async function runMarketplaceJourney(page: Page): Promise<void> {
 
   await installMarketplacePluginThroughUi(
     page,
-    'stablyai.orca-portuguese',
+    'stablyai.dorka-portuguese',
     'Português do Brasil',
     'Review plugin'
   )
   await installMarketplacePluginThroughUi(
     page,
-    'stablyai.orca-multipass-recipes',
+    'stablyai.dorka-multipass-recipes',
     'Multipass VM Recipes',
     'Review plugin content'
   )
   await enableInstalledPluginThroughUi(
     page,
-    'stablyai.orca-navigation-shortcuts',
+    'stablyai.dorka-navigation-shortcuts',
     'Review plugin content'
   )
 

@@ -75,7 +75,7 @@ function snapshot(
 
 function inventoryLine(snapshotValue: AssignmentInventorySnapshot): string {
   const line = formatAssignmentInventorySnapshot(snapshotValue).find((candidate) =>
-    candidate.startsWith('[orca-relay] regional rehome inventory ')
+    candidate.startsWith('[dorka-relay] regional rehome inventory ')
   )
   if (!line) throw new Error('the formatter no longer emits a rehome inventory line')
   return line
@@ -147,7 +147,7 @@ describe('regional rehome inventory line census', () => {
       })
     )
     const printed = line
-      .slice('[orca-relay] regional rehome inventory '.length)
+      .slice('[dorka-relay] regional rehome inventory '.length)
       .split(' ')
       .map((field) => field.split('=')[0])
 

@@ -26,7 +26,7 @@ afterEach(async () => {
 
 describe('legacy import source byte bound', () => {
   it('refuses a source that grows past the limit after stat and closes the stream', async () => {
-    const root = await mkdtemp(join(tmpdir(), 'orca-legacy-import-bound-'))
+    const root = await mkdtemp(join(tmpdir(), 'dorka-legacy-import-bound-'))
     roots.push(root)
     const filePath = join(root, 'growing.jsonl')
     await writeFile(

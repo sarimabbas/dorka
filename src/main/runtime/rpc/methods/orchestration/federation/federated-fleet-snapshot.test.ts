@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { ORCHESTRATION_FEDERATION_FLEET_SNAPSHOT_RUNTIME_CAPABILITY } from '../../../../../../shared/protocol-version'
-import type { OrcaRuntimeService } from '../../../../orca-runtime'
+import type { DorkaRuntimeService } from '../../../../dorka-runtime'
 import type { OrchestrationDb } from '../../../../orchestration/db'
 import { OrchestrationError } from '../../../../orchestration/orchestration-error'
 import type { FederatedDispatchRow } from '../../../../orchestration/types'
@@ -52,7 +52,7 @@ describe('federated fleet snapshots', () => {
           }
         }
       )
-    } as unknown as OrcaRuntimeService
+    } as unknown as DorkaRuntimeService
 
     const result = await readFederatedFleetSnapshots({ runtime, db, dispatchIds })
 
@@ -88,7 +88,7 @@ describe('federated fleet snapshots', () => {
           ]
         }
       })
-    } as unknown as OrcaRuntimeService
+    } as unknown as DorkaRuntimeService
 
     const result = await readFederatedFleetSnapshots({
       runtime,
@@ -143,12 +143,12 @@ describe('federated fleet snapshots', () => {
           }
         }
       )
-    } as unknown as OrcaRuntimeService
+    } as unknown as DorkaRuntimeService
 
     try {
       const result = await readFederatedFleetSnapshots({ runtime, db, dispatchIds })
 
-      // Orca never contacted these hosts, so calling them unavailable would fabricate a verdict.
+      // Dorka never contacted these hosts, so calling them unavailable would fabricate a verdict.
       expect(result.errors.length).toBeGreaterThan(0)
       expect(result.errors.map((error) => error.code)).toEqual(
         result.errors.map(() => 'home_budget_exhausted')
@@ -195,7 +195,7 @@ describe('federated fleet snapshots', () => {
         pairingRevision: 42
       }),
       callOrchestrationWorkerServer
-    } as unknown as OrcaRuntimeService
+    } as unknown as DorkaRuntimeService
 
     const result = await readFederatedFleetSnapshots({
       runtime,
@@ -307,7 +307,7 @@ describe('federated fleet snapshots', () => {
               ]
             }
       )
-    } as unknown as OrcaRuntimeService
+    } as unknown as DorkaRuntimeService
 
     const result = await readFederatedFleetSnapshots({
       runtime,
@@ -338,7 +338,7 @@ describe('federated fleet snapshots', () => {
       callOrchestrationWorkerServer: vi.fn(async () => {
         throw new OrchestrationError('method_not_found', 'fleet snapshot unavailable')
       })
-    } as unknown as OrcaRuntimeService
+    } as unknown as DorkaRuntimeService
 
     const result = await readFederatedFleetSnapshots({
       runtime,
@@ -389,7 +389,7 @@ describe('federated fleet snapshots', () => {
         callOrchestrationWorkerServer: vi.fn(async () => {
           throw scenario.fail()
         })
-      } as unknown as OrcaRuntimeService
+      } as unknown as DorkaRuntimeService
 
       const federated = await readFederatedFleetSnapshots({
         runtime,

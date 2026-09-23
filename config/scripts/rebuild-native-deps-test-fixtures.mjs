@@ -87,7 +87,7 @@ function unpatchedWindowsProcessTreeCommandLineSource() {
  * rather than whatever the developer happens to have.
  */
 export function gitLineEndingEnv(autocrlf) {
-  const home = mkdtempSync(join(tmpdir(), `orca-git-home-${autocrlf}-`))
+  const home = mkdtempSync(join(tmpdir(), `dorka-git-home-${autocrlf}-`))
   writeFileSync(join(home, '.gitconfig'), `[core]\n\tautocrlf = ${autocrlf}\n`)
   return { HOME: home, USERPROFILE: home }
 }
@@ -108,7 +108,7 @@ export function writeWindowsProcessTreePatchFile(projectDir) {
 }
 
 export function mkTempProject() {
-  const projectDir = mkdtempSync(join(tmpdir(), 'orca-rebuild-native-deps-'))
+  const projectDir = mkdtempSync(join(tmpdir(), 'dorka-rebuild-native-deps-'))
   mkdirSync(join(projectDir, 'config', 'scripts'), { recursive: true })
   copyFileSync(sourceScriptPath, join(projectDir, 'config', 'scripts', 'rebuild-native-deps.mjs'))
   copyScriptWithLocalModules(sourceInstallScriptPath, join(projectDir, 'config', 'scripts'))
@@ -129,11 +129,11 @@ export function runRebuildScript(projectDir, extraEnv = {}, args = []) {
     ...process.env,
     npm_config_platform: 'linux',
     npm_config_arch: 'x64',
-    ORCA_ELECTRON_PACKAGE_EXTRACTOR: join(projectDir, 'fake-extractor.cjs')
+    DORKA_ELECTRON_PACKAGE_EXTRACTOR: join(projectDir, 'fake-extractor.cjs')
   }
   for (const key of Object.keys(env)) {
     if (
-      key.toLowerCase() === 'orca_strict_electron_install' ||
+      key.toLowerCase() === 'dorka_strict_electron_install' ||
       key.toLowerCase() === 'npm_lifecycle_event'
     ) {
       delete env[key]
@@ -421,7 +421,7 @@ exports.loadNativeModule = function loadNativeModule(nativeName) {
 }
 
 export function writeFakeWindowsRegistry(projectDir) {
-  const registryDir = join(projectDir, 'node_modules', '@orca', 'windows-registry')
+  const registryDir = join(projectDir, 'node_modules', '@dorka', 'windows-registry')
   mkdirSync(registryDir, { recursive: true })
   writeFileSync(
     join(registryDir, 'index.js'),

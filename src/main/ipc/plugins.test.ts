@@ -23,19 +23,19 @@ beforeEach(() => {
 describe('plugin consent IPC schema', () => {
   it('requires the fingerprint reviewed by the caller', () => {
     expect(() =>
-      parsePluginConsentArgs({ pluginKey: 'orca-samples.demo', decision: 'approve' })
+      parsePluginConsentArgs({ pluginKey: 'dorka-samples.demo', decision: 'approve' })
     ).toThrow()
   })
 
   it('accepts an explicit reviewed fingerprint', () => {
     expect(
       parsePluginConsentArgs({
-        pluginKey: 'orca-samples.demo',
+        pluginKey: 'dorka-samples.demo',
         reviewedFingerprint: 'sha256-reviewed',
         decision: 'approve'
       })
     ).toEqual({
-      pluginKey: 'orca-samples.demo',
+      pluginKey: 'dorka-samples.demo',
       reviewedFingerprint: 'sha256-reviewed',
       decision: 'approve'
     })
@@ -101,27 +101,27 @@ describe('plugin removal authority', () => {
   it('allows installed rows but refuses dev overrides and unknown keys', () => {
     const service = {
       getDiscovered: () => [
-        { pluginKey: 'orca-samples.installed', isDev: false },
-        { pluginKey: 'orca-samples.dev', isDev: true }
+        { pluginKey: 'dorka-samples.installed', isDev: false },
+        { pluginKey: 'dorka-samples.dev', isDev: true }
       ]
     } as unknown as PluginService
 
-    expect(canRemoveInstalledPlugin(service, 'orca-samples.installed')).toBe(true)
-    expect(canRemoveInstalledPlugin(service, 'orca-samples.dev')).toBe(false)
-    expect(canRemoveInstalledPlugin(service, 'orca-samples.unknown')).toBe(false)
+    expect(canRemoveInstalledPlugin(service, 'dorka-samples.installed')).toBe(true)
+    expect(canRemoveInstalledPlugin(service, 'dorka-samples.dev')).toBe(false)
+    expect(canRemoveInstalledPlugin(service, 'dorka-samples.unknown')).toBe(false)
   })
 
   it('refuses bundled installs because startup would restore them', () => {
     const service = {
-      getDiscovered: () => [{ pluginKey: 'stablyai.orca-theme', isDev: false }]
+      getDiscovered: () => [{ pluginKey: 'stablyai.dorka-theme', isDev: false }]
     } as unknown as PluginService
     const lock = {
       version: 1,
       plugins: {
-        'stablyai.orca-theme': {
-          pluginKey: 'stablyai.orca-theme',
+        'stablyai.dorka-theme': {
+          pluginKey: 'stablyai.dorka-theme',
           version: '1.0.0',
-          source: { kind: 'bundled', bundleId: 'stablyai.orca-theme' },
+          source: { kind: 'bundled', bundleId: 'stablyai.dorka-theme' },
           resolvedCommit: null,
           contentHash: 'a'.repeat(64),
           consentFingerprint: 'reviewed',
@@ -130,7 +130,7 @@ describe('plugin removal authority', () => {
       }
     } satisfies PluginLockfile
 
-    expect(canRemoveInstalledPlugin(service, 'stablyai.orca-theme', lock)).toBe(false)
+    expect(canRemoveInstalledPlugin(service, 'stablyai.dorka-theme', lock)).toBe(false)
   })
 })
 

@@ -8,7 +8,7 @@ export const ogImageSize = { width: 1200, height: 630 }
 export const ogImageContentType = 'image/png'
 
 const fontsDir = join(process.cwd(), 'src/assets/fonts')
-// Satori cannot read the site stylesheet, so mirror Orca's canonical dark tokens here.
+// Satori cannot read the site stylesheet, so mirror Dorka's canonical dark tokens here.
 const ogColors = {
   background: '#0a0a0a',
   foreground: '#fafafa',
@@ -27,7 +27,7 @@ function getSectionLabel(url: string): string {
 }
 
 function getFooterTag(title: string, section: string): string {
-  return `${title} - ${section} - Orca`
+  return `${title} - ${section} - Dorka`
 }
 
 function getTitleFontSize(title: string): number {
@@ -46,14 +46,14 @@ export async function createDocsOgImage({ title, url }: { title: string; url: st
   const titleFontSize = getTitleFontSize(title)
 
   const [logoData, geistRegular, geistBold] = await Promise.all([
-    readFile(join(process.cwd(), 'public/docs/logo.svg'), 'base64'),
+    readFile(join(process.cwd(), 'public/docs/dorka-geek-app-icon.png'), 'base64'),
     // next/og's Satori renderer accepts static TrueType fonts, while the
     // browser stylesheet uses the smaller variable WOFF2 variant.
     readFile(join(fontsDir, 'Geist-Regular.ttf')),
     readFile(join(fontsDir, 'Geist-Bold.ttf'))
   ])
 
-  const logoSrc = `data:image/svg+xml;base64,${logoData}`
+  const logoSrc = `data:image/png;base64,${logoData}`
   const regularFont = geistRegular.buffer.slice(
     geistRegular.byteOffset,
     geistRegular.byteOffset + geistRegular.byteLength
@@ -99,7 +99,7 @@ export async function createDocsOgImage({ title, url }: { title: string; url: st
             background: ogColors.secondary
           }}
         >
-          <img src={logoSrc} width={32} height={20} alt="" />
+          <img src={logoSrc} width={32} height={32} alt="" />
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>

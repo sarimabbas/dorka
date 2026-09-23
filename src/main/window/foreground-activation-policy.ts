@@ -5,8 +5,8 @@ import { app as electronApp, type BrowserWindow } from 'electron'
  * validation). These runs may use the machine, but must never take the OS
  * foreground away from whatever the developer is doing.
  *
- * ORCA_BACKGROUND_LAUNCH=1 keeps automation off screen. Native-focus specs
- * can use ORCA_E2E_FOREGROUND=1 only without an explicit background request.
+ * DORKA_BACKGROUND_LAUNCH=1 keeps automation off screen. Native-focus specs
+ * can use DORKA_E2E_FOREGROUND=1 only without an explicit background request.
  * The hosted-Xvfb terminal benchmark explicitly presents after startup; see tests/AGENTS.md.
  * This policy still suppresses its automatic reveals and foreground activation.
  */
@@ -16,25 +16,25 @@ type ActivationPolicyApp = {
   setActivationPolicy: (policy: 'accessory' | 'prohibited' | 'regular') => void
 }
 
-/** Reads ORCA_BACKGROUND_LAUNCH, ORCA_E2E_FOREGROUND, ORCA_E2E_HEADLESS, ORCA_E2E_HEADFUL. */
+/** Reads DORKA_BACKGROUND_LAUNCH, DORKA_E2E_FOREGROUND, DORKA_E2E_HEADLESS, DORKA_E2E_HEADFUL. */
 type PolicyEnv = Readonly<Record<string, string | undefined>>
 
 /** True when this process must not steal focus, raise windows, or activate the app. */
 export function isBackgroundLaunch(env: PolicyEnv = process.env): boolean {
-  if (env.ORCA_BACKGROUND_LAUNCH === '1') {
+  if (env.DORKA_BACKGROUND_LAUNCH === '1') {
     return true
   }
-  if (env.ORCA_E2E_FOREGROUND === '1') {
+  if (env.DORKA_E2E_FOREGROUND === '1') {
     return false
   }
-  return env.ORCA_E2E_HEADLESS === '1' || env.ORCA_E2E_HEADFUL === '1'
+  return env.DORKA_E2E_HEADLESS === '1' || env.DORKA_E2E_HEADFUL === '1'
 }
 
 /** Suppresses automatic presentation on launch; this is not a query of current window visibility. */
 export function isWindowlessLaunch(env: PolicyEnv = process.env): boolean {
   return (
-    env.ORCA_BACKGROUND_LAUNCH === '1' ||
-    (isBackgroundLaunch(env) && env.ORCA_E2E_HEADLESS === '1' && env.ORCA_E2E_HEADFUL !== '1')
+    env.DORKA_BACKGROUND_LAUNCH === '1' ||
+    (isBackgroundLaunch(env) && env.DORKA_E2E_HEADLESS === '1' && env.DORKA_E2E_HEADFUL !== '1')
   )
 }
 

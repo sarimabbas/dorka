@@ -28,7 +28,7 @@ vi.mock('react-dom/client', async (importOriginal) => {
   return {
     ...actual,
     createRoot: (container: Element, options?: Parameters<typeof actual.createRoot>[1]) => {
-      const isZoneRoot = container.classList?.contains('orca-diff-comment-inline') ?? false
+      const isZoneRoot = container.classList?.contains('dorka-diff-comment-inline') ?? false
       if (isZoneRoot) {
         rootCounts.created += 1
       }
@@ -89,7 +89,7 @@ function lifecycleTotals(fake: FakeDiffCommentEditor): Record<string, number> {
 }
 
 function isAddButtonVisible(domNode: HTMLElement): boolean {
-  const button = domNode.querySelector<HTMLElement>('.orca-diff-comment-add-btn')
+  const button = domNode.querySelector<HTMLElement>('.dorka-diff-comment-add-btn')
   return button != null && button.style.display !== 'none'
 }
 

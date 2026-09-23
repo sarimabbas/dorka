@@ -64,19 +64,19 @@ const originalPlatform = Object.getOwnPropertyDescriptor(process, 'platform')
 
 function status(
   state: CliInstallState,
-  launcherPath = '/cache/current/resources/bin/orca-ide'
+  launcherPath = '/cache/current/resources/bin/dorka-ide'
 ): CliInstallStatus {
   return {
     platform: 'linux',
-    commandName: 'orca-ide',
-    commandPath: '/home/me/.local/bin/orca-ide',
+    commandName: 'dorka-ide',
+    commandPath: '/home/me/.local/bin/dorka-ide',
     pathDirectory: '/home/me/.local/bin',
     pathConfigured: true,
     launcherPath,
     installMethod: 'symlink',
     supported: true,
     state,
-    currentTarget: state === 'not_installed' ? null : '/cache/old/resources/bin/orca-ide',
+    currentTarget: state === 'not_installed' ? null : '/cache/old/resources/bin/dorka-ide',
     unsupportedReason: null,
     detail: null
   }
@@ -105,12 +105,12 @@ beforeEach(() => {
   mocks.resolveAppImageRuntimeIdentity.mockReset().mockImplementation(() =>
     process.platform === 'linux'
       ? {
-          appImagePath: '/opt/Orca.AppImage'
+          appImagePath: '/opt/Dorka.AppImage'
         }
       : null
   )
   Object.defineProperty(process, 'platform', { configurable: true, value: 'linux' })
-  vi.stubEnv('APPIMAGE', '/opt/Orca.AppImage')
+  vi.stubEnv('APPIMAGE', '/opt/Dorka.AppImage')
 })
 
 afterEach(() => {
@@ -187,10 +187,10 @@ describe('AppImage CLI registration startup repair', () => {
   })
 
   it('repairs a later AppImage generation after an earlier repair succeeds', async () => {
-    const firstStale = status('stale', '/cache/launcher/orca-ide')
-    const firstInstalled = status('installed', '/cache/launcher/orca-ide')
-    const nextStale = status('stale', '/cache/launcher/orca-ide')
-    const nextInstalled = status('installed', '/cache/launcher/orca-ide')
+    const firstStale = status('stale', '/cache/launcher/dorka-ide')
+    const firstInstalled = status('installed', '/cache/launcher/dorka-ide')
+    const nextStale = status('stale', '/cache/launcher/dorka-ide')
+    const nextInstalled = status('installed', '/cache/launcher/dorka-ide')
     mocks.getStatus
       .mockResolvedValueOnce(firstStale)
       .mockResolvedValueOnce(firstStale)
@@ -210,9 +210,9 @@ describe('AppImage CLI registration startup repair', () => {
   })
 
   it('waits for the cooldown before repairing a newer AppImage generation', async () => {
-    const firstStale = status('stale', '/cache/launcher/orca-ide')
-    const nextStale = status('stale', '/cache/launcher/orca-ide')
-    const nextInstalled = status('installed', '/cache/launcher/orca-ide')
+    const firstStale = status('stale', '/cache/launcher/dorka-ide')
+    const nextStale = status('stale', '/cache/launcher/dorka-ide')
+    const nextInstalled = status('installed', '/cache/launcher/dorka-ide')
     let now = 1_000
     mocks.getStatus
       .mockResolvedValueOnce(firstStale)
@@ -348,7 +348,7 @@ describe('AppImage CLI registration startup repair', () => {
   it('does not claim a sibling AppImage registration during a status poll', async () => {
     const stale = {
       ...status('stale'),
-      currentTarget: '/cache/current/resources/bin/orca-ide'
+      currentTarget: '/cache/current/resources/bin/dorka-ide'
     }
     mocks.getStatus.mockResolvedValue(stale)
     mocks.isAppImageRegistrationOwnedBySibling.mockReturnValue(true)

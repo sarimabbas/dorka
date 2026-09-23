@@ -1,42 +1,42 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 function installRegistryMock(): {
-  configureForOrcaProfileMock: ReturnType<typeof vi.fn>
-  configureRouteSessionsForOrcaProfileMock: ReturnType<typeof vi.fn>
-  configurePairedRuntimeBrowserClientHostsForOrcaProfileMock: ReturnType<typeof vi.fn>
+  configureForDorkaProfileMock: ReturnType<typeof vi.fn>
+  configureRouteSessionsForDorkaProfileMock: ReturnType<typeof vi.fn>
+  configurePairedRuntimeBrowserClientHostsForDorkaProfileMock: ReturnType<typeof vi.fn>
   collectOrphanedBrowserRoutePartitionStorageMock: ReturnType<typeof vi.fn>
   applyPendingCookieImportMock: ReturnType<typeof vi.fn>
   initializeBrowserSessionsFromPersistedStateMock: ReturnType<typeof vi.fn>
 } {
-  const configureForOrcaProfileMock = vi.fn()
-  const configureRouteSessionsForOrcaProfileMock = vi.fn()
-  const configurePairedRuntimeBrowserClientHostsForOrcaProfileMock = vi.fn()
+  const configureForDorkaProfileMock = vi.fn()
+  const configureRouteSessionsForDorkaProfileMock = vi.fn()
+  const configurePairedRuntimeBrowserClientHostsForDorkaProfileMock = vi.fn()
   const collectOrphanedBrowserRoutePartitionStorageMock = vi.fn(async () => [])
   const applyPendingCookieImportMock = vi.fn()
   const initializeBrowserSessionsFromPersistedStateMock = vi.fn()
 
   vi.doMock('./browser-session-registry', () => ({
     browserSessionRegistry: {
-      configureForOrcaProfile: configureForOrcaProfileMock,
+      configureForDorkaProfile: configureForDorkaProfileMock,
       applyPendingCookieImport: applyPendingCookieImportMock,
       initializeBrowserSessionsFromPersistedState: initializeBrowserSessionsFromPersistedStateMock
     }
   }))
   vi.doMock('./browser-route-session-runtime', () => ({
-    configureRouteSessionsForOrcaProfile: configureRouteSessionsForOrcaProfileMock
+    configureRouteSessionsForDorkaProfile: configureRouteSessionsForDorkaProfileMock
   }))
   vi.doMock('./browser-route-partition-storage-runtime', () => ({
     collectOrphanedBrowserRoutePartitionStorage: collectOrphanedBrowserRoutePartitionStorageMock
   }))
   vi.doMock('./paired-runtime-browser-client-host-runtime', () => ({
-    configurePairedRuntimeBrowserClientHostsForOrcaProfile:
-      configurePairedRuntimeBrowserClientHostsForOrcaProfileMock
+    configurePairedRuntimeBrowserClientHostsForDorkaProfile:
+      configurePairedRuntimeBrowserClientHostsForDorkaProfileMock
   }))
 
   return {
-    configureForOrcaProfileMock,
-    configureRouteSessionsForOrcaProfileMock,
-    configurePairedRuntimeBrowserClientHostsForOrcaProfileMock,
+    configureForDorkaProfileMock,
+    configureRouteSessionsForDorkaProfileMock,
+    configurePairedRuntimeBrowserClientHostsForDorkaProfileMock,
     collectOrphanedBrowserRoutePartitionStorageMock,
     applyPendingCookieImportMock,
     initializeBrowserSessionsFromPersistedStateMock
@@ -63,40 +63,40 @@ describe('initializeBrowserSessionsForApp', () => {
     )
   })
 
-  it('configures the active Orca profile before replaying browser sessions', async () => {
+  it('configures the active Dorka profile before replaying browser sessions', async () => {
     const {
-      configureForOrcaProfileMock,
-      configureRouteSessionsForOrcaProfileMock,
-      configurePairedRuntimeBrowserClientHostsForOrcaProfileMock,
+      configureForDorkaProfileMock,
+      configureRouteSessionsForDorkaProfileMock,
+      configurePairedRuntimeBrowserClientHostsForDorkaProfileMock,
       applyPendingCookieImportMock,
       initializeBrowserSessionsFromPersistedStateMock
     } = installRegistryMock()
     const { initializeBrowserSessionsForApp } = await import('./browser-session-startup')
 
     initializeBrowserSessionsForApp({
-      orcaProfileId: 'local-work',
+      dorkaProfileId: 'local-work',
       profileDirectory: '/profiles/local-work'
     })
 
-    expect(configureForOrcaProfileMock).toHaveBeenCalledWith({
-      orcaProfileId: 'local-work',
+    expect(configureForDorkaProfileMock).toHaveBeenCalledWith({
+      dorkaProfileId: 'local-work',
       profileDirectory: '/profiles/local-work'
     })
-    expect(configureRouteSessionsForOrcaProfileMock).toHaveBeenCalledWith({
-      orcaProfileId: 'local-work',
+    expect(configureRouteSessionsForDorkaProfileMock).toHaveBeenCalledWith({
+      dorkaProfileId: 'local-work',
       profileDirectory: '/profiles/local-work'
     })
-    expect(configurePairedRuntimeBrowserClientHostsForOrcaProfileMock).toHaveBeenCalledWith({
-      orcaProfileId: 'local-work'
+    expect(configurePairedRuntimeBrowserClientHostsForDorkaProfileMock).toHaveBeenCalledWith({
+      dorkaProfileId: 'local-work'
     })
-    expect(configureForOrcaProfileMock.mock.invocationCallOrder[0]).toBeLessThan(
+    expect(configureForDorkaProfileMock.mock.invocationCallOrder[0]).toBeLessThan(
       applyPendingCookieImportMock.mock.invocationCallOrder[0]
     )
-    expect(configureRouteSessionsForOrcaProfileMock.mock.invocationCallOrder[0]).toBeLessThan(
+    expect(configureRouteSessionsForDorkaProfileMock.mock.invocationCallOrder[0]).toBeLessThan(
       applyPendingCookieImportMock.mock.invocationCallOrder[0]
     )
     expect(
-      configurePairedRuntimeBrowserClientHostsForOrcaProfileMock.mock.invocationCallOrder[0]
+      configurePairedRuntimeBrowserClientHostsForDorkaProfileMock.mock.invocationCallOrder[0]
     ).toBeLessThan(applyPendingCookieImportMock.mock.invocationCallOrder[0])
     expect(applyPendingCookieImportMock.mock.invocationCallOrder[0]).toBeLessThan(
       initializeBrowserSessionsFromPersistedStateMock.mock.invocationCallOrder[0]
@@ -105,19 +105,19 @@ describe('initializeBrowserSessionsForApp', () => {
 
   it('sweeps orphaned route partitions once the profile binding runtime is configured', async () => {
     const {
-      configureRouteSessionsForOrcaProfileMock,
+      configureRouteSessionsForDorkaProfileMock,
       collectOrphanedBrowserRoutePartitionStorageMock
     } = installRegistryMock()
     const { initializeBrowserSessionsForApp } = await import('./browser-session-startup')
 
     initializeBrowserSessionsForApp({
-      orcaProfileId: 'local-work',
+      dorkaProfileId: 'local-work',
       profileDirectory: '/profiles/local-work'
     })
 
     expect(collectOrphanedBrowserRoutePartitionStorageMock).toHaveBeenCalledOnce()
     // Hoisting the sweep above the binding runtime leaves it with no active profile and it collects nothing.
-    expect(configureRouteSessionsForOrcaProfileMock.mock.invocationCallOrder[0]).toBeLessThan(
+    expect(configureRouteSessionsForDorkaProfileMock.mock.invocationCallOrder[0]).toBeLessThan(
       collectOrphanedBrowserRoutePartitionStorageMock.mock.invocationCallOrder[0]
     )
   })

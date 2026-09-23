@@ -1,0 +1,36 @@
+{
+  "name": "Dorka Official Plugins",
+  "owner": "stablyai",
+  "plugins": [
+    {
+      "id": "stablyai.dorka-portuguese",
+      "source": {
+        "kind": "git",
+        "url": "https://github.com/stablyai/dorka-portuguese.git",
+        "ref": "v1.0.0"
+      },
+      "description": "Brazilian Portuguese translations for common Dorka navigation.",
+      "categories": ["languages", "official"]
+    },
+    {
+      "id": "stablyai.dorka-multipass-recipes",
+      "source": {
+        "kind": "git",
+        "url": "https://github.com/stablyai/dorka-multipass-recipes.git",
+        "ref": "v1.0.0"
+      },
+      "description": "A reviewed starter lifecycle for disposable Multipass workspaces.",
+      "categories": ["vm-recipes", "official"]
+    },
+    {
+      "id": "stablyai.dorka-navigation-shortcuts",
+      "source": {
+        "kind": "git",
+        "url": "https://github.com/stablyai/dorka-navigation-shortcuts.git",
+        "ref": "v1.0.0"
+      },
+      "description": "Command aliases and optional shortcuts for frequent Dorka views.",
+      "categories": ["keybindings", "official"]
+    }
+  ]
+}

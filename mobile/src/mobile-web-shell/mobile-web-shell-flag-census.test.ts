@@ -15,7 +15,7 @@ import { censusSourceFiles } from '../test-support/census-source-files'
  * second answer to "is this the page's build" that no type check would catch either.
  */
 const MOBILE_ROOT = join(import.meta.dirname, '..', '..')
-const FLAG_KEY = 'orca:mobileWebShellEnabled'
+const FLAG_KEY = 'dorka:mobileWebShellEnabled'
 /** The inlined form. Prose may name the variable; this is the spelling that reads it. */
 const BUILD_SWITCH_READ = 'process.env.EXPO_PUBLIC_'
 /** The other spelling Expo's plugin inlines, which is how the rule above would be evaded. */
@@ -56,7 +56,7 @@ const TROUBLESHOOT_ROUTE = 'app/troubleshoot.tsx'
 /** Every tree that ships in the app bundle, with the floor each must clear. `modules` is two files,
  *  but it is where the native view lives and so the easiest place for a second reader to hide. */
 const TREES = { src: 200, app: 10, modules: 1 }
-const SHELL_VIEW = 'modules/orca-mobile-web-shell/src/index.ts'
+const SHELL_VIEW = 'modules/dorka-mobile-web-shell/src/index.ts'
 
 function sourceFiles(directory: string): string[] {
   return censusSourceFiles(join(MOBILE_ROOT, directory))

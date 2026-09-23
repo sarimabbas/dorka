@@ -6,7 +6,7 @@ import {
   PRUNE_BATCH_ROWS,
   PRUNE_MAX_BATCHES
 } from './durable-push-store.js'
-import { PUSH_LIMITS } from '@orca-cloud/push-contract'
+import { PUSH_LIMITS } from '@dorka-cloud/push-contract'
 import {
   CANDIDATE_SQL,
   cleanupDurablePushFixtures,

@@ -61,7 +61,7 @@ export abstract class AgentHookServerLifecycle extends AgentHookServerRuntimeEnv
         return
       }
       // Why: authenticate before spending work reading an untrusted body.
-      if (req.headers['x-orca-agent-hook-token'] !== this.token) {
+      if (req.headers['x-dorka-agent-hook-token'] !== this.token) {
         res.writeHead(403)
         res.end()
         return
@@ -228,7 +228,7 @@ export abstract class AgentHookServerLifecycle extends AgentHookServerRuntimeEnv
     this.legacyPaneKeyAliases.clear()
     this.paneKeyAliasPersistenceListener = null
     this.ownerStateInitialized = false
-    // Why: don't unlink the endpoint file — a stale file matches fail-open and avoids a TOCTOU race with a concurrent Orca.
+    // Why: don't unlink the endpoint file — a stale file matches fail-open and avoids a TOCTOU race with a concurrent Dorka.
     clearAllListenerCaches(this.state)
     this.resetCanonicalStatus()
     this.notifyStatusChangeListeners()

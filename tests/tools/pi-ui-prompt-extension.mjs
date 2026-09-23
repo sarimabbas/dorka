@@ -1,10 +1,10 @@
-// Load with Pi's -e flag; /orca-modal exercises real dialogs without a model or API key.
+// Load with Pi's -e flag; /dorka-modal exercises real dialogs without a model or API key.
 export default function (pi) {
-  pi.registerCommand('orca-modal', {
-    description: 'Verify Orca status: select, confirm, input, editor, or custom',
+  pi.registerCommand('dorka-modal', {
+    description: 'Verify Dorka status: select, confirm, input, editor, or custom',
     handler: async (args, ctx) => {
       const kind = args.trim() || 'select'
-      const title = `Orca verification: ${kind}`
+      const title = `Dorka verification: ${kind}`
       let answer
       switch (kind) {
         case 'select':
@@ -37,7 +37,7 @@ export default function (pi) {
           ctx.ui.notify('Use select, confirm, input, editor, or custom', 'error')
           return
       }
-      ctx.ui.notify(`Orca verification: ${kind} ${answer === undefined ? 'cancelled' : 'answered'}`)
+      ctx.ui.notify(`Dorka verification: ${kind} ${answer === undefined ? 'cancelled' : 'answered'}`)
     }
   })
 }

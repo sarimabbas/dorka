@@ -276,7 +276,7 @@ describe('connectPanePty', () => {
           {
             id: 'repo1',
             connectionId: null,
-            displayName: 'orca',
+            displayName: 'dorka',
             executionHostId: 'runtime:owner-runtime'
           }
         ]

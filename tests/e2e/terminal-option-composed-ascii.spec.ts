@@ -1,6 +1,6 @@
 // Option composition must survive kitty negotiation (#14024, #20171, #20850).
 
-import { test, expect } from './helpers/orca-app'
+import { test, expect } from './helpers/dorka-app'
 import type { ElectronApplication, Page } from '@stablyai/playwright-test'
 import {
   execInTerminal,
@@ -150,15 +150,15 @@ test.describe('Option-composed text in a kitty-keyboard pane', () => {
   test.skip(process.platform !== 'darwin', 'Option composition is a macOS-only input path (#14024)')
 
   test('types the composed character instead of reporting the physical Alt chord', async ({
-    orcaPage,
+    dorkaPage,
     electronApp
   }) => {
-    const { joinedWrites } = await setUpPane(orcaPage, electronApp)
-    await setMacOptionAsAlt(orcaPage, 'false')
+    const { joinedWrites } = await setUpPane(dorkaPage, electronApp)
+    await setMacOptionAsAlt(dorkaPage, 'false')
     await clearPtyWriteLog(electronApp)
 
     // Turkish Q: the physical `q` key composes `@`.
-    const dispatch = await pressOptionComposedKey(orcaPage, { key: '@', code: 'KeyQ' })
+    const dispatch = await pressOptionComposedKey(dorkaPage, { key: '@', code: 'KeyQ' })
     expect(dispatch.keydownDefaultPrevented).toBe(true)
 
     await expect
@@ -171,14 +171,14 @@ test.describe('Option-composed text in a kitty-keyboard pane', () => {
     expect(await joinedWrites()).not.toContain('\x1b[113;3u')
   })
 
-  test('types a composed character that also needs Shift', async ({ orcaPage, electronApp }) => {
-    const { joinedWrites } = await setUpPane(orcaPage, electronApp)
-    await setMacOptionAsAlt(orcaPage, 'false')
+  test('types a composed character that also needs Shift', async ({ dorkaPage, electronApp }) => {
+    const { joinedWrites } = await setUpPane(dorkaPage, electronApp)
+    await setMacOptionAsAlt(dorkaPage, 'false')
     await clearPtyWriteLog(electronApp)
 
     // QWERTZ-class layouts put `\` on the shifted Option layer (Option+Shift+7),
     // where no other chord can reach it.
-    const dispatch = await pressOptionComposedKey(orcaPage, {
+    const dispatch = await pressOptionComposedKey(dorkaPage, {
       key: '\\',
       code: 'Digit7',
       shiftKey: true
@@ -195,14 +195,14 @@ test.describe('Option-composed text in a kitty-keyboard pane', () => {
   })
 
   test('still reports the Alt chord when Option is configured as Alt', async ({
-    orcaPage,
+    dorkaPage,
     electronApp
   }) => {
-    const { joinedWrites } = await setUpPane(orcaPage, electronApp)
-    await setMacOptionAsAlt(orcaPage, 'true')
+    const { joinedWrites } = await setUpPane(dorkaPage, electronApp)
+    await setMacOptionAsAlt(dorkaPage, 'true')
     await clearPtyWriteLog(electronApp)
 
-    const dispatch = await pressOptionComposedKey(orcaPage, { key: '@', code: 'KeyQ' })
+    const dispatch = await pressOptionComposedKey(dorkaPage, { key: '@', code: 'KeyQ' })
     expect(dispatch.keydownDefaultPrevented).toBe(true)
 
     await expect
@@ -215,15 +215,15 @@ test.describe('Option-composed text in a kitty-keyboard pane', () => {
   })
 
   test('keeps non-ASCII Option glyphs as TUI hotkeys when configured as Alt', async ({
-    orcaPage,
+    dorkaPage,
     electronApp
   }) => {
-    const { joinedWrites } = await setUpPane(orcaPage, electronApp)
-    await setMacOptionAsAlt(orcaPage, 'true')
+    const { joinedWrites } = await setUpPane(dorkaPage, electronApp)
+    await setMacOptionAsAlt(dorkaPage, 'true')
     await clearPtyWriteLog(electronApp)
 
     // #8031: OMP-class TUIs bind Option+P, which composes the non-ASCII `π`.
-    const dispatch = await pressOptionComposedKey(orcaPage, { key: 'π', code: 'KeyP' })
+    const dispatch = await pressOptionComposedKey(dorkaPage, { key: 'π', code: 'KeyP' })
     expect(dispatch.keydownDefaultPrevented).toBe(true)
 
     await expect
@@ -236,13 +236,13 @@ test.describe('Option-composed text in a kitty-keyboard pane', () => {
   })
 
   test('types all Polish letters once under Claude flags and updates the mounted pane setting', async ({
-    orcaPage,
+    dorkaPage,
     electronApp
   }) => {
-    const { ptyId, joinedWrites } = await setUpPane(orcaPage, electronApp)
-    await execInTerminal(orcaPage, ptyId, `printf '\\033[<u\\033[>5u'`)
-    await expect.poll(() => getPaneKittyKeyboardFlags(orcaPage)).toBe(5)
-    await setMacOptionAsAlt(orcaPage, 'false')
+    const { ptyId, joinedWrites } = await setUpPane(dorkaPage, electronApp)
+    await execInTerminal(dorkaPage, ptyId, `printf '\\033[<u\\033[>5u'`)
+    await expect.poll(() => getPaneKittyKeyboardFlags(dorkaPage)).toBe(5)
+    await setMacOptionAsAlt(dorkaPage, 'false')
     await clearPtyWriteLog(electronApp)
     const letters = [
       ['a', 'ą'],
@@ -256,47 +256,47 @@ test.describe('Option-composed text in a kitty-keyboard pane', () => {
       ['z', 'ż']
     ]
     for (const [base, key] of letters) {
-      await pressOptionComposedKey(orcaPage, { key, code: `Key${base.toUpperCase()}` })
-      await pressOptionComposedKey(orcaPage, {
+      await pressOptionComposedKey(dorkaPage, { key, code: `Key${base.toUpperCase()}` })
+      await pressOptionComposedKey(dorkaPage, {
         key: key.toUpperCase(),
         code: `Key${base.toUpperCase()}`,
         shiftKey: true
       })
     }
     await expect.poll(joinedWrites).toBe('ąĄćĆęĘłŁńŃóÓśŚźŹżŻ')
-    await setMacOptionAsAlt(orcaPage, 'true')
+    await setMacOptionAsAlt(dorkaPage, 'true')
     await clearPtyWriteLog(electronApp)
-    await pressOptionComposedKey(orcaPage, { key: 'ą', code: 'KeyA' })
+    await pressOptionComposedKey(dorkaPage, { key: 'ą', code: 'KeyA' })
     await expect.poll(joinedWrites).toBe('\x1b[97;3u')
-    await setMacOptionAsAlt(orcaPage, 'false')
+    await setMacOptionAsAlt(dorkaPage, 'false')
     await clearPtyWriteLog(electronApp)
-    await pressOptionComposedKey(orcaPage, { key: 'ą', code: 'KeyA' })
+    await pressOptionComposedKey(dorkaPage, { key: 'ą', code: 'KeyA' })
     await expect.poll(joinedWrites).toBe('ą')
   })
 
   test('reports Polish associated text once under report-all flags', async ({
-    orcaPage,
+    dorkaPage,
     electronApp
   }) => {
-    const { ptyId, joinedWrites } = await setUpPane(orcaPage, electronApp)
-    await execInTerminal(orcaPage, ptyId, `printf '\\033[<u\\033[>29u'`)
-    await expect.poll(() => getPaneKittyKeyboardFlags(orcaPage)).toBe(29)
-    await setMacOptionAsAlt(orcaPage, 'false')
+    const { ptyId, joinedWrites } = await setUpPane(dorkaPage, electronApp)
+    await execInTerminal(dorkaPage, ptyId, `printf '\\033[<u\\033[>29u'`)
+    await expect.poll(() => getPaneKittyKeyboardFlags(dorkaPage)).toBe(29)
+    await setMacOptionAsAlt(dorkaPage, 'false')
     await clearPtyWriteLog(electronApp)
-    await pressOptionComposedKey(orcaPage, { key: 'ą', code: 'KeyA' })
+    await pressOptionComposedKey(dorkaPage, { key: 'ą', code: 'KeyA' })
     await expect.poll(joinedWrites).toBe('\x1b[97;3;261u')
   })
 
   test('renders Polish words entered through Chromium keyboard events', async ({
-    orcaPage,
+    dorkaPage,
     electronApp
   }, testInfo) => {
-    const { ptyId, joinedWrites } = await setUpPane(orcaPage, electronApp)
-    await execInTerminal(orcaPage, ptyId, `printf '\\033[<u\\033[>5u'; cat`)
-    await expect.poll(() => getPaneKittyKeyboardFlags(orcaPage)).toBe(5)
-    await setMacOptionAsAlt(orcaPage, 'false')
+    const { ptyId, joinedWrites } = await setUpPane(dorkaPage, electronApp)
+    await execInTerminal(dorkaPage, ptyId, `printf '\\033[<u\\033[>5u'; cat`)
+    await expect.poll(() => getPaneKittyKeyboardFlags(dorkaPage)).toBe(5)
+    await setMacOptionAsAlt(dorkaPage, 'false')
     await clearPtyWriteLog(electronApp)
-    const cdp = await orcaPage.context().newCDPSession(orcaPage)
+    const cdp = await dorkaPage.context().newCDPSession(dorkaPage)
     const bases: Record<string, string> = {
       ą: 'a',
       ć: 'c',
@@ -325,8 +325,8 @@ test.describe('Option-composed text in a kitty-keyboard pane', () => {
         await cdp.send('Input.dispatchKeyEvent', { type: 'keyUp', key, code, modifiers })
       }
       await expect.poll(joinedWrites).toBe(phrase)
-      await waitForTerminalOutput(orcaPage, phrase)
-      await orcaPage.screenshot({ path: testInfo.outputPath('polish-words.png') })
+      await waitForTerminalOutput(dorkaPage, phrase)
+      await dorkaPage.screenshot({ path: testInfo.outputPath('polish-words.png') })
     } finally {
       await cdp.detach()
     }

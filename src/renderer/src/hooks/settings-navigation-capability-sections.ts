@@ -6,8 +6,8 @@ import { getGeneralPaneSearchEntries } from '@/components/settings/general-searc
 import { getIntegrationsPaneSearchEntries } from '@/components/settings/integrations-search'
 import { getLinearAgentSkillPaneSearchEntries } from '@/components/settings/linear-agent-skill-search'
 import { getMobileSettingsPaneSearchEntries } from '@/components/settings/mobile-settings-search'
-import { getOrcaAccountSettingsSearchEntries } from '@/components/settings/orca-account-settings-search'
-import { OrcaLogoSettingsIcon } from '@/components/settings/orca-logo-settings-icon'
+import { getDorkaAccountSettingsSearchEntries } from '@/components/settings/dorka-account-settings-search'
+import { DorkaLogoSettingsIcon } from '@/components/settings/dorka-logo-settings-icon'
 import { getOrchestrationPaneSearchEntries } from '@/components/settings/orchestration-search'
 import { getVoicePaneSearchEntries } from '@/components/settings/voice-pane-search'
 import { translate } from '@/i18n/i18n'
@@ -66,7 +66,7 @@ export function buildCapabilitySettingsSections({
       title: translate('auto.hooks.useSettingsNavigationMetadata.58a868e8e4', 'Orchestration'),
       description: translate(
         'auto.hooks.useSettingsNavigationMetadata.cd50cec5d7',
-        'Coordinate multiple coding agents through Orca.'
+        'Coordinate multiple coding agents through Dorka.'
       ),
       icon: Network,
       searchEntries: getOrchestrationPaneSearchEntries({
@@ -83,7 +83,7 @@ export function buildCapabilitySettingsSections({
             title: translate('auto.hooks.useSettingsNavigationMetadata.linearTitle', 'Linear'),
             description: translate(
               'auto.hooks.useSettingsNavigationMetadata.linearDescription',
-              'How Linear works in Orca, setup checklist, agent skill, and example prompts.'
+              'How Linear works in Dorka, setup checklist, agent skill, and example prompts.'
             ),
             icon: LinearIcon,
             searchEntries: getLinearAgentSkillPaneSearchEntries(),
@@ -129,14 +129,14 @@ export function buildSetupSettingsSections({
     ...(showDesktopOnlySettings
       ? [
           {
-            id: 'orca-account',
-            title: translate('auto.components.settings.orcaAccount.title', 'Orca Account'),
+            id: 'dorka-account',
+            title: translate('auto.components.settings.dorkaAccount.title', 'Dorka Account'),
             description: translate(
-              'auto.components.settings.orcaAccount.description',
-              'Share work instantly and reach your desktop from Orca Mobile wherever you are.'
+              'auto.components.settings.dorkaAccount.description',
+              'Share work instantly and reach your desktop from Dorka Mobile wherever you are.'
             ),
             icon: CircleUserRound,
-            searchEntries: getOrcaAccountSettingsSearchEntries(),
+            searchEntries: getDorkaAccountSettingsSearchEntries(),
             group: 'setup'
           }
         ]
@@ -149,9 +149,9 @@ export function buildSetupSettingsSections({
       ),
       description: translate(
         'auto.hooks.useSettingsNavigationMetadata.5f32ac08f3',
-        'Finish the onboarding checklist for core Orca workflows.'
+        'Finish the onboarding checklist for core Dorka workflows.'
       ),
-      icon: OrcaLogoSettingsIcon,
+      icon: DorkaLogoSettingsIcon,
       searchEntries: [
         {
           title: translate(
@@ -166,7 +166,7 @@ export function buildSetupSettingsSections({
             translate('auto.hooks.useSettingsNavigationMetadata.ea0b1bc7b8', 'setup guide'),
             translate(
               'auto.hooks.useSettingsNavigationMetadata.0505d0df29',
-              'get started with Orca'
+              'get started with Dorka'
             ),
             translate('auto.hooks.useSettingsNavigationMetadata.724c440e72', 'getting started')
           ]

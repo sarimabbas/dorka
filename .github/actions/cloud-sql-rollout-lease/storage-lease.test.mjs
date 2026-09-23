@@ -8,7 +8,7 @@ import {
   LeaseUnreadable
 } from './storage-lease.mjs'
 
-const BUCKET = 'onorca-cloud-terraform-state'
+const BUCKET = 'ondorka-cloud-terraform-state'
 const OBJECT = 'terraform/state/cloud-sql-rollout/production.lock'
 const NOW = 1_756_000_000_000
 
@@ -97,11 +97,11 @@ function leaseFor(storage, { warn = () => {} } = {}) {
 }
 
 const HOLDER = {
-  holderKey: 'stablyai/orca-cloud/42',
-  repository: 'stablyai/orca-cloud',
+  holderKey: 'stablyai/dorka-cloud/42',
+  repository: 'stablyai/dorka-cloud',
   workflow: 'Deploy Relay Production Same-Cap',
   runId: '42',
-  runUrl: 'https://github.com/stablyai/orca-cloud/actions/runs/42',
+  runUrl: 'https://github.com/stablyai/dorka-cloud/actions/runs/42',
   runAttempt: '1'
 }
 
@@ -114,14 +114,14 @@ test('acquires a lease on an empty object with ifGenerationMatch=0', async () =>
   assert.equal(upload.search.get('ifGenerationMatch'), '0')
   assert.equal(upload.search.get('name'), OBJECT)
   assert.deepEqual(storage.state.object.body, {
-    repository: 'stablyai/orca-cloud',
+    repository: 'stablyai/dorka-cloud',
     workflow: 'Deploy Relay Production Same-Cap',
     run_id: '42',
-    run_url: 'https://github.com/stablyai/orca-cloud/actions/runs/42',
+    run_url: 'https://github.com/stablyai/dorka-cloud/actions/runs/42',
     run_attempt: '1',
     acquired_at: NOW,
     expires_at: NOW + LEASE_TTL_MS,
-    holder_key: 'stablyai/orca-cloud/42'
+    holder_key: 'stablyai/dorka-cloud/42'
   })
 })
 
@@ -188,7 +188,7 @@ test('takes over an expired lease and warns naming the stale holder', async () =
 
   assert.equal(claim.state, 'takeover')
   assert.equal(warnings.length, 1)
-  assert.match(warnings[0], /stablyai\/orca/)
+  assert.match(warnings[0], /stablyai\/dorka/)
   assert.match(warnings[0], /Deploy Relay Production Capacity/)
   assert.match(warnings[0], /actions\/runs\/9001/)
   const upload = storage.state.requests.find((request) => request.path.startsWith('/upload/'))

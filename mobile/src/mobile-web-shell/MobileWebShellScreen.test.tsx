@@ -62,7 +62,7 @@ vi.mock('expo-haptics', () => ({
   NotificationFeedbackType: { Error: 'error', Success: 'success' }
 }))
 vi.mock('expo-document-picker', () => ({ getDocumentAsync: () => Promise.resolve(null) }))
-vi.mock('@orca/expo-two-way-audio', () => ({
+vi.mock('@dorka/expo-two-way-audio', () => ({
   addExpoTwoWayAudioEventListener: () => ({ remove: () => {} }),
   initialize: () => Promise.resolve(true),
   requestMicrophonePermissionsAsync: () =>
@@ -103,11 +103,11 @@ vi.mock('expo-router', () => ({
 }))
 // A component rather than a host string: the React key is what makes a retry a rebuilt WebView,
 // and a mount/unmount log is the only thing that can tell a remount from a prop update.
-vi.mock('../../modules/orca-mobile-web-shell/src', async () => {
+vi.mock('../../modules/dorka-mobile-web-shell/src', async () => {
   const React = await import('react')
-  const loadState = await import('../../modules/orca-mobile-web-shell/src/load-state')
+  const loadState = await import('../../modules/dorka-mobile-web-shell/src/load-state')
   return {
-    OrcaMobileWebShellView: (props: {
+    DorkaMobileWebShellView: (props: {
       sessionId: string
       ref?: (handle: { postBridgeMessage: (json: string) => Promise<void> } | null) => void
     }) => {
@@ -225,7 +225,7 @@ describe('the hybrid shell screen', () => {
       kind: 'wall',
       verdict: { kind: 'blocked', reason: 'bundle-unavailable' }
     })
-    expect(textOf(tree)).toContain('Update Orca on your computer')
+    expect(textOf(tree)).toContain('Update Dorka on your computer')
     expect(byName(tree, 'ShellViewProbe')).toEqual([])
   })
 

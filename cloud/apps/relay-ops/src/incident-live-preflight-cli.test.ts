@@ -864,7 +864,7 @@ describe('relay incident live preflight', () => {
     const identityToken = vi.fn(async () => 'minted.token.value')
     const gcloud = livePreflightGcloud(
       { accessToken: async () => 'access-token', identityToken },
-      { ORCA_RELAY_ADMIN_ID_TOKEN: 'supplied.token.value' }
+      { DORKA_RELAY_ADMIN_ID_TOKEN: 'supplied.token.value' }
     )
     await expect(gcloud.identityToken!('audience')).resolves.toBe(
       'supplied.token.value'

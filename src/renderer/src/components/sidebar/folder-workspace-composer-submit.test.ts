@@ -139,7 +139,7 @@ describe('submitFolderWorkspaceCreate', () => {
       autoRenameBranchFromWork: true,
       agentCmdOverrides: {},
       agentArgs: '--model gpt-5.4',
-      agentEnv: { ORCA_AGENT_PROFILE: 'review' },
+      agentEnv: { DORKA_AGENT_PROFILE: 'review' },
       launchSource: 'new_workspace_composer',
       runtimeEnvironmentId: 'env-1',
       createFolderWorkspace,
@@ -160,7 +160,7 @@ describe('submitFolderWorkspaceCreate', () => {
         runtimeEnvironmentId: 'env-1',
         startup: expect.objectContaining({
           command: expect.stringContaining('codex'),
-          env: { ORCA_AGENT_PROFILE: 'review' },
+          env: { DORKA_AGENT_PROFILE: 'review' },
           telemetry: expect.objectContaining({
             launch_source: 'new_workspace_composer'
           })
@@ -237,9 +237,9 @@ describe('submitFolderWorkspaceCreate', () => {
       provider: 'jira' as const,
       type: 'issue' as const,
       number: 0,
-      title: 'ORCA-123 Link Jira',
-      url: 'https://company.atlassian.net/browse/ORCA-123',
-      jiraIdentifier: 'ORCA-123'
+      title: 'DORKA-123 Link Jira',
+      url: 'https://company.atlassian.net/browse/DORKA-123',
+      jiraIdentifier: 'DORKA-123'
     }
     const linkedTaskSourceContext = {
       kind: 'task-source' as const,
@@ -250,7 +250,7 @@ describe('submitFolderWorkspaceCreate', () => {
         provider: 'jira' as const,
         siteId: 'site-1',
         siteUrl: 'https://company.atlassian.net',
-        projectKey: 'ORCA'
+        projectKey: 'DORKA'
       }
     }
 
@@ -270,7 +270,7 @@ describe('submitFolderWorkspaceCreate', () => {
 
     expect(createFolderWorkspace).toHaveBeenCalledWith({
       projectGroupId: 'group-1',
-      name: 'ORCA-123 Link Jira',
+      name: 'DORKA-123 Link Jira',
       connectionId: null,
       linkedTask: linkedWorkItem,
       linkedTaskSourceContext
@@ -498,7 +498,7 @@ describe('submitFolderWorkspaceCreate', () => {
     )
     expect(startup?.command).not.toContain('Distinctive folder Linear body.')
     expect(startup?.command).not.toContain('--- BEGIN LINKED WORK ITEM CONTEXT ---')
-    expect(startup?.command).not.toContain('orca linear')
+    expect(startup?.command).not.toContain('dorka linear')
     expect(mocks.ensureAgentStartupInTerminal).not.toHaveBeenCalled()
   })
 

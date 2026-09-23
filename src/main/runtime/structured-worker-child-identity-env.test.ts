@@ -2,8 +2,8 @@ import { join } from 'node:path'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { installFakeAppEnvironment } from '../../../config/scripts/vitest-host-ports-setup'
 
-const shim = vi.hoisted(() => ({ ensureLinuxTerminalOrcaCliShimDir: vi.fn() }))
-vi.mock('../cli/linux-terminal-orca-cli-shim', () => shim)
+const shim = vi.hoisted(() => ({ ensureLinuxTerminalDorkaCliShimDir: vi.fn() }))
+vi.mock('../cli/linux-terminal-dorka-cli-shim', () => shim)
 
 import { structuredWorkerChildIdentityEnv } from './structured-worker-child-identity-env'
 import {
@@ -15,9 +15,9 @@ import {
 } from './structured-worker-identity'
 
 const SESSION_ID = 'f7a1c0de-1111-4222-8333-444455556666'
-const USER_DATA = '/data/orca'
+const USER_DATA = '/data/dorka'
 const RESOURCES = '/app/Resources'
-const SHIM_DIR = join(USER_DATA, 'linux-orca-cli-shim')
+const SHIM_DIR = join(USER_DATA, 'linux-dorka-cli-shim')
 
 const platformDescriptor = Object.getOwnPropertyDescriptor(process, 'platform')!
 const resourcesDescriptor = Object.getOwnPropertyDescriptor(process, 'resourcesPath')
@@ -41,8 +41,8 @@ function registerWorker(): string {
 }
 
 beforeEach(() => {
-  shim.ensureLinuxTerminalOrcaCliShimDir.mockReset()
-  shim.ensureLinuxTerminalOrcaCliShimDir.mockReturnValue(SHIM_DIR)
+  shim.ensureLinuxTerminalDorkaCliShimDir.mockReset()
+  shim.ensureLinuxTerminalDorkaCliShimDir.mockReturnValue(SHIM_DIR)
   Object.defineProperty(process, 'resourcesPath', { configurable: true, value: RESOURCES })
 })
 
@@ -67,24 +67,24 @@ describe('structuredWorkerChildIdentityEnv', () => {
     installFakeAppEnvironment({ isPackaged: () => true, getPath: () => USER_DATA })
     const childEnv = { PATH: '/usr/bin' }
     const env = structuredWorkerChildIdentityEnv(SESSION_ID, childEnv)
-    expect(env).toEqual({ PATH: '/usr/bin', ORCA_STRUCTURED_SESSION: '1' })
-    expect(env.ORCA_TERMINAL_HANDLE).toBeUndefined()
-    expect(env.ORCA_PANE_KEY).toBeUndefined()
-    expect(env.ORCA_CLI_COMMAND).toBeUndefined()
+    expect(env).toEqual({ PATH: '/usr/bin', DORKA_STRUCTURED_SESSION: '1' })
+    expect(env.DORKA_TERMINAL_HANDLE).toBeUndefined()
+    expect(env.DORKA_PANE_KEY).toBeUndefined()
+    expect(env.DORKA_CLI_COMMAND).toBeUndefined()
     // Still no CLI reachability granted, so packaged builds keep today's exposure.
     expect(childEnv.PATH).toBe('/usr/bin')
-    expect(shim.ensureLinuxTerminalOrcaCliShimDir).not.toHaveBeenCalled()
+    expect(shim.ensureLinuxTerminalDorkaCliShimDir).not.toHaveBeenCalled()
   })
 
-  it('gives a packaged-Linux worker the bare-orca shim its ORCA_CLI_COMMAND assumes', () => {
-    // Without this the child's first `orca orchestration check` execs GNOME Orca — the CLI
-    // installs as `orca-ide` on Linux (stablyai/orca#7904) — and the dispatch hangs to timeout.
+  it('gives a packaged-Linux worker the bare-dorka shim its DORKA_CLI_COMMAND assumes', () => {
+    // Without this the child's first `dorka orchestration check` execs GNOME Dorka — the CLI
+    // installs as `dorka-ide` on Linux (stablyai/orca#7904) — and the dispatch hangs to timeout.
     pinPlatform('linux')
     installFakeAppEnvironment({ isPackaged: () => true, getPath: () => USER_DATA })
     const handle = registerWorker()
     const env = structuredWorkerChildIdentityEnv(SESSION_ID, { PATH: '/usr/bin:/bin' })
-    expect(env.ORCA_TERMINAL_HANDLE).toBe(handle)
-    expect(env.ORCA_CLI_COMMAND).toBe('orca')
+    expect(env.DORKA_TERMINAL_HANDLE).toBe(handle)
+    expect(env.DORKA_CLI_COMMAND).toBe('dorka')
     expect(env.PATH).toBe(`${SHIM_DIR}:/usr/bin:/bin`)
   })
 
@@ -120,14 +120,14 @@ describe('structuredWorkerChildIdentityEnv', () => {
     installFakeAppEnvironment({ isPackaged: () => true, getPath: () => USER_DATA })
     registerWorker()
     const env = structuredWorkerChildIdentityEnv(SESSION_ID, { PATH: '/usr/bin' })
-    expect(env.ORCA_PANE_KEY).toBeUndefined()
+    expect(env.DORKA_PANE_KEY).toBeUndefined()
     expect(Object.keys(env).filter((key) => key.includes('PANE'))).toEqual([])
   })
 
   it('never names the WSL-scoped launcher, because a structured worker cannot run in WSL', () => {
-    // `orca-ide` is the literal the PTY lane exports for WSL only. A structured session that
+    // `dorka-ide` is the literal the PTY lane exports for WSL only. A structured session that
     // resolves to a WSL distro is refused a host scope, so it never becomes a worker at all —
-    // which is why the bare-`orca` shim, not the literal, is the right fix on Linux.
+    // which is why the bare-`dorka` shim, not the literal, is the right fix on Linux.
     expect(
       structuredWorkerHostScope({
         executionHostId: 'local',
@@ -140,7 +140,7 @@ describe('structuredWorkerChildIdentityEnv', () => {
     installFakeAppEnvironment({ isPackaged: () => true, getPath: () => USER_DATA })
     registerWorker()
     expect(
-      structuredWorkerChildIdentityEnv(SESSION_ID, { PATH: '/usr/bin' }).ORCA_CLI_COMMAND
-    ).not.toBe('orca-ide')
+      structuredWorkerChildIdentityEnv(SESSION_ID, { PATH: '/usr/bin' }).DORKA_CLI_COMMAND
+    ).not.toBe('dorka-ide')
   })
 })

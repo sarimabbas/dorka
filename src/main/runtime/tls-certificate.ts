@@ -7,8 +7,8 @@ import { execFileSync } from 'node:child_process'
 import { existsSync, readFileSync, chmodSync } from 'node:fs'
 import { join } from 'node:path'
 
-const TLS_CERT_FILENAME = 'orca-tls-cert.pem'
-const TLS_KEY_FILENAME = 'orca-tls-key.pem'
+const TLS_CERT_FILENAME = 'dorka-tls-cert.pem'
+const TLS_KEY_FILENAME = 'dorka-tls-key.pem'
 
 export type TlsCertificate = {
   cert: string
@@ -51,7 +51,7 @@ export function loadOrCreateTlsCertificate(userDataPath: string): TlsCertificate
       '-days',
       '3650',
       '-subj',
-      '/CN=Orca Runtime',
+      '/CN=Dorka Runtime',
       '-keyout',
       keyPath_,
       '-out',

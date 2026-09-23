@@ -182,69 +182,69 @@ export function renderMobileTasksSetupTrustDrawer(model: ConnectionPresentationM
   )
 }
 
-export function renderMobileTasksOrcaYamlTrustDrawer(model: ConnectionPresentationModel) {
+export function renderMobileTasksDorkaYamlTrustDrawer(model: ConnectionPresentationModel) {
   const {
     createWorkspace,
     creatingKey,
-    orcaYamlTrustPrompt,
+    dorkaYamlTrustPrompt,
     persistSetupHookTrust,
     setError,
-    setOrcaYamlTrustPrompt,
+    setDorkaYamlTrustPrompt,
     taskUiReady
   } = model
   return (
     <BottomDrawer
-      visible={taskUiReady && orcaYamlTrustPrompt != null}
-      onClose={() => setOrcaYamlTrustPrompt(null)}
+      visible={taskUiReady && dorkaYamlTrustPrompt != null}
+      onClose={() => setDorkaYamlTrustPrompt(null)}
       zIndex={TASK_SECONDARY_DRAWER_Z_INDEX + 1}
     >
-      {orcaYamlTrustPrompt ? (
+      {dorkaYamlTrustPrompt ? (
         <View>
           <View style={styles.sheetHeader}>
             <Text style={styles.sheetTitle}>
-              {orcaYamlTrustPrompt.previouslyApproved
-                ? `${orcaYamlTrustPrompt.repoName}'s setup script changed`
-                : `Run setup from ${orcaYamlTrustPrompt.repoName}?`}
+              {dorkaYamlTrustPrompt.previouslyApproved
+                ? `${dorkaYamlTrustPrompt.repoName}'s setup script changed`
+                : `Run setup from ${dorkaYamlTrustPrompt.repoName}?`}
             </Text>
             <Text style={styles.sheetSubtitle}>
-              This repository's orca.yaml runs on your machine before the workspace starts. Only run
-              it if you trust this repository.
+              This repository's dorka.yaml runs on your machine before the workspace starts. Only
+              run it if you trust this repository.
             </Text>
           </View>
 
           <View style={styles.setupPromptBox}>
             <View style={styles.detailSectionHeader}>
               <Text style={styles.detailSectionTitle}>
-                {orcaYamlTrustPrompt.previouslyApproved ? 'New setup script' : 'Setup script'}
+                {dorkaYamlTrustPrompt.previouslyApproved ? 'New setup script' : 'Setup script'}
               </Text>
             </View>
-            <Text style={styles.setupPromptCommand}>{orcaYamlTrustPrompt.scriptContent}</Text>
+            <Text style={styles.setupPromptCommand}>{dorkaYamlTrustPrompt.scriptContent}</Text>
           </View>
 
           <View style={styles.actionGroup}>
             <Pressable
               style={styles.actionRow}
-              disabled={creatingKey === orcaYamlTrustPrompt.item.key}
+              disabled={creatingKey === dorkaYamlTrustPrompt.item.key}
               onPress={() =>
                 void (async () => {
                   try {
                     await persistSetupHookTrust(
-                      orcaYamlTrustPrompt.repoId,
-                      orcaYamlTrustPrompt.contentHash,
+                      dorkaYamlTrustPrompt.repoId,
+                      dorkaYamlTrustPrompt.contentHash,
                       false
                     )
-                    setOrcaYamlTrustPrompt(null)
+                    setDorkaYamlTrustPrompt(null)
                     await createWorkspace(
-                      orcaYamlTrustPrompt.item,
-                      orcaYamlTrustPrompt.repoIdOverride,
+                      dorkaYamlTrustPrompt.item,
+                      dorkaYamlTrustPrompt.repoIdOverride,
                       'run',
-                      orcaYamlTrustPrompt.agentOverride,
-                      orcaYamlTrustPrompt.workspaceNameOverride,
-                      orcaYamlTrustPrompt.noteOverride,
-                      orcaYamlTrustPrompt.baseBranchOverride,
-                      orcaYamlTrustPrompt.branchNameOverride,
-                      orcaYamlTrustPrompt.sparseCheckoutOverride,
-                      orcaYamlTrustPrompt.contentHash
+                      dorkaYamlTrustPrompt.agentOverride,
+                      dorkaYamlTrustPrompt.workspaceNameOverride,
+                      dorkaYamlTrustPrompt.noteOverride,
+                      dorkaYamlTrustPrompt.baseBranchOverride,
+                      dorkaYamlTrustPrompt.branchNameOverride,
+                      dorkaYamlTrustPrompt.sparseCheckoutOverride,
+                      dorkaYamlTrustPrompt.contentHash
                     )
                   } catch (err) {
                     setError(err instanceof Error ? err.message : 'Failed to trust setup script.')
@@ -258,27 +258,27 @@ export function renderMobileTasksOrcaYamlTrustDrawer(model: ConnectionPresentati
             <View style={styles.actionSeparator} />
             <Pressable
               style={styles.actionRow}
-              disabled={creatingKey === orcaYamlTrustPrompt.item.key}
+              disabled={creatingKey === dorkaYamlTrustPrompt.item.key}
               onPress={() =>
                 void (async () => {
                   try {
                     await persistSetupHookTrust(
-                      orcaYamlTrustPrompt.repoId,
-                      orcaYamlTrustPrompt.contentHash,
+                      dorkaYamlTrustPrompt.repoId,
+                      dorkaYamlTrustPrompt.contentHash,
                       true
                     )
-                    setOrcaYamlTrustPrompt(null)
+                    setDorkaYamlTrustPrompt(null)
                     await createWorkspace(
-                      orcaYamlTrustPrompt.item,
-                      orcaYamlTrustPrompt.repoIdOverride,
+                      dorkaYamlTrustPrompt.item,
+                      dorkaYamlTrustPrompt.repoIdOverride,
                       'run',
-                      orcaYamlTrustPrompt.agentOverride,
-                      orcaYamlTrustPrompt.workspaceNameOverride,
-                      orcaYamlTrustPrompt.noteOverride,
-                      orcaYamlTrustPrompt.baseBranchOverride,
-                      orcaYamlTrustPrompt.branchNameOverride,
-                      orcaYamlTrustPrompt.sparseCheckoutOverride,
-                      orcaYamlTrustPrompt.contentHash
+                      dorkaYamlTrustPrompt.agentOverride,
+                      dorkaYamlTrustPrompt.workspaceNameOverride,
+                      dorkaYamlTrustPrompt.noteOverride,
+                      dorkaYamlTrustPrompt.baseBranchOverride,
+                      dorkaYamlTrustPrompt.branchNameOverride,
+                      dorkaYamlTrustPrompt.sparseCheckoutOverride,
+                      dorkaYamlTrustPrompt.contentHash
                     )
                   } catch (err) {
                     setError(err instanceof Error ? err.message : 'Failed to trust setup script.')
@@ -292,10 +292,10 @@ export function renderMobileTasksOrcaYamlTrustDrawer(model: ConnectionPresentati
             <View style={styles.actionSeparator} />
             <Pressable
               style={styles.actionRow}
-              disabled={creatingKey === orcaYamlTrustPrompt.item.key}
+              disabled={creatingKey === dorkaYamlTrustPrompt.item.key}
               onPress={() => {
-                const prompt = orcaYamlTrustPrompt
-                setOrcaYamlTrustPrompt(null)
+                const prompt = dorkaYamlTrustPrompt
+                setDorkaYamlTrustPrompt(null)
                 void createWorkspace(
                   prompt.item,
                   prompt.repoIdOverride,

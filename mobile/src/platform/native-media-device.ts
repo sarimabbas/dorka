@@ -30,7 +30,7 @@ export function ownsStagedMediaUri(uri: string): boolean {
 
 /** A cache file name nothing else in this app writes, unique per staged item. */
 function stagedMediaFile(extension: string): FsFile {
-  return new FsFile(Paths.cache, `orca-media-${Date.now()}-${Math.random()}.${extension}`)
+  return new FsFile(Paths.cache, `dorka-media-${Date.now()}-${Math.random()}.${extension}`)
 }
 
 /**

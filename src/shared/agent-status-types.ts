@@ -43,7 +43,7 @@ export type AgentStateHistoryEntry = {
   /** When this state was first reported. */
   startedAt: number
   /** True when this `done` was a cancellation (agent hook like Claude `is_interrupt`,
-   *  or Orca's guarded fallback). Always falsy for non-`done` states so retention logic can preserve it. */
+   *  or Dorka's guarded fallback). Always falsy for non-`done` states so retention logic can preserve it. */
   interrupted?: boolean
 }
 
@@ -105,7 +105,7 @@ export type AgentStatusEntry = {
   /** Provider model currently used by this session. */
   model?: string
   /** Command installed by the running OMP extension; absent on older hosts. */
-  modelSwitchCommand?: 'orca-model'
+  modelSwitchCommand?: 'dorka-model'
   /** Composite key: `${tabId}:${leafId}` where leafId is a stable UUID layout leaf. */
   paneKey: string
   /** Runtime terminal handle for matching retained parent rows when the parent
@@ -139,7 +139,7 @@ export type AgentStatusEntry = {
    *  so `lastAssistantMessage` is already cleared by the time a subscriber observes it. */
   lastCompletedAssistantMessage?: string
   /** True when this `done` was reached via interrupt, not normal completion
-   *  (agent-reported or Orca's guarded fallback). Undefined otherwise. */
+   *  (agent-reported or Dorka's guarded fallback). Undefined otherwise. */
   interrupted?: boolean
   /** True when this `done` is a session boundary, not a completed turn. See AgentStatusPayload. */
   sessionBoundary?: boolean
@@ -150,7 +150,7 @@ export type AgentStatusEntry = {
    *  none are tracked; the sidebar derives indented child rows from it. */
   subagents?: AgentSubagentSnapshot[]
   /** Provider-owned conversation/session id captured from hook payloads.
-   *  Used only for exact CLI resume; Orca terminal ids are not agent-session ids. */
+   *  Used only for exact CLI resume; Dorka terminal ids are not agent-session ids. */
   providerSession?: AgentProviderSessionMetadata
   /** False when the status belongs to a non-terminal owner that restores itself. */
   terminalResumeEligible?: false
@@ -172,7 +172,7 @@ export type AgentStatusPayload = {
   prompt?: string
   agentType?: AgentType
   model?: string
-  modelSwitchCommand?: 'orca-model'
+  modelSwitchCommand?: 'dorka-model'
   toolName?: string
   toolInput?: string
   /** JSON string of the AskUserQuestion tool input, captured live. See the
@@ -376,8 +376,8 @@ function normalizeAgentStatusObject(parsed: unknown): ParsedAgentStatusPayload |
     // Why: normalize like the other single-line fields so embedded newlines (e.g. `agentType: "claude\nrogue"`) can't break single-line UI and equality checks.
     agentType: normalizeOptionalField(obj.agentType, AGENT_TYPE_MAX_LENGTH),
     model: normalizeOptionalField(obj.model, AGENT_MODEL_MAX_LENGTH),
-    ...(obj.modelSwitchCommand === 'orca-model'
-      ? { modelSwitchCommand: 'orca-model' as const }
+    ...(obj.modelSwitchCommand === 'dorka-model'
+      ? { modelSwitchCommand: 'dorka-model' as const }
       : {}),
     toolName: normalizeOptionalField(obj.toolName, AGENT_STATUS_TOOL_NAME_MAX_LENGTH),
     toolInput: normalizeOptionalField(obj.toolInput, AGENT_STATUS_TOOL_INPUT_MAX_LENGTH),

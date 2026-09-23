@@ -16,7 +16,7 @@ import {
 } from './database.js'
 
 // `migration-only` alone says nothing about a roll: it is the admission class
-// (cloud/docs/orca-relay-operations.md:229-233) that evacuation targets, Asia
+// (cloud/docs/dorka-relay-operations.md:229-233) that evacuation targets, Asia
 // `--mode rollback`, a failed wave's re-isolate and newly registered cells all
 // occupy durably while holding hosts. The same-cap roll's isolate step is the
 // only writer of the roll stamp, via `rollIsolatedCells` on the selector apply
@@ -478,15 +478,15 @@ describe('re-placing a host off a cell isolated for a roll', () => {
       cellId: first.cellId,
       assignmentEpoch: first.assignmentEpoch
     })
-    expect(jsonEvents(warn, 'orca_relay_sticky_replacement_deferred')).toEqual([
+    expect(jsonEvents(warn, 'dorka_relay_sticky_replacement_deferred')).toEqual([
       {
-        event: 'orca_relay_sticky_replacement_deferred',
+        event: 'dorka_relay_sticky_replacement_deferred',
         reason: 'no_same_region_headroom',
         cellId: first.cellId,
         region: 'us-central1'
       }
     ])
-    expect(jsonEvents(warn, 'orca_relay_sticky_replaced_off_isolated_cell')).toEqual([])
+    expect(jsonEvents(warn, 'dorka_relay_sticky_replaced_off_isolated_cell')).toEqual([])
   })
 
   it('keeps a re-placed host in its own region', async () => {
@@ -570,7 +570,7 @@ describe('re-placing a host off a cell isolated for a roll', () => {
       'injected_placement_write_failure'
     )
 
-    expect(jsonEvents(warn, 'orca_relay_sticky_replaced_off_isolated_cell')).toEqual([])
+    expect(jsonEvents(warn, 'dorka_relay_sticky_replaced_off_isolated_cell')).toEqual([])
     // The precondition for reading that absence: the move really was rolled
     // back, so the event would have been a lie rather than merely early.
     expect(await store.resolve(IDENTITY)).toMatchObject({
@@ -583,7 +583,7 @@ describe('re-placing a host off a cell isolated for a roll', () => {
     warn.mockClear()
     const moved = await store.assign(IDENTITY, 'us-central1')
     expect(moved.cellId).not.toBe(first.cellId)
-    expect(jsonEvents(warn, 'orca_relay_sticky_replaced_off_isolated_cell')).toHaveLength(1)
+    expect(jsonEvents(warn, 'dorka_relay_sticky_replaced_off_isolated_cell')).toHaveLength(1)
   })
 
   it('logs one event naming both cells, the admission state and the region', async () => {
@@ -595,9 +595,9 @@ describe('re-placing a host off a cell isolated for a roll', () => {
     warn.mockClear()
     const moved = await store.assign(IDENTITY, 'us-central1')
 
-    expect(jsonEvents(warn, 'orca_relay_sticky_replaced_off_isolated_cell')).toEqual([
+    expect(jsonEvents(warn, 'dorka_relay_sticky_replaced_off_isolated_cell')).toEqual([
       {
-        event: 'orca_relay_sticky_replaced_off_isolated_cell',
+        event: 'dorka_relay_sticky_replaced_off_isolated_cell',
         fromCellId: first.cellId,
         fromRegion: 'us-central1',
         admissionState: 'migration-only',

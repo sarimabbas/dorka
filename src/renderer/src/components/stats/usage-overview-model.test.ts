@@ -53,7 +53,7 @@ function enabledOpenCodeScanState(): OpenCodeUsageScanState {
 describe('usage overview model', () => {
   it('combines provider totals without double-counting cached input', () => {
     const claudeSummary: ClaudeUsageSummary = {
-      scope: 'orca',
+      scope: 'dorka',
       range: '30d',
       sessions: 2,
       turns: 4,
@@ -65,11 +65,11 @@ describe('usage overview model', () => {
       cacheReuseRate: 0.8,
       estimatedCostUsd: 0.04,
       topModel: 'claude-sonnet-4-5',
-      topProject: 'orca-main',
+      topProject: 'dorka-main',
       hasAnyClaudeData: true
     }
     const codexSummary: CodexUsageSummary = {
-      scope: 'orca',
+      scope: 'dorka',
       range: '30d',
       sessions: 1,
       events: 3,
@@ -81,11 +81,11 @@ describe('usage overview model', () => {
       estimatedCostUsd: 0.02,
       hasUnpricedModels: false,
       topModel: 'gpt-5.4',
-      topProject: 'orca-secondary',
+      topProject: 'dorka-secondary',
       hasAnyCodexData: true
     }
     const openCodeSummary: OpenCodeUsageSummary = {
-      scope: 'orca',
+      scope: 'dorka',
       range: '30d',
       sessions: 1,
       events: 2,
@@ -96,7 +96,7 @@ describe('usage overview model', () => {
       totalTokens: 1_600,
       estimatedCostUsd: 0.03,
       topModel: 'anthropic/claude-sonnet-4-5',
-      topProject: 'orca-third',
+      topProject: 'dorka-third',
       hasAnyOpenCodeData: true
     }
     const claudeDaily: ClaudeUsageDailyPoint[] = [
@@ -197,7 +197,7 @@ describe('usage overview model', () => {
   it('marks the overview cost partial when Codex priced some models but not all', () => {
     function overviewWithUnpricedCodex(hasUnpricedModels: boolean) {
       const codexSummary: CodexUsageSummary = {
-        scope: 'orca',
+        scope: 'dorka',
         range: '30d',
         sessions: 1,
         events: 3,
@@ -209,7 +209,7 @@ describe('usage overview model', () => {
         estimatedCostUsd: 0.02,
         hasUnpricedModels,
         topModel: 'gpt-6-astra',
-        topProject: 'orca-secondary',
+        topProject: 'dorka-secondary',
         hasAnyCodexData: true
       }
       return buildUsageOverview({
@@ -241,7 +241,7 @@ describe('usage overview model', () => {
           hasAnyMuseData: true
         },
         summary: {
-          scope: 'orca',
+          scope: 'dorka',
           range: '30d',
           sessions: 2,
           events: 5,
@@ -251,7 +251,7 @@ describe('usage overview model', () => {
           reasoningOutputTokens: 160,
           totalTokens: 28_300,
           topModel: 'muse-spark-1.3',
-          topProject: 'orca',
+          topProject: 'dorka',
           hasAnyMuseData: true
         },
         daily: [

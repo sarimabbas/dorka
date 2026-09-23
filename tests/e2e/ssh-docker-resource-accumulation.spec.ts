@@ -11,9 +11,9 @@
  *  - #17817/#17821/#17831: repeated disconnect/reconnect must not accumulate
  *    relay processes, orphan PTYs, or fds.
  *
- * Requires: ORCA_E2E_SSH_DOCKER=1 and Docker available.
+ * Requires: DORKA_E2E_SSH_DOCKER=1 and Docker available.
  */
-import { expect, test } from './helpers/orca-app'
+import { expect, test } from './helpers/dorka-app'
 import {
   cleanupDockerSshRelayTarget,
   execDockerSshRelayTargetCommand,
@@ -35,7 +35,7 @@ import {
   waitForTerminalOutput
 } from './helpers/terminal'
 
-const RUN_DOCKER_SSH = process.env.ORCA_E2E_SSH_DOCKER === '1'
+const RUN_DOCKER_SSH = process.env.DORKA_E2E_SSH_DOCKER === '1'
 const TERMINAL_COUNT = 6
 const RECONNECT_CYCLES = 5
 
@@ -101,11 +101,11 @@ function sampleRemoteResources(target: DockerSshRelayTarget): RemoteResourceSamp
 }
 
 test.describe('Docker SSH relay resource accumulation', () => {
-  test.skip(!RUN_DOCKER_SSH, 'Set ORCA_E2E_SSH_DOCKER=1 to run Docker-backed SSH tests.')
+  test.skip(!RUN_DOCKER_SSH, 'Set DORKA_E2E_SSH_DOCKER=1 to run Docker-backed SSH tests.')
   test.skip(process.platform === 'win32', 'Uses POSIX /proc and /dev/pts probes.')
 
   test('does not accumulate pts devices, relay fds, or relay processes @resource-accumulation', async ({
-    orcaPage,
+    dorkaPage,
     registerPostElectronShutdownCleanup
   }, testInfo) => {
     test.setTimeout(420_000)
@@ -117,27 +117,27 @@ test.describe('Docker SSH relay resource accumulation', () => {
         cleanupDockerSshRelayTarget(captured)
       })
 
-      await waitForSessionReady(orcaPage)
-      await waitForActiveWorktree(orcaPage)
-      const remote = await connectDockerSshRelayTarget(orcaPage, target)
-      await ensureTerminalVisible(orcaPage, 45_000)
-      await waitForActiveTerminalManager(orcaPage, 60_000)
+      await waitForSessionReady(dorkaPage)
+      await waitForActiveWorktree(dorkaPage)
+      const remote = await connectDockerSshRelayTarget(dorkaPage, target)
+      await ensureTerminalVisible(dorkaPage, 45_000)
+      await waitForActiveTerminalManager(dorkaPage, 60_000)
 
       const runId = String(Date.now())
-      const firstPtyId = await waitForActivePanePtyId(orcaPage, 60_000)
-      await execInTerminal(orcaPage, firstPtyId, `echo PANE_READY_${runId}_0`)
-      await waitForTerminalOutput(orcaPage, `PANE_READY_${runId}_0`, 60_000)
+      const firstPtyId = await waitForActivePanePtyId(dorkaPage, 60_000)
+      await execInTerminal(dorkaPage, firstPtyId, `echo PANE_READY_${runId}_0`)
+      await waitForTerminalOutput(dorkaPage, `PANE_READY_${runId}_0`, 60_000)
 
       const baseline = sampleRemoteResources(target)
       const samples: RemoteResourceSample[] = []
 
       // Open N more terminals; each must cost a bounded, roughly constant amount.
       for (let index = 1; index < TERMINAL_COUNT; index += 1) {
-        await splitActiveTerminalPane(orcaPage, 'vertical')
-        await focusLastTerminalPane(orcaPage)
-        const ptyId = await waitForActivePanePtyId(orcaPage, 60_000)
-        await execInTerminal(orcaPage, ptyId, `echo PANE_READY_${runId}_${index}`)
-        await waitForTerminalOutput(orcaPage, `PANE_READY_${runId}_${index}`, 60_000)
+        await splitActiveTerminalPane(dorkaPage, 'vertical')
+        await focusLastTerminalPane(dorkaPage)
+        const ptyId = await waitForActivePanePtyId(dorkaPage, 60_000)
+        await execInTerminal(dorkaPage, ptyId, `echo PANE_READY_${runId}_${index}`)
+        await waitForTerminalOutput(dorkaPage, `PANE_READY_${runId}_${index}`, 60_000)
         samples.push(sampleRemoteResources(target))
       }
 
@@ -181,7 +181,7 @@ test.describe('Docker SSH relay resource accumulation', () => {
       // Repeated reconnects must not accumulate anything on the host.
       const reconnectSamples: RemoteResourceSample[] = []
       for (let cycle = 0; cycle < RECONNECT_CYCLES; cycle += 1) {
-        await reconnectDockerSshRelayTarget(orcaPage, remote.targetId)
+        await reconnectDockerSshRelayTarget(dorkaPage, remote.targetId)
         reconnectSamples.push(sampleRemoteResources(target))
       }
       console.log(`[resource-accumulation] reconnects ${JSON.stringify(reconnectSamples)}`)

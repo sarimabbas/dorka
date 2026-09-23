@@ -10,12 +10,12 @@ describe('httpLinkActionDestinationsFor', () => {
     'offers both destinations for a %s owner and follows the preference',
     (_label, owner, canOpen) => {
       expect(httpLinkActionDestinationsFor({ openLinksInApp: true }, owner, canOpen)).toEqual({
-        primary: 'orca',
+        primary: 'dorka',
         alternate: 'system'
       })
       expect(httpLinkActionDestinationsFor({ openLinksInApp: false }, owner, canOpen)).toEqual({
         primary: 'system',
-        alternate: 'orca'
+        alternate: 'dorka'
       })
     }
   )
@@ -35,20 +35,20 @@ describe('buildHttpLinkActions', () => {
   it('labels each offered destination and routes the run to it', () => {
     const opened: (string | undefined)[] = []
     const actions = buildHttpLinkActions(
-      { primary: 'orca', alternate: 'system' },
+      { primary: 'dorka', alternate: 'system' },
       (destination) => {
         opened.push(destination)
       }
     )
 
-    expect(actions.primary.label).toBe('Orca Browser')
+    expect(actions.primary.label).toBe('Dorka Browser')
     expect(actions.primary.external).toBe(false)
     expect(actions.alternate?.label).toBe('System Browser')
     expect(actions.alternate?.external).toBe(true)
 
     void actions.primary.run()
     void actions.alternate?.run()
-    expect(opened).toEqual(['orca', 'system'])
+    expect(opened).toEqual(['dorka', 'system'])
   })
 
   it('omits the alternate row when only one destination is offered', () => {

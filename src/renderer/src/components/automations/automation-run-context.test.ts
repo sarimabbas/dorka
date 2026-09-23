@@ -24,8 +24,8 @@ function setup(overrides: Partial<ProjectHostSetup> = {}): ProjectHostSetup {
     projectId: 'github:stablyai/orca',
     hostId: 'ssh:builder',
     repoId: 'repo-builder',
-    path: '/remote/orca',
-    displayName: 'orca',
+    path: '/remote/dorka',
+    displayName: 'dorka',
     setupState: 'ready',
     setupMethod: 'cloned',
     createdAt: 1,
@@ -40,15 +40,15 @@ describe('buildAutomationRunContextForRepo', () => {
       buildAutomationRunContextForRepo({
         repoId: 'repo-builder',
         repos: [
-          repo('repo-local', '/local/orca'),
-          repo('repo-builder', '/remote/orca', 'ssh:builder')
+          repo('repo-local', '/local/dorka'),
+          repo('repo-builder', '/remote/dorka', 'ssh:builder')
         ],
         projectHostSetups: [
           setup({
             id: 'setup-local',
             hostId: 'local',
             repoId: 'repo-local',
-            path: '/local/orca'
+            path: '/local/dorka'
           }),
           setup()
         ]
@@ -59,7 +59,7 @@ describe('buildAutomationRunContextForRepo', () => {
       hostId: 'ssh:builder',
       projectHostSetupId: 'setup-builder',
       repoId: 'repo-builder',
-      path: '/remote/orca'
+      path: '/remote/dorka'
     })
   })
 
@@ -85,7 +85,7 @@ describe('buildAutomationRunContextForRepo', () => {
     expect(
       buildAutomationRunContextForRepo({
         repoId: 'same-id',
-        repos: [repo('same-id', '/local/orca'), remoteRepo('same-id', '/remote/orca')],
+        repos: [repo('same-id', '/local/dorka'), remoteRepo('same-id', '/remote/dorka')],
         projectHostSetups: []
       })
     ).toBeNull()

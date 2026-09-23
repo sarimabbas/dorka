@@ -19,7 +19,7 @@
  * measured, which is what discriminates the overlay from the cursor.
  */
 import type { Page } from '@stablyai/playwright-test'
-import { expect, test } from './helpers/orca-app'
+import { expect, test } from './helpers/dorka-app'
 import { closeTerminalImePaneArena, openTerminalImePaneArena } from './terminal-ime-pane-arena'
 import { setImeComposition } from './terminal-ime-cdp-composition'
 import {
@@ -56,16 +56,16 @@ function describeSpan(sample: MidlinePreeditOcclusionSample): string {
 }
 
 test.describe('Terminal end-of-row Korean preedit cell span', () => {
-  test('keeps the preedit caret inside the final terminal cell', async ({ orcaPage }, testInfo) => {
-    const arena = await openTerminalImePaneArena(orcaPage)
+  test('keeps the preedit caret inside the final terminal cell', async ({ dorkaPage }, testInfo) => {
+    const arena = await openTerminalImePaneArena(dorkaPage)
     let completed = false
     try {
       // CHA clamps to the last column; xterm's wrap-pending cursor is the final-cell shape the
       // composition helper itself clamps onto.
-      await writeToActiveTerminal(orcaPage, '\x1b[2J\x1b[H\x1b[999Gx')
+      await writeToActiveTerminal(dorkaPage, '\x1b[2J\x1b[H\x1b[999Gx')
       await setImeComposition(arena.session, '가')
 
-      const sample = await sampleOpenComposition(orcaPage)
+      const sample = await sampleOpenComposition(dorkaPage)
       const caret = sample.caretRect
       const preedit = sample.preeditRect
       const textarea = sample.textareaRect
@@ -124,17 +124,17 @@ test.describe('Terminal end-of-row Korean preedit cell span', () => {
   })
 
   test('renders a composing syllable wider than the one cell #12729 measured', async ({
-    orcaPage
+    dorkaPage
   }, testInfo) => {
-    const arena = await openTerminalImePaneArena(orcaPage)
+    const arena = await openTerminalImePaneArena(dorkaPage)
     let completed = false
     try {
       // 안녕하세요 is ten cells, so the cursor lands at the end of the row with nothing after it —
       // the shape #12729 hits, and the one where the overlay carries the preedit alone.
-      await writeToActiveTerminal(orcaPage, '\x1b[2J\x1b[H안녕하세요')
+      await writeToActiveTerminal(dorkaPage, '\x1b[2J\x1b[H안녕하세요')
       await setImeComposition(arena.session, '가')
 
-      const sample = await sampleOpenComposition(orcaPage)
+      const sample = await sampleOpenComposition(dorkaPage)
       expect(sample.rowTailFromCursor, 'text still sits after the cursor').toBe('')
       expect(sample.cursorColumn, 'the cursor is not at the end of the committed run').toBe(10)
       expect(

@@ -32,7 +32,7 @@ import {
   WORKTREE_CREATE_COLLISION_CODE
 } from '../../../../shared/new-workspace/worktree-create-collision'
 import { executeAgentLaunch } from '../../../agent-launch/agent-launch-executor'
-import type { OrcaRuntimeService } from '../../orca-runtime'
+import type { DorkaRuntimeService } from '../../dorka-runtime'
 import { defineMethod, type RpcContext } from '../core'
 import { admitAgentLaunchOperation, agentLaunchOperationCallerKey } from './agent-launch-replay'
 import { AgentLaunch, AgentLaunchReplay, type AgentLaunchParams } from './agent-launch-schemas'
@@ -43,7 +43,7 @@ import { agentLaunchWorkspaceFactory } from './agent-launch-worktree-creation'
  * Advertising `agent.launch.v2` is a client's statement that it understands EITHER outcome — a
  * structured session it can open, or a terminal agent. A client that can only render one of the
  * two must keep using the surface-specific methods instead. The `clientKind === undefined` branch
- * is not "whatever ships in this build": it is the `orca` CLI over the runtime socket and the
+ * is not "whatever ships in this build": it is the `dorka` CLI over the runtime socket and the
  * SSH-remote CLI bridges, which carry no capability list at all. The desktop renderer ships in
  * this build and still arrives as `clientKind: 'runtime'`, so it advertises like any other client.
  */
@@ -69,7 +69,7 @@ export function supportsAgentLaunch(
  */
 async function agentLaunchTarget(
   params: AgentLaunchParams,
-  runtime: Pick<OrcaRuntimeService, 'showTerminalWorkspaceLaunchScope'>
+  runtime: Pick<DorkaRuntimeService, 'showTerminalWorkspaceLaunchScope'>
 ): Promise<AgentLaunchTarget> {
   if (params.target.kind === 'create-worktree') {
     return { kind: 'create-worktree', create: { ...params.target.create } }
@@ -80,7 +80,7 @@ async function agentLaunchTarget(
 
 async function agentLaunchIntent(
   params: AgentLaunchParams,
-  runtime: OrcaRuntimeService
+  runtime: DorkaRuntimeService
 ): Promise<AgentLaunchIntent> {
   return {
     agent: params.agent,
@@ -97,7 +97,7 @@ async function agentLaunchIntent(
 
 async function validateReusedTerminal(
   intent: AgentLaunchIntent,
-  runtime: Pick<OrcaRuntimeService, 'showTerminal' | 'isTerminalRunningAgent'>
+  runtime: Pick<DorkaRuntimeService, 'showTerminal' | 'isTerminalRunningAgent'>
 ): Promise<void> {
   if (!intent.reuseTerminal) {
     return
@@ -121,7 +121,7 @@ async function validateReusedTerminal(
  */
 async function resolveUnlaunchedIntent(
   params: AgentLaunchParams,
-  runtime: OrcaRuntimeService
+  runtime: DorkaRuntimeService
 ): Promise<AgentLaunchIntent> {
   const intent = await agentLaunchIntent(params, runtime)
   await validateReusedTerminal(intent, runtime)
@@ -204,11 +204,11 @@ class AgentLaunchExecutionError extends Error {
 }
 
 const activeAgentLaunchesByRuntime = new WeakMap<
-  OrcaRuntimeService,
+  DorkaRuntimeService,
   Map<string, ActiveAgentLaunch>
 >()
 
-function activeAgentLaunchesFor(runtime: OrcaRuntimeService): Map<string, ActiveAgentLaunch> {
+function activeAgentLaunchesFor(runtime: DorkaRuntimeService): Map<string, ActiveAgentLaunch> {
   const existing = activeAgentLaunchesByRuntime.get(runtime)
   if (existing) {
     return existing

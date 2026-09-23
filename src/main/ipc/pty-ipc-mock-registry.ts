@@ -56,7 +56,7 @@ export type ElectronModuleMock = {
 }
 
 export const electronModuleMock = (): ElectronModuleMock => ({
-  // Why defined-but-undefined: the real OrcaRuntimeService guards BrowserWindow with `?.`; vitest throws on reading exports the mock omits.
+  // Why defined-but-undefined: the real DorkaRuntimeService guards BrowserWindow with `?.`; vitest throws on reading exports the mock omits.
   BrowserWindow: undefined,
   app: {
     isPackaged: true,
@@ -87,7 +87,7 @@ export const fsModuleMock = () => ({
   chmodSync: chmodSyncMock,
   renameSync: renameSyncMock,
   rmSync: rmSyncMock,
-  mkdtempSync: () => '/tmp/orca-watcher-canary-test',
+  mkdtempSync: () => '/tmp/dorka-watcher-canary-test',
   constants: {
     X_OK: 1,
     R_OK: 4
@@ -129,7 +129,7 @@ export const agentHookServerModuleMock = () => ({
 export const piTitlebarExtensionModuleMock = () => ({
   piTitlebarExtensionService: {
     buildPtyEnv: piBuildPtyEnvMock,
-    buildFreshOmpEnv: () => ({ ORCA_OMP_FRESH_CONFIG: '/tmp/orca-fresh-session.yml' }),
+    buildFreshOmpEnv: () => ({ DORKA_OMP_FRESH_CONFIG: '/tmp/dorka-fresh-session.yml' }),
     clearPty: piClearPtyMock
   }
 })
@@ -153,7 +153,7 @@ export const classifyErrorModuleMock = () => ({
 
 // Why: the real ensure writes to process.resourcesPath (absent under vitest); env assembly only needs the returned dir path.
 export const linuxCliShimModuleMock = () => ({
-  ensureLinuxTerminalOrcaCliShimDir: linuxCliShimMock
+  ensureLinuxTerminalDorkaCliShimDir: linuxCliShimMock
 })
 
 export const ptyRegistryModuleMock = () => ({

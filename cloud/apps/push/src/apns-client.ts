@@ -1,4 +1,4 @@
-import type { ApnsEnvironment } from '@orca-cloud/push-contract'
+import type { ApnsEnvironment } from '@dorka-cloud/push-contract'
 import { ApnsAuthenticationToken } from './apns-authentication-token.js'
 import type { ApnsTransport } from './apns-http2-transport.js'
 import type { ApnsCredentials } from './config.js'
@@ -31,14 +31,14 @@ function readReason(body: string): string {
 export function apnsBody(delivery: PushDelivery): string {
   return JSON.stringify({
     aps:
-      delivery.orca.kind === 'dismiss'
+      delivery.dorka.kind === 'dismiss'
         ? { 'content-available': 1 }
         : {
             alert: { title: delivery.title, body: delivery.body },
             ...(delivery.sound === false ? {} : { sound: 'default' }),
             'thread-id': delivery.hostFingerprint
           },
-    orca: delivery.orca
+    dorka: delivery.dorka
   })
 }
 
@@ -65,10 +65,10 @@ export class ApnsClient {
         headers: {
           authorization: `bearer ${this.authentication.value()}`,
           'apns-topic': this.options.topic,
-          'apns-push-type': delivery.orca.kind === 'dismiss' ? 'background' : 'alert',
-          'apns-priority': delivery.orca.kind === 'dismiss' ? '5' : '10',
+          'apns-push-type': delivery.dorka.kind === 'dismiss' ? 'background' : 'alert',
+          'apns-priority': delivery.dorka.kind === 'dismiss' ? '5' : '10',
           'apns-expiration': String(expiration),
-          ...(delivery.orca.kind === 'dismiss' ? {} : { 'apns-collapse-id': delivery.collapseId })
+          ...(delivery.dorka.kind === 'dismiss' ? {} : { 'apns-collapse-id': delivery.collapseId })
         },
         body: apnsBody(delivery)
       })

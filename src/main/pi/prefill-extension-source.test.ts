@@ -4,7 +4,7 @@ import { getPiPrefillExtensionSource } from './prefill-extension-source'
 describe('getPiPrefillExtensionSource', () => {
   it('accepts OMP session_start events without a reason field', () => {
     const source = getPiPrefillExtensionSource('omp')
-    expect(source).toContain('process.env.ORCA_OMP_PREFILL')
+    expect(source).toContain('process.env.DORKA_OMP_PREFILL')
     expect(source).not.toContain("event.reason !== 'startup'")
   })
 

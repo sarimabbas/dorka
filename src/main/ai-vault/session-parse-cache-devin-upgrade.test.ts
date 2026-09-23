@@ -26,7 +26,7 @@ afterEach(async () => {
 })
 
 it('reparses unchanged ATIF transcripts cached before Devin source fields were supported', async () => {
-  root = await mkdtemp(join(tmpdir(), 'orca-devin-upgrade-'))
+  root = await mkdtemp(join(tmpdir(), 'dorka-devin-upgrade-'))
   const path = join(root, 'devin-session.json')
   await writeFile(
     path,

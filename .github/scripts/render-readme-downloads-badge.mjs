@@ -7,7 +7,7 @@ const outputPath = process.env.DOWNLOADS_BADGE_PATH ?? 'docs/assets/readme-downl
 
 const headers = {
   Accept: 'application/vnd.github+json',
-  'User-Agent': 'orca-readme-downloads-badge',
+  'User-Agent': 'dorka-readme-downloads-badge',
   'X-GitHub-Api-Version': '2022-11-28'
 }
 

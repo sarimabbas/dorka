@@ -139,7 +139,7 @@ describe('the setNativeProps writes the mobile app makes', () => {
 })
 
 async function withScratch(run) {
-  const scratch = await mkdtemp(join(tmpdir(), 'orca-mobile-set-native-props-'))
+  const scratch = await mkdtemp(join(tmpdir(), 'dorka-mobile-set-native-props-'))
   try {
     return await run(scratch)
   } finally {

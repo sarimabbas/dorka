@@ -40,7 +40,7 @@ export class CodexJournalCompactions {
     }
     const admission = appendCodexLifecycleItem(
       this.sink,
-      { provider: 'orca', clientMessageId: `codex-compaction:${key}` },
+      { provider: 'dorka', clientMessageId: `codex-compaction:${key}` },
       { kind: 'status', text: 'Context compacted', presentation: 'compaction' }
     )
     if (!admission.accepted) {

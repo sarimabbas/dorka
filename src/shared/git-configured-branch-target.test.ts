@@ -10,7 +10,7 @@ import {
 } from './git-configured-branch-target'
 
 const BRANCH = 'imp/translation'
-const FORK_URL = 'https://github.com/contributor/orca.git'
+const FORK_URL = 'https://github.com/contributor/dorka.git'
 const UPSTREAM_URL = 'https://github.com/stablyai/orca.git'
 
 type RemoteRow = { name: string; fetchUrl: string; pushUrl?: string }
@@ -62,10 +62,10 @@ function makeRunner(fixture: Fixture): {
 const fiftyEightRemotes: RemoteRow[] = [
   { name: 'origin', fetchUrl: UPSTREAM_URL },
   ...Array.from({ length: 56 }, (_, index) => ({
-    name: `pr-user${index}-orca`,
-    fetchUrl: `https://github.com/user${index}/orca.git`
+    name: `pr-user${index}-dorka`,
+    fetchUrl: `https://github.com/user${index}/dorka.git`
   })),
-  { name: 'pr-contributor-orca', fetchUrl: FORK_URL }
+  { name: 'pr-contributor-dorka', fetchUrl: FORK_URL }
 ]
 
 describe('hasConfiguredBranchPushTarget', () => {

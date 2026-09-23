@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import nacl from 'tweetnacl'
-import type { OrcaCloudAuthConfig } from '../../orca-profiles/profile-cloud-auth-config'
+import type { DorkaCloudAuthConfig } from '../../dorka-profiles/profile-cloud-auth-config'
 import type { RelayHostHelloAckMessage } from './relay-control-protocol'
 import type * as RelayHttpClientModule from './relay-http-client'
 
@@ -152,7 +152,7 @@ describe('RelaySessionBroker lifecycle ownership', () => {
       authConfig: {
         relayTokenEndpoint: 'https://auth.example.test/v1/relay-token',
         relayDirectorUrl: 'https://relay.example.test'
-      } as OrcaCloudAuthConfig,
+      } as DorkaCloudAuthConfig,
       accessToken: 'access-token',
       identity: { userId: 'user-1', profileId: 'profile-1', organizationId: 'org-1' },
       keypair: {
@@ -681,7 +681,7 @@ function brokerOptions(
     authConfig: {
       relayTokenEndpoint: 'https://auth.example.test/v1/relay-token',
       relayDirectorUrl: 'https://relay.example.test'
-    } as OrcaCloudAuthConfig,
+    } as DorkaCloudAuthConfig,
     accessToken: 'access-token',
     identity: { userId: 'user-1', profileId: 'profile-1', organizationId: 'org-1' },
     keypair: {

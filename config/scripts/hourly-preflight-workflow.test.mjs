@@ -35,7 +35,7 @@ async function checkFreshness(overrides = {}) {
         GITHUB_OUTPUT: output,
         GITHUB_REPOSITORY: 'stablyai/orca',
         MAIN_REPO_TOKEN: 'main-token',
-        HOURLY_REPO: 'stablyai/orca-hourly',
+        HOURLY_REPO: 'stablyai/dorka-hourly',
         HEAD_SHA: head,
         LAST_TAG: 'previous-hourly',
         LAST_SHA: head.slice(0, 12),

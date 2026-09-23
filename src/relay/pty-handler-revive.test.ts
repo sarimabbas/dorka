@@ -75,9 +75,9 @@ describe('PtyHandler', () => {
       rows: 30,
       cwd: '/tmp',
       env: {
-        ORCA_PANE_KEY: 'tab-5:1',
-        ORCA_TAB_ID: 'tab-5',
-        ORCA_WORKTREE_ID: 'wt-5'
+        DORKA_PANE_KEY: 'tab-5:1',
+        DORKA_TAB_ID: 'tab-5',
+        DORKA_WORKTREE_ID: 'wt-5'
       }
     })
     const state = (await dispatcher.callRequest('pty.serialize', { ids: [PTY_1] })) as string
@@ -87,36 +87,36 @@ describe('PtyHandler', () => {
     dispatcher = createMockDispatcher()
     handler = createTestPtyHandler(dispatcher)
     handler.addEnvAugmenter(() => ({
-      ORCA_AGENT_HOOK_PORT: '12345',
-      ORCA_AGENT_HOOK_TOKEN: 'abc-uuid'
+      DORKA_AGENT_HOOK_PORT: '12345',
+      DORKA_AGENT_HOOK_TOKEN: 'abc-uuid'
     }))
     const killSpy = vi.spyOn(process, 'kill').mockImplementation(() => true)
     // Why seeded: a revived pane must not inherit a feature selection from the
     // relay process's own environment.
-    const oldShellFeatures = process.env.ORCA_SHELL_FEATURES
-    process.env.ORCA_SHELL_FEATURES = 'ready,identity,markers,overlay'
+    const oldShellFeatures = process.env.DORKA_SHELL_FEATURES
+    process.env.DORKA_SHELL_FEATURES = 'ready,identity,markers,overlay'
     try {
       await dispatcher.callRequest('pty.revive', { state })
     } finally {
       if (oldShellFeatures === undefined) {
-        delete process.env.ORCA_SHELL_FEATURES
+        delete process.env.DORKA_SHELL_FEATURES
       } else {
-        process.env.ORCA_SHELL_FEATURES = oldShellFeatures
+        process.env.DORKA_SHELL_FEATURES = oldShellFeatures
       }
       killSpy.mockRestore()
     }
 
     expect(mockPtySpawn).toHaveBeenCalledTimes(1)
     const callArgs = mockPtySpawn.mock.calls[0][2] as { env: Record<string, string> }
-    expect(callArgs.env.ORCA_PANE_KEY).toBe('tab-5:1')
-    expect(callArgs.env.ORCA_TAB_ID).toBe('tab-5')
-    expect(callArgs.env.ORCA_WORKTREE_ID).toBe('wt-5')
-    expect(callArgs.env.ORCA_AGENT_HOOK_PORT).toBe('12345')
-    expect(callArgs.env.ORCA_AGENT_HOOK_TOKEN).toBe('abc-uuid')
+    expect(callArgs.env.DORKA_PANE_KEY).toBe('tab-5:1')
+    expect(callArgs.env.DORKA_TAB_ID).toBe('tab-5')
+    expect(callArgs.env.DORKA_WORKTREE_ID).toBe('wt-5')
+    expect(callArgs.env.DORKA_AGENT_HOOK_PORT).toBe('12345')
+    expect(callArgs.env.DORKA_AGENT_HOOK_TOKEN).toBe('abc-uuid')
     expect(callArgs.env.TERM).toBe('xterm-256color')
-    expect(callArgs.env.TERM_PROGRAM).toBe('Orca')
-    expect(callArgs.env.ORCA_SHELL_FEATURES).not.toContain('ready')
-    expect(callArgs.env.ORCA_SHELL_FEATURES).not.toContain('identity')
+    expect(callArgs.env.TERM_PROGRAM).toBe('Dorka')
+    expect(callArgs.env.DORKA_SHELL_FEATURES).not.toContain('ready')
+    expect(callArgs.env.DORKA_SHELL_FEATURES).not.toContain('identity')
   })
 
   it('fences both revived worktree identity and cwd with rollback', async () => {
@@ -268,7 +268,7 @@ describe('PtyHandler', () => {
   it('normalizes an explicit empty TERM and preserves sanitized env deletions on revive', async () => {
     await dispatcher.callRequest('pty.spawn', {
       env: { TERM: '' },
-      envToDelete: ['ORCA_STALE_TEST_ENV', '', 42]
+      envToDelete: ['DORKA_STALE_TEST_ENV', '', 42]
     })
 
     const initialEnv = mockPtySpawn.mock.calls[0][2] as {
@@ -284,14 +284,14 @@ describe('PtyHandler', () => {
       envToDelete?: string[]
     }[]
     expect(serialized.explicitTerm).toBeUndefined()
-    expect(serialized.envToDelete).toEqual(['ORCA_STALE_TEST_ENV'])
+    expect(serialized.envToDelete).toEqual(['DORKA_STALE_TEST_ENV'])
 
     await handler.dispose({ waitForPhysicalExit: false })
     mockPtySpawn.mockClear()
     dispatcher = createMockDispatcher()
     handler = createTestPtyHandler(dispatcher)
     handler.addEnvAugmenter(() => ({
-      ORCA_STALE_TEST_ENV: '/tmp/revived-stale'
+      DORKA_STALE_TEST_ENV: '/tmp/revived-stale'
     }))
     const killSpy = vi.spyOn(process, 'kill').mockImplementation(() => true)
     try {
@@ -306,7 +306,7 @@ describe('PtyHandler', () => {
     }
     expect(revivedEnv.name).toBe('xterm-256color')
     expect(revivedEnv.env.TERM).toBe('xterm-256color')
-    expect(revivedEnv.env.ORCA_STALE_TEST_ENV).toBeUndefined()
+    expect(revivedEnv.env.DORKA_STALE_TEST_ENV).toBeUndefined()
   })
 
   it('drops legacy empty explicit TERM metadata after revive', async () => {
@@ -318,11 +318,11 @@ describe('PtyHandler', () => {
         rows: 24,
         cwd: process.cwd(),
         explicitTerm: '',
-        envToDelete: ['ORCA_STALE_TEST_ENV']
+        envToDelete: ['DORKA_STALE_TEST_ENV']
       }
     ])
     handler.addEnvAugmenter(() => ({
-      ORCA_STALE_TEST_ENV: '/tmp/legacy-empty-stale'
+      DORKA_STALE_TEST_ENV: '/tmp/legacy-empty-stale'
     }))
     const killSpy = vi.spyOn(process, 'kill').mockImplementation(() => true)
     try {
@@ -337,7 +337,7 @@ describe('PtyHandler', () => {
     }
     expect(revivedEnv.name).toBe('xterm-256color')
     expect(revivedEnv.env.TERM).toBe('xterm-256color')
-    expect(revivedEnv.env.ORCA_STALE_TEST_ENV).toBeUndefined()
+    expect(revivedEnv.env.DORKA_STALE_TEST_ENV).toBeUndefined()
 
     const serializedState = (await dispatcher.callRequest('pty.serialize', {
       ids: ['pty-8']
@@ -347,13 +347,13 @@ describe('PtyHandler', () => {
       envToDelete?: string[]
     }[]
     expect(serialized.explicitTerm).toBeUndefined()
-    expect(serialized.envToDelete).toEqual(['ORCA_STALE_TEST_ENV'])
+    expect(serialized.envToDelete).toEqual(['DORKA_STALE_TEST_ENV'])
   })
 
   it('preserves explicit TERM and env deletions through repeated revive cycles', async () => {
     await dispatcher.callRequest('pty.spawn', {
       env: { TERM: 'screen-256color' },
-      envToDelete: ['ORCA_STALE_TEST_ENV']
+      envToDelete: ['DORKA_STALE_TEST_ENV']
     })
     let state = (await dispatcher.callRequest('pty.serialize', { ids: [PTY_1] })) as string
 
@@ -364,7 +364,7 @@ describe('PtyHandler', () => {
       dispatcher = createMockDispatcher()
       handler = createTestPtyHandler(dispatcher)
       handler.addEnvAugmenter(() => ({
-        ORCA_STALE_TEST_ENV: '/tmp/first-revive'
+        DORKA_STALE_TEST_ENV: '/tmp/first-revive'
       }))
       await dispatcher.callRequest('pty.revive', { state })
 
@@ -374,12 +374,12 @@ describe('PtyHandler', () => {
       }
       expect(firstRevivedEnv.name).toBe('screen-256color')
       expect(firstRevivedEnv.env.TERM).toBe('screen-256color')
-      expect(firstRevivedEnv.env.ORCA_STALE_TEST_ENV).toBeUndefined()
+      expect(firstRevivedEnv.env.DORKA_STALE_TEST_ENV).toBeUndefined()
       state = (await dispatcher.callRequest('pty.serialize', { ids: [PTY_1] })) as string
       expect(JSON.parse(state)).toMatchObject([
         {
           explicitTerm: 'screen-256color',
-          envToDelete: ['ORCA_STALE_TEST_ENV']
+          envToDelete: ['DORKA_STALE_TEST_ENV']
         }
       ])
 
@@ -388,7 +388,7 @@ describe('PtyHandler', () => {
       dispatcher = createMockDispatcher()
       handler = createTestPtyHandler(dispatcher)
       handler.addEnvAugmenter(() => ({
-        ORCA_STALE_TEST_ENV: '/tmp/second-revive'
+        DORKA_STALE_TEST_ENV: '/tmp/second-revive'
       }))
       await dispatcher.callRequest('pty.revive', { state })
     } finally {
@@ -401,12 +401,12 @@ describe('PtyHandler', () => {
     }
     expect(secondRevivedEnv.name).toBe('screen-256color')
     expect(secondRevivedEnv.env.TERM).toBe('screen-256color')
-    expect(secondRevivedEnv.env.ORCA_STALE_TEST_ENV).toBeUndefined()
+    expect(secondRevivedEnv.env.DORKA_STALE_TEST_ENV).toBeUndefined()
   })
 
   it('revives legacy serialized entries with default TERM and no env deletions', async () => {
     handler.addEnvAugmenter(() => ({
-      ORCA_STALE_TEST_ENV: '/tmp/legacy-stale'
+      DORKA_STALE_TEST_ENV: '/tmp/legacy-stale'
     }))
     const state = JSON.stringify([
       {
@@ -426,14 +426,14 @@ describe('PtyHandler', () => {
 
     const revivedEnv = mockPtySpawn.mock.calls[0][2] as { env: Record<string, string> }
     expect(revivedEnv.env.TERM).toBe('xterm-256color')
-    expect(revivedEnv.env.ORCA_STALE_TEST_ENV).toBe('/tmp/legacy-stale')
+    expect(revivedEnv.env.DORKA_STALE_TEST_ENV).toBe('/tmp/legacy-stale')
   })
 
   it('revive preserves attach identity metadata without exporting hook identity env', async () => {
-    const oldPaneKey = process.env.ORCA_PANE_KEY
-    const oldTabId = process.env.ORCA_TAB_ID
-    delete process.env.ORCA_PANE_KEY
-    delete process.env.ORCA_TAB_ID
+    const oldPaneKey = process.env.DORKA_PANE_KEY
+    const oldTabId = process.env.DORKA_TAB_ID
+    delete process.env.DORKA_PANE_KEY
+    delete process.env.DORKA_TAB_ID
     try {
       await dispatcher.callRequest('pty.spawn', {
         cols: 90,
@@ -445,14 +445,14 @@ describe('PtyHandler', () => {
       })
     } finally {
       if (oldPaneKey === undefined) {
-        delete process.env.ORCA_PANE_KEY
+        delete process.env.DORKA_PANE_KEY
       } else {
-        process.env.ORCA_PANE_KEY = oldPaneKey
+        process.env.DORKA_PANE_KEY = oldPaneKey
       }
       if (oldTabId === undefined) {
-        delete process.env.ORCA_TAB_ID
+        delete process.env.DORKA_TAB_ID
       } else {
-        process.env.ORCA_TAB_ID = oldTabId
+        process.env.DORKA_TAB_ID = oldTabId
       }
     }
     const state = (await dispatcher.callRequest('pty.serialize', { ids: [PTY_1] })) as string
@@ -462,27 +462,27 @@ describe('PtyHandler', () => {
     dispatcher = createMockDispatcher()
     handler = createTestPtyHandler(dispatcher)
     const killSpy = vi.spyOn(process, 'kill').mockImplementation(() => true)
-    delete process.env.ORCA_PANE_KEY
-    delete process.env.ORCA_TAB_ID
+    delete process.env.DORKA_PANE_KEY
+    delete process.env.DORKA_TAB_ID
     try {
       await dispatcher.callRequest('pty.revive', { state })
     } finally {
       killSpy.mockRestore()
       if (oldPaneKey === undefined) {
-        delete process.env.ORCA_PANE_KEY
+        delete process.env.DORKA_PANE_KEY
       } else {
-        process.env.ORCA_PANE_KEY = oldPaneKey
+        process.env.DORKA_PANE_KEY = oldPaneKey
       }
       if (oldTabId === undefined) {
-        delete process.env.ORCA_TAB_ID
+        delete process.env.DORKA_TAB_ID
       } else {
-        process.env.ORCA_TAB_ID = oldTabId
+        process.env.DORKA_TAB_ID = oldTabId
       }
     }
 
     const callArgs = mockPtySpawn.mock.calls[0][2] as { env: Record<string, string> }
-    expect(callArgs.env.ORCA_PANE_KEY).toBeUndefined()
-    expect(callArgs.env.ORCA_TAB_ID).toBeUndefined()
+    expect(callArgs.env.DORKA_PANE_KEY).toBeUndefined()
+    expect(callArgs.env.DORKA_TAB_ID).toBeUndefined()
 
     await expect(
       dispatcher.callRequest('pty.attach', {
@@ -497,7 +497,7 @@ describe('PtyHandler', () => {
   // when the client wrote it down, not that it exists now -- node-pty answers a removed one by
   // _exit(1)-ing the child on POSIX and by throwing on Windows, and the throw escapes the loop.
   it('skips a pane whose serialized cwd is gone from this host, keeping the batch', async () => {
-    const removedCwd = join(tmpdir(), `orca-revive-removed-${process.pid}`)
+    const removedCwd = join(tmpdir(), `dorka-revive-removed-${process.pid}`)
     rmSync(removedCwd, { force: true, recursive: true })
     const state = JSON.stringify([
       { id: 'pty-20', pid: process.pid, cols: 80, rows: 24, cwd: removedCwd },
@@ -555,7 +555,7 @@ describe('PtyHandler', () => {
     const worktreeId = 'r::/remote/wsl-worktree'
     const historyFile = join(
       homedir(),
-      '.orca-remote',
+      '.dorka-remote',
       'terminal-history',
       `${hashWorktreeId(worktreeId)}-bash_history`
     )

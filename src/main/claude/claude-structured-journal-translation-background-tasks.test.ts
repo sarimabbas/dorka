@@ -20,8 +20,8 @@ import { blockOf } from './claude-background-task-row-test-support'
 const TASK_ID = 'byjnee2no'
 const SUMMARY = 'Background command "Wait for the verification verdict" failed with exit code 1'
 
-function orcaClientMessageId(identity: AgentJournalItemIdentity): string | null {
-  return identity.provider === 'orca' ? identity.clientMessageId : null
+function dorkaClientMessageId(identity: AgentJournalItemIdentity): string | null {
+  return identity.provider === 'dorka' ? identity.clientMessageId : null
 }
 
 function harness() {
@@ -34,7 +34,7 @@ function harness() {
   const translator = createClaudeJournalTranslator({ sink, fallbackIdPrefix: 'test' })
   const rowsWithPrefix = (prefix: string): AgentJournalItemBody[] =>
     items
-      .filter((item) => (orcaClientMessageId(item.identity) ?? '').startsWith(prefix))
+      .filter((item) => (dorkaClientMessageId(item.identity) ?? '').startsWith(prefix))
       .map((item) => item.body)
   const textOf = (body: AgentJournalItemBody): string => {
     if (body.kind === 'status') {
@@ -51,7 +51,7 @@ function harness() {
     fallbackRows: () => rowsWithPrefix('provider-frame:').map(textOf),
     taskRowIds: () =>
       items
-        .map((item) => orcaClientMessageId(item.identity) ?? '')
+        .map((item) => dorkaClientMessageId(item.identity) ?? '')
         .filter((id) => id.startsWith('claude-background-task:')),
     taskRowTexts: () => rowsWithPrefix('claude-background-task:').map(textOf)
   }
@@ -60,7 +60,7 @@ function harness() {
 function systemFrame(fields: Record<string, unknown>) {
   return {
     type: 'message' as const,
-    sessionId: 'orca-session',
+    sessionId: 'dorka-session',
     message: { type: 'system', session_id: 'claude-session', ...fields }
   }
 }
@@ -74,7 +74,7 @@ function spawnToolCall(
 ): void {
   translator.handle({
     type: 'message' as const,
-    sessionId: 'orca-session',
+    sessionId: 'dorka-session',
     message: {
       type: 'assistant',
       uuid: `assistant-${toolUseId}`,
@@ -199,7 +199,7 @@ describe('claude journal translation — background task rows', () => {
     })
     deferred.bind(target)
     deferred.sink.appendItem(
-      { provider: 'orca', clientMessageId: 'blocked-prefill' },
+      { provider: 'dorka', clientMessageId: 'blocked-prefill' },
       { kind: 'message', role: 'system', blocks: [{ type: 'text', text: 'prefill' }] }
     )
     await appendEntered.promise
@@ -273,9 +273,9 @@ describe('claude journal translation — background task rows', () => {
     await deferred.drained()
 
     expect([...persisted.keys()].filter((key) => key.includes('queued-overflow'))).toEqual([
-      'orca:claude-background-task%3Aqueued-overflow'
+      'dorka:claude-background-task%3Aqueued-overflow'
     ])
-    expect(blockOf(persisted.get('orca:claude-background-task%3Aqueued-overflow'))).toMatchObject({
+    expect(blockOf(persisted.get('dorka:claude-background-task%3Aqueued-overflow'))).toMatchObject({
       state: 'idle',
       parentToolUseId: 'toolu-final',
       summary: 'No completion record was found'
@@ -315,9 +315,9 @@ describe('claude journal translation — background task rows', () => {
     )
     await deferred.drained()
     expect([...persisted.keys()].filter((key) => key.includes('bound-overflow'))).toEqual([
-      'orca:claude-background-task%3Abound-overflow'
+      'dorka:claude-background-task%3Abound-overflow'
     ])
-    expect(blockOf(persisted.get('orca:claude-background-task%3Abound-overflow'))).toMatchObject({
+    expect(blockOf(persisted.get('dorka:claude-background-task%3Abound-overflow'))).toMatchObject({
       state: 'idle',
       parentToolUseId: 'toolu-first'
     })
@@ -338,8 +338,8 @@ describe('claude journal translation — background task rows', () => {
     )
     await deferred.drained()
     expect([...persisted.keys()].filter((key) => key.includes('bound-overflow'))).toEqual([
-      'orca:claude-background-task%3Abound-overflow',
-      'orca:claude-background-task%3Abound-overflow%232'
+      'dorka:claude-background-task%3Abound-overflow',
+      'dorka:claude-background-task%3Abound-overflow%232'
     ])
   })
 
@@ -382,8 +382,8 @@ describe('claude journal translation — background task rows', () => {
     await restarted.drained()
 
     expect([...persisted.keys()].filter((key) => key.includes('queued-restart'))).toEqual([
-      'orca:claude-background-task%3Aqueued-restart',
-      'orca:claude-background-task%3Aqueued-restart%232'
+      'dorka:claude-background-task%3Aqueued-restart',
+      'dorka:claude-background-task%3Aqueued-restart%232'
     ])
   })
 
@@ -423,8 +423,8 @@ describe('claude journal translation — background task rows', () => {
     await deferred.drained()
 
     expect([...persisted.keys()].filter((key) => key.includes('queued-overlap'))).toEqual([
-      'orca:claude-background-task%3Aqueued-overlap',
-      'orca:claude-background-task%3Aqueued-overlap%232'
+      'dorka:claude-background-task%3Aqueued-overlap',
+      'dorka:claude-background-task%3Aqueued-overlap%232'
     ])
   })
 
@@ -484,7 +484,7 @@ describe('claude journal translation — background task rows', () => {
       })
     )
     expect([...persisted.keys()].filter((key) => key.includes('reused-after-reconnect'))).toEqual([
-      'orca:claude-background-task%3Areused-after-reconnect'
+      'dorka:claude-background-task%3Areused-after-reconnect'
     ])
     resumed.dispose()
 
@@ -502,8 +502,8 @@ describe('claude journal translation — background task rows', () => {
 
     const rows = [...persisted.entries()].filter(([key]) => key.includes('reused-after-reconnect'))
     expect(rows.map(([key]) => key)).toEqual([
-      'orca:claude-background-task%3Areused-after-reconnect',
-      'orca:claude-background-task%3Areused-after-reconnect%232'
+      'dorka:claude-background-task%3Areused-after-reconnect',
+      'dorka:claude-background-task%3Areused-after-reconnect%232'
     ])
   })
 
@@ -736,7 +736,7 @@ describe('claude journal translation — background task rows', () => {
       })
     )
 
-    translator.handle({ type: 'ended', sessionId: 'orca-session', reason: 'closed' })
+    translator.handle({ type: 'ended', sessionId: 'dorka-session', reason: 'closed' })
 
     expect(taskRowTexts().at(-1)).toBe(
       'Background command "Wait for the verification verdict" stopped reporting'
@@ -748,7 +748,7 @@ describe('claude journal translation — background task rows', () => {
     // id and is never a top-level invocation.
     translator.handle({
       type: 'message' as const,
-      sessionId: 'orca-session',
+      sessionId: 'dorka-session',
       message: {
         type: 'assistant',
         uuid: 'nested-assistant',
@@ -819,7 +819,7 @@ describe('claude journal translation — background task rows', () => {
     const taskId = 'bm5w1s2mv'
     translator.handle({
       type: 'message',
-      sessionId: 'orca-session',
+      sessionId: 'dorka-session',
       message: {
         type: 'assistant',
         uuid: 'monitor-call',
@@ -835,7 +835,7 @@ describe('claude journal translation — background task rows', () => {
     })
     translator.handle({
       type: 'message',
-      sessionId: 'orca-session',
+      sessionId: 'dorka-session',
       message: {
         type: 'user',
         uuid: 'monitor-result',

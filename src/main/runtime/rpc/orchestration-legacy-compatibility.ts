@@ -1,6 +1,6 @@
 import { createHash } from 'node:crypto'
 import type { LegacyCoordinatorAuthorityProof, RpcRequest } from './core'
-import type { OrcaRuntimeService, OrchestrationCompatibilityCallerAuthority } from '../orca-runtime'
+import type { DorkaRuntimeService, OrchestrationCompatibilityCallerAuthority } from '../dorka-runtime'
 import { CURRENT_CONTRACT_VERSION } from '../orchestration/db'
 import { LegacyCompatibilityAuthority } from './orchestration-legacy-authority'
 import { handleLegacyLifecycleSend } from './orchestration-legacy-lifecycle'
@@ -52,7 +52,7 @@ export class OrchestrationLegacyCompatibility {
   private readonly authority: LegacyCompatibilityAuthority
   private readonly coordinatorAuthority: LegacyCoordinatorAuthority
 
-  constructor(private readonly runtime: OrcaRuntimeService) {
+  constructor(private readonly runtime: DorkaRuntimeService) {
     this.authority = new LegacyCompatibilityAuthority(runtime)
     this.coordinatorAuthority = new LegacyCoordinatorAuthority(runtime)
   }

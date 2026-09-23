@@ -1,7 +1,7 @@
 import type { LegacyAdoptedMailboxOwner, OrchestrationDb } from '../../../../orchestration/db'
 import { OrchestrationError } from '../../../../orchestration/orchestration-error'
 import type { DispatchContextRow, DispatchStatus } from '../../../../orchestration/types'
-import type { OrcaRuntimeService } from '../../../../orca-runtime'
+import type { DorkaRuntimeService } from '../../../../dorka-runtime'
 
 const ACTIVE_DISPATCH_STATUSES: readonly DispatchStatus[] = ['pending', 'dispatched']
 
@@ -48,7 +48,7 @@ export type BareRecipientResolution =
     }
 
 export function resolveBareOrchestrationRecipient(params: {
-  runtime: OrcaRuntimeService
+  runtime: DorkaRuntimeService
   db: OrchestrationDb
   handle: string
   senderRunId?: string

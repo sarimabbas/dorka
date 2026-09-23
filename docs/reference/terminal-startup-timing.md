@@ -3,10 +3,10 @@
 For #19333, enable the renderer's opt-in recorder in its DevTools console before opening a new terminal:
 
 ```js
-localStorage.setItem('orca:terminal-startup-timing', '1')
+localStorage.setItem('dorka:terminal-startup-timing', '1')
 ```
 
-Remove the key to disable it. Existing sessions are unaffected. To capture the existing host spawn phases, start the host with `ORCA_PTY_SPAWN_TIMING=1`. Do not restart a host with active work just to enable diagnostics.
+Remove the key to disable it. Existing sessions are unaffected. To capture the existing host spawn phases, start the host with `DORKA_PTY_SPAWN_TIMING=1`. Do not restart a host with active work just to enable diagnostics.
 
 The renderer emits one `terminal_startup_timing` breadcrumb per transport callback generation through the existing local diagnostic channel. In `main.trace.ndjson`, find the `renderer.breadcrumb` record whose `breadcrumb.name` matches. The host's existing console timing line also becomes a `pty.spawn.timing` trace record. Correlate available PTY IDs; renderer generation distinguishes retries. Compare elapsed durations within each process, not wall clocks across hosts.
 

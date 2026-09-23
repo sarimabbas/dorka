@@ -297,11 +297,11 @@ const INVENTORY: readonly InventoryGroup[] = [
     helper: 'detectAgentStatusFromTitle',
     classification: 'evidence-producer',
     paths: [
-      ['src/main/runtime/orca-runtime-apply-tracked-pty-title.ts', 2],
-      ['src/main/runtime/orca-runtime-get-pty-record-for-pane-key.ts', 2],
-      ['src/main/runtime/orca-runtime-get-unpersisted-tracked-title-for-pty.ts', 2],
-      ['src/main/runtime/orca-runtime-maybe-hydrate-headless-from-renderer.ts', 2],
-      ['src/main/runtime/orca-runtime-record-agent-prompt-lifecycle-state.ts', 2],
+      ['src/main/runtime/dorka-runtime-apply-tracked-pty-title.ts', 2],
+      ['src/main/runtime/dorka-runtime-get-pty-record-for-pane-key.ts', 2],
+      ['src/main/runtime/dorka-runtime-get-unpersisted-tracked-title-for-pty.ts', 2],
+      ['src/main/runtime/dorka-runtime-maybe-hydrate-headless-from-renderer.ts', 2],
+      ['src/main/runtime/dorka-runtime-record-agent-prompt-lifecycle-state.ts', 2],
       ['src/main/runtime/runtime-terminal-agent-status-query.ts', 3],
       ['src/main/runtime/runtime-worktree-status-projection.ts', 4],
       ['src/main/runtime/terminal-wait-detection.ts', 2],
@@ -375,7 +375,7 @@ const INVENTORY: readonly InventoryGroup[] = [
     classification: 'parser-implementation',
     paths: [
       'src/shared/published-pane-agent-identity.ts',
-      ['src/main/runtime/orca-runtime-write-orchestration-pointer-pty.ts', 2]
+      ['src/main/runtime/dorka-runtime-write-orchestration-pointer-pty.ts', 2]
     ]
   }
 ]

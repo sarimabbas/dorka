@@ -1,6 +1,6 @@
 import type { Page, TestInfo } from '@stablyai/playwright-test'
 import type { SkillInstallDestination } from '../../src/shared/skill-install-contract'
-import { test, expect } from './helpers/orca-app'
+import { test, expect } from './helpers/dorka-app'
 import {
   cleanupDockerSshRelayTarget,
   execDockerSshRelayTargetCommand,
@@ -18,24 +18,24 @@ import {
   type RemoteSkillCloudFixture
 } from './helpers/remote-skill-cloud-fixture'
 
-const RUN_DOCKER_SSH = process.env.ORCA_E2E_SSH_DOCKER === '1'
-const REMOTE_FOLDER = '/tmp/orca-skill-folder-workspace'
+const RUN_DOCKER_SSH = process.env.DORKA_E2E_SSH_DOCKER === '1'
+const REMOTE_FOLDER = '/tmp/dorka-skill-folder-workspace'
 
 let cloud: RemoteSkillCloudFixture | null = null
 
 test.use({
   // oxlint-disable-next-line no-empty-pattern -- The server starts in beforeAll before this test fixture runs.
-  orcaAppExtraEnv: async ({}, provideEnv) => {
+  dorkaAppExtraEnv: async ({}, provideEnv) => {
     if (!cloud) {
       throw new Error('Skill cloud fixture unavailable')
     }
     await provideEnv({
-      ORCA_ARTIFACTS_API_URL: cloud.origin,
-      ORCA_CLOUD_API_URL: cloud.origin,
-      ORCA_CLOUD_CLIENT_ID: 'skills-e2e-client',
-      ORCA_CLOUD_DEV_AUTH: '1',
-      ORCA_CLOUD_ALLOW_PLAINTEXT_SESSION: '1',
-      ORCA_SKILL_PACKAGE_DOWNLOAD_ORIGINS: cloud.origin
+      DORKA_ARTIFACTS_API_URL: cloud.origin,
+      DORKA_CLOUD_API_URL: cloud.origin,
+      DORKA_CLOUD_CLIENT_ID: 'skills-e2e-client',
+      DORKA_CLOUD_DEV_AUTH: '1',
+      DORKA_CLOUD_ALLOW_PLAINTEXT_SESSION: '1',
+      DORKA_SKILL_PACKAGE_DOWNLOAD_ORIGINS: cloud.origin
     })
   }
 })
@@ -53,11 +53,11 @@ test.afterAll(async () => {
 })
 
 test.describe('SSH skill installation', () => {
-  test.skip(!RUN_DOCKER_SSH, 'Set ORCA_E2E_SSH_DOCKER=1 to run Docker-backed SSH tests.')
+  test.skip(!RUN_DOCKER_SSH, 'Set DORKA_E2E_SSH_DOCKER=1 to run Docker-backed SSH tests.')
   test.skip(process.platform === 'win32', 'Docker SSH tests use POSIX ssh tooling.')
 
   test('installs and removes global, Git-worktree, and folder copies through the real relay', async ({
-    orcaPage
+    dorkaPage
   }, testInfo: TestInfo) => {
     test.slow()
     const fixture = requireCloudFixture()
@@ -65,10 +65,10 @@ test.describe('SSH skill installation', () => {
     try {
       target = startDockerSshRelayTarget(testInfo)
       execDockerSshRelayTargetCommand(target, `mkdir -p ${REMOTE_FOLDER}`)
-      await waitForSessionReady(orcaPage)
-      await waitForActiveWorktree(orcaPage)
-      const remote = await connectDockerSshRelayTarget(orcaPage, target)
-      const auth = await orcaPage.evaluate(() => window.api.orcaProfiles.connectCurrent())
+      await waitForSessionReady(dorkaPage)
+      await waitForActiveWorktree(dorkaPage)
+      const remote = await connectDockerSshRelayTarget(dorkaPage, target)
+      const auth = await dorkaPage.evaluate(() => window.api.dorkaProfiles.connectCurrent())
       expect(auth.status).toBe('connected')
 
       const globalDestination: SkillInstallDestination = {
@@ -76,12 +76,12 @@ test.describe('SSH skill installation', () => {
         executionTarget: { kind: 'ssh', connectionId: remote.targetId }
       }
       await installAndVerify(
-        orcaPage,
+        dorkaPage,
         target,
         globalDestination,
         '/root/.agents/skills/remote-e2e-skill'
       )
-      const globalInstalls = await orcaPage.evaluate(
+      const globalInstalls = await dorkaPage.evaluate(
         (environmentId) => window.api.skills.listManagedInstalls(environmentId),
         `ssh:${remote.targetId}`
       )
@@ -97,9 +97,9 @@ test.describe('SSH skill installation', () => {
           }
         ]
       })
-      await previewUnchanged(orcaPage, globalDestination)
+      await previewUnchanged(dorkaPage, globalDestination)
       await removeAndVerify(
-        orcaPage,
+        dorkaPage,
         target,
         globalDestination,
         '/root/.agents/skills/remote-e2e-skill'
@@ -109,18 +109,18 @@ test.describe('SSH skill installation', () => {
         scope: 'workspace',
         worktreeId: remote.worktreeId
       }
-      const worktreePath = '/tmp/orca-docker-relay-perf-repo/.agents/skills/remote-e2e-skill'
-      await installAndVerify(orcaPage, target, worktreeDestination, worktreePath)
-      await removeAndVerify(orcaPage, target, worktreeDestination, worktreePath)
+      const worktreePath = '/tmp/dorka-docker-relay-perf-repo/.agents/skills/remote-e2e-skill'
+      await installAndVerify(dorkaPage, target, worktreeDestination, worktreePath)
+      await removeAndVerify(dorkaPage, target, worktreeDestination, worktreePath)
 
-      const folderWorkspaceId = await createRemoteFolderWorkspace(orcaPage, remote.targetId)
+      const folderWorkspaceId = await createRemoteFolderWorkspace(dorkaPage, remote.targetId)
       const folderDestination: SkillInstallDestination = {
         scope: 'workspace',
         folderWorkspaceId
       }
       const folderPath = `${REMOTE_FOLDER}/.agents/skills/remote-e2e-skill`
-      await installAndVerify(orcaPage, target, folderDestination, folderPath)
-      await removeAndVerify(orcaPage, target, folderDestination, folderPath)
+      await installAndVerify(dorkaPage, target, folderDestination, folderPath)
+      await removeAndVerify(dorkaPage, target, folderDestination, folderPath)
 
       expect(fixture.requests.filter((request) => request.method === 'POST')).toHaveLength(3)
       expect(fixture.requests.filter((request) => request.path === '/package.tar.gz')).toHaveLength(

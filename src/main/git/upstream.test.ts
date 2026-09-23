@@ -26,7 +26,7 @@ describe('getUpstreamStatus', () => {
   })
 
   it('benchmarks concurrent upstream Git command pressure', async () => {
-    const benchPath = process.env.ORCA_GIT_UPSTREAM_COALESCING_BENCH_JSON
+    const benchPath = process.env.DORKA_GIT_UPSTREAM_COALESCING_BENCH_JSON
     if (!benchPath) {
       return
     }
@@ -349,7 +349,7 @@ describe('getUpstreamStatus', () => {
         return Promise.reject(new Error('fatal: no upstream configured'))
       }
       if (args[0] === 'config' && args.includes('branch.imp/chinese-translation.remote')) {
-        return Promise.resolve({ stdout: 'https://github.com/pynickle/orca.git\n' })
+        return Promise.resolve({ stdout: 'https://github.com/pynickle/dorka.git\n' })
       }
       if (args[0] === 'config' && args.includes('branch.imp/chinese-translation.merge')) {
         return Promise.resolve({ stdout: 'refs/heads/imp/chinese-translation\n' })
@@ -360,25 +360,25 @@ describe('getUpstreamStatus', () => {
       if (args[0] === 'remote' && args[1] === 'get-url' && args[2] === 'origin') {
         return Promise.resolve({ stdout: 'https://github.com/stablyai/orca.git\n' })
       }
-      if (args[0] === 'remote' && args[1] === 'get-url' && args[2] === 'pr-pynickle-orca') {
-        return Promise.resolve({ stdout: 'https://github.com/pynickle/orca.git\n' })
+      if (args[0] === 'remote' && args[1] === 'get-url' && args[2] === 'pr-pynickle-dorka') {
+        return Promise.resolve({ stdout: 'https://github.com/pynickle/dorka.git\n' })
       }
       if (args[0] === 'remote' && args[1] === '-v') {
         return Promise.resolve({
           stdout: [
             'origin\thttps://github.com/stablyai/orca.git (fetch)',
             'origin\thttps://github.com/stablyai/orca.git (push)',
-            'pr-pynickle-orca\thttps://github.com/pynickle/orca.git (fetch)',
-            'pr-pynickle-orca\thttps://github.com/pynickle/orca.git (push)'
+            'pr-pynickle-dorka\thttps://github.com/pynickle/dorka.git (fetch)',
+            'pr-pynickle-dorka\thttps://github.com/pynickle/dorka.git (push)'
           ].join('\n')
         })
       }
       if (args[0] === 'remote') {
-        return Promise.resolve({ stdout: 'origin\npr-pynickle-orca\n' })
+        return Promise.resolve({ stdout: 'origin\npr-pynickle-dorka\n' })
       }
       if (
         args[0] === 'rev-parse' &&
-        args.includes('refs/remotes/pr-pynickle-orca/imp/chinese-translation')
+        args.includes('refs/remotes/pr-pynickle-dorka/imp/chinese-translation')
       ) {
         return Promise.resolve({ stdout: 'fork-head\n' })
       }
@@ -392,7 +392,7 @@ describe('getUpstreamStatus', () => {
 
     expect(result).toEqual({
       hasUpstream: true,
-      upstreamName: 'pr-pynickle-orca/imp/chinese-translation',
+      upstreamName: 'pr-pynickle-dorka/imp/chinese-translation',
       ahead: 2,
       behind: 0
     })
@@ -443,13 +443,13 @@ describe('getUpstreamStatus', () => {
         return Promise.reject(new Error('fatal: no upstream configured'))
       }
       if (args[0] === 'config' && args.includes('branch.imp/chinese-translation.pushRemote')) {
-        return Promise.resolve({ stdout: 'https://github.com/pynickle/orca.git\n' })
+        return Promise.resolve({ stdout: 'https://github.com/pynickle/dorka.git\n' })
       }
       if (args[0] === 'config' && args.includes('remote.pushDefault')) {
         return Promise.reject(new Error('missing pushDefault'))
       }
       if (args[0] === 'config' && args.includes('branch.imp/chinese-translation.remote')) {
-        return Promise.resolve({ stdout: 'https://github.com/pynickle/orca.git\n' })
+        return Promise.resolve({ stdout: 'https://github.com/pynickle/dorka.git\n' })
       }
       if (args[0] === 'config' && args.includes('branch.imp/chinese-translation.merge')) {
         return Promise.resolve({ stdout: 'refs/heads/imp/chinese-translation\n' })

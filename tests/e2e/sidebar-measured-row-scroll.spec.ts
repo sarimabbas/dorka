@@ -2,7 +2,7 @@ import { mkdirSync, mkdtempSync, realpathSync, rmSync, writeFileSync } from 'nod
 import os from 'node:os'
 import path from 'node:path'
 import type { Page } from '@stablyai/playwright-test'
-import { test, expect } from './helpers/orca-app'
+import { test, expect } from './helpers/dorka-app'
 import { waitForSessionReady } from './helpers/store'
 import { runProcess } from '../../src/shared/child-process/run-process'
 
@@ -68,12 +68,12 @@ async function settledGeometry(page: Page, fixture: SidebarFixture) {
 }
 
 test('keeps a collapsed group visible when an idle card below it grows', async ({
-  orcaPage,
+  dorkaPage,
   registerPostElectronShutdownCleanup
 }, testInfo) => {
-  await waitForSessionReady(orcaPage)
-  await orcaPage.setViewportSize({ width: 1200, height: 900 })
-  const root = realpathSync(mkdtempSync(path.join(os.tmpdir(), 'orca-sidebar-measured-row-')))
+  await waitForSessionReady(dorkaPage)
+  await dorkaPage.setViewportSize({ width: 1200, height: 900 })
+  const root = realpathSync(mkdtempSync(path.join(os.tmpdir(), 'dorka-sidebar-measured-row-')))
   registerPostElectronShutdownCleanup(async () => {
     rmSync(root, { recursive: true, force: true })
   })
@@ -101,7 +101,7 @@ test('keeps a collapsed group visible when an idle card below it grows', async (
     }
   }
 
-  const fixture = await orcaPage.evaluate(async (repoPaths): Promise<SidebarFixture> => {
+  const fixture = await dorkaPage.evaluate(async (repoPaths): Promise<SidebarFixture> => {
     const store = window.__store!
     for (const repoPath of repoPaths) {
       await window.api.repos.add({ path: repoPath })
@@ -145,7 +145,7 @@ test('keeps a collapsed group visible when an idle card below it grows', async (
     }
   }, paths)
 
-  const sidebar = orcaPage.locator('[data-worktree-sidebar]')
+  const sidebar = dorkaPage.locator('[data-worktree-sidebar]')
   const group = sidebar.locator(`[data-project-group-header-id="${fixture.groupId}"]`)
   const collapsedRepo = sidebar.locator(`[data-repo-header-id="${fixture.collapsedRepoId}"]`)
   const card = sidebar.locator(`[data-worktree-id=${JSON.stringify(fixture.worktreeId)}]`)
@@ -153,7 +153,7 @@ test('keeps a collapsed group visible when an idle card below it grows', async (
   await expect(group).toHaveAttribute('aria-expanded', 'false')
   await expect(collapsedRepo).toHaveAttribute('aria-expanded', 'false')
   await expect(card).toHaveCount(1)
-  const before = await settledGeometry(orcaPage, fixture)
+  const before = await settledGeometry(dorkaPage, fixture)
   expect(before.groupUnobscured).toBe(true)
   expect(before.scrollTop).toBe(0)
   expect(before.scrollHeight).toBeLessThanOrEqual(before.clientHeight)
@@ -171,9 +171,9 @@ test('keeps a collapsed group visible when an idle card below it grows', async (
     element.appendChild(content)
   })
   await expect
-    .poll(async () => (await readGeometry(orcaPage, fixture)).cardHeight)
+    .poll(async () => (await readGeometry(dorkaPage, fixture)).cardHeight)
     .toBeCloseTo(before.cardHeight + 50, 0)
-  const after = await settledGeometry(orcaPage, fixture)
+  const after = await settledGeometry(dorkaPage, fixture)
   const afterPath = testInfo.outputPath('after-card-growth.png')
   await sidebar.screenshot({ path: afterPath })
   await testInfo.attach('after-card-growth', { path: afterPath, contentType: 'image/png' })

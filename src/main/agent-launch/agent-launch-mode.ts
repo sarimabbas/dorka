@@ -33,7 +33,7 @@ import {
 import type { TuiAgent } from '../../shared/tui-agent'
 import { hasExplicitTuiLaunchCommand } from '../../shared/tui-agent-launch-command-override'
 import type { WorkspaceLaunchKind } from '../../shared/workspace-launch-kind'
-import type { OrcaRuntimeService } from '../runtime/orca-runtime'
+import type { DorkaRuntimeService } from '../runtime/dorka-runtime'
 
 // The receipt is part of the launch contract, so it is declared with the rest of it; re-exported
 // here because this module is where the decision that fills it lives.
@@ -167,7 +167,7 @@ export function decideAgentLaunchMode(args: {
  * becomes a terminal agent rather than a failed launch.
  */
 export async function resolveAgentLaunchModeOnHost(
-  runtime: Pick<OrcaRuntimeService, 'getStructuredAgentSessionCreateSupport'>,
+  runtime: Pick<DorkaRuntimeService, 'getStructuredAgentSessionCreateSupport'>,
   receipt: AgentLaunchModeReceipt,
   worktreeId: string | undefined,
   agent: TuiAgent | undefined,
@@ -185,7 +185,7 @@ export async function resolveAgentLaunchModeOnHost(
 
 /** A host that cannot answer has not proved it can create one, so the launch stays a PTY agent. */
 async function readStructuredCreateSupport(
-  runtime: Pick<OrcaRuntimeService, 'getStructuredAgentSessionCreateSupport'>,
+  runtime: Pick<DorkaRuntimeService, 'getStructuredAgentSessionCreateSupport'>,
   worktreeId: string,
   agent: TuiAgent | undefined
 ): Promise<{ supported: boolean; reason?: 'agent' | 'remote' | 'wsl' } | null> {
@@ -235,7 +235,7 @@ function downgraded(
 
 /** The store can be missing on a runtime that never opened one; that reads as no preference. */
 export function readAgentLaunchModeSettings(
-  runtime: Pick<OrcaRuntimeService, 'getClientSettings'>
+  runtime: Pick<DorkaRuntimeService, 'getClientSettings'>
 ): AgentLaunchModeSettings | null {
   try {
     return runtime.getClientSettings()

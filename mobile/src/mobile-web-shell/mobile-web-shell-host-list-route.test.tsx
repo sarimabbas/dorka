@@ -73,7 +73,7 @@ describe('the native worktree-list route that hands off to the shell', () => {
     dependencies.nativeRenders = 0
     dependencies.hostId = 'host-1'
     Object.assign(globalThis, { __DEV__: true })
-    dependencies.storage.set('orca:mobileWebShellEnabled', 'true')
+    dependencies.storage.set('dorka:mobileWebShellEnabled', 'true')
   })
 
   it('encodes the host id into the pathname, like the shell route already does', async () => {
@@ -91,7 +91,7 @@ describe('the native worktree-list route that hands off to the shell', () => {
   it('keeps a dot-segment host id native instead of handing over a route the page refuses', async () => {
     // `encodeURIComponent` leaves a dot alone and `%2e%2e` is a dot segment to the URL parser too,
     // so this one cannot be encoded into a pathname the bridge accepts. Handed over it reaches the
-    // phone as an `init` naming no screen and the page paints "Update Orca to open this
+    // phone as an `init` naming no screen and the page paints "Update Dorka to open this
     // workspace" over the native list that is sitting right behind this switch.
     for (const hostId of ['..', '.']) {
       dependencies.hostId = hostId

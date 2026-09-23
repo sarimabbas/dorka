@@ -12,9 +12,9 @@ const {
   refreshProbeMock
 } = vi.hoisted(() => ({
   trackMock: vi.fn(),
-  getPathMock: vi.fn(() => '/Applications/Orca.app/Contents/MacOS/Orca'),
+  getPathMock: vi.fn(() => '/Applications/Dorka.app/Contents/MacOS/Dorka'),
   opendirMock: vi.fn(),
-  readMacosBundleIdMock: vi.fn<() => Promise<string | null>>(async () => 'com.stablyai.orca'),
+  readMacosBundleIdMock: vi.fn<() => Promise<string | null>>(async () => 'com.stablyai.dorka'),
   resetMacosTccPermissionMock: vi.fn<() => Promise<{ ok: boolean; detail?: string }>>(async () => ({
     ok: true
   })),
@@ -56,9 +56,9 @@ function fakeDir(): { read: ReturnType<typeof vi.fn>; close: ReturnType<typeof v
 beforeEach(() => {
   setPlatform('darwin')
   trackMock.mockReset()
-  getPathMock.mockReset().mockReturnValue('/Applications/Orca.app/Contents/MacOS/Orca')
+  getPathMock.mockReset().mockReturnValue('/Applications/Dorka.app/Contents/MacOS/Dorka')
   opendirMock.mockReset().mockResolvedValue(fakeDir())
-  readMacosBundleIdMock.mockReset().mockResolvedValue('com.stablyai.orca')
+  readMacosBundleIdMock.mockReset().mockResolvedValue('com.stablyai.dorka')
   resetMacosTccPermissionMock.mockReset().mockResolvedValue({ ok: true })
   getTargetMock
     .mockReset()
@@ -123,8 +123,8 @@ describe('resetFolderAccessForDaemon runs the remedy', () => {
 
     await resetFolderAccessForDaemon(DAEMON)
 
-    expect(readMacosBundleIdMock).toHaveBeenCalledWith('/Applications/Orca.app')
-    expect(resetMacosTccPermissionMock).toHaveBeenCalledWith(service, 'com.stablyai.orca')
+    expect(readMacosBundleIdMock).toHaveBeenCalledWith('/Applications/Dorka.app')
+    expect(resetMacosTccPermissionMock).toHaveBeenCalledWith(service, 'com.stablyai.dorka')
   })
 
   // The prompt is attributed to whoever makes the syscall, so the app has to be what reads it.

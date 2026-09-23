@@ -4,9 +4,9 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { useAppStore } from '../../store'
 import { getDefaultUIState } from '../../../../shared/constants'
 import { UnexpectedSignoutCard } from '../UnexpectedSignoutCard'
-import type { OrcaProfileAuthStatus } from '../../../../shared/orca-profiles'
+import type { DorkaProfileAuthStatus } from '../../../../shared/dorka-profiles'
 
-const status: OrcaProfileAuthStatus = {
+const status: DorkaProfileAuthStatus = {
   activeProfileId: 'profile-1',
   configured: true,
   state: 'reconnect-required',
@@ -35,9 +35,9 @@ beforeEach(() => {
   })
   useAppStore.setState(useAppStore.getInitialState(), true)
   useAppStore.setState({
-    orcaProfileAuthStatus: status,
+    dorkaProfileAuthStatus: status,
     persistedUIReady: true,
-    fetchOrcaProfileAuthStatus: vi.fn().mockResolvedValue(status)
+    fetchDorkaProfileAuthStatus: vi.fn().mockResolvedValue(status)
   })
 })
 afterEach(() => {
@@ -60,10 +60,10 @@ describe('unexpected signout lifecycle', () => {
     cleanup()
     useAppStore.setState(useAppStore.getInitialState(), true)
     useAppStore.setState({
-      orcaProfileAuthStatus: status,
+      dorkaProfileAuthStatus: status,
       persistedUIReady: true,
       dismissedUnexpectedSignoutVersion: '1.4.197',
-      fetchOrcaProfileAuthStatus: vi.fn().mockResolvedValue(status)
+      fetchDorkaProfileAuthStatus: vi.fn().mockResolvedValue(status)
     })
     vi.mocked(window.api.updater.getVersion).mockResolvedValue('1.4.999')
     render(<UnexpectedSignoutCard />)
@@ -74,11 +74,11 @@ describe('unexpected signout lifecycle', () => {
 
   it('stamps successful sign-in and never re-arms in the same version', async () => {
     await showCard()
-    act(() => useAppStore.setState({ orcaProfileAuthStatus: { ...status, state: 'connected' } }))
+    act(() => useAppStore.setState({ dorkaProfileAuthStatus: { ...status, state: 'connected' } }))
     await waitFor(() =>
       expect(persist).toHaveBeenCalledWith({ dismissedUnexpectedSignoutVersion: '1.4.197' })
     )
-    act(() => useAppStore.setState({ orcaProfileAuthStatus: status }))
+    act(() => useAppStore.setState({ dorkaProfileAuthStatus: status }))
     expect(screen.queryByRole('complementary')).toBeNull()
     cleanup()
     render(<UnexpectedSignoutCard />)
@@ -88,11 +88,11 @@ describe('unexpected signout lifecycle', () => {
   })
 
   it('records nothing for connected users until the card actually appears', async () => {
-    useAppStore.setState({ orcaProfileAuthStatus: { ...status, state: 'connected' } })
+    useAppStore.setState({ dorkaProfileAuthStatus: { ...status, state: 'connected' } })
     render(<UnexpectedSignoutCard />)
     await act(async () => {})
     expect(persist).not.toHaveBeenCalled()
-    act(() => useAppStore.setState({ orcaProfileAuthStatus: status }))
+    act(() => useAppStore.setState({ dorkaProfileAuthStatus: status }))
     expect(screen.queryByRole('complementary')).not.toBeNull()
     expect(persist).toHaveBeenCalledTimes(1)
   })
@@ -101,16 +101,16 @@ describe('unexpected signout lifecycle', () => {
     useAppStore.setState({ persistedUIReady: false })
     render(<UnexpectedSignoutCard />)
     await act(async () => {})
-    act(() => useAppStore.setState({ orcaProfileAuthStatus: { ...status, state: 'connected' } }))
+    act(() => useAppStore.setState({ dorkaProfileAuthStatus: { ...status, state: 'connected' } }))
     act(() => useAppStore.setState({ persistedUIReady: true }))
     expect(screen.queryByRole('complementary')).toBeNull()
     expect(persist).not.toHaveBeenCalled()
   })
 
   it('keeps a failed sign-in available without recording another appearance', async () => {
-    useAppStore.setState({ connectCurrentOrcaProfile: vi.fn().mockResolvedValue(undefined) })
+    useAppStore.setState({ connectCurrentDorkaProfile: vi.fn().mockResolvedValue(undefined) })
     await showCard()
-    fireEvent.click(screen.getByRole('button', { name: 'Sign in to Orca' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Sign in to Dorka' }))
     await act(async () => {})
     expect(screen.queryByRole('complementary')).not.toBeNull()
     expect(persist).toHaveBeenCalledTimes(1)
@@ -119,9 +119,9 @@ describe('unexpected signout lifecycle', () => {
   it('never shows or consumes a stale card while the auth read is pending', async () => {
     let finish!: (value: typeof status) => void
     useAppStore.setState({
-      fetchOrcaProfileAuthStatus: vi.fn(
+      fetchDorkaProfileAuthStatus: vi.fn(
         () =>
-          new Promise<OrcaProfileAuthStatus>((resolve) => {
+          new Promise<DorkaProfileAuthStatus>((resolve) => {
             finish = resolve
           })
       )
@@ -132,7 +132,7 @@ describe('unexpected signout lifecycle', () => {
     expect(persist).not.toHaveBeenCalled()
     await act(async () => {
       const connected = { ...status, state: 'connected' as const }
-      useAppStore.setState({ orcaProfileAuthStatus: connected })
+      useAppStore.setState({ dorkaProfileAuthStatus: connected })
       finish(connected)
     })
     expect(screen.queryByRole('complementary')).toBeNull()
@@ -172,11 +172,11 @@ describe('unexpected signout lifecycle', () => {
 
   it.each(['storage', 'query'])('ignores the %s preview flag in production', async (source) => {
     if (source === 'storage') {
-      window.localStorage.setItem('orca-debug-show-signout-card', '1')
+      window.localStorage.setItem('dorka-debug-show-signout-card', '1')
     } else {
       window.history.replaceState({}, '', '/?showSignoutCard=1')
     }
-    useAppStore.setState({ orcaProfileAuthStatus: { ...status, state: 'local', cloud: undefined } })
+    useAppStore.setState({ dorkaProfileAuthStatus: { ...status, state: 'local', cloud: undefined } })
     render(<UnexpectedSignoutCard />)
     await act(async () => {})
     expect(screen.queryByRole('complementary')).toBeNull()
@@ -185,8 +185,8 @@ describe('unexpected signout lifecycle', () => {
 
   it('dismisses a development preview without writing real dismissal state', async () => {
     vi.stubEnv('DEV', true)
-    window.localStorage.setItem('orca-debug-show-signout-card', '1')
-    useAppStore.setState({ orcaProfileAuthStatus: { ...status, state: 'local', cloud: undefined } })
+    window.localStorage.setItem('dorka-debug-show-signout-card', '1')
+    useAppStore.setState({ dorkaProfileAuthStatus: { ...status, state: 'local', cloud: undefined } })
     await showCard()
     fireEvent.click(screen.getByRole('button', { name: 'Dismiss' }))
     expect(screen.queryByRole('complementary')).toBeNull()

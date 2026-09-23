@@ -19,7 +19,7 @@ vi.mock('react-native', () => ({
   AppState: { currentState: 'active', addEventListener: () => ({ remove: () => {} }) },
   Platform: { OS: 'ios' }
 }))
-vi.mock('@orca/expo-two-way-audio', () => ({
+vi.mock('@dorka/expo-two-way-audio', () => ({
   addExpoTwoWayAudioEventListener: () => ({ remove: () => {} }),
   initialize: () => Promise.resolve(true),
   requestMicrophonePermissionsAsync: () => Promise.resolve({ granted: true }),

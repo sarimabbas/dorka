@@ -62,7 +62,7 @@ export function spawnDaemonChildProcess(
     ...process.env,
     ELECTRON_RUN_AS_NODE: '1',
     // Why: the detached plain-Node daemon has no AppEnvironment, but shell rcfiles must live outside swept tmp.
-    ORCA_USER_DATA_PATH: userDataPath
+    DORKA_USER_DATA_PATH: userDataPath
   }
   // Why cwd: detached daemons outlive dev worktrees; userData keeps process.cwd() valid after a repo/worktree is deleted.
   // Why detached/stdio: detached+unref outlives Electron; stdout 'ignore' (else blocks exit), stderr 'pipe' captures startup crashes lost in v1.4.129-rc.1.
@@ -76,7 +76,7 @@ export function spawnDaemonChildProcess(
       ...childOptions,
       modulePath: forkEntryPath,
       args: scriptArgs,
-      // Why: run the byte-identical relocated Orca.exe so the image path sits outside the updater's kill zone.
+      // Why: run the byte-identical relocated Dorka.exe so the image path sits outside the updater's kill zone.
       ...(relocatedExecPath ? { execPath: relocatedExecPath } : {}),
       env: daemonEnv
     })

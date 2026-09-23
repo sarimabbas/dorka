@@ -13,7 +13,7 @@ import { useOnboardingFlow } from './use-onboarding-flow'
 import { OnboardingSkipConfirmationDialog } from './OnboardingSkipConfirmationDialog'
 import { OnboardingFooter } from './OnboardingFooter'
 import { shouldRequestOnboardingSkipConfirmation } from './onboarding-dismiss-target'
-import logo from '../../../../../resources/logo.svg'
+import logo from '../../../../../resources/app-icons/dorka-geek-app-icon.png'
 import { translate } from '@/i18n/i18n'
 
 const stepCopy = {
@@ -27,7 +27,7 @@ const stepCopy = {
     get subtitle() {
       return translate(
         'auto.components.onboarding.OnboardingFlow.322fc50a18',
-        "Orca works with every CLI agent. Choose the one you'll reach for most. Switch any time."
+        "Dorka works with every CLI agent. Choose the one you'll reach for most. Switch any time."
       )
     }
   },
@@ -55,7 +55,7 @@ const stepCopy = {
     get subtitle() {
       return translate(
         'auto.components.onboarding.OnboardingFlow.ff92d15436',
-        'Orca will notify you when agents are done or need help.'
+        'Dorka will notify you when agents are done or need help.'
       )
     }
   },
@@ -215,7 +215,7 @@ export default function OnboardingFlow({
           role="dialog"
           aria-label={translate(
             'auto.components.onboarding.OnboardingFlow.277ba45540',
-            'Orca onboarding'
+            'Dorka onboarding'
           )}
           aria-modal="true"
           data-onboarding-modal
@@ -230,10 +230,10 @@ export default function OnboardingFlow({
                 src={logo}
                 alt=""
                 aria-hidden="true"
-                className="h-7 w-auto shrink-0 invert dark:invert-0"
+                className="size-7 shrink-0 rounded-md object-cover"
               />
               <span>
-                {translate('auto.components.onboarding.OnboardingFlow.a249f81538', 'Orca')}
+                {translate('auto.components.onboarding.OnboardingFlow.a249f81538', 'Dorka')}
               </span>
             </div>
 
@@ -284,7 +284,7 @@ export default function OnboardingFlow({
                 <div className="mb-2 text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">
                   {translate(
                     'auto.components.onboarding.OnboardingFlow.1b5e182e9f',
-                    'Welcome to Orca'
+                    'Welcome to Dorka'
                   )}
                 </div>
               )}

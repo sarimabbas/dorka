@@ -48,7 +48,7 @@ export function startDaemonScopeDeathWatch(options: ScopeDeathWatchOptions): Spa
   try {
     const child = (options.spawn ?? spawnProcess)({
       program: '/bin/sh',
-      args: ['-c', SCOPE_DEATH_WATCH_SCRIPT, 'orca-daemon-scope-watch', String(process.pid), unit],
+      args: ['-c', SCOPE_DEATH_WATCH_SCRIPT, 'dorka-daemon-scope-watch', String(process.pid), unit],
       env,
       detached: true,
       stdio: ['pipe', 'ignore', 'ignore']

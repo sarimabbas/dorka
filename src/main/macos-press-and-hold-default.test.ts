@@ -6,14 +6,14 @@ import type { ProcessResult } from '../shared/child-process/run-process'
 import {
   ensureMacPressAndHoldDefault,
   interpretDefaultsRead,
-  isOrcaPreferencesDomain,
+  isDorkaPreferencesDomain,
   readBundleIdentifierFromExecutablePath,
   type PressAndHoldDecision,
   type PressAndHoldHost,
   type PressAndHoldRecord
 } from './macos-press-and-hold-default'
 
-const ORCA_DOMAIN = 'com.stablyai.orca'
+const DORKA_DOMAIN = 'com.stablyai.dorka'
 
 type HostOverrides = Partial<PressAndHoldHost> & { record?: PressAndHoldRecord | null }
 
@@ -28,7 +28,7 @@ function createHost(overrides: HostOverrides = {}): {
   let stored = overrides.record ?? null
   const host: PressAndHoldHost = {
     platform: 'darwin',
-    resolveBundleIdentifier: () => ORCA_DOMAIN,
+    resolveBundleIdentifier: () => DORKA_DOMAIN,
     readRecord: () => stored,
     writeRecord: (record) => {
       stored = record
@@ -46,7 +46,7 @@ function createHost(overrides: HostOverrides = {}): {
 }
 
 function terminalRecord(decision: PressAndHoldDecision): PressAndHoldRecord {
-  return { version: 1, decision, domain: ORCA_DOMAIN, decidedAt: '2026-01-01T00:00:00.000Z' }
+  return { version: 1, decision, domain: DORKA_DOMAIN, decidedAt: '2026-01-01T00:00:00.000Z' }
 }
 
 describe('ensureMacPressAndHoldDefault', () => {
@@ -54,7 +54,7 @@ describe('ensureMacPressAndHoldDefault', () => {
     const { host, writes, records } = createHost()
 
     expect(ensureMacPressAndHoldDefault(host)).toBe('applied')
-    expect(writes).toEqual([{ domain: ORCA_DOMAIN, value: false }])
+    expect(writes).toEqual([{ domain: DORKA_DOMAIN, value: false }])
     expect(records.at(-1)?.decision).toBe('applied')
   })
 
@@ -140,12 +140,12 @@ describe('ensureMacPressAndHoldDefault', () => {
       expect(writes).toEqual([])
     })
 
-    it('accepts Orca and its channel-scoped bundles, and nothing else', () => {
-      expect(isOrcaPreferencesDomain('com.stablyai.orca')).toBe(true)
-      expect(isOrcaPreferencesDomain('com.stablyai.orca.dev')).toBe(true)
-      expect(isOrcaPreferencesDomain('com.github.Electron')).toBe(false)
+    it('accepts Dorka and its channel-scoped bundles, and nothing else', () => {
+      expect(isDorkaPreferencesDomain('com.stablyai.dorka')).toBe(true)
+      expect(isDorkaPreferencesDomain('com.stablyai.dorka.dev')).toBe(true)
+      expect(isDorkaPreferencesDomain('com.github.Electron')).toBe(false)
       // Why: a prefix test without the dot would accept a lookalike bundle id.
-      expect(isOrcaPreferencesDomain('com.stablyai.orcafake')).toBe(false)
+      expect(isDorkaPreferencesDomain('com.stablyai.dorkafake')).toBe(false)
     })
   })
 
@@ -164,7 +164,7 @@ describe('ensureMacPressAndHoldDefault', () => {
 
       const retry = createHost({ record: records.at(-1) })
       expect(ensureMacPressAndHoldDefault(retry.host)).toBe('applied')
-      expect(retry.writes).toEqual([{ domain: ORCA_DOMAIN, value: false }])
+      expect(retry.writes).toEqual([{ domain: DORKA_DOMAIN, value: false }])
     })
   })
 
@@ -235,20 +235,20 @@ describe('readBundleIdentifierFromExecutablePath', () => {
   })
 
   function bundleWithPlist(body: string): string {
-    const root = mkdtempSync(join(tmpdir(), 'orca-press-hold-'))
+    const root = mkdtempSync(join(tmpdir(), 'dorka-press-hold-'))
     roots.push(root)
-    mkdirSync(join(root, 'Orca.app', 'Contents', 'MacOS'), { recursive: true })
-    writeFileSync(join(root, 'Orca.app', 'Contents', 'Info.plist'), body)
-    return join(root, 'Orca.app', 'Contents', 'MacOS', 'Orca')
+    mkdirSync(join(root, 'Dorka.app', 'Contents', 'MacOS'), { recursive: true })
+    writeFileSync(join(root, 'Dorka.app', 'Contents', 'Info.plist'), body)
+    return join(root, 'Dorka.app', 'Contents', 'MacOS', 'Dorka')
   }
 
   it('reads CFBundleIdentifier from the plist beside the executable', () => {
     const exe = bundleWithPlist(
-      '<plist><dict>\n<key>CFBundleName</key>\n<string>Orca</string>\n' +
-        '<key>CFBundleIdentifier</key>\n\t<string>com.stablyai.orca</string>\n</dict></plist>'
+      '<plist><dict>\n<key>CFBundleName</key>\n<string>Dorka</string>\n' +
+        '<key>CFBundleIdentifier</key>\n\t<string>com.stablyai.dorka</string>\n</dict></plist>'
     )
 
-    expect(readBundleIdentifierFromExecutablePath(exe)).toBe('com.stablyai.orca')
+    expect(readBundleIdentifierFromExecutablePath(exe)).toBe('com.stablyai.dorka')
   })
 
   it('returns null when the plist is missing or carries no identifier', () => {
@@ -284,7 +284,7 @@ describe('startup wiring', () => {
     expect(callIndex).toBeGreaterThanOrEqual(0)
     expect(readyIndex).toBeGreaterThanOrEqual(0)
     expect(preflightCall).toBeGreaterThanOrEqual(0)
-    // Why after initDataPath: the record lives beside orca-data.json, and the canonical userData
+    // Why after initDataPath: the record lives beside dorka-data.json, and the canonical userData
     // path is only captured there.
     expect(callIndex).toBeGreaterThan(initDataPathIndex)
     expect(preflightCall).toBeLessThan(readyIndex)

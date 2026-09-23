@@ -57,10 +57,10 @@ import { writeLastVisitedWorktree } from '../worktree/last-visited-worktree-repo
 import { PAGE_STORAGE_MAX_VALUE_CHARS } from './page-storage-keys'
 import { usePageHostSnapshot, type PageHostSnapshotView } from './use-page-host-snapshot'
 
-const PINS = 'orca:pins:host-1'
-const LAST_VISITED = 'orca:last-visited-worktree'
-const CHAT_TABS = 'orca:nativeChatTabs:host-1:wt-1'
-const JOURNAL = 'orca:mobileStructuredSendOperations:v1'
+const PINS = 'dorka:pins:host-1'
+const LAST_VISITED = 'dorka:last-visited-worktree'
+const CHAT_TABS = 'dorka:nativeChatTabs:host-1:wt-1'
+const JOURNAL = 'dorka:mobileStructuredSendOperations:v1'
 /** The route every case below mounts for: the one page route with workspace-scoped keys. */
 const SESSION_ROUTE = '/h/host-1/session/wt-1'
 
@@ -161,7 +161,7 @@ describe('what the shell puts on every init', () => {
 
   it('never carries another host key, whatever the store holds', async () => {
     doubles.store.set(PINS, '["mine"]')
-    doubles.store.set('orca:pins:host-2', '["theirs"]')
+    doubles.store.set('dorka:pins:host-2', '["theirs"]')
     const mounted = await mount()
     await act(async () => {
       mounted.view().refreshStorage()
@@ -169,21 +169,21 @@ describe('what the shell puts on every init', () => {
     expect(mounted.view().readStorage().storage).toEqual({ [PINS]: '["mine"]' })
     // And a write for one is refused rather than mirrored, so a later read cannot answer with it.
     await act(async () => {
-      mounted.view().writeStorage('orca:pins:host-2', '["theirs"]')
+      mounted.view().writeStorage('dorka:pins:host-2', '["theirs"]')
     })
     expect(mounted.view().readStorage().storage).toEqual({ [PINS]: '["mine"]' })
   })
 
   it("carries the session route's own workspace, and never the workspace beside it", async () => {
     doubles.store.set(CHAT_TABS, '{"tab-1":"chat"}')
-    doubles.store.set('orca:nativeChatTabs:host-1:wt-2', '{"tab-9":"chat"}')
+    doubles.store.set('dorka:nativeChatTabs:host-1:wt-2', '{"tab-9":"chat"}')
     const mounted = await mount()
     await act(async () => {
       mounted.view().refreshStorage()
     })
     expect(mounted.view().readStorage().storage).toEqual({ [CHAT_TABS]: '{"tab-1":"chat"}' })
     await act(async () => {
-      mounted.view().writeStorage('orca:nativeChatTabs:host-1:wt-2', '{}')
+      mounted.view().writeStorage('dorka:nativeChatTabs:host-1:wt-2', '{}')
     })
     expect(mounted.view().readStorage().storage).toEqual({ [CHAT_TABS]: '{"tab-1":"chat"}' })
   })

@@ -276,7 +276,7 @@ describe('WSL distro discovery cache', () => {
 
   // Why: an empty list is a real probe result and must keep driving the
   // `wsl-distro-missing` repair prompt even once stale. Going null instead fails
-  // open and silently spawns `wsl.exe -d <distro>` for a distro Orca saw was absent.
+  // open and silently spawns `wsl.exe -d <distro>` for a distro Dorka saw was absent.
   it('keeps reporting an empty result after it goes stale', () => {
     vi.useFakeTimers()
     execFileSyncMock.mockReturnValue('')
@@ -418,7 +418,7 @@ describe('WSL availability cache', () => {
   // Why this site matters more than the other wsl.exe spawns (#16463): ENOENT is
   // deliberately non-retryable here, so a spawn that failed only because the
   // inherited cwd had been deleted was cached as "WSL is not installed" on the
-  // 10-minute definitive TTL with exponential backoff. Git kept working and Orca
+  // 10-minute definitive TTL with exponential backoff. Git kept working and Dorka
   // reported WSL unavailable -- a worse state than the bug being fixed. Naming
   // the directory is what keeps ENOENT meaning "wsl.exe is not on PATH".
   it('names an explicit spawn directory on both probes, so no deleted cwd can read as ENOENT', async () => {
@@ -722,12 +722,12 @@ describe('wsl path helpers', () => {
   })
 
   it('converts Windows drive paths to /mnt paths for WSL commands', () => {
-    expect(toLinuxPath('C:\\Users\\jinwo\\git\\orca')).toBe('/mnt/c/Users/jinwo/git/orca')
+    expect(toLinuxPath('C:\\Users\\jinwo\\git\\dorka')).toBe('/mnt/c/Users/jinwo/git/dorka')
   })
 
   it('converts /mnt drive paths back to native Windows form', () => {
-    expect(toWindowsWslPath('/mnt/c/Users/jinwo/git/orca', 'Ubuntu')).toBe(
-      'C:\\Users\\jinwo\\git\\orca'
+    expect(toWindowsWslPath('/mnt/c/Users/jinwo/git/dorka', 'Ubuntu')).toBe(
+      'C:\\Users\\jinwo\\git\\dorka'
     )
   })
 })
@@ -738,7 +738,7 @@ describe('wslUncDirectoryExists', () => {
   })
 
   it('returns true when the distro reports the directory exists', () => {
-    execFileSyncMock.mockReturnValue('__ORCA_DIRECTORY_EXISTS__')
+    execFileSyncMock.mockReturnValue('__DORKA_DIRECTORY_EXISTS__')
     const result = withPlatform('win32', () =>
       wslUncDirectoryExists('\\\\wsl.localhost\\Ubuntu\\home\\jin\\repo')
     )
@@ -751,7 +751,7 @@ describe('wslUncDirectoryExists', () => {
         '--exec',
         'sh',
         '-c',
-        expect.stringContaining('__ORCA_DIRECTORY_EXISTS__'),
+        expect.stringContaining('__DORKA_DIRECTORY_EXISTS__'),
         'sh',
         '/home/jin/repo'
       ],
@@ -760,7 +760,7 @@ describe('wslUncDirectoryExists', () => {
   })
 
   it('returns false when the guest reports the directory missing', () => {
-    execFileSyncMock.mockReturnValue('__ORCA_DIRECTORY_MISSING__')
+    execFileSyncMock.mockReturnValue('__DORKA_DIRECTORY_MISSING__')
     const result = withPlatform('win32', () =>
       wslUncDirectoryExists('\\\\wsl.localhost\\Ubuntu\\home\\jin\\missing')
     )
@@ -795,7 +795,7 @@ describe('wslUncDirectoryExistsAsync', () => {
 
   it('returns true when the distro reports the directory exists', async () => {
     execFileMock.mockImplementation((_command, _args, _options, callback) =>
-      callback(null, '__ORCA_DIRECTORY_EXISTS__')
+      callback(null, '__DORKA_DIRECTORY_EXISTS__')
     )
 
     await expect(
@@ -811,7 +811,7 @@ describe('wslUncDirectoryExistsAsync', () => {
         '--exec',
         'sh',
         '-c',
-        expect.stringContaining('__ORCA_DIRECTORY_EXISTS__'),
+        expect.stringContaining('__DORKA_DIRECTORY_EXISTS__'),
         'sh',
         '/home/jin/repo'
       ],
@@ -823,7 +823,7 @@ describe('wslUncDirectoryExistsAsync', () => {
   it('distinguishes a missing directory from an inconclusive probe', async () => {
     execFileMock
       .mockImplementationOnce((_command, _args, _options, callback) =>
-        callback(null, '__ORCA_DIRECTORY_MISSING__')
+        callback(null, '__DORKA_DIRECTORY_MISSING__')
       )
       .mockImplementationOnce((_command, _args, _options, callback) =>
         callback(Object.assign(new Error('distro unavailable'), { code: 4294967295 }), '')

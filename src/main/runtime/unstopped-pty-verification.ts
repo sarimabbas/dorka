@@ -1,5 +1,5 @@
 import type { IPtyProvider } from '../providers/types'
-import type { OrcaRuntimeService } from './orca-runtime'
+import type { DorkaRuntimeService } from './dorka-runtime'
 import {
   UNSTOPPED_PTY_DETAIL_SEPARATOR,
   STILL_LIVE_DETAIL_PREFIX,
@@ -65,7 +65,7 @@ export async function verifyUnstoppedPtys(
  */
 export function unverifiableStopVerdict(
   failedPtyIds: readonly string[],
-  runtime: OrcaRuntimeService | undefined
+  runtime: DorkaRuntimeService | undefined
 ): UnstoppedPtyVerdict | null {
   for (const ptyId of failedPtyIds) {
     const verdict = runtime?.getPtyLivenessVerdict?.(ptyId)
@@ -81,7 +81,7 @@ export async function resolveUnstoppedPtyVerdict(
   provider: IPtyProvider,
   sweepBudgetMs: number,
   providerObservesOwningHost: boolean,
-  runtime?: OrcaRuntimeService
+  runtime?: DorkaRuntimeService
 ): Promise<UnstoppedPtyVerdict> {
   if (failedPtyIds.length === 0) {
     return { status: 'exited' }

@@ -149,8 +149,8 @@ const localReadyHostOption: ProjectHostSetupOption = {
   hostId: 'local',
   repoId: 'repo-a',
   label: 'Local Mac',
-  detail: 'Orca',
-  path: '/Users/alice/orca'
+  detail: 'Dorka',
+  path: '/Users/alice/dorka'
 }
 
 const devboxNeedsSetupHostOption: ProjectHostSetupOption = {
@@ -198,8 +198,8 @@ const vmRecipeHostOptions: ProjectHostSetupOption[] = [
     hostId: 'ssh:builder',
     repoId: 'repo-a',
     label: 'Builder',
-    detail: 'Orca',
-    path: '/workspace/orca'
+    detail: 'Dorka',
+    path: '/workspace/dorka'
   }
 ]
 
@@ -790,10 +790,10 @@ describe('NewWorkspaceComposerCard folder task source mode', () => {
     })
 
     expect(findRunTargetItem('Add SSH host')).toBeTruthy()
-    expect(findRunTargetItem('Add Remote Orca Server')).toBeTruthy()
+    expect(findRunTargetItem('Add Remote Dorka Server')).toBeTruthy()
   })
 
-  it('opens the remote Orca server add dialog over the composer without leaving for Settings', () => {
+  it('opens the remote Dorka server add dialog over the composer without leaving for Settings', () => {
     current = renderCard({
       projectHostSetupOptions: [localReadyHostOption, devboxNeedsSetupHostOption],
       selectedProjectHostSetupId: 'setup-local'
@@ -801,7 +801,7 @@ describe('NewWorkspaceComposerCard folder task source mode', () => {
 
     openRunTargetPicker(current.container)
     act(() => findRunTargetItem('Add host')?.click())
-    act(() => findRunTargetItem('Add Remote Orca Server')?.click())
+    act(() => findRunTargetItem('Add Remote Dorka Server')?.click())
 
     const dialog = document.body.querySelector('[data-testid="add-remote-host-dialog"]')
     expect(dialog?.getAttribute('data-mode')).toBe('server')
@@ -821,8 +821,8 @@ describe('NewWorkspaceComposerCard folder task source mode', () => {
         {
           id: 'vercel',
           name: 'Vercel Sandbox',
-          create: './scripts/orca-vm/vercel.start.sh',
-          destroy: './scripts/orca-vm/vercel.cleanup.sh',
+          create: './scripts/dorka-vm/vercel.start.sh',
+          destroy: './scripts/dorka-vm/vercel.cleanup.sh',
           destroyDisabled: false
         }
       ] as never,
@@ -862,7 +862,7 @@ describe('NewWorkspaceComposerCard folder task source mode', () => {
         {
           id: 'vercel',
           name: 'Vercel Sandbox',
-          create: './scripts/orca-vm/vercel.start.sh',
+          create: './scripts/dorka-vm/vercel.start.sh',
           destroyDisabled: true
         }
       ] as never,

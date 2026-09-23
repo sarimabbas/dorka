@@ -4,16 +4,16 @@ import { prepareRelayAsiaDirectorCells } from './prepare-relay-asia-director-cel
 
 const digest = `sha256:${'a'.repeat(64)}`
 const topologyCell = (ordinal, zone) => ({
-  origin: `https://c${ordinal}.relay.onorca.dev`, region: 'asia-east2', zone,
+  origin: `https://c${ordinal}.relay.ondorka.dev`, region: 'asia-east2', zone,
   capacity_requests: 6_000, database_pool_max: 16,
   connection_hard_cap: 3_000, connection_unobserved_bound: 60,
   initially_enabled: false,
-  image: `us-central1-docker.pkg.dev/onorca-cloud/orca-cloud/relay@${digest}`
+  image: `us-central1-docker.pkg.dev/ondorka-cloud/dorka-cloud/relay@${digest}`
 })
 
 test('preserves current order, defaults predecessor regions, and appends exact Asia cells', () => {
   const current = [{
-    id: 'production-gce-c1', url: 'https://c1.relay.onorca.dev',
+    id: 'production-gce-c1', url: 'https://c1.relay.ondorka.dev',
     capacityRequests: 4_000, initiallyEnabled: false
   }]
   const result = prepareRelayAsiaDirectorCells({
@@ -69,7 +69,7 @@ test('appends C30 after the configured launch cells without touching them', () =
   })
   assert.deepEqual(result.slice(0, 3), launch)
   assert.deepEqual(result[3], {
-    id: 'production-gce-c30', url: 'https://c30.relay.onorca.dev', capacityRequests: 6_000,
+    id: 'production-gce-c30', url: 'https://c30.relay.ondorka.dev', capacityRequests: 6_000,
     region: 'asia-east2', initiallyEnabled: false, connectionHardCap: 3_000,
     connectionUnobservedBound: 60
   })
@@ -79,10 +79,10 @@ test('checks C30 against its own digest, not the launch cells\' digest', () => {
   const c30Digest = `sha256:${'b'.repeat(64)}`
   const c30 = {
     ...topologyCell(30, 'asia-east2-a'),
-    image: `us-central1-docker.pkg.dev/onorca-cloud/orca-cloud/relay@${c30Digest}`
+    image: `us-central1-docker.pkg.dev/ondorka-cloud/dorka-cloud/relay@${c30Digest}`
   }
   const launch = [27, 28, 29].map((ordinal) => ({
-    id: `production-gce-c${ordinal}`, url: `https://c${ordinal}.relay.onorca.dev`,
+    id: `production-gce-c${ordinal}`, url: `https://c${ordinal}.relay.ondorka.dev`,
     capacityRequests: 6_000, region: 'asia-east2', initiallyEnabled: false,
     connectionHardCap: 3_000, connectionUnobservedBound: 60
   }))

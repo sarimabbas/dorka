@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { RuntimeMetadata } from '../../shared/runtime-bootstrap'
 import { formatCliError, reportCliError } from '../cli-error'
 import { RuntimeClient } from './client'
-import { launchOrcaApp } from './launch'
+import { launchDorkaApp } from './launch'
 import { getCliStatus } from './status'
 import { sendRequest } from './transport'
 
@@ -13,7 +13,7 @@ const { connect, tryReadMetadata } = vi.hoisted(() => ({
 }))
 vi.mock('node:net', () => ({ createConnection: connect }))
 vi.mock('./metadata', () => ({ tryReadMetadata, readMetadata: tryReadMetadata }))
-vi.mock('./launch', () => ({ launchOrcaApp: vi.fn() }))
+vi.mock('./launch', () => ({ launchDorkaApp: vi.fn() }))
 vi.mock('./runtime-remote-pairing', () => ({ resolveRemotePairing: () => null }))
 
 const metadata: RuntimeMetadata = {
@@ -32,7 +32,7 @@ class TestSocket extends EventEmitter {
 }
 
 const RESTART_OR_ABSENT_ADVICE =
-  /Restart Orca and try again|Orca is not running|Run 'orca open' first/
+  /Restart Dorka and try again|Dorka is not running|Run 'dorka open' first/
 
 let socket: TestSocket
 
@@ -78,9 +78,9 @@ describe('runtime access denied', () => {
     expect(socket.write).not.toHaveBeenCalled()
     const human = formatCliError(error)
     expect(human).toContain(
-      `Permission denied connecting to Orca (${code}). Orca may be running normally`
+      `Permission denied connecting to Dorka (${code}). Dorka may be running normally`
     )
-    expect(human).toContain("Next step: Do not restart Orca or run 'orca open'")
+    expect(human).toContain("Next step: Do not restart Dorka or run 'dorka open'")
     expect(human).not.toMatch(RESTART_OR_ABSENT_ADVICE)
     expect(human).not.toContain('private-runtime')
   })
@@ -89,7 +89,7 @@ describe('runtime access denied', () => {
     vi.stubEnv('CODEX_SANDBOX', 'seatbelt')
     const human = formatCliError(await deniedRequest('EPERM'))
 
-    expect(human).toContain('The Codex sandbox blocked this command from connecting to Orca')
+    expect(human).toContain('The Codex sandbox blocked this command from connecting to Dorka')
     expect(human).toContain('escalated permissions, outside the Codex sandbox')
     expect(human).not.toMatch(RESTART_OR_ABSENT_ADVICE)
   })
@@ -109,12 +109,12 @@ describe('runtime access denied', () => {
     }
   )
 
-  // Why: a dead Orca leaves its socket behind, and the sandbox denies it before ECONNREFUSED.
+  // Why: a dead Dorka leaves its socket behind, and the sandbox denies it before ECONNREFUSED.
   it('gives not-running advice when the denied endpoint belongs to a dead pid', async () => {
     mockKill('ESRCH')
     const human = formatCliError(await deniedRequest('EPERM'))
 
-    expect(human).toContain("Orca is not running. Run 'orca open' first.")
+    expect(human).toContain("Dorka is not running. Run 'dorka open' first.")
     expect(human).not.toContain('Do not restart')
     const pending = getCliStatus('/test')
     failConnect('EPERM')
@@ -123,12 +123,12 @@ describe('runtime access denied', () => {
     })
   })
 
-  it('does not launch or poll Orca when the initial status is denied', async () => {
-    const pending = new RuntimeClient('/test', 1000, null, null).openOrca()
+  it('does not launch or poll Dorka when the initial status is denied', async () => {
+    const pending = new RuntimeClient('/test', 1000, null, null).openDorka()
     failConnect('EPERM')
 
     await expect(pending).rejects.toMatchObject({ code: 'runtime_access_denied' })
-    expect(launchOrcaApp).not.toHaveBeenCalled()
+    expect(launchDorkaApp).not.toHaveBeenCalled()
     expect(connect).toHaveBeenCalledTimes(1)
   })
 

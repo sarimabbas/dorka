@@ -23,7 +23,7 @@ describe('task source context', () => {
       normalizeTaskSourceContext({
         provider: 'github',
         projectId: ' project-1 ',
-        providerIdentity: { provider: 'github', owner: 'stablyai', repo: 'orca' }
+        providerIdentity: { provider: 'github', owner: 'stablyai', repo: 'dorka' }
       })
     ).toEqual({
       kind: 'task-source',
@@ -32,7 +32,7 @@ describe('task source context', () => {
       hostId: 'local',
       projectHostSetupId: null,
       repoId: null,
-      providerIdentity: { provider: 'github', owner: 'stablyai', repo: 'orca' },
+      providerIdentity: { provider: 'github', owner: 'stablyai', repo: 'dorka' },
       accountLabel: null
     })
   })
@@ -83,21 +83,21 @@ describe('task source context', () => {
       projectId: 'project-1',
       hostId: 'local',
       repoId: 'repo-1',
-      providerIdentity: { provider: 'github', owner: 'stablyai', repo: 'orca' }
+      providerIdentity: { provider: 'github', owner: 'stablyai', repo: 'dorka' }
     })
     const ssh = getTaskSourceCacheScope({
       provider: 'github',
       projectId: 'project-1',
       hostId: toSshExecutionHostId('builder'),
       repoId: 'repo-1',
-      providerIdentity: { provider: 'github', owner: 'stablyai', repo: 'orca' }
+      providerIdentity: { provider: 'github', owner: 'stablyai', repo: 'dorka' }
     })
     const differentRepo = getTaskSourceCacheScope({
       provider: 'github',
       projectId: 'project-1',
       hostId: 'local',
       repoId: 'repo-1',
-      providerIdentity: { provider: 'github', owner: 'other', repo: 'orca' }
+      providerIdentity: { provider: 'github', owner: 'other', repo: 'dorka' }
     })
     const enterpriseRepo = getTaskSourceCacheScope({
       provider: 'github',
@@ -107,7 +107,7 @@ describe('task source context', () => {
       providerIdentity: {
         provider: 'github',
         owner: 'stablyai',
-        repo: 'orca',
+        repo: 'dorka',
         host: 'github.acme.test'
       }
     })
@@ -128,9 +128,9 @@ describe('task source context', () => {
       getTaskSourceCacheScope({
         ...base,
         provider: 'gitlab',
-        providerIdentity: { provider: 'gitlab', namespace: 'stably', project: 'orca' }
+        providerIdentity: { provider: 'gitlab', namespace: 'stably', project: 'dorka' }
       })
-    ).toContain(encodeURIComponent('stably/orca'))
+    ).toContain(encodeURIComponent('stably/dorka'))
     expect(
       getTaskSourceCacheScope({
         ...base,
@@ -156,7 +156,7 @@ describe('task source context', () => {
       normalizeTaskSourceContext({
         provider: 'gitlab',
         projectId: 'project-1',
-        providerIdentity: { provider: 'github', owner: 'stablyai', repo: 'orca' }
+        providerIdentity: { provider: 'github', owner: 'stablyai', repo: 'dorka' }
       })?.providerIdentity
     ).toBeNull()
   })
@@ -222,7 +222,7 @@ describe('areTaskSourceContextsEqual', () => {
       provider: 'jira',
       siteId: 'site-1',
       siteUrl: 'https://company.atlassian.net',
-      projectKey: 'ORCA'
+      projectKey: 'DORKA'
     }
   }
 
@@ -230,7 +230,7 @@ describe('areTaskSourceContextsEqual', () => {
     expect(
       areTaskSourceContextsEqual(base, {
         providerIdentity: {
-          projectKey: 'ORCA',
+          projectKey: 'DORKA',
           siteUrl: 'https://company.atlassian.net',
           siteId: 'site-1',
           provider: 'jira'
@@ -268,7 +268,7 @@ describe('areTaskSourceContextsEqual', () => {
     const github: TaskSourceContext = {
       ...base,
       provider: 'github',
-      providerIdentity: { provider: 'github', owner: 'acme', repo: 'orca' }
+      providerIdentity: { provider: 'github', owner: 'acme', repo: 'dorka' }
     }
     expect(areTaskSourceContextsEqual(github, { ...github, provider: 'gitlab' })).toBe(false)
   })

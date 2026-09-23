@@ -30,7 +30,7 @@ vi.mock('../telemetry/client', () =>
 vi.mock('../telemetry/classify-error', () =>
   import('./pty-ipc-mock-registry').then((m) => m.classifyErrorModuleMock())
 )
-vi.mock('../cli/linux-terminal-orca-cli-shim', () =>
+vi.mock('../cli/linux-terminal-dorka-cli-shim', () =>
   import('./pty-ipc-mock-registry').then((m) => m.linuxCliShimModuleMock())
 )
 vi.mock('../memory/pty-registry', () =>
@@ -63,7 +63,7 @@ describe('restored AppImage CLI shim refresh', () => {
     registerPtyHandlers(mainWindow as never)
 
     expect(linuxCliShimMock).toHaveBeenCalledOnce()
-    expect(linuxCliShimMock).toHaveBeenCalledWith({ userDataPath: '/tmp/orca-user-data' })
+    expect(linuxCliShimMock).toHaveBeenCalledWith({ userDataPath: '/tmp/dorka-user-data' })
   })
 
   it('does not publish a host launcher on a non-Linux host', () => {

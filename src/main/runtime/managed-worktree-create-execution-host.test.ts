@@ -31,7 +31,7 @@ vi.mock('./runtime-worktree-agent-startup', async (importOriginal) => ({
   markRemoteWorktreeTrusted: trustMocks.remote
 }))
 
-import { OrcaRuntimeService } from './orca-runtime'
+import { DorkaRuntimeService } from './dorka-runtime'
 
 const TARGET_ID = 'remote-1'
 const REMOTE_PATH = '/srv/app'
@@ -44,14 +44,14 @@ type RuntimeInternals = {
 }
 
 function makeRuntime(repo: Record<string, unknown>): {
-  runtime: OrcaRuntimeService
+  runtime: DorkaRuntimeService
   createRemote: ReturnType<typeof vi.fn>
 } {
   const store = {
     getSettings: () => ({ disabledTuiAgents: [], workspaceDir: '/tmp/workspaces' }),
     getProjectHostSetups: () => []
   }
-  const runtime = new OrcaRuntimeService(store as never)
+  const runtime = new DorkaRuntimeService(store as never)
   const internals = runtime as unknown as RuntimeInternals
   vi.spyOn(internals, 'resolveRepoSelector').mockResolvedValue(repo)
   vi.spyOn(internals, 'resolveLineageForWorktreeCreate').mockResolvedValue(null)

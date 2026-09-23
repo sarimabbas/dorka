@@ -5,16 +5,16 @@ import { isPlainObject } from '../agent-hooks/installer-utils'
 
 // Muse strips nonstandard environment variables from managed hooks unless allowlisted.
 export const MUSE_MANAGED_HOOK_ENV_VARS = [
-  'ORCA_AGENT_HOOK_PORT',
-  'ORCA_AGENT_HOOK_TOKEN',
-  'ORCA_AGENT_HOOK_ENV',
-  'ORCA_AGENT_HOOK_VERSION',
-  'ORCA_AGENT_HOOK_TRANSPORT',
-  'ORCA_AGENT_HOOK_ENDPOINT',
-  'ORCA_PANE_KEY',
-  'ORCA_TAB_ID',
-  'ORCA_WORKTREE_ID',
-  'ORCA_AGENT_LAUNCH_TOKEN',
+  'DORKA_AGENT_HOOK_PORT',
+  'DORKA_AGENT_HOOK_TOKEN',
+  'DORKA_AGENT_HOOK_ENV',
+  'DORKA_AGENT_HOOK_VERSION',
+  'DORKA_AGENT_HOOK_TRANSPORT',
+  'DORKA_AGENT_HOOK_ENDPOINT',
+  'DORKA_PANE_KEY',
+  'DORKA_TAB_ID',
+  'DORKA_WORKTREE_ID',
+  'DORKA_AGENT_LAUNCH_TOKEN',
   // Why: Windows cmd AutoRun scripts commonly live under %USERPROFILE%; without it every hook exits 1.
   'USERPROFILE'
 ] as const

@@ -62,16 +62,16 @@ describe('real Codex structured-to-TUI resume', () => {
   itWithCodex(
     'resumes the exact isolated rollout and reaches the initial TUI screen',
     async () => {
-      const codexHome = await mkdtemp(join(tmpdir(), 'orca-codex-tui-resume-'))
+      const codexHome = await mkdtemp(join(tmpdir(), 'dorka-codex-tui-resume-'))
       tempHomes.push(codexHome)
       await writeFile(
         join(codexHome, 'config.toml'),
         [
-          'model_provider = "orca-integration"',
+          'model_provider = "dorka-integration"',
           'model = "gpt-5"',
           '',
-          '[model_providers.orca-integration]',
-          'name = "Orca integration"',
+          '[model_providers.dorka-integration]',
+          'name = "Dorka integration"',
           'base_url = "http://127.0.0.1:9/v1"',
           'wire_api = "responses"',
           'requires_openai_auth = false',
@@ -113,7 +113,7 @@ describe('real Codex structured-to-TUI resume', () => {
         env: {
           ...process.env,
           CODEX_HOME: codexHome,
-          ORCA_AGENT_LAUNCH_TOKEN: 'real-binary-resume-proof',
+          DORKA_AGENT_LAUNCH_TOKEN: 'real-binary-resume-proof',
           TERM: 'xterm-256color'
         }
       })

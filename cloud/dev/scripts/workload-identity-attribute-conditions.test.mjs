@@ -25,7 +25,7 @@ const EXPECTED_CONDITIONS = {
     // definition and it lives here.
     apps: {
       github:
-        "assertion.repository == 'stablyai/orca-cloud' && assertion.repository_id == '1273841466' && assertion.repository_owner_id == '127256420' && assertion.ref == 'refs/heads/main' && assertion.environment == 'staging' && (assertion.workflow_ref == 'stablyai/orca-cloud/.github/workflows/deploy-auth-staging.yml@refs/heads/main' || assertion.workflow_ref == 'stablyai/orca-cloud/.github/workflows/deploy-staging.yml@refs/heads/main' || assertion.workflow_ref == 'stablyai/orca-cloud/.github/workflows/load-skill-finalization-staging.yml@refs/heads/main' || assertion.workflow_ref == 'stablyai/orca-cloud/.github/workflows/recover-skill-object-staging.yml@refs/heads/main')",
+        "assertion.repository == 'stablyai/dorka-cloud' && assertion.repository_id == '1273841466' && assertion.repository_owner_id == '127256420' && assertion.ref == 'refs/heads/main' && assertion.environment == 'staging' && (assertion.workflow_ref == 'stablyai/dorka-cloud/.github/workflows/deploy-auth-staging.yml@refs/heads/main' || assertion.workflow_ref == 'stablyai/dorka-cloud/.github/workflows/deploy-staging.yml@refs/heads/main' || assertion.workflow_ref == 'stablyai/dorka-cloud/.github/workflows/load-skill-finalization-staging.yml@refs/heads/main' || assertion.workflow_ref == 'stablyai/dorka-cloud/.github/workflows/recover-skill-object-staging.yml@refs/heads/main')",
     },
   },
   production: {
@@ -46,7 +46,7 @@ const EXPECTED_CONDITIONS = {
     },
     apps: {
       github_production_app_deploy:
-        "assertion.repository == 'stablyai/orca-cloud' && assertion.repository_id == '1273841466' && assertion.repository_owner_id == '127256420' && assertion.ref == 'refs/heads/main' && assertion.environment == 'production' && (assertion.workflow_ref == 'stablyai/orca-cloud/.github/workflows/deploy-production.yml@refs/heads/main' || assertion.workflow_ref == 'stablyai/orca-cloud/.github/workflows/deploy-auth-production.yml@refs/heads/main')",
+        "assertion.repository == 'stablyai/dorka-cloud' && assertion.repository_id == '1273841466' && assertion.repository_owner_id == '127256420' && assertion.ref == 'refs/heads/main' && assertion.environment == 'production' && (assertion.workflow_ref == 'stablyai/dorka-cloud/.github/workflows/deploy-production.yml@refs/heads/main' || assertion.workflow_ref == 'stablyai/dorka-cloud/.github/workflows/deploy-auth-production.yml@refs/heads/main')",
     },
   },
 }
@@ -62,8 +62,8 @@ const ROOT_REPOSITORIES = {
   },
   apps: {
     claims:
-      "assertion.repository == 'stablyai/orca-cloud' && assertion.repository_id == '1273841466' && assertion.repository_owner_id == '127256420'",
-    workflowHead: 'stablyai/orca-cloud/.github/workflows/'
+      "assertion.repository == 'stablyai/dorka-cloud' && assertion.repository_id == '1273841466' && assertion.repository_owner_id == '127256420'",
+    workflowHead: 'stablyai/dorka-cloud/.github/workflows/'
   }
 }
 
@@ -133,7 +133,7 @@ for (const environment of Object.keys(EXPECTED_CONDITIONS)) {
   })
 }
 
-// Why: the cutover left one arm per relay provider. A leftover `stablyai/orca-cloud` claim or
+// Why: the cutover left one arm per relay provider. A leftover `stablyai/dorka-cloud` claim or
 // workflow ref would keep trusting a repository whose relay workflows are retired, and an unprefixed
 // ref would name a file the public repository does not have.
 for (const environment of Object.keys(EXPECTED_CONDITIONS)) {
@@ -142,7 +142,7 @@ for (const environment of Object.keys(EXPECTED_CONDITIONS)) {
     const rendered = await renderAttributeConditions(environment)
     for (const [provider, condition] of Object.entries(rendered.relay)) {
       assert.ok(condition.startsWith(`${claims} && `), `${provider} does not lead with the claims`)
-      assert.doesNotMatch(condition, /stablyai\/orca-cloud|1273841466/, `${provider} keeps an old arm`)
+      assert.doesNotMatch(condition, /stablyai\/dorka-cloud|1273841466/, `${provider} keeps an old arm`)
       const refs = [...condition.matchAll(/(?:job_)?workflow_ref == '([^']+)'/g)].map(
         (match) => match[1]
       )

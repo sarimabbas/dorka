@@ -40,7 +40,7 @@ const repoMap = new Map<string, Repo>([
     'repo-1',
     {
       id: 'repo-1',
-      path: '/repo/orca',
+      path: '/repo/dorka',
       displayName: 'stablyai/orca',
       badgeColor: '#22c55e',
       addedAt: 0
@@ -54,7 +54,7 @@ function gitLabReview(overrides: Partial<HostedReviewInfo> = {}): HostedReviewIn
     number: 17,
     title: 'Reuse checks tab review metadata',
     state: 'open',
-    url: 'https://gitlab.com/acme/orca/-/merge_requests/17',
+    url: 'https://gitlab.com/acme/dorka/-/merge_requests/17',
     status: 'success',
     updatedAt: '2026-07-12T00:00:00Z',
     mergeable: 'MERGEABLE',
@@ -183,7 +183,7 @@ describe('worktree-palette-search', () => {
       branch: undefined as unknown as string
     })
 
-    expect(() => searchWorktrees([cleared], 'orca/jump', repoMap)).not.toThrow()
+    expect(() => searchWorktrees([cleared], 'dorka/jump', repoMap)).not.toThrow()
   })
 
   it('still lists a branch-less row on the empty query, which renders every row', () => {
@@ -224,7 +224,7 @@ describe('worktree-palette-search', () => {
       repoMap,
       {
         prCache: {
-          '/repo/orca::feature/palette-refresh': {
+          '/repo/dorka::feature/palette-refresh': {
             data: { number: 426, title: 'Refresh the worktree quick jump palette' }
           }
         }
@@ -289,7 +289,7 @@ describe('worktree-palette-search', () => {
       [staleWorktree, gitLabReview({ title: 'Current merge request' })]
     ])
     const prCache = {
-      '/repo/orca::feature/palette-refresh': { data: { number: 99, title: 'Stale GitHub title' } }
+      '/repo/dorka::feature/palette-refresh': { data: { number: 99, title: 'Stale GitHub title' } }
     }
 
     expect(
@@ -303,7 +303,7 @@ describe('worktree-palette-search', () => {
 
   it('does not search stale GitHub metadata while a linked non-GitHub review is loading', () => {
     const prCache = {
-      '/repo/orca::feature/palette-refresh': { data: { number: 99, title: 'Stale GitHub title' } }
+      '/repo/dorka::feature/palette-refresh': { data: { number: 99, title: 'Stale GitHub title' } }
     }
     const staleWorktree = makeWorktree({
       branch: 'refs/heads/feature/palette-refresh',
@@ -344,7 +344,7 @@ describe('worktree-palette-search', () => {
       provider: 'github',
       number: 42,
       title: 'GitHub pull request',
-      url: 'https://github.com/acme/orca/pull/42'
+      url: 'https://github.com/acme/dorka/pull/42'
     })
     const gitLabWorktree = makeWorktree()
 
@@ -388,7 +388,7 @@ describe('worktree-palette-search', () => {
     ]
 
     // All three match on the repo name, order preserved from input.
-    expect(searchWorktrees(worktrees, 'orca', repoMap).map((result) => result.worktreeId)).toEqual([
+    expect(searchWorktrees(worktrees, 'dorka', repoMap).map((result) => result.worktreeId)).toEqual([
       'wt-feature',
       'wt-bugfix',
       'wt-main'
@@ -405,7 +405,7 @@ describe('worktree-palette-search', () => {
       })
     ]
 
-    const results = searchWorktrees(worktrees, 'orca/main', repoMap)
+    const results = searchWorktrees(worktrees, 'dorka/main', repoMap)
 
     expect(results).toHaveLength(1)
     expect(results[0].worktreeId).toBe('wt-main')

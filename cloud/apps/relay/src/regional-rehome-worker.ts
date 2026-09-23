@@ -1,7 +1,7 @@
 import {
   IdleRegionalRehomeResponseSchema,
   isGlobalIdleRegionalRehomeDeferral
-} from '@orca-cloud/relay-contract'
+} from '@dorka-cloud/relay-contract'
 import type { RelayAssignmentStore } from './assignment-store.js'
 import type { RelayConfig } from './config.js'
 import { googleMetadataIdentityToken } from './google-metadata-identity-token.js'
@@ -76,7 +76,7 @@ export function startRegionalRehomeWorker(
           if (body.outcome === 'committed') {
             console.warn(
               JSON.stringify({
-                event: 'orca_relay_idle_rehome_committed',
+                event: 'dorka_relay_idle_rehome_committed',
                 sourceCellId: candidate.sourceCellId,
                 targetCellId: candidate.targetCellId
               })
@@ -96,7 +96,7 @@ export function startRegionalRehomeWorker(
           // The source may have committed; its durable outcome owns recovery.
           console.warn(
             JSON.stringify({
-              event: 'orca_relay_idle_rehome_request_failed',
+              event: 'dorka_relay_idle_rehome_request_failed',
               reason: error instanceof Error ? error.message : 'unknown'
             })
           )
@@ -106,7 +106,7 @@ export function startRegionalRehomeWorker(
       // that 100+ candidates all came back deferred.
       console.warn(
         JSON.stringify({
-          event: 'orca_relay_idle_rehome_dispatch_summary',
+          event: 'dorka_relay_idle_rehome_dispatch_summary',
           candidates: candidates.length,
           dispatched: Object.values(outcomes).reduce((total, count) => total + count, 0),
           stoppedBy,
@@ -116,7 +116,7 @@ export function startRegionalRehomeWorker(
     } catch (error) {
       console.warn(
         JSON.stringify({
-          event: 'orca_relay_regional_rehome_poll_failed',
+          event: 'dorka_relay_regional_rehome_poll_failed',
           reason: error instanceof Error ? error.message : 'unknown'
         })
       )

@@ -9,16 +9,16 @@
 
 import type { AgentLaunchPreferences } from '../../../../../../shared/agent-session-host-authority'
 import type { TuiAgent } from '../../../../../../shared/tui-agent'
-import type { OrcaRuntimeService } from '../../../../orca-runtime'
+import type { DorkaRuntimeService } from '../../../../dorka-runtime'
 import type { OrchestrationDb } from '../../../../orchestration/db'
 import type { WorkerEffect, WorkerSetupReceipt } from './worker-topology'
 
 export async function createWorkerWorktree(args: {
-  runtime: OrcaRuntimeService
+  runtime: DorkaRuntimeService
   db: OrchestrationDb
   dispatchId: string
   requestedWorktree: string
-  coordinatorWorktree: Awaited<ReturnType<OrcaRuntimeService['showManagedWorktree']>>
+  coordinatorWorktree: Awaited<ReturnType<DorkaRuntimeService['showManagedWorktree']>>
   params: {
     repo?: string
     name?: string
@@ -38,7 +38,7 @@ export async function createWorkerWorktree(args: {
   launchPreferences?: AgentLaunchPreferences
   effects: WorkerEffect[]
 }): Promise<{
-  worktree: Awaited<ReturnType<OrcaRuntimeService['showManagedWorktree']>>
+  worktree: Awaited<ReturnType<DorkaRuntimeService['showManagedWorktree']>>
   terminalHandle: string | undefined
   setupReceipt: WorkerSetupReceipt
 }> {
@@ -132,7 +132,7 @@ export async function createWorkerWorktree(args: {
     terminalId: setupTerminalHandle ?? setupTerminal?.id
   })
   return {
-    worktree: created.worktree as Awaited<ReturnType<OrcaRuntimeService['showManagedWorktree']>>,
+    worktree: created.worktree as Awaited<ReturnType<DorkaRuntimeService['showManagedWorktree']>>,
     terminalHandle,
     setupReceipt
   }

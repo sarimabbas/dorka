@@ -1,7 +1,7 @@
 // Transfer-owner identity for relay installs that cross a split shell/SFTP namespace.
 //
 // The shell and SFTP paths share one validated home-relative suffix
-// (`.orca-remote/relay-<fullVersion>`); a random marker inside the shared install
+// (`.dorka-remote/relay-<fullVersion>`); a random marker inside the shared install
 // lock or attempt stage proves which shell-owned directory the SFTP session sees.
 //
 // See: docs/ssh-relay-sftp-namespace.md
@@ -46,8 +46,8 @@ export function relayRemoteDirSegments(
 }
 
 /**
- * The model-parameterized form. `relay-<v>` and `orcad-<v>` are permanent siblings under
- * one `.orca-remote/` (see remote-install-model.ts), so the prefix is an argument.
+ * The model-parameterized form. `relay-<v>` and `dorkad-<v>` are permanent siblings under
+ * one `.dorka-remote/` (see remote-install-model.ts), so the prefix is an argument.
  */
 export function remoteInstallDirSegments(
   model: RemoteInstallModel,

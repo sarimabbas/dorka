@@ -99,7 +99,7 @@ export async function runMainPressureScenario<
   pressureOutputChars,
   testInfo,
   testRepoPath,
-  orcaPage
+  dorkaPage
 }: {
   annotationSuffix: string
   backgroundPaneCount: number
@@ -111,58 +111,58 @@ export async function runMainPressureScenario<
   pressureOutputChars: number
   testInfo: TestInfo
   testRepoPath: string
-  orcaPage: Page
+  dorkaPage: Page
 }): Promise<void> {
-  await deps.waitForSessionReady(orcaPage)
-  await deps.waitForActiveWorktree(orcaPage)
-  const panes = await deps.ensureActiveWorktreePaneLoad(orcaPage, backgroundPaneCount + 1)
+  await deps.waitForSessionReady(dorkaPage)
+  await deps.waitForActiveWorktree(dorkaPage)
+  const panes = await deps.ensureActiveWorktreePaneLoad(dorkaPage, backgroundPaneCount + 1)
   const [typingPane, ...loadPanes] = panes
-  await deps.focusPane(orcaPage, typingPane.paneKey)
+  await deps.focusPane(dorkaPage, typingPane.paneKey)
 
   const runId = randomUUID()
   const scrollRunId = randomUUID()
-  const typingScriptPath = path.join(testRepoPath, `.orca-opencode-pressure-typing-${runId}.mjs`)
-  const pressureScriptPath = path.join(testRepoPath, `.orca-opencode-pressure-load-${runId}.mjs`)
-  await seedActiveTerminalScrollback(orcaPage, typingPane.ptyId, scrollRunId)
+  const typingScriptPath = path.join(testRepoPath, `.dorka-opencode-pressure-typing-${runId}.mjs`)
+  const pressureScriptPath = path.join(testRepoPath, `.dorka-opencode-pressure-load-${runId}.mjs`)
+  await seedActiveTerminalScrollback(dorkaPage, typingPane.ptyId, scrollRunId)
   deps.writeInteractivePromptScript(typingScriptPath, runId)
   writePressureOutputScript(pressureScriptPath, runId, 'tui')
-  await deps.resetTerminalPtyOutputDebug(orcaPage)
+  await deps.resetTerminalPtyOutputDebug(dorkaPage)
   await deps.holdTerminalAckGate(
-    orcaPage,
+    dorkaPage,
     loadPanes.map((pane) => pane.ptyId)
   )
   try {
     await startPressureCommands({
       loadPanes,
-      orcaPage,
+      dorkaPage,
       pressureOutputChars,
       pressureScriptPath
     })
-    const pressureBeforeTyping = await deps.waitForMainPtyPressureBacklog(orcaPage)
+    const pressureBeforeTyping = await deps.waitForMainPtyPressureBacklog(dorkaPage)
     await measureAndAnnotateScroll({
       annotationSuffix,
       deps,
       maxScrollLatencyMs,
       maxTimerDriftMs,
-      orcaPage,
+      dorkaPage,
       panes,
       testInfo
     })
     const measurement = await deps.measureTypingDuringLoad(
-      orcaPage,
+      dorkaPage,
       typingScriptPath,
       typingPane.ptyId,
       runId
     )
-    const mainPressure = await deps.readMainPtyPressureDebug(orcaPage)
-    const ackGate = await deps.readTerminalAckGateDebug(orcaPage)
-    const scheduler = await deps.readTerminalOutputSchedulerDebug(orcaPage)
+    const mainPressure = await deps.readMainPtyPressureDebug(dorkaPage)
+    const ackGate = await deps.readTerminalAckGateDebug(dorkaPage)
+    const scheduler = await deps.readTerminalOutputSchedulerDebug(dorkaPage)
     deps.annotateTypingMeasurement(
       testInfo,
       `opencode-main-pressure-active-typing${annotationSuffix}`,
       panes.length,
       measurement,
-      await deps.readTerminalPtyOutputDebug(orcaPage),
+      await deps.readTerminalPtyOutputDebug(dorkaPage),
       scheduler,
       mainPressure,
       ackGate
@@ -178,10 +178,10 @@ export async function runMainPressureScenario<
       scheduler
     })
   } finally {
-    await deps.releaseTerminalAckGate(orcaPage)
-    await sendToTerminal(orcaPage, typingPane.ptyId, '\x03').catch(() => undefined)
+    await deps.releaseTerminalAckGate(dorkaPage)
+    await sendToTerminal(dorkaPage, typingPane.ptyId, '\x03').catch(() => undefined)
     await Promise.all(
-      loadPanes.map((pane) => sendToTerminal(orcaPage, pane.ptyId, '\x03').catch(() => undefined))
+      loadPanes.map((pane) => sendToTerminal(dorkaPage, pane.ptyId, '\x03').catch(() => undefined))
     )
     rmSync(typingScriptPath, { force: true })
     rmSync(pressureScriptPath, { force: true })
@@ -190,19 +190,19 @@ export async function runMainPressureScenario<
 
 async function startPressureCommands({
   loadPanes,
-  orcaPage,
+  dorkaPage,
   pressureOutputChars,
   pressureScriptPath
 }: {
   loadPanes: MainPressurePane[]
-  orcaPage: Page
+  dorkaPage: Page
   pressureOutputChars: number
   pressureScriptPath: string
 }): Promise<void> {
   await Promise.all(
     loadPanes.map((pane, paneIndex) =>
       sendToTerminal(
-        orcaPage,
+        dorkaPage,
         pane.ptyId,
         `node ${JSON.stringify(pressureScriptPath)} ${paneIndex} ${pressureOutputChars}\r`
       )
@@ -221,7 +221,7 @@ async function measureAndAnnotateScroll<
   deps,
   maxScrollLatencyMs,
   maxTimerDriftMs,
-  orcaPage,
+  dorkaPage,
   panes,
   testInfo
 }: {
@@ -229,13 +229,13 @@ async function measureAndAnnotateScroll<
   deps: MainPressureDeps<TMeasurement, TDebug, TScheduler, TMainPressure, TAckGate>
   maxScrollLatencyMs: number
   maxTimerDriftMs: number
-  orcaPage: Page
+  dorkaPage: Page
   panes: MainPressurePane[]
   testInfo: TestInfo
 }): Promise<void> {
-  const scrollMeasurement = await measureActiveTerminalWheelScroll(orcaPage)
-  const mainPressureAfterScroll = await deps.readMainPtyPressureDebug(orcaPage)
-  const ackGateAfterScroll = await deps.readTerminalAckGateDebug(orcaPage)
+  const scrollMeasurement = await measureActiveTerminalWheelScroll(dorkaPage)
+  const mainPressureAfterScroll = await deps.readMainPtyPressureDebug(dorkaPage)
+  const ackGateAfterScroll = await deps.readTerminalAckGateDebug(dorkaPage)
   annotateScrollMeasurement(
     testInfo,
     `opencode-main-pressure-active-scroll${annotationSuffix}`,
@@ -249,7 +249,7 @@ async function measureAndAnnotateScroll<
     expect(responsivePath.latencyMs).toBeLessThan(maxScrollLatencyMs)
   }
   expect(scrollMeasurement.maxTimerDriftMs).toBeLessThan(maxTimerDriftMs)
-  await scrollActiveTerminalToBottom(orcaPage)
+  await scrollActiveTerminalToBottom(dorkaPage)
 }
 
 function expectMainPressureAndTyping<TMeasurement extends MainPressureMeasurement>({

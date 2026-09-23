@@ -4,28 +4,28 @@ import { AutomationsSettingsPane } from './AutomationsSettingsPane'
 import { GeneralPane } from './GeneralPane'
 import { IntegrationsPane } from './IntegrationsPane'
 import { MobileSettingsPane } from './MobileSettingsPane'
-import { OrcaAccountSettingsPane } from './OrcaAccountSettingsPane'
+import { DorkaAccountSettingsPane } from './DorkaAccountSettingsPane'
 import { SettingsSetupGuidePane } from './SettingsSetupGuidePane'
 import { ShareSkillsSettingsPane } from './ShareSkillsSettingsPane'
 import { SettingsSection } from './SettingsSection'
 import { translate } from '@/i18n/i18n'
 import type { SettingsRenderContext } from './settings-render-context'
 
-export function renderOrcaAccountSettingsSection(
+export function renderDorkaAccountSettingsSection(
   context: SettingsRenderContext
 ): React.JSX.Element | null {
   const { model, navigation, view } = context
   return model.showDesktopOnlySettings ? (
     <SettingsSection
-      id="orca-account"
-      title={translate('auto.components.settings.orcaAccount.title', 'Orca Account')}
+      id="dorka-account"
+      title={translate('auto.components.settings.dorkaAccount.title', 'Dorka Account')}
       description={translate(
-        'auto.components.settings.orcaAccount.description',
-        'Share work instantly and reach your desktop from Orca Mobile wherever you are.'
+        'auto.components.settings.dorkaAccount.description',
+        'Share work instantly and reach your desktop from Dorka Mobile wherever you are.'
       )}
-      searchEntries={navigation.getSectionSearchEntries('orca-account')}
+      searchEntries={navigation.getSectionSearchEntries('dorka-account')}
     >
-      {view.isSectionMounted('orca-account') ? <OrcaAccountSettingsPane /> : null}
+      {view.isSectionMounted('dorka-account') ? <DorkaAccountSettingsPane /> : null}
     </SettingsSection>
   ) : null
 }
@@ -38,7 +38,7 @@ export function renderSetupGuideSettingsSection(context: SettingsRenderContext):
       title={translate('auto.components.settings.Settings.6d119427ef', 'Onboarding checklist')}
       description={translate(
         'auto.components.settings.Settings.6855b0f77d',
-        'Finish the core workflows that make Orca useful for parallel agent work.'
+        'Finish the core workflows that make Dorka useful for parallel agent work.'
       )}
       searchEntries={navigation.getSectionSearchEntries('setup-guide')}
       bodyClassName="overflow-hidden rounded-none border-0 bg-transparent p-0 shadow-none"
@@ -188,7 +188,7 @@ export function renderSessionHistorySettingsSection(
       title={translate('sessionHistory.settings.title', 'Agent Session Search')}
       description={translate(
         'sessionHistory.settings.description',
-        'Search everything your agents have said and done, on this computer and on any paired Orca server.'
+        'Search everything your agents have said and done, on this computer and on any paired Dorka server.'
       )}
       searchEntries={navigation.getSectionSearchEntries('session-history')}
     >

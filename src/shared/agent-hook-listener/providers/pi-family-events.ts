@@ -31,7 +31,7 @@ export function normalizePiCompatibleEvent(
   // Why: the OMP extension stamps `provider/id` on every post; Pi posts carry none.
   const model = readString(hookPayload, 'model')
   const modelSwitchCommand =
-    hookPayload.model_switch_command === 'orca-model' ? 'orca-model' : undefined
+    hookPayload.model_switch_command === 'dorka-model' ? 'dorka-model' : undefined
   if (eventName === 'model_select') {
     // Why: a model switch happens between turns, so it must ride on the pane's last
     // known status instead of inventing a state — and before any status exists there

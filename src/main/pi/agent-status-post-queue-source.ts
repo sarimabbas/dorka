@@ -30,7 +30,7 @@ export function getPiAgentStatusPostQueueSourceLines(): string[] {
     '    .catch(() => {',
     '      if (!next.ompRuntime || next.revision !== postRevision) return',
     '      if (next.attempts >= 3) {',
-    "        console.warn('[orca-pi-status] hook delivery failed after retries:', next.hookEventName)",
+    "        console.warn('[dorka-pi-status] hook delivery failed after retries:', next.hookEventName)",
     '        return',
     '      }',
     '      const delay = 250 * 2 ** next.attempts++',

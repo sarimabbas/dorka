@@ -16,8 +16,8 @@ import { buildAgentFeatureSkillInstallCommand } from '../../../../shared/agent-f
 import { toast } from 'sonner'
 import type { CliInstallStatus } from '../../../../shared/cli-install-types'
 import {
-  isOrcaCliAvailableOnPath,
-  showOrcaCliRegistrationPromptToast
+  isDorkaCliAvailableOnPath,
+  showDorkaCliRegistrationPromptToast
 } from '@/lib/agent-skill-cli-prerequisite'
 import { translate } from '@/i18n/i18n'
 
@@ -122,12 +122,12 @@ function normalizeWindowsSkillUpdateCommand(
 
 /**
  * Where a built skill command is going: the user's clipboard (their own shell)
- * or the setup terminal Orca spawns itself.
+ * or the setup terminal Dorka spawns itself.
  */
-type SkillCommandTarget = 'copied-command' | 'orca-setup-terminal'
+type SkillCommandTarget = 'copied-command' | 'dorka-setup-terminal'
 
 /**
- * Adapts a copied skill command for Orca's inline setup terminal auto-paste.
+ * Adapts a copied skill command for Dorka's inline setup terminal auto-paste.
  * Host Windows installs may gain an npx preflight; WSL-targeted PowerShell wrappers
  * must become bash-native because the daemon forces wsl.exe for WSL worktrees.
  */
@@ -153,7 +153,7 @@ export function buildSkillSetupTerminalCommand(
   return wrapWindowsSkillCommandWithNpxPrerequisite(
     copiedCommand,
     currentPlatform,
-    'orca-setup-terminal'
+    'dorka-setup-terminal'
   )
 }
 
@@ -339,9 +339,9 @@ export async function ensureWslCliAvailableForAgentSkillTerminal(
       return status
     }
     if (status.state !== 'installed' || status.pathConfigured === false) {
-      await showOrcaCliRegistrationPromptToast()
+      await showDorkaCliRegistrationPromptToast()
       const next = await window.api.cli.installWsl(args)
-      if (!isOrcaCliAvailableOnPath(next)) {
+      if (!isDorkaCliAvailableOnPath(next)) {
         toast.warning(
           translate(
             'auto.components.settings.CliSkillRuntimeSetup.3728a94fb6',

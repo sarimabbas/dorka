@@ -1,9 +1,9 @@
-# @orca/docs
+# @dorka/docs
 
 This package contains the product documentation and public media intended to
-ship alongside Orca's source code.
+ship alongside Dorka's source code.
 
-Open-source product documentation for [Orca](https://www.onorca.dev), served at `/docs` (same URL shape as `https://www.onorca.dev/docs`).
+Open-source product documentation for [Dorka](https://www.ondorka.dev), served at `/docs` (same URL shape as `https://www.ondorka.dev/docs`).
 
 This package is a **self-contained Next.js app**. It is intentionally **not** a root monorepo workspace member, so installing Electron app dependencies does not pull Next/fumadocs.
 
@@ -55,7 +55,7 @@ repository so a docs-only pull request can be reviewed and built independently.
 
 The docs app is a separate Vercel project (the **docs zone**) and keeps the
 public `/docs` URL namespace. The marketing site remains the default zone for
-`www.onorca.dev`; configure its Next/Vercel proxy with these `beforeFiles`
+`www.ondorka.dev`; configure its Next/Vercel proxy with these `beforeFiles`
 rewrites, replacing `DOCS_ORIGIN` with the docs project's production URL:
 
 ```js
@@ -100,7 +100,7 @@ deployment needs `basePath`, first move the route tree to an unprefixed
    custom deployment branch policies for `main` and `v*` tags. The release-cut
    dispatch runs from `main`; the direct published-release fallback runs from a
    stable tag, while the workflow still authorizes only exact stable tags.
-5. Prepare the three rewrites above in the `www.onorca.dev` marketing project,
+5. Prepare the three rewrites above in the `www.ondorka.dev` marketing project,
    but leave them disabled until the docs deployment is verified. A Vercel
    custom domain cannot delegate only `/docs` by itself; the default zone must
    proxy both page/API/media requests and `/docs-static` assets. Keep the

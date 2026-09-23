@@ -2,7 +2,7 @@ import { existsSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import type { CommandHandler } from '../dispatch'
 import { RuntimeClientError } from '../runtime-client'
-import { parseOrcaYaml } from '../../shared/orca-yaml'
+import { parseDorkaYaml } from '../../shared/dorka-yaml'
 import {
   getEphemeralVmRecipeResultProjectRoot,
   type EphemeralVmRecipeDoctorCheck,
@@ -19,7 +19,7 @@ import {
   runEphemeralVmRecipeCleanup,
   runEphemeralVmRecipeStart
 } from '../../shared/ephemeral-vm-recipe-runner'
-import type { OrcaVmRecipe } from '../../shared/orca-yaml-hook-types'
+import type { DorkaVmRecipe } from '../../shared/dorka-yaml-hook-types'
 
 export const VM_HANDLERS: Record<string, CommandHandler> = {
   'vm recipe doctor': async ({ flags, cwd, json }) => {
@@ -44,7 +44,7 @@ export const VM_HANDLERS: Record<string, CommandHandler> = {
 }
 
 function doctorRecipe(repoPath: string, recipeId: string): DoctorResult {
-  const yamlPath = join(repoPath, 'orca.yaml')
+  const yamlPath = join(repoPath, 'dorka.yaml')
   if (!existsSync(yamlPath)) {
     return {
       recipeId,
@@ -52,21 +52,23 @@ function doctorRecipe(repoPath: string, recipeId: string): DoctorResult {
       ok: false,
       checks: [
         {
-          id: 'orca_yaml.exists',
+          id: 'dorka_yaml.exists',
           status: 'fail',
-          message: `No orca.yaml found at ${yamlPath}`,
-          remediation: 'Add environmentRecipes to the repo orca.yaml.'
+          message: `No dorka.yaml found at ${yamlPath}`,
+          remediation: 'Add environmentRecipes to the repo dorka.yaml.'
         }
       ]
     }
   }
 
-  const hooks = parseOrcaYaml(readTextFile(yamlPath))
+  const hooks = parseDorkaYaml(readTextFile(yamlPath))
   const parseCheck: EphemeralVmRecipeDoctorCheck = {
-    id: 'orca_yaml.parse',
+    id: 'dorka_yaml.parse',
     status: hooks ? 'pass' : 'fail',
-    message: hooks ? 'orca.yaml parsed successfully.' : 'orca.yaml has no supported Orca config.',
-    ...(hooks ? {} : { remediation: 'Add an environmentRecipes entry to orca.yaml.' })
+    message: hooks
+      ? 'dorka.yaml parsed successfully.'
+      : 'dorka.yaml has no supported Dorka config.',
+    ...(hooks ? {} : { remediation: 'Add an environmentRecipes entry to dorka.yaml.' })
   }
   const result = doctorEphemeralVmRecipe({
     repoPath,
@@ -260,8 +262,8 @@ function buildProvisionFailureRemediation(stderr: string, stdout: string): strin
     : 'Check recipe stderr and ensure stdout contains the VM recipe result JSON.'
 }
 
-function loadRecipe(repoPath: string, recipeId: string): OrcaVmRecipe | null {
-  const hooks = parseOrcaYaml(readTextFile(join(repoPath, 'orca.yaml')))
+function loadRecipe(repoPath: string, recipeId: string): DorkaVmRecipe | null {
+  const hooks = parseDorkaYaml(readTextFile(join(repoPath, 'dorka.yaml')))
   return hooks?.environmentRecipes?.find((entry) => entry.id === recipeId) ?? null
 }
 

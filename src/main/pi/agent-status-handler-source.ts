@@ -34,7 +34,7 @@ export function getPiAgentStatusHandlerSourceLines(kind: PiAgentKind): string[] 
           '  if (!process.env.PRIME_AGENT_INTERNAL_DAEMON_WORKER) return'
         ]
       : []
-  const ownerEnv = kind === 'prime-agent' ? 'ORCA_PRIME_AGENT_STATUS_OWNED' : 'ORCA_PI_STATUS_OWNED'
+  const ownerEnv = kind === 'prime-agent' ? 'DORKA_PRIME_AGENT_STATUS_OWNED' : 'DORKA_PI_STATUS_OWNED'
 
   // Why: OMP suppresses its approval lifecycle unless an extension listens for it,
   // and it is the only signal that the run is parked on a permission prompt rather
@@ -107,7 +107,7 @@ export function getPiAgentStatusHandlerSourceLines(kind: PiAgentKind): string[] 
     '// proves the owner is gone -- every other probe result keeps suppression, so',
     '// a live foreign owner still cannot double-report. Mirrors the tri-state in',
     '// main/agent-hooks/managed-hook-owner-identity.ts, which this runtime cannot',
-    '// import (the extension loads inside pi/omp with no Orca deps).',
+    '// import (the extension loads inside pi/omp with no Dorka deps).',
     'function isStatusOwnerAlive(pid: string): boolean {',
     '  const parsed = Number(pid)',
     '  if (!Number.isSafeInteger(parsed) || parsed < 1 || parsed > 0x7fffffff) return false',
@@ -130,8 +130,8 @@ export function getPiAgentStatusHandlerSourceLines(kind: PiAgentKind): string[] 
     `  process.env.${ownerEnv} = selfPid`,
     '  resetPostQueue()',
     '  const piEventBus = (pi as { events?: { on?: (name: string, handler: (event: unknown) => void) => void } }).events',
-    '  const lifecycleState = (piEventBus as { __orcaPiSubagents?: { active: Set<string>; waiting: boolean; onEvent?: (event: unknown, forcedStatus?: string) => void; listener?: (event: unknown) => void } } | undefined)?.__orcaPiSubagents ?? { active: new Set<string>(), waiting: false }',
-    '  if (piEventBus) (piEventBus as { __orcaPiSubagents?: unknown }).__orcaPiSubagents = lifecycleState',
+    '  const lifecycleState = (piEventBus as { __dorkaPiSubagents?: { active: Set<string>; waiting: boolean; onEvent?: (event: unknown, forcedStatus?: string) => void; listener?: (event: unknown) => void } } | undefined)?.__dorkaPiSubagents ?? { active: new Set<string>(), waiting: false }',
+    '  if (piEventBus) (piEventBus as { __dorkaPiSubagents?: unknown }).__dorkaPiSubagents = lifecycleState',
     '  if (piEventBus?.on && !(lifecycleState as { listener?: unknown }).listener) {',
     '    const listener = (event: unknown) => lifecycleState.onEvent?.(event)',
     '    lifecycleState.listener = listener',

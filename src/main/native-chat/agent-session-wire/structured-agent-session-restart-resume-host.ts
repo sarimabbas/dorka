@@ -119,7 +119,7 @@ export function createStructuredAgentSessionRestartResume(
     const markers = await readMarkers()
     await revealMarkers(markers)
     // A live chat remains an offer. The user may have opened it to inspect the context and still
-    // explicitly choose whether Orca should ask the agent to continue.
+    // explicitly choose whether Dorka should ask the agent to continue.
     return derive(markers, 'may-be-held')
   }
 
@@ -244,7 +244,7 @@ export function createStructuredAgentSessionRestartResume(
               }
               await session.journal.appendItem(
                 {
-                  provider: 'orca',
+                  provider: 'dorka',
                   clientMessageId: `restart-continuation:${sessionId}:${surfaces.now()}`
                 },
                 { kind: 'status', text },

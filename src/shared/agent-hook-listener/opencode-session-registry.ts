@@ -6,7 +6,7 @@ import type { HookListenerState } from './listener-state'
  * Which pane owns one OpenCode session, as observed from the client side.
  *
  * Why this exists: OpenCode v2 serves every pane from a single shared server
- * process, so the status plugin's per-post stamp (`process.env.ORCA_PANE_KEY`)
+ * process, so the status plugin's per-post stamp (`process.env.DORKA_PANE_KEY`)
  * is frozen to whichever pane started the server. The session id is the only
  * per-event truth that survives — every post carries it — but nothing maps it
  * back to a pane. This registry is that map, filled by the main-process binder

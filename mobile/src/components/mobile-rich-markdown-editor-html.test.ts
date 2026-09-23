@@ -53,6 +53,6 @@ describe('mobile rich markdown editor HTML', () => {
   it('reaches the document through the handle the escaping is for', () => {
     // The native transport is a script evaluated in this page, so the only untrusted text that
     // crosses into it is what goes through the escape above.
-    expect(editorScript()).toContain('window.__orcaRichMarkdown =')
+    expect(editorScript()).toContain('window.__dorkaRichMarkdown =')
   })
 })

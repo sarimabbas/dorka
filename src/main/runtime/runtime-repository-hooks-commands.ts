@@ -4,9 +4,9 @@ import type { Repo } from '../../shared/repo-types'
 import {
   getEffectiveHooks,
   hasHooksFile,
-  hasUnrecognizedOrcaYamlKeys,
+  hasUnrecognizedDorkaYamlKeys,
   loadHooks,
-  parseOrcaYaml
+  parseDorkaYaml
 } from '../hooks'
 import {
   getDefaultTabCommandTrustContent,
@@ -38,13 +38,13 @@ export class RuntimeRepositoryHooksCommands {
         }
       }
       try {
-        const result = await fsProvider.readFile(joinWorktreeRelativePath(repo.path, 'orca.yaml'))
-        const hooks = result.isBinary ? null : parseOrcaYaml(result.content)
+        const result = await fsProvider.readFile(joinWorktreeRelativePath(repo.path, 'dorka.yaml'))
+        const hooks = result.isBinary ? null : parseDorkaYaml(result.content)
         return {
           hasHooksFile: Boolean(hooks),
           hooks,
           setupRunPolicy: getEffectiveSetupRunPolicy(repo),
-          source: hooks ? ('orca.yaml' as const) : null,
+          source: hooks ? ('dorka.yaml' as const) : null,
           setupTrust: setupTrust(repo, getDefaultTabCommandTrustContent(hooks))
         }
       } catch {
@@ -63,7 +63,7 @@ export class RuntimeRepositoryHooksCommands {
       hasHooksFile: hasFile,
       hooks,
       setupRunPolicy: getEffectiveSetupRunPolicy(repo),
-      source: hasFile ? ('orca.yaml' as const) : hooks ? ('legacy' as const) : null,
+      source: hasFile ? ('dorka.yaml' as const) : hooks ? ('legacy' as const) : null,
       setupTrust: setupTrust(repo, getDefaultTabCommandTrustContent(sharedHooks))
     }
   }
@@ -79,14 +79,14 @@ export class RuntimeRepositoryHooksCommands {
         return { status: 'error' as const, hasHooks: false, hooks: null, mayNeedUpdate: false }
       }
       try {
-        const result = await fsProvider.readFile(joinWorktreeRelativePath(repo.path, 'orca.yaml'))
+        const result = await fsProvider.readFile(joinWorktreeRelativePath(repo.path, 'dorka.yaml'))
         if (result.isBinary) {
           return { status: 'ok' as const, hasHooks: false, hooks: null, mayNeedUpdate: false }
         }
         return {
           status: 'ok' as const,
           hasHooks: true,
-          hooks: parseOrcaYaml(result.content),
+          hooks: parseDorkaYaml(result.content),
           mayNeedUpdate: false
         }
       } catch (error) {
@@ -104,7 +104,7 @@ export class RuntimeRepositoryHooksCommands {
       status: 'ok' as const,
       hasHooks: has,
       hooks,
-      mayNeedUpdate: has && !hooks && hasUnrecognizedOrcaYamlKeys(repo.path)
+      mayNeedUpdate: has && !hooks && hasUnrecognizedDorkaYamlKeys(repo.path)
     }
   }
 

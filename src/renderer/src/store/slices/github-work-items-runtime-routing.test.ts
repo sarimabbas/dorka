@@ -163,7 +163,7 @@ describe('createGitHubSlice.fetchWorkItems source/error envelope', () => {
       hostId: 'runtime:source-runtime' as const,
       projectHostSetupId: 'setup-1',
       repoId: 'source-runtime-repo-id',
-      providerIdentity: { provider: 'github' as const, owner: 'stablyai', repo: 'orca' }
+      providerIdentity: { provider: 'github' as const, owner: 'stablyai', repo: 'dorka' }
     }
 
     await store.getState().fetchWorkItems('caller-repo-id', '/server/repo', 24, 'is:open', {
@@ -202,22 +202,22 @@ describe('createGitHubSlice.fetchWorkItems source/error envelope', () => {
       hostId: 'local' as const,
       projectHostSetupId: 'setup-1',
       repoId: 'repo-1',
-      providerIdentity: { provider: 'github' as const, owner: 'acme', repo: 'orca' }
+      providerIdentity: { provider: 'github' as const, owner: 'acme', repo: 'dorka' }
     }
     const secondSourceContext = {
       ...firstSourceContext,
-      providerIdentity: { provider: 'github' as const, owner: 'stablyai', repo: 'orca' }
+      providerIdentity: { provider: 'github' as const, owner: 'stablyai', repo: 'dorka' }
     }
     mockApi.gh.listWorkItems
       .mockResolvedValueOnce({
         items: [{ type: 'issue', number: 1, title: 'Acme', url: 'https://example.test/1' }],
-        sources: { issues: { owner: 'acme', repo: 'orca' }, prs: { owner: 'acme', repo: 'orca' } }
+        sources: { issues: { owner: 'acme', repo: 'dorka' }, prs: { owner: 'acme', repo: 'dorka' } }
       })
       .mockResolvedValueOnce({
         items: [{ type: 'issue', number: 2, title: 'Stably', url: 'https://example.test/2' }],
         sources: {
-          issues: { owner: 'stablyai', repo: 'orca' },
-          prs: { owner: 'stablyai', repo: 'orca' }
+          issues: { owner: 'stablyai', repo: 'dorka' },
+          prs: { owner: 'stablyai', repo: 'dorka' }
         }
       })
 

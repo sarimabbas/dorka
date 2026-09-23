@@ -45,7 +45,7 @@ import {
   workspaceKindForWorktreeId,
   type WorkspaceLaunchKind
 } from '../../shared/workspace-launch-kind'
-import type { OrcaRuntimeService } from '../runtime/orca-runtime'
+import type { DorkaRuntimeService } from '../runtime/dorka-runtime'
 import { isDefinitiveAgentSessionCreateRefusal } from '../../shared/agent-session-definitive-refusal'
 import {
   decideAgentLaunchMode,
@@ -150,7 +150,7 @@ export type AgentLaunchWorkspaceFactory = {
 }
 
 export type AgentLaunchExecution = {
-  runtime: Pick<OrcaRuntimeService, 'getStructuredAgentSessionCreateSupport' | 'getClientSettings'>
+  runtime: Pick<DorkaRuntimeService, 'getStructuredAgentSessionCreateSupport' | 'getClientSettings'>
   intent: AgentLaunchIntent
   surfaces: AgentLaunchSurfaceFactory
   workspaces?: AgentLaunchWorkspaceFactory

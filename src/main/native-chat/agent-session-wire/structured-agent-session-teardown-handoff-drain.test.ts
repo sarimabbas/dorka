@@ -97,7 +97,7 @@ function adapter(): StructuredAgentSessionAdapter {
 }
 
 beforeEach(async () => {
-  root = await mkdtemp(join(tmpdir(), 'orca-teardown-handoff-drain-'))
+  root = await mkdtemp(join(tmpdir(), 'dorka-teardown-handoff-drain-'))
   resetHostTestOperationIds()
   launchEntered = Promise.withResolvers<void>()
   launchGate = Promise.withResolvers<void>()

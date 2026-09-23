@@ -89,7 +89,7 @@ export class RelayAgentHookRuntime {
       context.launchAgent === 'opencode2' || isOpenCode2LaunchCommand(launchCommandHint)
         ? 'opencode2'
         : 'opencode'
-    env.ORCA_OPENCODE_AGENT = opencodeAgent
+    env.DORKA_OPENCODE_AGENT = opencodeAgent
     if (this.pluginOverlay.hasOpenCodeSource(opencodeAgent)) {
       const sourceDir = resolveOpenCodeSourceConfigDir(context.env, context.shell)
       const inheritedRelayOverlay = sourceDir
@@ -99,8 +99,8 @@ export class RelayAgentHookRuntime {
         const dir = this.pluginOverlay.materializeOpenCode(overlayId, sourceDir, opencodeAgent)
         if (dir) {
           env.OPENCODE_CONFIG_DIR = dir
-          env.ORCA_OPENCODE_CONFIG_DIR = dir
-          env.ORCA_OPENCODE_SOURCE_CONFIG_DIR = sourceDir
+          env.DORKA_OPENCODE_CONFIG_DIR = dir
+          env.DORKA_OPENCODE_SOURCE_CONFIG_DIR = sourceDir
         }
       } else {
         this.pluginOverlay.installOpenCodePlugin(opencodeAgent, context.env)
@@ -115,7 +115,7 @@ export class RelayAgentHookRuntime {
     const hasLaunchCommand =
       typeof launchCommandHint === 'string' && launchCommandHint.trim().length > 0
     if (kind === 'omp' || !hasLaunchCommand) {
-      env.ORCA_OMP_FRESH_CONFIG = this.pluginOverlay.materializeOmpFreshConfig()
+      env.DORKA_OMP_FRESH_CONFIG = this.pluginOverlay.materializeOmpFreshConfig()
     }
     if (!this.pluginOverlay.hasPiSource()) {
       return env
@@ -126,14 +126,14 @@ export class RelayAgentHookRuntime {
         materializeDefaultHome: explicitKind === 'pi'
       })
       if (result?.sourceAgentDir) {
-        env.ORCA_PI_SOURCE_AGENT_DIR = result.sourceAgentDir
+        env.DORKA_PI_SOURCE_AGENT_DIR = result.sourceAgentDir
       }
     }
     if (kind === 'omp' || !hasLaunchCommand) {
       const sourceDir =
         kind === 'omp'
           ? resolvePiSourceAgentDir(context.env, context.shell, 'omp')
-          : context.env.ORCA_OMP_SOURCE_AGENT_DIR
+          : context.env.DORKA_OMP_SOURCE_AGENT_DIR
       const configDirName = await resolveOmpConfigDirName(context.env, context.shell)
       if (configDirName !== undefined) {
         env.PI_CONFIG_DIR = configDirName
@@ -143,10 +143,10 @@ export class RelayAgentHookRuntime {
         configDirName
       })
       if (result?.statusExtensionPath) {
-        env.ORCA_OMP_STATUS_EXTENSION = result.statusExtensionPath
+        env.DORKA_OMP_STATUS_EXTENSION = result.statusExtensionPath
       }
       if (result?.sourceAgentDir) {
-        env.ORCA_OMP_SOURCE_AGENT_DIR = result.sourceAgentDir
+        env.DORKA_OMP_SOURCE_AGENT_DIR = result.sourceAgentDir
       }
     }
     if (kind === 'prime-agent') {
@@ -155,7 +155,7 @@ export class RelayAgentHookRuntime {
         materializeDefaultHome: explicitKind === 'prime-agent'
       })
       if (result?.sourceAgentDir) {
-        env.ORCA_PRIME_AGENT_SOURCE_AGENT_DIR = result.sourceAgentDir
+        env.DORKA_PRIME_AGENT_SOURCE_AGENT_DIR = result.sourceAgentDir
       }
     }
     return env

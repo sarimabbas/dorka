@@ -55,7 +55,7 @@ function scopePath(pid) {
 async function startCycle(cycle, ownership = 'exclusive') {
   const nonce = `${prefix}-${cycle}`
   const resultPath = `/tmp/${nonce}`
-  const unit = `orca-daemon-${nonce}.scope`
+  const unit = `dorka-daemon-${nonce}.scope`
   scopes.push(unit)
   const runtime = spawn(
     process.execPath,
@@ -88,7 +88,7 @@ async function startCycle(cycle, ownership = 'exclusive') {
 }
 
 async function main() {
-  const canaryUnit = `orca-canary-${prefix}.scope`
+  const canaryUnit = `dorka-canary-${prefix}.scope`
   scopes.push(canaryUnit)
   const canary = spawn(
     'systemd-run',

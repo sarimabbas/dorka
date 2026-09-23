@@ -20,7 +20,7 @@ minimumReleaseAgeExclude:
   - '@shadcn/lint@0.1.0'
 shamefullyHoist: true
 
-# Orca always launches the user's own resolved Claude CLI via
+# Dorka always launches the user's own resolved Claude CLI via
 # pathToClaudeCodeExecutable, so the SDK's bundled ~95 MB-per-platform CLI
 # binaries must never be installed. Excluding them is what makes the path
 # override mandatory rather than merely preferred.
@@ -54,7 +54,7 @@ allowBuilds:
   node-pty: true
   sherpa-onnx: true
   ssh2: false
-  '@orca/windows-registry': false
+  '@dorka/windows-registry': false
 
 overrides:
   monaco-editor>dompurify: 3.4.14

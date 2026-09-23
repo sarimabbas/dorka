@@ -129,7 +129,7 @@ import ReviewRoute from '../../app/h/[hostId]/review/[worktreeId]'
 import SessionRoute from '../../app/h/[hostId]/session/[worktreeId]'
 import CatchAllRoute from './catch-all-page-route'
 
-const FLAG_KEY = 'orca:mobileWebShellEnabled'
+const FLAG_KEY = 'dorka:mobileWebShellEnabled'
 
 /**
  * Every switch the hybrid shell flag decides, with the params each needs to name a route the shell

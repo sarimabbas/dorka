@@ -47,7 +47,7 @@ export async function openRelayDatabaseAtBoot(
       onRetry: ({ attempt, delayMs, error }) =>
         console.warn(
           JSON.stringify({
-            event: 'orca_relay_boot_database_retry',
+            event: 'dorka_relay_boot_database_retry',
             attempt,
             delayMs,
             ...bootDatabaseErrorFields(error)
@@ -55,12 +55,12 @@ export async function openRelayDatabaseAtBoot(
         ),
       onRecovered: ({ attempts }) =>
         console.warn(
-          JSON.stringify({ event: 'orca_relay_boot_database_recovered', attempts })
+          JSON.stringify({ event: 'dorka_relay_boot_database_recovered', attempts })
         ),
       onGaveUp: ({ attempts, error, retryable }) =>
         console.warn(
           JSON.stringify({
-            event: 'orca_relay_boot_database_failed',
+            event: 'dorka_relay_boot_database_failed',
             attempts,
             retryable,
             ...bootDatabaseErrorFields(error)

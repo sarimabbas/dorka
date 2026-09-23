@@ -184,19 +184,19 @@ function buildRecipeEnv(
   return {
     ...process.env,
     ...env,
-    ORCA_VM_MODE: mode,
-    ORCA_VM_INSTANCE_ID: context.instanceId ?? '',
-    ORCA_RECIPE_ID: context.recipeId,
-    ORCA_PROJECT_ID: context.projectId ?? '',
-    ORCA_WORKSPACE_ID: context.workspaceId ?? '',
-    ORCA_WORKSPACE_NAME: context.workspaceName ?? '',
-    ORCA_REPO_PATH: context.repoPath,
-    ORCA_REPO_URL: context.repoUrl ?? '',
-    ORCA_REPO_BRANCH: context.branch ?? '',
-    ORCA_REPO_REF: context.ref ?? '',
-    ORCA_REPO_REF_HEAD: context.expectedRefHead ?? '',
-    ORCA_RECIPE_RESULT_SCHEMA_VERSION: String(resultSchemaVersion),
-    ORCA_VERSION: context.orcaVersion ?? ''
+    DORKA_VM_MODE: mode,
+    DORKA_VM_INSTANCE_ID: context.instanceId ?? '',
+    DORKA_RECIPE_ID: context.recipeId,
+    DORKA_PROJECT_ID: context.projectId ?? '',
+    DORKA_WORKSPACE_ID: context.workspaceId ?? '',
+    DORKA_WORKSPACE_NAME: context.workspaceName ?? '',
+    DORKA_REPO_PATH: context.repoPath,
+    DORKA_REPO_URL: context.repoUrl ?? '',
+    DORKA_REPO_BRANCH: context.branch ?? '',
+    DORKA_REPO_REF: context.ref ?? '',
+    DORKA_REPO_REF_HEAD: context.expectedRefHead ?? '',
+    DORKA_RECIPE_RESULT_SCHEMA_VERSION: String(resultSchemaVersion),
+    DORKA_VERSION: context.dorkaVersion ?? ''
   }
 }
 

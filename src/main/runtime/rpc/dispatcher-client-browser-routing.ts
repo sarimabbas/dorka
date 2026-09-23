@@ -1,12 +1,12 @@
-import type { OrcaRuntimeService } from '../orca-runtime'
+import type { DorkaRuntimeService } from '../dorka-runtime'
 
 export function routeDispatcherClientHostedBrowserRpc(
-  runtime: OrcaRuntimeService,
+  runtime: DorkaRuntimeService,
   method: string,
   params: unknown
 ) {
-  const candidate = runtime as OrcaRuntimeService & {
-    routeClientHostedBrowserRpc?: OrcaRuntimeService['routeClientHostedBrowserRpc']
+  const candidate = runtime as DorkaRuntimeService & {
+    routeClientHostedBrowserRpc?: DorkaRuntimeService['routeClientHostedBrowserRpc']
   }
   return candidate.routeClientHostedBrowserRpc?.(method, params) ?? { handled: false as const }
 }

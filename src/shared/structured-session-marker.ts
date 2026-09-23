@@ -6,8 +6,8 @@
  * otherwise GUESS an implicit terminal refuse instead: a structured session has no pane, so every
  * guess resolves to a sibling, and `orchestration check` is destructive by default.
  */
-export const ORCA_STRUCTURED_SESSION_ENV = 'ORCA_STRUCTURED_SESSION'
+export const DORKA_STRUCTURED_SESSION_ENV = 'DORKA_STRUCTURED_SESSION'
 
 export function isStructuredSessionWithoutIdentity(env: NodeJS.ProcessEnv = process.env): boolean {
-  return (env[ORCA_STRUCTURED_SESSION_ENV] ?? '').length > 0
+  return (env[DORKA_STRUCTURED_SESSION_ENV] ?? '').length > 0
 }

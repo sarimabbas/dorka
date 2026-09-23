@@ -192,9 +192,9 @@ export function claudeStreamingMessageBody(text: string): AgentJournalMessageIte
 }
 
 export function claudeToolIdentity(sessionId: string, toolUseId: string): AgentJournalItemIdentity {
-  return { provider: 'orca', clientMessageId: `claude-tool:${sessionId}:${toolUseId}` }
+  return { provider: 'dorka', clientMessageId: `claude-tool:${sessionId}:${toolUseId}` }
 }
 
 export function claudeThinkingIdentity(sessionId: string, uuid: string): AgentJournalItemIdentity {
-  return { provider: 'orca', clientMessageId: `claude-thinking:${sessionId}:${uuid}` }
+  return { provider: 'dorka', clientMessageId: `claude-thinking:${sessionId}:${uuid}` }
 }

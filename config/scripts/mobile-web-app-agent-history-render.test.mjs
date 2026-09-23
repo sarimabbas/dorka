@@ -59,7 +59,7 @@ const CORPUS_REPLIES = {
   // Two scenarios merged, because two readers read this one method and neither reply carries what
   // the other needs. `transport-host-status-gates-ready` is what `HostProtocolGate` above every
   // host route reads: with only the capability list it decides this desktop is too old and paints
-  // "Update Orca on your computer" over the route, which is what the screen showed first. The
+  // "Update Dorka on your computer" over the route, which is what the screen showed first. The
   // capability is `aivault-history-screen-listed`'s, and it is what opens the panel's own gate.
   'status.get': {
     protocolVersion: 5,
@@ -118,13 +118,13 @@ beforeAll(async () => {
   cspHeader = await readShellCsp()
   bridgeVersion = await readBridgeProtocolVersion()
   faultGrant = await readBridgeFaultGrant()
-  scratch = await mkdtemp(join(tmpdir(), 'orca-mobile-web-app-agent-history-'))
+  scratch = await mkdtemp(join(tmpdir(), 'dorka-mobile-web-app-agent-history-'))
   const built = await buildMobileWebAppBundle({ outDir: join(scratch, 'bundle') })
   routeChunks = built.routeChunks
   const served = await createBundleServer({ outDir: built.outDir, cspHeader })
   server = served.server
   origin = served.origin
-  const executablePath = process.env.ORCA_MOBILE_WEB_RENDER_BROWSER
+  const executablePath = process.env.DORKA_MOBILE_WEB_RENDER_BROWSER
   browser = await chromium.launch({ headless: true, ...(executablePath ? { executablePath } : {}) })
 }, 180_000)
 
@@ -194,14 +194,14 @@ async function waitForRoute({ page, errors, uncaught }, route, awaitText) {
       uncaught
     ])
   const cause = await race(
-    page.waitForFunction(() => document.documentElement.dataset.orcaWebEntry === 'mounted', {
+    page.waitForFunction(() => document.documentElement.dataset.dorkaWebEntry === 'mounted', {
       timeout: 30_000,
       polling: 250
     })
   )
   if (cause) {
     const state = await page.evaluate(
-      () => document.documentElement.dataset.orcaWebEntry ?? 'absent'
+      () => document.documentElement.dataset.dorkaWebEntry ?? 'absent'
     )
     throw named(cause, `never mounted (entry ${state})`)
   }
@@ -214,7 +214,7 @@ async function waitForRoute({ page, errors, uncaught }, route, awaitText) {
   if (paintCause) {
     throw named(paintCause, `mounted but never painted ${JSON.stringify(awaitText)}`)
   }
-  for (const fault of await page.evaluate(() => globalThis.__orcaRenderCheckFaults ?? [])) {
+  for (const fault of await page.evaluate(() => globalThis.__dorkaRenderCheckFaults ?? [])) {
     errors.push(`page fault: ${fault}`)
   }
 }
@@ -229,7 +229,7 @@ async function openRoute(route, awaitText, options = {}) {
 
 /** Every grant-gated notify the page posted, whole and in order, as the shell received them. */
 function readNotifies(page) {
-  return page.evaluate(() => globalThis.__orcaRenderCheckNotifies ?? [])
+  return page.evaluate(() => globalThis.__dorkaRenderCheckNotifies ?? [])
 }
 
 describeRender('the agent-history route in a real browser', () => {
@@ -252,7 +252,7 @@ describeRender('the agent-history route in a real browser', () => {
     const text = await opened.page.evaluate(() => document.body.innerText)
     const url = await opened.page.evaluate(() => location.pathname + location.search)
     const session = await opened.page.evaluate(
-      () => document.documentElement.dataset.orcaWebSessionId ?? null
+      () => document.documentElement.dataset.dorkaWebSessionId ?? null
     )
     expect(opened.errors.filter((entry) => entry.includes('Content Security Policy'))).toEqual([])
     expect(opened.errors).toEqual([])

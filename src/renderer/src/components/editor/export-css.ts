@@ -1,4 +1,4 @@
-// Why: this stylesheet targets the *exported* PDF document, not the live Orca
+// Why: this stylesheet targets the *exported* PDF document, not the live Dorka
 // pane. In-app CSS assumes sticky UI chrome, hover affordances, and app-shell
 // spacing that would look wrong when flattened to paper. Keeping export CSS
 // separate also means a future UI refactor can move live classes without
@@ -17,62 +17,62 @@ html, body {
   line-height: 1.6;
 }
 
-.orca-export-root {
+.dorka-export-root {
   padding: 0;
   max-width: 100%;
 }
 
-.orca-export-root h1,
-.orca-export-root h2,
-.orca-export-root h3,
-.orca-export-root h4,
-.orca-export-root h5,
-.orca-export-root h6 {
+.dorka-export-root h1,
+.dorka-export-root h2,
+.dorka-export-root h3,
+.dorka-export-root h4,
+.dorka-export-root h5,
+.dorka-export-root h6 {
   font-weight: 600;
   line-height: 1.25;
   margin-top: 1.5em;
   margin-bottom: 0.5em;
 }
 
-.orca-export-root h1 { font-size: 1.9em; }
-.orca-export-root h2 { font-size: 1.5em; }
-.orca-export-root h3 { font-size: 1.25em; }
-.orca-export-root h4 { font-size: 1em; }
+.dorka-export-root h1 { font-size: 1.9em; }
+.dorka-export-root h2 { font-size: 1.5em; }
+.dorka-export-root h3 { font-size: 1.25em; }
+.dorka-export-root h4 { font-size: 1em; }
 
-.orca-export-root p,
-.orca-export-root blockquote,
-.orca-export-root ul,
-.orca-export-root ol,
-.orca-export-root pre,
-.orca-export-root table {
+.dorka-export-root p,
+.dorka-export-root blockquote,
+.dorka-export-root ul,
+.dorka-export-root ol,
+.dorka-export-root pre,
+.dorka-export-root table {
   margin-top: 0;
   margin-bottom: 1em;
 }
 
-.orca-export-root a {
+.dorka-export-root a {
   color: #0969da;
   text-decoration: underline;
 }
 
-.orca-export-root blockquote {
+.dorka-export-root blockquote {
   padding: 0 1em;
   color: #57606a;
   border-left: 0.25em solid #d0d7de;
 }
 
-.orca-export-root code,
-.orca-export-root pre {
+.dorka-export-root code,
+.dorka-export-root pre {
   font-family: "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
   font-size: 0.9em;
 }
 
-.orca-export-root code {
+.dorka-export-root code {
   background: #f6f8fa;
   padding: 0.2em 0.4em;
   border-radius: 4px;
 }
 
-.orca-export-root pre {
+.dorka-export-root pre {
   background: #f6f8fa;
   padding: 12px 16px;
   border-radius: 6px;
@@ -81,43 +81,43 @@ html, body {
   word-break: break-word;
 }
 
-.orca-export-root pre code {
+.dorka-export-root pre code {
   background: transparent;
   padding: 0;
   border-radius: 0;
   font-size: inherit;
 }
 
-.orca-export-root table {
+.dorka-export-root table {
   border-collapse: collapse;
   width: 100%;
 }
 
-.orca-export-root th,
-.orca-export-root td {
+.dorka-export-root th,
+.dorka-export-root td {
   border: 1px solid #d0d7de;
   padding: 6px 12px;
   text-align: left;
 }
 
-.orca-export-root th { background: #f6f8fa; }
+.dorka-export-root th { background: #f6f8fa; }
 
-.orca-export-root img,
-.orca-export-root svg {
+.dorka-export-root img,
+.dorka-export-root svg {
   max-width: 100%;
   height: auto;
 }
 
-.orca-export-root ul,
-.orca-export-root ol { padding-left: 2em; }
+.dorka-export-root ul,
+.dorka-export-root ol { padding-left: 2em; }
 
-.orca-export-root li { margin: 0.25em 0; }
+.dorka-export-root li { margin: 0.25em 0; }
 
-.orca-export-root input[type="checkbox"] {
+.dorka-export-root input[type="checkbox"] {
   margin-right: 0.4em;
 }
 
-.orca-export-root hr {
+.dorka-export-root hr {
   border: 0;
   border-top: 1px solid #d0d7de;
   margin: 1.5em 0;
@@ -131,7 +131,7 @@ html, body {
 .markdown-preview-search,
 .markdown-annotation-controls,
 .rich-markdown-toolbar,
-[data-orca-export-hide] {
+[data-dorka-export-hide] {
   display: none !important;
 }
 

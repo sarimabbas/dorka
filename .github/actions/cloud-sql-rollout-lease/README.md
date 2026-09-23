@@ -5,7 +5,7 @@ A compare-and-swap lease on one Cloud Storage object, used to serialize Cloud SQ
 
 `concurrency.group: production-cloud-sql-rollout` only serializes runs inside a single repository.
 Once the relay workflows live in `stablyai/orca` and the app workflows stay in
-`stablyai/orca-cloud`, there are two independent queues pointed at one shared Cloud SQL instance.
+`stablyai/dorka-cloud`, there are two independent queues pointed at one shared Cloud SQL instance.
 `relay-cloud-sql-connection-budget.mjs` computes `rolloutOverlap` as a `Math.max` over the relay
 director, api, auth and relay-cell candidates, which is only sound when exactly one rollout is in
 flight. This lease is what keeps that assumption true. Keep the per-repo concurrency groups **and**
@@ -31,7 +31,7 @@ in the first cell job.
 - uses: google-github-actions/setup-gcloud@v2
 - uses: ./.github/actions/cloud-sql-rollout-lease
   with:
-    bucket: onorca-cloud-terraform-state
+    bucket: ondorka-cloud-terraform-state
     object: terraform/state/cloud-sql-rollout/production.lock
 ```
 
@@ -39,8 +39,8 @@ Buckets and objects in use:
 
 | Environment | Bucket                                 | Object                                              |
 | ----------- | -------------------------------------- | --------------------------------------------------- |
-| production  | `onorca-cloud-terraform-state`         | `terraform/state/cloud-sql-rollout/production.lock` |
-| staging     | `onorca-cloud-staging-terraform-state` | `terraform/state/cloud-sql-rollout/staging.lock`    |
+| production  | `ondorka-cloud-terraform-state`         | `terraform/state/cloud-sql-rollout/production.lock` |
+| staging     | `ondorka-cloud-staging-terraform-state` | `terraform/state/cloud-sql-rollout/staging.lock`    |
 
 Workflows that serve both environments (`deploy-relay-asia-topology`,
 `operate-relay-asia-admission`) select the pair with an `inputs.environment == 'production'`

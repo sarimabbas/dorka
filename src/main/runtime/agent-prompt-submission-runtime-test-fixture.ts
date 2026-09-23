@@ -1,15 +1,15 @@
 import type { TuiAgent } from '../../shared/tui-agent'
-import { OrcaRuntimeService } from './orca-runtime'
+import { DorkaRuntimeService } from './dorka-runtime'
 import { makeStore } from './runtime-rpc-worktree-store-fixtures'
 
 export const AGENT_PROMPT_TEST_WORKTREE_PATH = '/tmp/worktree-a'
 export const AGENT_PROMPT_TEST_WORKTREE_ID = 'repo-1::/tmp/worktree-a'
 
 export async function createAgentPromptSubmissionRuntime(
-  onWrite: (runtime: OrcaRuntimeService, data: string, writeIndex: number) => void,
+  onWrite: (runtime: DorkaRuntimeService, data: string, writeIndex: number) => void,
   launchAgent: TuiAgent = 'aider'
-): Promise<{ runtime: OrcaRuntimeService; handle: string; writes: string[] }> {
-  const runtime = new OrcaRuntimeService(makeStore() as never)
+): Promise<{ runtime: DorkaRuntimeService; handle: string; writes: string[] }> {
+  const runtime = new DorkaRuntimeService(makeStore() as never)
   const writes: string[] = []
   runtime.setPtyController({
     spawn: async () => ({ id: 'pty-prompt' }),

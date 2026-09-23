@@ -1,7 +1,7 @@
 import { randomUUID } from 'node:crypto'
 import { mkdirSync, rmSync, writeFileSync } from 'node:fs'
 import path from 'node:path'
-import { test, expect } from './helpers/orca-app'
+import { test, expect } from './helpers/dorka-app'
 import { ensureTerminalVisible, waitForActiveWorktree, waitForSessionReady } from './helpers/store'
 import {
   sendToTerminal,
@@ -16,18 +16,18 @@ import {
 } from './sustained-agent-typing-load-scripts'
 
 // File scope, not the test body: a body-level skip still builds the Electron fixtures.
-test.skip(process.env.ORCA_TYPING_BENCH !== '1', 'Opt-in benchmark calibration')
+test.skip(process.env.DORKA_TYPING_BENCH !== '1', 'Opt-in benchmark calibration')
 
 test('typing measurement charges known renderer stalls to the planned schedule', async ({
-  orcaPage,
+  dorkaPage,
   testRepoPath
 }, testInfo) => {
   test.setTimeout(120_000)
-  await waitForSessionReady(orcaPage)
-  await waitForActiveWorktree(orcaPage)
-  await ensureTerminalVisible(orcaPage)
-  await waitForActiveTerminalManager(orcaPage, 30_000)
-  const ptyId = await waitForActivePanePtyId(orcaPage)
+  await waitForSessionReady(dorkaPage)
+  await waitForActiveWorktree(dorkaPage)
+  await ensureTerminalVisible(dorkaPage)
+  await waitForActiveTerminalManager(dorkaPage, 30_000)
+  const ptyId = await waitForActivePanePtyId(dorkaPage)
   const reports: {
     injectStall: boolean
     counts: { keys: number; stalls: number }
@@ -38,9 +38,9 @@ test('typing measurement charges known renderer stalls to the planned schedule',
     const script = path.join(testRepoPath, `typing-control-${runId}.mjs`)
     const sidecar = path.join(testRepoPath, `typing-control-${runId}.jsonl`)
     writeTypingEchoProbeScript(script, runId, sidecar)
-    await sendToTerminal(orcaPage, ptyId, `node ${JSON.stringify(script)}\r`)
-    await waitForTerminalOutputForPtyId(orcaPage, ptyId, typingProbeReadyMarker(runId), 15_000)
-    const control = await orcaPage.evaluateHandle((enabled) => {
+    await sendToTerminal(dorkaPage, ptyId, `node ${JSON.stringify(script)}\r`)
+    await waitForTerminalOutputForPtyId(dorkaPage, ptyId, typingProbeReadyMarker(runId), 15_000)
+    const control = await dorkaPage.evaluateHandle((enabled) => {
       let keys = 0
       let stalls = 0
       const handler = (event: KeyboardEvent): void => {
@@ -66,7 +66,7 @@ test('typing measurement charges known renderer stalls to the planned schedule',
       }
     }, injectStall)
     try {
-      const measurement = await measurePacedTyping(orcaPage, runId, sidecar, {
+      const measurement = await measurePacedTyping(dorkaPage, runId, sidecar, {
         keyCount: 32,
         keyCadenceMs: 25
       })
@@ -82,7 +82,7 @@ test('typing measurement charges known renderer stalls to the planned schedule',
     } finally {
       await control.evaluate((value) => value.stop())
       await control.dispose()
-      await sendToTerminal(orcaPage, ptyId, '\x03')
+      await sendToTerminal(dorkaPage, ptyId, '\x03')
       rmSync(script, { force: true })
       rmSync(sidecar, { force: true })
     }

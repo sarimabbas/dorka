@@ -34,7 +34,7 @@ const {
 
 const HOST_ID = 'host-1'
 const SESSION_ROUTE = '/h/host-1/session/wt-1'
-const JOURNAL = 'orca:mobileStructuredSendOperations:v1'
+const JOURNAL = 'dorka:mobileStructuredSendOperations:v1'
 
 const hex = (fill: string) => fill.repeat(64)
 

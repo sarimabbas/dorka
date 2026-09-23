@@ -57,7 +57,7 @@ function statusTexts(): string[] {
 }
 
 beforeEach(async () => {
-  root = await mkdtemp(join(tmpdir(), 'orca-settlement-retry-'))
+  root = await mkdtemp(join(tmpdir(), 'dorka-settlement-retry-'))
   journal = await openAgentSessionJournal({
     identity: {
       sessionId: SESSION,

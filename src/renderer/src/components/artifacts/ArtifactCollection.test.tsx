@@ -34,7 +34,7 @@ function artifact(slug: string, title: string): ArtifactListItem {
       byteSize: 1200,
       deletedAt: null
     },
-    shareUrl: `https://share.onorca.dev/a/${slug}`
+    shareUrl: `https://share.ondorka.dev/a/${slug}`
   }
 }
 
@@ -226,6 +226,6 @@ describe('ArtifactCollection', () => {
     expect(screen.getByText('HTML')).toBeInTheDocument()
     expect(screen.getByText('1.2 KB')).toBeInTheDocument()
     expect(screen.getByText(/in \d+ days/)).toBeInTheDocument()
-    expect(screen.queryByText('https://share.onorca.dev/a/first')).not.toBeInTheDocument()
+    expect(screen.queryByText('https://share.ondorka.dev/a/first')).not.toBeInTheDocument()
   })
 })

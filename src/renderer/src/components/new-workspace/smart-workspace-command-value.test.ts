@@ -125,11 +125,11 @@ describe('resolveSmartWorkspaceCommandValue', () => {
     expect(
       resolveSmartWorkspaceCommandValue({
         currentValue: 'jira-account-site-1',
-        rows: [row('jira-account', 'jira-account-site-1'), row('jira', 'jira-ORCA-123')],
+        rows: [row('jira-account', 'jira-account-site-1'), row('jira', 'jira-DORKA-123')],
         isQueryStale: false,
         sourceIntent: 'jira'
       })
-    ).toBe('jira-ORCA-123')
+    ).toBe('jira-DORKA-123')
   })
 
   it('leaves the current value alone when no rows are rendered', () => {

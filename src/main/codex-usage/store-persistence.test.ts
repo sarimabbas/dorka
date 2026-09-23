@@ -5,7 +5,7 @@ import type { CodexUsagePersistedState } from './types'
 import { createStoreWithState, setupCodexUsageStoreEnv } from './store-test-harness'
 
 const { getPathMock } = vi.hoisted(() => ({
-  getPathMock: vi.fn(() => '/tmp/orca-test-userdata')
+  getPathMock: vi.fn(() => '/tmp/dorka-test-userdata')
 }))
 
 vi.mock('electron', () => ({
@@ -38,7 +38,7 @@ describe('CodexUsageStore', () => {
     await store.refresh(true)
 
     const persistedJson = readFileSync(
-      join(storeEnv.tempUserData, 'orca-codex-usage.json'),
+      join(storeEnv.tempUserData, 'dorka-codex-usage.json'),
       'utf-8'
     )
     expect(scanCodexUsageFilesViaWorker).toHaveBeenCalledWith([], [])
@@ -112,7 +112,7 @@ describe('CodexUsageStore', () => {
       sessions: [],
       dailyAggregates: []
     })
-    const cacheFile = join(storeEnv.tempUserData, 'orca-codex-usage.json')
+    const cacheFile = join(storeEnv.tempUserData, 'dorka-codex-usage.json')
     const seeded = new CodexUsageStore({ getRepos: () => [], getAllWorktreeMeta: () => ({}) })
     await seeded.setEnabled(true)
     await seeded.refresh(true)

@@ -72,7 +72,7 @@ beforeAll(async () => {
   const cspHeader = await readShellCsp()
   bridgeVersion = await readBridgeProtocolVersion()
   faultGrant = await readBridgeFaultGrant()
-  scratch = await mkdtemp(join(tmpdir(), 'orca-mobile-web-live-input-'))
+  scratch = await mkdtemp(join(tmpdir(), 'dorka-mobile-web-live-input-'))
   const appDir = join(scratch, 'app')
   const routeDir = join(appDir, MOBILE_WEB_APP_ROUTE_ROOT)
   await mkdir(routeDir, { recursive: true })
@@ -94,7 +94,7 @@ beforeAll(async () => {
   const served = await createBundleServer({ outDir: built.outDir, cspHeader })
   server = served.server
   origin = served.origin
-  const executablePath = process.env.ORCA_MOBILE_WEB_RENDER_BROWSER
+  const executablePath = process.env.DORKA_MOBILE_WEB_RENDER_BROWSER
   browser = await chromium.launch({ headless: true, ...(executablePath ? { executablePath } : {}) })
 }, 600_000)
 
@@ -134,17 +134,17 @@ async function openProbe() {
     }
   })
   await page.goto(`${origin}/`, { waitUntil: 'load' })
-  await page.waitForFunction(() => document.documentElement.dataset.orcaWebEntry === 'mounted', {
+  await page.waitForFunction(() => document.documentElement.dataset.dorkaWebEntry === 'mounted', {
     timeout: 60_000,
     polling: 250
   })
   await page.waitForFunction(
     () =>
-      globalThis.__orcaLiveInputProbe !== undefined ||
-      (globalThis.__orcaRenderCheckFaults ?? []).length > 0,
+      globalThis.__dorkaLiveInputProbe !== undefined ||
+      (globalThis.__dorkaRenderCheckFaults ?? []).length > 0,
     { timeout: 60_000, polling: 100 }
   )
-  const faults = await page.evaluate(() => globalThis.__orcaRenderCheckFaults ?? [])
+  const faults = await page.evaluate(() => globalThis.__dorkaRenderCheckFaults ?? [])
   return { errors, faults, page }
 }
 
@@ -153,7 +153,7 @@ const fieldValue = (page) =>
 
 /** Typed text, as the field and the mirror both hold it once a native edit has landed. */
 async function typeIntoField(page, text) {
-  await page.evaluate((typed) => globalThis.__orcaLiveInputProbe.type(typed), text)
+  await page.evaluate((typed) => globalThis.__dorkaLiveInputProbe.type(typed), text)
   await page.waitForFunction(
     ([id, typed]) => document.getElementById(id)?.value === typed,
     [LIVE_INPUT_FIELD_ID, text],
@@ -186,7 +186,7 @@ describeRender(
       }, LIVE_INPUT_FIELD_ID)
       expect(await fieldValue(page)).toBe('ime-preedit')
 
-      await page.evaluate(() => globalThis.__orcaLiveInputProbe.clear())
+      await page.evaluate(() => globalThis.__dorkaLiveInputProbe.clear())
 
       expect(await fieldValue(page)).toBe('')
       expect(errors).toEqual([])
@@ -209,13 +209,13 @@ describeRender(
       await page.keyboard.press('Enter')
 
       await page.waitForFunction(
-        () => (globalThis.__orcaLiveInputProbe.sent() ?? []).includes('\r'),
+        () => (globalThis.__dorkaLiveInputProbe.sent() ?? []).includes('\r'),
         undefined,
         { timeout: 30_000, polling: 100 }
       )
       // Exact, not `includes`: react-native-web cancels every keydown it submits on, so the page's
       // own line-break binding must stay silent here rather than send a second carriage return.
-      expect(await page.evaluate(() => globalThis.__orcaLiveInputProbe.sent())).toEqual([
+      expect(await page.evaluate(() => globalThis.__dorkaLiveInputProbe.sent())).toEqual([
         'l',
         's',
         '\r'
@@ -249,11 +249,11 @@ describeRender(
       // The held composition is committed to the terminal first, then the carriage return, which
       // is the order the native path produces for the same keystroke.
       await page.waitForFunction(
-        () => globalThis.__orcaLiveInputProbe.sent().includes('\r'),
+        () => globalThis.__dorkaLiveInputProbe.sent().includes('\r'),
         undefined,
         { timeout: 30_000, polling: 100 }
       )
-      expect(await page.evaluate(() => globalThis.__orcaLiveInputProbe.sent())).toEqual([
+      expect(await page.evaluate(() => globalThis.__dorkaLiveInputProbe.sent())).toEqual([
         'ls',
         '\r'
       ])
@@ -276,16 +276,16 @@ describeRender(
         { timeout: 30_000, polling: 100 }
       )
 
-      await page.evaluate(() => globalThis.__orcaLiveInputProbe.accessory({ bytes: '\r' }))
+      await page.evaluate(() => globalThis.__dorkaLiveInputProbe.accessory({ bytes: '\r' }))
 
       // Exactly once, whichever branch carries it: the hook sends the control itself or defers to
       // the caller, and a fix that did both would double the command.
       await page.waitForFunction(
-        () => (globalThis.__orcaLiveInputProbe.sent() ?? []).includes('\r'),
+        () => (globalThis.__dorkaLiveInputProbe.sent() ?? []).includes('\r'),
         undefined,
         { timeout: 30_000, polling: 100 }
       )
-      expect(await page.evaluate(() => globalThis.__orcaLiveInputProbe.sent())).toEqual([
+      expect(await page.evaluate(() => globalThis.__dorkaLiveInputProbe.sent())).toEqual([
         'l',
         's',
         '\r'
@@ -303,7 +303,7 @@ describeRender(
       await typeIntoField(page, 'ab')
 
       const result = await page.evaluate(() =>
-        globalThis.__orcaLiveInputProbe.accessory({ bytes: '\u007f', localEdit: 'backspace' })
+        globalThis.__dorkaLiveInputProbe.accessory({ bytes: '\u007f', localEdit: 'backspace' })
       )
 
       expect(result).toEqual({ kind: 'handled' })
@@ -314,7 +314,7 @@ describeRender(
       )
       // One DEL reached the terminal, so the field edit above is a mirror of the PTY rather than a
       // local edit that silently diverged from it.
-      expect(await page.evaluate(() => globalThis.__orcaLiveInputProbe.sent())).toEqual([
+      expect(await page.evaluate(() => globalThis.__dorkaLiveInputProbe.sent())).toEqual([
         'ab',
         '\u007f'
       ])
@@ -342,7 +342,7 @@ describeRender(
           BUFFERED_FIELD_ID,
           { timeout: 30_000, polling: 100 }
         )
-        expect(await page.evaluate(() => globalThis.__orcaLiveInputProbe.bufferedSent())).toEqual([
+        expect(await page.evaluate(() => globalThis.__dorkaLiveInputProbe.bufferedSent())).toEqual([
           'ls -la'
         ])
         expect(errors).toEqual([])
@@ -370,11 +370,11 @@ describeRender(
         await page.keyboard.press('Enter')
 
         await page.waitForFunction(
-          () => (globalThis.__orcaLiveInputProbe.bufferedSent() ?? []).length > 0,
+          () => (globalThis.__dorkaLiveInputProbe.bufferedSent() ?? []).length > 0,
           undefined,
           { timeout: 30_000, polling: 100 }
         )
-        expect(await page.evaluate(() => globalThis.__orcaLiveInputProbe.bufferedSent())).toEqual([
+        expect(await page.evaluate(() => globalThis.__dorkaLiveInputProbe.bufferedSent())).toEqual([
           'ls -la'
         ])
         expect(await bufferedValue(page)).toBe('')
@@ -387,17 +387,17 @@ describeRender(
         // guard and the chip is a plain terminal key: one carriage return on the wire, and a draft
         // the chip never claimed to send.
         const { errors, page } = await openProbe()
-        await page.evaluate(() => globalThis.__orcaLiveInputProbe.setLiveInputEnabled(false))
+        await page.evaluate(() => globalThis.__dorkaLiveInputProbe.setLiveInputEnabled(false))
         await page.focus(`#${BUFFERED_FIELD_ID}`)
         await page.keyboard.type('ls -la')
 
         const result = await page.evaluate(() =>
-          globalThis.__orcaLiveInputProbe.accessory({ bytes: '\r' })
+          globalThis.__dorkaLiveInputProbe.accessory({ bytes: '\r' })
         )
 
         expect(result).toEqual({ kind: 'allow-raw' })
-        expect(await page.evaluate(() => globalThis.__orcaLiveInputProbe.sent())).toEqual(['\r'])
-        expect(await page.evaluate(() => globalThis.__orcaLiveInputProbe.bufferedSent())).toEqual(
+        expect(await page.evaluate(() => globalThis.__dorkaLiveInputProbe.sent())).toEqual(['\r'])
+        expect(await page.evaluate(() => globalThis.__dorkaLiveInputProbe.bufferedSent())).toEqual(
           []
         )
         expect(await bufferedValue(page)).toBe('ls -la')

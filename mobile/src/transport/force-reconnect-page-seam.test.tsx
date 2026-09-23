@@ -32,7 +32,7 @@ const INIT = {
 }
 
 afterEach(() => {
-  Reflect.deleteProperty(globalThis, 'orcaBridge')
+  Reflect.deleteProperty(globalThis, 'dorkaBridge')
 })
 
 describe('useForceReconnect on the page', () => {
@@ -44,7 +44,7 @@ describe('useForceReconnect on the page', () => {
       postMessage: () => {},
       onmessage: null
     }
-    Object.defineProperty(globalThis, 'orcaBridge', { value: channel, configurable: true })
+    Object.defineProperty(globalThis, 'dorkaBridge', { value: channel, configurable: true })
     const client = createShellPageClient()
     if (client === null) {
       throw new Error('no channel installed')

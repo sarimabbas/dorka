@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from 'vitest'
 const {
   callMock,
   runtimeClientConstructorMock,
-  serveOrcaAppMock,
+  serveDorkaAppMock,
   getDefaultUserDataPathMock,
   addEnvironmentFromPairingCodeMock,
   listEnvironmentsMock,
@@ -11,8 +11,8 @@ const {
 } = vi.hoisted(() => ({
   callMock: vi.fn(),
   runtimeClientConstructorMock: vi.fn(),
-  serveOrcaAppMock: vi.fn(),
-  getDefaultUserDataPathMock: vi.fn(() => '/tmp/orca-user-data'),
+  serveDorkaAppMock: vi.fn(),
+  getDefaultUserDataPathMock: vi.fn(() => '/tmp/dorka-user-data'),
   addEnvironmentFromPairingCodeMock: vi.fn(),
   listEnvironmentsMock: vi.fn(),
   spawnMock: vi.fn()
@@ -23,7 +23,7 @@ vi.mock('./runtime-client', async () => {
   return createRuntimeClientModuleMock({
     callMock,
     runtimeClientConstructorMock,
-    serveOrcaAppMock,
+    serveDorkaAppMock,
     getDefaultUserDataPathMock
   })
 })
@@ -44,10 +44,10 @@ import { main } from './index'
 import { buildWorktree, okFixture, queueFixtures, worktreeListFixture } from './test-fixtures'
 import { pairRuntimeEnvironment, useWorktreeAwarenessEnvironment } from './index-test-harness'
 
-describe('orca cli worktree awareness', () => {
+describe('dorka cli worktree awareness', () => {
   useWorktreeAwarenessEnvironment({
     callMock,
-    serveOrcaAppMock,
+    serveDorkaAppMock,
     getDefaultUserDataPathMock,
     addEnvironmentFromPairingCodeMock,
     listEnvironmentsMock,
@@ -99,8 +99,8 @@ describe('orca cli worktree awareness', () => {
             projectId: 'github:stablyai/orca',
             hostId: 'local',
             repoId: 'repo-local',
-            path: '/tmp/orca',
-            displayName: 'Orca',
+            path: '/tmp/dorka',
+            displayName: 'Dorka',
             setupState: 'ready',
             setupMethod: 'legacy-repo',
             createdAt: 1,
@@ -111,8 +111,8 @@ describe('orca cli worktree awareness', () => {
             projectId: 'github:stablyai/orca',
             hostId: 'runtime:gpu',
             repoId: 'repo-gpu',
-            path: '/srv/orca',
-            displayName: 'Orca',
+            path: '/srv/dorka',
+            displayName: 'Dorka',
             setupState: 'ready',
             setupMethod: 'legacy-repo',
             createdAt: 1,
@@ -121,7 +121,7 @@ describe('orca cli worktree awareness', () => {
         ]
       }),
       okFixture('req_create', {
-        worktree: buildWorktree('/srv/orca/feature', 'feature', 'abc', 'repo-gpu'),
+        worktree: buildWorktree('/srv/dorka/feature', 'feature', 'abc', 'repo-gpu'),
         lineage: null,
         warnings: []
       })
@@ -173,8 +173,8 @@ describe('orca cli worktree awareness', () => {
             projectId: 'github:stablyai/orca',
             hostId: 'runtime:gpu',
             repoId: 'repo-gpu',
-            path: '/srv/orca',
-            displayName: 'Orca',
+            path: '/srv/dorka',
+            displayName: 'Dorka',
             setupState: 'ready',
             setupMethod: 'legacy-repo',
             createdAt: 1,
@@ -183,7 +183,7 @@ describe('orca cli worktree awareness', () => {
         ]
       }),
       okFixture('req_create', {
-        worktree: buildWorktree('/srv/orca/feature', 'feature', 'abc', 'repo-gpu'),
+        worktree: buildWorktree('/srv/dorka/feature', 'feature', 'abc', 'repo-gpu'),
         lineage: null,
         warnings: []
       })
@@ -241,7 +241,7 @@ describe('orca cli worktree awareness', () => {
   })
 
   it('passes caller terminal handle through worktree.create with cwd fallback', async () => {
-    process.env.ORCA_TERMINAL_HANDLE = 'term_parent'
+    process.env.DORKA_TERMINAL_HANDLE = 'term_parent'
     queueFixtures(
       callMock,
       worktreeListFixture([buildWorktree('/tmp/repo', 'main', 'abc', 'repo-1')]),
@@ -281,7 +281,7 @@ describe('orca cli worktree awareness', () => {
   it('marks every worktree.create as CLI-created even from an external shell', async () => {
     // Why: the sidebar badge/filter must catch hand-typed creates too, so the
     // provenance request is sent with no terminal handle rather than omitted.
-    delete process.env.ORCA_TERMINAL_HANDLE
+    delete process.env.DORKA_TERMINAL_HANDLE
     queueFixtures(
       callMock,
       okFixture('req_create_external', {

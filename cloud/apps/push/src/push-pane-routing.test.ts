@@ -1,6 +1,6 @@
 import { expect, it } from 'vitest'
-import { PushNotificationSchema } from '@orca-cloud/push-contract'
-import { buildPushDelivery, orcaDataStrings } from './push-delivery-message.js'
+import { PushNotificationSchema } from '@dorka-cloud/push-contract'
+import { buildPushDelivery, dorkaDataStrings } from './push-delivery-message.js'
 
 it('preserves pane identity for both APNs and FCM, and accepts older workspace-only messages', () => {
   const base = {
@@ -21,7 +21,7 @@ it('preserves pane identity for both APNs and FCM, and accepts older workspace-o
       registrationId: 'phone',
       expiresAt: Date.now() + 300000
     })
-    expect(delivery.orca.paneKey).toBe('paneKey' in extra ? paneKey : undefined)
-    expect(orcaDataStrings(delivery.orca).paneKey).toBe('paneKey' in extra ? paneKey : undefined)
+    expect(delivery.dorka.paneKey).toBe('paneKey' in extra ? paneKey : undefined)
+    expect(dorkaDataStrings(delivery.dorka).paneKey).toBe('paneKey' in extra ? paneKey : undefined)
   }
 })

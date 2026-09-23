@@ -151,7 +151,7 @@ describe('connectPanePty split cwd resolution', () => {
       ...mockStoreState,
       tabsByWorktree: { 'wt-1': [{ id: 'tab-1', ptyId: livePtyId, generation: 7 }] },
       ptyIdsByTabId: { 'tab-1': [livePtyId] },
-      repos: [{ id: 'repo1', connectionId: 'target-a', displayName: 'orca' }],
+      repos: [{ id: 'repo1', connectionId: 'target-a', displayName: 'dorka' }],
       sshConnectionStates: new Map([
         [
           'target-a',

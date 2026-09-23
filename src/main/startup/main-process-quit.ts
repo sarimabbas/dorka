@@ -10,7 +10,7 @@ import { wslHookRelayManager } from '../agent-hooks/wsl-hook-relay-manager'
 import { removeManagedAgentHooksAsync } from '../agent-hooks/managed-agent-hook-controls'
 import { stopStructuredAgentSessionRuntime } from '../runtime/structured-agent-session-runtime'
 import { setStructuredAgentSessionTeardownTrigger } from '../runtime/structured-agent-session-runtime-teardown'
-import { awaitRuntimeFileWatcherUnsubscribes } from '../runtime/orca-runtime-files'
+import { awaitRuntimeFileWatcherUnsubscribes } from '../runtime/dorka-runtime-files'
 import { clearRuntimeMetadataIfOwned } from '../runtime/runtime-metadata'
 import { shutdownPairedRuntimeBrowserClientHosts } from '../browser/paired-runtime-browser-client-host-runtime'
 import { browserManager } from '../browser/browser-manager'
@@ -151,7 +151,7 @@ function installWillQuitHandler(): void {
     ).then(() => {})
     state.uninstallRepoMaintenanceIdleGate = null
     agentHookServer.stop()
-    // Why Windows only: POSIX hooks short-circuit on ORCA_PANE_KEY, while Windows must register a
+    // Why Windows only: POSIX hooks short-circuit on DORKA_PANE_KEY, while Windows must register a
     // bare script path that cannot express the guard and would otherwise keep spawning after quit.
     // Why bounded here: every other teardown member carries its own ceiling, and this one reaches
     // $GROK_HOME -- which can be a stalled network mount, where the fs calls never settle and the

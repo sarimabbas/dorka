@@ -34,7 +34,7 @@ function harness(initialSelector, runtimeDigests = {}) {
     if (parsed.pathname === '/v1/admin/cell-status') {
       return {
         status: {
-          cellUrl: `https://${body.cellId.split('-').at(-1)}.relay.onorca.dev`,
+          cellUrl: `https://${body.cellId.split('-').at(-1)}.relay.ondorka.dev`,
           runtime: { heartbeatFresh: true, ready: true }
         }
       }
@@ -86,14 +86,14 @@ function harness(initialSelector, runtimeDigests = {}) {
     return new Response(null, { status: 200 })
   }
   const commitWithoutResponse = async (path, body) => {
-    await post(`https://relay.onorca.dev${path}`, body)
+    await post(`https://relay.ondorka.dev${path}`, body)
     throw new Error('response lost after commit')
   }
   return {
     post, fetch, requests, commitWithoutResponse,
     failNextApplyAfterIntent: () => (failAfterIntent = true),
     apply: async (attemptId, membership) => await post(
-      'https://relay.onorca.dev/v1/admin/admission-selector/apply',
+      'https://relay.ondorka.dev/v1/admin/admission-selector/apply',
       { attemptId, expectedGeneration: selector.generation, membership }
     ),
     fetchCount: () => fetches, selector: () => selector
@@ -594,7 +594,7 @@ test('registers C30 alone beside the general launch cells', async () => {
   }, subject)
   const request = subject.requests.find(({ path }) => path.endsWith('/add-migration-cells'))
   assert.deepEqual(request.body.cells, [{
-    cellId: 'production-gce-c30', cellUrl: 'https://c30.relay.onorca.dev', region: 'asia-east2',
+    cellId: 'production-gce-c30', cellUrl: 'https://c30.relay.ondorka.dev', region: 'asia-east2',
     capacityRequests: 6_000, connectionHardCap: 3_000, connectionUnobservedBound: 60
   }])
   assert.deepEqual(result.states, { 'production-gce-c30': 'migration-only' })

@@ -1,7 +1,7 @@
-import type { OrcaProfileAuthStatus } from '../../../../shared/orca-profiles'
+import type { DorkaProfileAuthStatus } from '../../../../shared/dorka-profiles'
 
 export type UnexpectedSignoutGate = {
-  authStatus: OrcaProfileAuthStatus | null
+  authStatus: DorkaProfileAuthStatus | null
   persistedUIReady: boolean
   appVersion: string | null
   dismissedVersion: string | null

@@ -34,7 +34,7 @@ function captureOpenLinkHandler(): (event: {
     | null = null
   const browserApi = new Proxy(
     {
-      onOpenLinkInOrcaTab: (
+      onOpenLinkInDorkaTab: (
         callback: (event: { browserPageId: string; url: string; activate?: boolean }) => void
       ) => {
         handler = callback
@@ -56,12 +56,12 @@ function captureOpenLinkHandler(): (event: {
 
   registerBrowserStateIpcBridge([], () => false)
   if (!handler) {
-    throw new Error('Expected the bridge to subscribe to browser:open-link-in-orca-tab')
+    throw new Error('Expected the bridge to subscribe to browser:open-link-in-dorka-tab')
   }
   return handler
 }
 
-describe('link-opened Orca tabs', () => {
+describe('link-opened Dorka tabs', () => {
   beforeEach(() => {
     createBrowserTabMock.mockReset()
   })
@@ -76,7 +76,7 @@ describe('link-opened Orca tabs', () => {
           {
             id: 'workspace-1',
             sessionProfileId: 'profile-client-a',
-            sessionPartition: 'persist:orca-browser-session-client-a'
+            sessionPartition: 'persist:dorka-browser-session-client-a'
           }
         ]
       },
@@ -90,7 +90,7 @@ describe('link-opened Orca tabs', () => {
       'https://docs.example.com/guide',
       expect.objectContaining({
         sessionProfileId: 'profile-client-a',
-        sessionPartition: 'persist:orca-browser-session-client-a'
+        sessionPartition: 'persist:dorka-browser-session-client-a'
       })
     )
   })

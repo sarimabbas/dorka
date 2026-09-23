@@ -2,7 +2,7 @@
  *  durable binding and runtime ownership keep graph sync from pruning the tab
  *  out from under a live agent — including when a window is attached. */
 import { describe, expect, it, vi } from 'vitest'
-import { OrcaRuntimeService } from './orca-runtime'
+import { DorkaRuntimeService } from './dorka-runtime'
 
 vi.mock('electron', () => ({
   BrowserWindow: { fromId: vi.fn(() => ({ isDestroyed: () => false })) },
@@ -12,10 +12,10 @@ vi.mock('electron', () => ({
 }))
 
 function createRuntimeWithAttachedWindow(): {
-  runtime: OrcaRuntimeService
+  runtime: DorkaRuntimeService
   spawn: ReturnType<typeof vi.fn>
 } {
-  const runtime = new OrcaRuntimeService()
+  const runtime = new DorkaRuntimeService()
   vi.spyOn(
     runtime as unknown as {
       resolveTerminalWorkspaceLaunchScope: (selector: string) => Promise<unknown>

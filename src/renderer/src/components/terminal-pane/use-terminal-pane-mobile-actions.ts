@@ -22,7 +22,7 @@ import type { TerminalPaneContextController } from './use-terminal-pane-context-
 
 // Why: mirrors xterm's SelectionService.shouldForceSelection — a shifted click
 // (Option-click on Mac, via macOptionClickForcesSelection) is never forwarded
-// as a mouse report, so the TUI cannot paste and Orca must own it instead.
+// as a mouse report, so the TUI cannot paste and Dorka must own it instead.
 function terminalForcesSelectionForClick(event: React.MouseEvent): boolean {
   return navigator.userAgent.includes('Mac') ? event.altKey : event.shiftKey
 }
@@ -98,7 +98,7 @@ export function useTerminalPaneMobileActions(controller: TerminalPaneContextCont
     []
   )
   // Why: any terminal pane target must arm native-paste suppression, even one
-  // in mouse-tracking mode where the TUI (not Orca) owns the click and performs
+  // in mouse-tracking mode where the TUI (not Dorka) owns the click and performs
   // its own PRIMARY paste from the forwarded mouse report — otherwise
   // Chromium's unsuppressed native paste lands on top of it (#21762).
   const findTerminalPaneForMiddleClick = useCallback(

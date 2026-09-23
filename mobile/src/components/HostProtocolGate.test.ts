@@ -101,7 +101,7 @@ describe('HostProtocolGate', () => {
     }
     renderer = await renderGate()
     const output = renderedText(renderer)
-    expect(output).toContain('Update Orca Mobile')
+    expect(output).toContain('Update Dorka Mobile')
     expect(output).toContain('Open App Store')
     expect(output).not.toContain('HostContent')
   })
@@ -115,8 +115,8 @@ describe('HostProtocolGate', () => {
     }
     renderer = await renderGate()
     const output = renderedText(renderer)
-    expect(output).toContain('Update Orca Mobile')
-    expect(output).toContain('Update Orca Mobile from GitHub Releases')
+    expect(output).toContain('Update Dorka Mobile')
+    expect(output).toContain('Update Dorka Mobile from GitHub Releases')
     expect(output).toContain('Open GitHub Releases')
     expect(output).not.toContain('mobile app store')
     expect(output).not.toContain('HostContent')
@@ -134,7 +134,7 @@ describe('HostProtocolGate', () => {
     }
     renderer = await renderGate()
     const output = renderedText(renderer)
-    expect(output).toContain('Update Orca on your computer')
+    expect(output).toContain('Update Dorka on your computer')
     expect(output).toContain('Open GitHub Releases')
     expect(output).not.toContain('HostContent')
   })
@@ -153,7 +153,7 @@ describe('HostProtocolGate', () => {
     const output = renderedText(renderer)
     expect(output).toContain('HostContent')
     expect(output).toContain('browser.screencast.v1')
-    expect(output).not.toContain('Update Orca')
+    expect(output).not.toContain('Update Dorka')
     expect(client.sendRequest).toHaveBeenCalledOnce()
   })
 
@@ -218,7 +218,7 @@ describe('HostProtocolGate', () => {
     })
 
     const output = renderedText(renderer)
-    expect(output).toContain('Update Orca Mobile')
+    expect(output).toContain('Update Dorka Mobile')
     expect(output).not.toContain('HostContent')
   })
 

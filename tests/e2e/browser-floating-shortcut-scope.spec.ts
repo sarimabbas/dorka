@@ -2,7 +2,7 @@
 // chrome chords pressed inside them.
 
 import type { Page } from '@stablyai/playwright-test'
-import { expect, test } from './helpers/orca-app'
+import { expect, test } from './helpers/dorka-app'
 import { ensureTerminalVisible, waitForActiveWorktree, waitForSessionReady } from './helpers/store'
 import {
   browserAddressBar,
@@ -57,7 +57,7 @@ async function openFloatingBrowser(
   await expect(page.locator(FLOATING_PANEL)).toHaveCount(1)
   const openPanel = page.locator(`${FLOATING_PANEL}[aria-hidden="false"]`)
   if ((await openPanel.count()) === 0) {
-    await page.evaluate(() => window.dispatchEvent(new Event('orca-toggle-floating-terminal')))
+    await page.evaluate(() => window.dispatchEvent(new Event('dorka-toggle-floating-terminal')))
   }
   await expect(
     openPanel.locator(`[data-browser-overlay-tab-id="${floating.browserTabId}"]`)
@@ -85,22 +85,22 @@ async function focusChrome(page: Page, browserTabId: string): Promise<void> {
 }
 
 test.describe('floating browser shortcut scope', () => {
-  test.beforeEach(async ({ orcaPage }) => {
-    await waitForSessionReady(orcaPage)
-    await waitForActiveWorktree(orcaPage)
-    await ensureTerminalVisible(orcaPage)
+  test.beforeEach(async ({ dorkaPage }) => {
+    await waitForSessionReady(dorkaPage)
+    await waitForActiveWorktree(dorkaPage)
+    await ensureTerminalVisible(dorkaPage)
   })
 
-  test('chrome shortcuts act only in the pane that owns the key press', async ({ orcaPage }) => {
+  test('chrome shortcuts act only in the pane that owns the key press', async ({ dorkaPage }) => {
     const server = await startBrowserSplitPageServer()
     try {
-      const split = await createTerminalBrowserSplit(orcaPage, server.pageUrl('split', 1))
-      const floating = await openFloatingBrowser(orcaPage, server.pageUrl('float', 1))
-      await focusBrowserGroup(orcaPage, split.browserGroupId)
-      await waitForGuestUrl(orcaPage, split.browserTabId, server.pageUrl('split', 1))
-      await waitForGuestUrl(orcaPage, floating.browserTabId, server.pageUrl('float', 1))
-      await navigateGuest(orcaPage, split.browserTabId, server.pageUrl('split', 2))
-      await navigateGuest(orcaPage, floating.browserTabId, server.pageUrl('float', 2))
+      const split = await createTerminalBrowserSplit(dorkaPage, server.pageUrl('split', 1))
+      const floating = await openFloatingBrowser(dorkaPage, server.pageUrl('float', 1))
+      await focusBrowserGroup(dorkaPage, split.browserGroupId)
+      await waitForGuestUrl(dorkaPage, split.browserTabId, server.pageUrl('split', 1))
+      await waitForGuestUrl(dorkaPage, floating.browserTabId, server.pageUrl('float', 1))
+      await navigateGuest(dorkaPage, split.browserTabId, server.pageUrl('split', 2))
+      await navigateGuest(dorkaPage, floating.browserTabId, server.pageUrl('float', 2))
 
       const cases = [
         {
@@ -118,53 +118,53 @@ test.describe('floating browser shortcut scope', () => {
       ]
       for (const { name, owner, other, otherName } of cases) {
         await test.step(`keys pressed in the ${name} browser chrome`, async () => {
-          await focusChrome(orcaPage, owner)
-          await orcaPage.keyboard.press(backChord)
-          await waitForGuestUrl(orcaPage, owner, server.pageUrl(name, 1))
-          await waitForGuestIdle(orcaPage, other)
-          await waitForGuestUrl(orcaPage, other, server.pageUrl(otherName, 2))
-          await focusChrome(orcaPage, owner)
-          await orcaPage.keyboard.press(forwardChord)
-          await waitForGuestUrl(orcaPage, owner, server.pageUrl(name, 2))
-          await waitForGuestUrl(orcaPage, other, server.pageUrl(otherName, 2))
+          await focusChrome(dorkaPage, owner)
+          await dorkaPage.keyboard.press(backChord)
+          await waitForGuestUrl(dorkaPage, owner, server.pageUrl(name, 1))
+          await waitForGuestIdle(dorkaPage, other)
+          await waitForGuestUrl(dorkaPage, other, server.pageUrl(otherName, 2))
+          await focusChrome(dorkaPage, owner)
+          await dorkaPage.keyboard.press(forwardChord)
+          await waitForGuestUrl(dorkaPage, owner, server.pageUrl(name, 2))
+          await waitForGuestUrl(dorkaPage, other, server.pageUrl(otherName, 2))
 
-          await recordGuestLoadStarts(orcaPage, [owner, other])
-          await focusChrome(orcaPage, owner)
-          await orcaPage.keyboard.press(`${shortcutModifier}+r`)
-          await expect.poll(() => guestLoadStarts(orcaPage, owner)).toBeGreaterThan(0)
-          await waitForGuestIdle(orcaPage, owner)
-          expect(await guestLoadStarts(orcaPage, other)).toBe(0)
+          await recordGuestLoadStarts(dorkaPage, [owner, other])
+          await focusChrome(dorkaPage, owner)
+          await dorkaPage.keyboard.press(`${shortcutModifier}+r`)
+          await expect.poll(() => guestLoadStarts(dorkaPage, owner)).toBeGreaterThan(0)
+          await waitForGuestIdle(dorkaPage, owner)
+          expect(await guestLoadStarts(dorkaPage, other)).toBe(0)
 
-          await focusChrome(orcaPage, owner)
-          await orcaPage.keyboard.press(`${shortcutModifier}+f`)
-          await expect(findInput(orcaPage, owner)).toBeFocused()
-          await expect(findInput(orcaPage, other)).toBeHidden()
-          await orcaPage.keyboard.press('Escape')
-          await expect(findInput(orcaPage, owner)).toBeHidden()
+          await focusChrome(dorkaPage, owner)
+          await dorkaPage.keyboard.press(`${shortcutModifier}+f`)
+          await expect(findInput(dorkaPage, owner)).toBeFocused()
+          await expect(findInput(dorkaPage, other)).toBeHidden()
+          await dorkaPage.keyboard.press('Escape')
+          await expect(findInput(dorkaPage, owner)).toBeHidden()
 
-          await focusChrome(orcaPage, owner)
-          await orcaPage.keyboard.press(`${shortcutModifier}+l`)
-          await expect(browserAddressBar(orcaPage, owner)).toBeFocused()
+          await focusChrome(dorkaPage, owner)
+          await dorkaPage.keyboard.press(`${shortcutModifier}+l`)
+          await expect(browserAddressBar(dorkaPage, owner)).toBeFocused()
 
-          await focusChrome(orcaPage, owner)
-          await orcaPage.keyboard.press(`${shortcutModifier}+c`)
-          await expect(grabButton(orcaPage, owner)).toHaveAttribute('data-variant', 'default')
-          await expect(grabButton(orcaPage, other)).toHaveAttribute('data-variant', 'ghost')
-          await grabButton(orcaPage, owner).click()
-          await expect(grabButton(orcaPage, owner)).toHaveAttribute('data-variant', 'ghost')
+          await focusChrome(dorkaPage, owner)
+          await dorkaPage.keyboard.press(`${shortcutModifier}+c`)
+          await expect(grabButton(dorkaPage, owner)).toHaveAttribute('data-variant', 'default')
+          await expect(grabButton(dorkaPage, other)).toHaveAttribute('data-variant', 'ghost')
+          await grabButton(dorkaPage, owner).click()
+          await expect(grabButton(dorkaPage, owner)).toHaveAttribute('data-variant', 'ghost')
         })
       }
 
       await test.step('back pressed inside the floating page', async () => {
         await pressKeyInBrowserGuest(
-          orcaPage,
+          dorkaPage,
           floating.browserTabId,
           floating.browserPageId,
           isMac ? '[' : 'Left',
           [isMac ? 'meta' : 'alt']
         )
-        await waitForGuestUrl(orcaPage, floating.browserTabId, server.pageUrl('float', 1))
-        await waitForGuestUrl(orcaPage, split.browserTabId, server.pageUrl('split', 2))
+        await waitForGuestUrl(dorkaPage, floating.browserTabId, server.pageUrl('float', 1))
+        await waitForGuestUrl(dorkaPage, split.browserTabId, server.pageUrl('split', 2))
       })
     } finally {
       await server.close()

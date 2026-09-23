@@ -16,7 +16,7 @@ import type {
 } from '@/attention/agent-attention-contract'
 import { parsePaneKey } from '../../../../shared/stable-pane-id'
 import { structuredAgentSessionPaneKey } from '../../../../shared/structured-agent-session-projection'
-import { isOrcaWindowForegroundFocused } from '../terminal-pane/terminal-notification-pane-visibility'
+import { isDorkaWindowForegroundFocused } from '../terminal-pane/terminal-notification-pane-visibility'
 import { isStructuredTab, type StructuredTab } from './structured-agent-session-tabs'
 
 type StoreSnapshot = ReturnType<typeof useAppStore.getState>
@@ -72,7 +72,7 @@ function isViewedStructuredTab(
   workspaceId: string,
   tab: StructuredTab
 ): boolean {
-  if (!isOrcaWindowForegroundFocused() || state.activeWorktreeId !== workspaceId) {
+  if (!isDorkaWindowForegroundFocused() || state.activeWorktreeId !== workspaceId) {
     return false
   }
   const activeGroupId = state.activeGroupIdByWorktree[workspaceId]
@@ -120,9 +120,9 @@ export function createStructuredAttentionSurface(state: StoreSnapshot): AgentAtt
       const tab = findSubjectTab(state, subject.workspaceId, subject.surfaceKey)
       return tab !== null && isViewedStructuredTab(state, subject.workspaceId, tab)
     },
-    // Why: activeWorktreeId is in-app selection only. A backgrounded Orca still needs unread.
+    // Why: activeWorktreeId is in-app selection only. A backgrounded Dorka still needs unread.
     isWorkspaceViewed: (workspaceId) =>
-      state.activeWorktreeId === workspaceId && isOrcaWindowForegroundFocused(),
+      state.activeWorktreeId === workspaceId && isDorkaWindowForegroundFocused(),
     isWorkspaceActive: (workspaceId) => state.activeWorktreeId === workspaceId,
     resolveViewedSubjectKey: (groupId) => {
       const tab = Object.values(state.unifiedTabsByWorktree)

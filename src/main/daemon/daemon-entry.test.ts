@@ -92,14 +92,14 @@ describe('daemon-entry parseArgs', () => {
         '--app-version',
         '1.2.3',
         '--spawner-exec-path',
-        '/Applications/Orca.app/Contents/MacOS/Orca'
+        '/Applications/Dorka.app/Contents/MacOS/Dorka'
       ])
     ).toMatchObject({
       pidPath: '/tmp/t.pid',
       launchNonce: 'launch-a',
       entryPath: '/app/daemon-entry.js',
       appVersion: '1.2.3',
-      spawnerExecPath: '/Applications/Orca.app/Contents/MacOS/Orca'
+      spawnerExecPath: '/Applications/Dorka.app/Contents/MacOS/Dorka'
     })
   })
 

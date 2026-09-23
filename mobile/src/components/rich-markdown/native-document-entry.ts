@@ -11,4 +11,4 @@ import { createRichMarkdownEditorDocument } from './create-rich-markdown-editor-
  * This file exists to be bundled. It is the entry `build-rich-markdown-editor-script.mjs` hands to
  * esbuild, and the only module in the document with a statement at its top level.
  */
-window.__orcaRichMarkdown = createRichMarkdownEditorDocument().send
+window.__dorkaRichMarkdown = createRichMarkdownEditorDocument().send

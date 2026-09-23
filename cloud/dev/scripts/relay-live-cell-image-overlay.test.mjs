@@ -7,7 +7,7 @@ import { test } from 'node:test'
 import { fileURLToPath } from 'node:url'
 import { overlayRelayLiveCellImages } from './relay-live-cell-image-overlay.mjs'
 
-const repository = 'us-central1-docker.pkg.dev/onorca-cloud/orca-cloud/relay'
+const repository = 'us-central1-docker.pkg.dev/ondorka-cloud/dorka-cloud/relay'
 const committed = `${repository}@sha256:${'a'.repeat(64)}`
 const served = `${repository}@sha256:${'b'.repeat(64)}`
 const template = readFileSync(

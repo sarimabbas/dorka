@@ -23,15 +23,15 @@ defaults:
 jobs:
   deploy:
     if: >-
-      ${{ vars.ORCA_CLOUD_OPERATIONS_ENABLED == 'true' &&
+      ${{ vars.DORKA_CLOUD_OPERATIONS_ENABLED == 'true' &&
       github.ref == 'refs/heads/main' }}
     runs-on: blacksmith-2vcpu-ubuntu-2204
     environment: production
     env:
-      GCP_PROJECT_ID: onorca-cloud
+      GCP_PROJECT_ID: ondorka-cloud
       GCP_REGION: ${{ vars.PRODUCTION_GCP_REGION }}
-      SERVICE_NAME: orca-cloud-relay-fence
-      IMAGE_REPOSITORY: us-central1-docker.pkg.dev/onorca-cloud/orca-cloud/relay-fence-broker
+      SERVICE_NAME: dorka-cloud-relay-fence
+      IMAGE_REPOSITORY: us-central1-docker.pkg.dev/ondorka-cloud/dorka-cloud/relay-fence-broker
       IMAGE_DIGEST: ${{ inputs.image-digest }}
     steps:
       - uses: actions/checkout@v4
@@ -45,7 +45,7 @@ jobs:
 
       - uses: ./.github/actions/cloud-sql-rollout-lease
         with:
-          bucket: onorca-cloud-terraform-state
+          bucket: ondorka-cloud-terraform-state
           object: terraform/state/cloud-sql-rollout/production.lock
 
       - name: Resolve exact-commit broker image

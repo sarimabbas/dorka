@@ -54,11 +54,11 @@ describe('editor file operation owner', () => {
           runtimeEnvironmentId: null,
           operationProvenance: provenance
         },
-        '/tmp/orca/floating-workspace'
+        '/tmp/dorka/floating-workspace'
       )
     ).toMatchObject({
       worktreeId: FLOATING_TERMINAL_WORKTREE_ID,
-      worktreePath: '/tmp/orca/floating-workspace',
+      worktreePath: '/tmp/dorka/floating-workspace',
       expectedExecutionHostId: 'local'
     })
   })

@@ -616,9 +616,9 @@ describe('useComposerState host-context boundaries', () => {
       provider: 'jira' as const,
       type: 'issue' as const,
       number: 0,
-      title: 'ORCA-123 Link Jira',
-      url: 'https://company.atlassian.net/jira/browse/ORCA-123',
-      jiraIdentifier: 'ORCA-123'
+      title: 'DORKA-123 Link Jira',
+      url: 'https://company.atlassian.net/jira/browse/DORKA-123',
+      jiraIdentifier: 'DORKA-123'
     }
     const context = {
       kind: 'task-source' as const,
@@ -629,7 +629,7 @@ describe('useComposerState host-context boundaries', () => {
         provider: 'jira' as const,
         siteId: 'site-1',
         siteUrl: 'https://company.atlassian.net/jira',
-        projectKey: 'ORCA'
+        projectKey: 'DORKA'
       }
     }
 
@@ -641,7 +641,7 @@ describe('useComposerState host-context boundaries', () => {
       })
     ).toBeNull()
     expect(
-      getMatchingLinkedTaskSourceContext({ ...item, jiraIdentifier: 'ORCA-999' }, context)
+      getMatchingLinkedTaskSourceContext({ ...item, jiraIdentifier: 'DORKA-999' }, context)
     ).toBeNull()
   })
 
@@ -711,7 +711,7 @@ describe('useComposerState host-context boundaries', () => {
       COMPOSER_SOURCE.fullCreation +
       COMPOSER_SOURCE.quickSubmitPreparation +
       COMPOSER_SOURCE.quickCreation
-    expect(submitSources).not.toContain('isOrcaCliAvailableForLaunch')
+    expect(submitSources).not.toContain('isDorkaCliAvailableForLaunch')
     expect(submitSources).not.toContain('hasGeneratedLinearSourceContext')
     expect(submitSources).not.toContain('shouldDraftGeneratedLinearContext')
     expect(COMPOSER_SOURCE.derived).toMatch(

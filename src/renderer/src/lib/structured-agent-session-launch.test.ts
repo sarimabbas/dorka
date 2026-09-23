@@ -826,7 +826,7 @@ describe('startStructuredAgentLaunch', () => {
       true
     )
     const persistedTombstones =
-      localStorage.getItem('orca:structuredAgentLaunchCancelledSessions:v1') ?? ''
+      localStorage.getItem('dorka:structuredAgentLaunchCancelledSessions:v1') ?? ''
     expect(persistedTombstones).toContain(JSON.stringify(intent.sessionId))
     expect(persistedTombstones).not.toContain(worktreeId)
     resolveRefresh([])

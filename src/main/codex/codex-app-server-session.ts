@@ -9,7 +9,7 @@ import {
 } from './codex-app-server-process-tree-kill'
 import { createCodexAppServerRecordReader } from './codex-app-server-record-reader'
 
-// Why: `codex app-server` is Orca's sanctioned RPC surface into Codex-owned
+// Why: `codex app-server` is Dorka's sanctioned RPC surface into Codex-owned
 // state (hook trust hashes, the sqlite thread index). This module owns the
 // stdio JSONL transport — spawn, handshake, framing, deadline, reap — so every
 // RPC consumer (trust grant, session index heal) shares one hardened lifecycle.
@@ -257,7 +257,7 @@ export async function runCodexAppServerSession<T>(
   try {
     const session = async (): Promise<T> => {
       await requestRpc('initialize', {
-        clientInfo: { name: 'orca_desktop', title: 'Orca', version: '0.0.0' }
+        clientInfo: { name: 'dorka_desktop', title: 'Dorka', version: '0.0.0' }
       })
       notify('initialized')
       return body({ request: requestRpc, notify })

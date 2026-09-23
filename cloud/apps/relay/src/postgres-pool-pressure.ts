@@ -160,7 +160,7 @@ function guardCheckedOutClient(client: pg.PoolClient): pg.PoolClient {
     // Printable unlike the idle path: a checked-out client is past the
     // handshake, so its error carries no connection string.
     console.warn(
-      `[orca-relay] checked-out PostgreSQL client failed: ${errorCode(error)} ${errorMessage(error)}`
+      `[dorka-relay] checked-out PostgreSQL client failed: ${errorCode(error)} ${errorMessage(error)}`
     )
   }
   client.on('error', onError)

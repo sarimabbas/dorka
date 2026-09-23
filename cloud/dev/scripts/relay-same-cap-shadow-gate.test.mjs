@@ -26,9 +26,9 @@ import {
 
 const ARGV = [
   '--cell-id', 'production-gce-c28',
-  '--cell-host', 'c28.relay.onorca.dev',
-  '--project-id', 'onorca-cloud',
-  '--director-service', 'orca-cloud-relay',
+  '--cell-host', 'c28.relay.ondorka.dev',
+  '--project-id', 'ondorka-cloud',
+  '--director-service', 'dorka-cloud-relay',
   '--drain-started-at', '2026-09-20T20:00:00Z',
   '--apply-started-at', '2026-09-20T20:15:00Z',
   '--apply-completed-at', '2026-09-20T20:19:30Z',
@@ -48,10 +48,10 @@ test('binds every gcloud input to a pinned pattern and to one cell', () => {
   // A filter is a string; anything that could steer one has to be refused before it is built.
   assert.throws(() => parseShadowGateArguments(ARGV.with(1, 'production-gce-c28" OR "x')))
   assert.throws(() => parseShadowGateArguments(ARGV.with(3, 'evil.example.test')))
-  assert.throws(() => parseShadowGateArguments(ARGV.with(5, 'Onorca Cloud')))
-  assert.throws(() => parseShadowGateArguments(ARGV.with(7, 'orca cloud relay')))
+  assert.throws(() => parseShadowGateArguments(ARGV.with(5, 'Ondorka Cloud')))
+  assert.throws(() => parseShadowGateArguments(ARGV.with(7, 'dorka cloud relay')))
   // Host and cell id must name the same cell, or the serving check reads a neighbour.
-  assert.throws(() => parseShadowGateArguments(ARGV.with(3, 'c29.relay.onorca.dev')))
+  assert.throws(() => parseShadowGateArguments(ARGV.with(3, 'c29.relay.ondorka.dev')))
   // A run with nowhere to write its verdict is not a report-only run, it is a silent one.
   assert.throws(() => parseShadowGateArguments(ARGV.slice(0, 16)))
 })
@@ -245,7 +245,7 @@ const C28_INSTANCE = '5031087219978409220'
 // enough of them inside one sub-window to reach the read's limit.
 function metricSamples({ cellId, from, count, payload = {}, intervalMs = 30_000 }) {
   return Array.from({ length: count }, (_, index) => ({
-    matches: ['orca_relay_runtime_metrics', `jsonPayload.cellId="${cellId}"`],
+    matches: ['dorka_relay_runtime_metrics', `jsonPayload.cellId="${cellId}"`],
     timestamp: new Date(Date.parse(from) + index * intervalMs).toISOString(),
     payload: {
       totalConnections: 857,
@@ -263,7 +263,7 @@ function metricSamples({ cellId, from, count, payload = {}, intervalMs = 30_000 
 function productionLikeEntries() {
   return [
     {
-      matches: ['listening on https://c28.relay.onorca.dev'],
+      matches: ['listening on https://c28.relay.ondorka.dev'],
       timestamp: '2026-09-20T20:18:27.470301969Z',
       instanceId: C28_INSTANCE
     },

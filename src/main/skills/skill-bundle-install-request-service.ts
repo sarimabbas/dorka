@@ -108,7 +108,7 @@ async function executeParsedSkillBundleInstallRequest(
       scope: destination.scope,
       homeDirectory: destination.homeDirectory,
       workspaceDirectory: destination.workspaceDirectory,
-      orcaStateDirectory: dependencies.stateDirectory,
+      dorkaStateDirectory: dependencies.stateDirectory,
       detectedProviders,
       providerRootOverrides,
       destinationIdentity: destination.destinationIdentity,

@@ -20,9 +20,9 @@ vi.mock('../ui/dropdown-menu', () => ({
 }))
 
 const plugin: PluginHostListEntry = {
-  pluginKey: 'stablyai.orca-skills',
+  pluginKey: 'stablyai.dorka-skills',
   consentFingerprint: 'sha256-consent',
-  name: 'Orca Skills',
+  name: 'Dorka Skills',
   version: '1.0.0',
   publisher: 'stablyai',
   status: 'disabled',
@@ -37,11 +37,11 @@ const plugin: PluginHostListEntry = {
   restarts: 0,
   blockedByKillList: {
     reason: 'A vulnerable release was revoked',
-    advisoryUrl: 'https://onorca.dev/advisories/orca-skills'
+    advisoryUrl: 'https://ondorka.dev/advisories/dorka-skills'
   },
   source: {
     kind: 'bundled',
-    reference: 'bundled:stablyai.orca-skills',
+    reference: 'bundled:stablyai.dorka-skills',
     resolvedCommit: null,
     contentHash: 'sha256-content'
   }
@@ -78,7 +78,7 @@ describe('PluginSettingsRow', () => {
     expect(container.textContent).toContain('View advisory')
     expect(container.textContent).not.toContain('Remove')
     expect(
-      container.querySelector<HTMLButtonElement>('[aria-label="Enable Orca Skills"]')?.disabled
+      container.querySelector<HTMLButtonElement>('[aria-label="Enable Dorka Skills"]')?.disabled
     ).toBe(true)
     act(() => root.unmount())
   })

@@ -137,7 +137,7 @@ describe.skipIf(process.platform === 'win32')(
         readFileSync(join(home, '.claude', 'settings.json'), 'utf8')
       )
       expect(claudeSettings.hooks).toBeTruthy()
-      const script = readFileSync(join(home, '.orca', 'agent-hooks', 'claude-hook.sh'), 'utf8')
+      const script = readFileSync(join(home, '.dorka', 'agent-hooks', 'claude-hook.sh'), 'utf8')
       expect(script).toContain('/hook/claude')
     }, 20_000)
   }
@@ -149,9 +149,9 @@ describe('WslHookRelayManager', () => {
   // the wslfs.home request and never touches the real filesystem.
   const home = '/home/wsl-test-user'
   const codexHome =
-    '\\\\wsl.localhost\\Ubuntu\\home\\wsl-test-user\\.local\\share\\orca\\codex-runtime-home\\home'
-  const opencodeOverlayDir = `${home}/.orca-relay/opencode-overlays/deadbeefcafe`
-  const opencode2OverlayDir = `${home}/.orca-relay/opencode2-overlays/deadbeefcafe`
+    '\\\\wsl.localhost\\Ubuntu\\home\\wsl-test-user\\.local\\share\\dorka\\codex-runtime-home\\home'
+  const opencodeOverlayDir = `${home}/.dorka-relay/opencode-overlays/deadbeefcafe`
+  const opencode2OverlayDir = `${home}/.dorka-relay/opencode2-overlays/deadbeefcafe`
   let harnesses: GuestHarness[]
 
   beforeEach(() => {
@@ -207,7 +207,7 @@ describe('WslHookRelayManager', () => {
           opencode: opencodeOverlayDir,
           opencode2: opencode2OverlayDir,
           pi: `${home}/.pi/agent`,
-          omp: `${home}/.omp/agent/extensions/orca-agent-status.ts`
+          omp: `${home}/.omp/agent/extensions/dorka-agent-status.ts`
         }
       }))
     }
@@ -228,10 +228,10 @@ describe('WslHookRelayManager', () => {
       platform: () => 'win32',
       remoteHooksEnabled: () => true,
       hookCoordsEnv: () => ({
-        ORCA_AGENT_HOOK_PORT: '43117',
-        ORCA_AGENT_HOOK_TOKEN: 'tok',
-        ORCA_AGENT_HOOK_ENV: 'production',
-        ORCA_AGENT_HOOK_VERSION: '1'
+        DORKA_AGENT_HOOK_PORT: '43117',
+        DORKA_AGENT_HOOK_TOKEN: 'tok',
+        DORKA_AGENT_HOOK_ENV: 'production',
+        DORKA_AGENT_HOOK_VERSION: '1'
       }),
       instanceKey: () => 'testinstance',
       resolveBundle: () => ({ jsPath: '/fake/wsl-agent-hook-relay.js', version: '0.1.0+abc' }),
@@ -246,7 +246,7 @@ describe('WslHookRelayManager', () => {
       installCodex: vi.fn(async () => ({
         agent: 'codex' as const,
         state: 'installed' as const,
-        configPath: `${home}/.local/share/orca/codex-runtime-home/home/hooks.json`,
+        configPath: `${home}/.local/share/dorka/codex-runtime-home/home/hooks.json`,
         managedHooksPresent: true,
         detail: null
       })),
@@ -272,7 +272,7 @@ describe('WslHookRelayManager', () => {
     })
 
     expect(manager.getGuestEndpointFilePath('Ubuntu')).toBe(
-      `${home}/.orca-wsl/agent-hooks/instance-testinstance/endpoint.env`
+      `${home}/.dorka-wsl/agent-hooks/instance-testinstance/endpoint.env`
     )
 
     const guest = harnesses[0].guestDispatcher
@@ -455,7 +455,7 @@ describe('WslHookRelayManager', () => {
     await new Promise((resolve) => setTimeout(resolve, 20))
     expect(deps.spawnRelay).toHaveBeenCalledTimes(1)
     expect(manager.getGuestEndpointFilePath(null)).toBe(
-      `${home}/.orca-wsl/agent-hooks/instance-testinstance/endpoint.env`
+      `${home}/.dorka-wsl/agent-hooks/instance-testinstance/endpoint.env`
     )
     manager.disposeAll()
   })

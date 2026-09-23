@@ -133,9 +133,9 @@ describe('gitlab project ref parsing', () => {
 
 describe('gitlab remote project ref candidates', () => {
   it('extracts self-hosted candidates before the host is trusted', () => {
-    expect(parseRemoteProjectRefCandidate('git@gitlab.internal:team/orca.git')).toEqual({
+    expect(parseRemoteProjectRefCandidate('git@gitlab.internal:team/dorka.git')).toEqual({
       host: 'gitlab.internal',
-      path: 'team/orca'
+      path: 'team/dorka'
     })
   })
 

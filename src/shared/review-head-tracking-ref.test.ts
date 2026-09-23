@@ -29,11 +29,11 @@ describe('reviewHeadRemoteRefComponent', () => {
     )
   })
 
-  it('builds provider refs under the orca namespace', () => {
+  it('builds provider refs under the dorka namespace', () => {
     const component = reviewHeadRemoteRefComponent('origin', 'git@github.com:org/repo.git')
-    expect(githubPullRequestHeadLocalRef(component, 42)).toBe(`refs/orca/pull/${component}/42`)
+    expect(githubPullRequestHeadLocalRef(component, 42)).toBe(`refs/dorka/pull/${component}/42`)
     expect(gitlabMergeRequestHeadLocalRef(component, 77)).toBe(
-      `refs/orca/merge-requests/${component}/77`
+      `refs/dorka/merge-requests/${component}/77`
     )
   })
 })

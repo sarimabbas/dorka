@@ -162,7 +162,7 @@ describe('listWorkItems', () => {
   })
 
   it('routes GHES work-item listing through the Enterprise host', async () => {
-    const ghes = { owner: 'team', repo: 'orca', host: 'github.acme-corp.com' }
+    const ghes = { owner: 'team', repo: 'dorka', host: 'github.acme-corp.com' }
     getIssueOwnerRepoMock.mockResolvedValue(ghes)
     getOwnerRepoMock.mockResolvedValue(ghes)
     ghExecFileAsyncMock.mockResolvedValue({ stdout: '[]' })
@@ -387,7 +387,7 @@ describe('listWorkItems', () => {
 
   it('skips upstream PR source probing when the clone only has origin', async () => {
     getIssueOwnerRepoMock.mockResolvedValue(null)
-    getOwnerRepoMock.mockResolvedValue({ owner: 'fork', repo: 'orca' })
+    getOwnerRepoMock.mockResolvedValue({ owner: 'fork', repo: 'dorka' })
     gitExecFileAsyncMock.mockResolvedValue({ stdout: 'origin\n' })
     ghExecFileAsyncMock.mockResolvedValue({ stdout: '[]' })
 
@@ -395,8 +395,8 @@ describe('listWorkItems', () => {
       items: [],
       sources: {
         issues: null,
-        prs: { owner: 'fork', repo: 'orca' },
-        originCandidate: { owner: 'fork', repo: 'orca' },
+        prs: { owner: 'fork', repo: 'dorka' },
+        originCandidate: { owner: 'fork', repo: 'dorka' },
         upstreamCandidate: null
       }
     })
@@ -790,8 +790,8 @@ describe('listWorkItems', () => {
   })
 
   it('marks fork PRs as cross-repository when REST payload only includes head.label', async () => {
-    getIssueOwnerRepoMock.mockResolvedValueOnce({ owner: 'stablyai', repo: 'orca' })
-    getOwnerRepoMock.mockResolvedValueOnce({ owner: 'stablyai', repo: 'orca' })
+    getIssueOwnerRepoMock.mockResolvedValueOnce({ owner: 'stablyai', repo: 'dorka' })
+    getOwnerRepoMock.mockResolvedValueOnce({ owner: 'stablyai', repo: 'dorka' })
     ghExecFileAsyncMock.mockResolvedValueOnce({ stdout: '[]' }).mockResolvedValueOnce({
       stdout: JSON.stringify([
         {
@@ -827,7 +827,7 @@ describe('listWorkItems', () => {
         branchName: 'feat/onboarding-model-choice-782',
         baseRefName: 'main',
         headSha: 'head-1849',
-        prRepo: { owner: 'stablyai', repo: 'orca' },
+        prRepo: { owner: 'stablyai', repo: 'dorka' },
         isCrossRepository: true
       }
     ])

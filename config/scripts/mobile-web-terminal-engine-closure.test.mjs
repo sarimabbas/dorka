@@ -95,7 +95,7 @@ describeClosure(
     it('would be reported if a document module imported it', async () => {
       // Planted in a scratch tree rather than under src/terminal/document, so nothing else in the
       // repository ever walks the plant and no other census has to know it exists.
-      const scratch = await mkdtemp(join(tmpdir(), 'orca-c75-engine-closure-'))
+      const scratch = await mkdtemp(join(tmpdir(), 'dorka-c75-engine-closure-'))
       try {
         const planted = join(scratch, 'src', 'terminal', 'document')
         await mkdir(planted, { recursive: true })

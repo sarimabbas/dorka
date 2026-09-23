@@ -73,11 +73,11 @@ The digest narrows these checks. It does not make any of them atomic.
 
 The filesystem numbers above are direct measurements. That identical stats plus changed
 content previously returned the swapped bytes, and now do not, is pinned by
-`orca-runtime-files-terminal-artifact-swap-detection.test.ts`, which replays the first
+`dorka-runtime-files-terminal-artifact-swap-detection.test.ts`, which replays the first
 stat seen for a path so the collision is deterministic rather than a 1 ms coin flip.
 
 The join between the two is a chain, not a single observation. This defect surfaced as
-an intermittent failure of `orca-runtime-files-terminal-artifact-io.test.ts` on
+an intermittent failure of `dorka-runtime-files-terminal-artifact-io.test.ts` on
 `rejects stale absolute terminal artifact previews before returning changed content`,
 which swaps an 8-byte artifact for 8 different bytes. No one has instrumented a Linux
 runner to prove that a specific CI failure was a same-tick mtime collision; the

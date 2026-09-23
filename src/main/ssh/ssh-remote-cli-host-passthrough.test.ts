@@ -17,7 +17,7 @@ import {
   buildHostCliEnv,
   resolveHostCliEntryPath,
   resolveHostCliKillTimeoutMs,
-  runHostOrcaCliPassthrough
+  runHostDorkaCliPassthrough
 } from './ssh-remote-cli-host-passthrough'
 import { resolveOrchestrationAskClientTimeoutMs } from '../../shared/orchestration-ask-timeout'
 import { remoteCliRequestTimeoutMs } from '../../relay/remote-cli-timeout'
@@ -65,15 +65,15 @@ describe('resolveHostCliEntryPath', () => {
 })
 
 describe('buildHostCliEnv', () => {
-  it('forwards only Orca terminal-context vars from the remote env', () => {
+  it('forwards only Dorka terminal-context vars from the remote env', () => {
     const env = buildHostCliEnv({
       hostEnv: { PATH: '/host/bin', NODE_OPTIONS: '--inspect' },
       remoteEnv: {
-        ORCA_TERMINAL_HANDLE: 'term_remote',
-        ORCA_WORKTREE_ID: 'repo::/home/alice/wt',
-        ORCA_PANE_KEY: 'pane-9',
-        ORCA_AGENT_LAUNCH_TOKEN: 'launch-secret',
-        ORCA_WORKSPACE_ID: 'ws-1',
+        DORKA_TERMINAL_HANDLE: 'term_remote',
+        DORKA_WORKTREE_ID: 'repo::/home/alice/wt',
+        DORKA_PANE_KEY: 'pane-9',
+        DORKA_AGENT_LAUNCH_TOKEN: 'launch-secret',
+        DORKA_WORKSPACE_ID: 'ws-1',
         [ORCHESTRATION_COMPATIBILITY_HOST_KIND_ENV]: 'wsl',
         [ORCHESTRATION_COMPATIBILITY_HOST_ID_ENV]: 'caller-host',
         [ORCHESTRATION_COMPATIBILITY_HOST_INCARNATION_ENV]: 'caller-incarnation',
@@ -82,7 +82,7 @@ describe('buildHostCliEnv', () => {
         // subprocess (PATH would break host binary lookup; user-data would
         // retarget the CLI at a different local instance).
         PATH: '/remote/bin',
-        ORCA_USER_DATA_PATH: '/remote/user-data'
+        DORKA_USER_DATA_PATH: '/remote/user-data'
       },
       userDataPath: '/host/user-data',
       remoteCwd: '/home/alice/wt/sub',
@@ -94,39 +94,39 @@ describe('buildHostCliEnv', () => {
       }
     })
 
-    expect(env.ORCA_TERMINAL_HANDLE).toBe('term_remote')
-    expect(env.ORCA_WORKTREE_ID).toBe('repo::/home/alice/wt')
-    expect(env.ORCA_PANE_KEY).toBe('pane-9')
-    expect(env.ORCA_AGENT_LAUNCH_TOKEN).toBe('launch-secret')
-    expect(env.ORCA_WORKSPACE_ID).toBe('ws-1')
+    expect(env.DORKA_TERMINAL_HANDLE).toBe('term_remote')
+    expect(env.DORKA_WORKTREE_ID).toBe('repo::/home/alice/wt')
+    expect(env.DORKA_PANE_KEY).toBe('pane-9')
+    expect(env.DORKA_AGENT_LAUNCH_TOKEN).toBe('launch-secret')
+    expect(env.DORKA_WORKSPACE_ID).toBe('ws-1')
     expect(env[ORCHESTRATION_COMPATIBILITY_HOST_KIND_ENV]).toBe('ssh')
     expect(env[ORCHESTRATION_COMPATIBILITY_HOST_ID_ENV]).toBe('saved-target')
     expect(env[ORCHESTRATION_COMPATIBILITY_HOST_INCARNATION_ENV]).toBe('connection-incarnation')
     expect(env[ORCHESTRATION_COMPATIBILITY_ATTACHMENT_ENV]).toBe('runtime-attachment')
     expect(env.PATH).toBe('/host/bin')
-    expect(env.ORCA_USER_DATA_PATH).toBe('/host/user-data')
-    expect(env.ORCA_CLI_CWD).toBe('/home/alice/wt/sub')
-    expect(env.ORCA_CLI_COMMAND).toBe('orca')
+    expect(env.DORKA_USER_DATA_PATH).toBe('/host/user-data')
+    expect(env.DORKA_CLI_CWD).toBe('/home/alice/wt/sub')
+    expect(env.DORKA_CLI_COMMAND).toBe('dorka')
     expect(env.ELECTRON_RUN_AS_NODE).toBe('1')
     expect(env.NODE_OPTIONS).toBeUndefined()
-    expect(env.ORCA_NODE_OPTIONS).toBe('--inspect')
+    expect(env.DORKA_NODE_OPTIONS).toBe('--inspect')
   })
 
   it.each([
-    ['dev host', { ORCA_DEV_REPO_ROOT: '/repo', ORCA_CLI_COMMAND: 'orca-dev' }],
-    ['packaged Linux host', { ORCA_CLI_COMMAND: 'orca-ide' }],
+    ['dev host', { DORKA_DEV_REPO_ROOT: '/repo', DORKA_CLI_COMMAND: 'dorka-dev' }],
+    ['packaged Linux host', { DORKA_CLI_COMMAND: 'dorka-ide' }],
     ['local host', {}],
-    ['WSL host', { WSL_DISTRO_NAME: 'Ubuntu', ORCA_CLI_COMMAND: 'orca-ide' }],
+    ['WSL host', { WSL_DISTRO_NAME: 'Ubuntu', DORKA_CLI_COMMAND: 'dorka-ide' }],
     ['Windows host', { ComSpec: 'C:\\Windows\\System32\\cmd.exe' }]
   ])('pins %s recovery to the remote shim', (_name, hostEnv) => {
     const env = buildHostCliEnv({
       hostEnv,
-      remoteEnv: { ORCA_CLI_COMMAND: 'untrusted-remote-command' },
+      remoteEnv: { DORKA_CLI_COMMAND: 'untrusted-remote-command' },
       userDataPath: '/host/user-data',
       remoteCwd: '/srv/repo'
     })
 
-    expect(env.ORCA_CLI_COMMAND).toBe('orca')
+    expect(env.DORKA_CLI_COMMAND).toBe('dorka')
   })
 
   it('namespaces identical remote artifact paths by stable SSH target', () => {
@@ -260,16 +260,16 @@ describe('resolveHostCliKillTimeoutMs', () => {
   })
 })
 
-describe('runHostOrcaCliPassthrough', () => {
+describe('runHostDorkaCliPassthrough', () => {
   it('spawns the bundled CLI entry with the remote argv and returns captured output', async () => {
     const child = createFakeChild()
     const spawn = vi.fn(() => child)
 
-    const resultPromise = runHostOrcaCliPassthrough(
+    const resultPromise = runHostDorkaCliPassthrough(
       {
         argv: ['orchestration', 'task-create', '--spec', 'do the thing', '--json'],
         cwd: '/home/alice/wt',
-        env: { ORCA_TERMINAL_HANDLE: 'term_remote' }
+        env: { DORKA_TERMINAL_HANDLE: 'term_remote' }
       },
       { ...BASE_OPTIONS, spawn: spawn as never }
     )
@@ -298,8 +298,8 @@ describe('runHostOrcaCliPassthrough', () => {
       '--json'
     ])
     expect(options.env.ELECTRON_RUN_AS_NODE).toBe('1')
-    expect(options.env.ORCA_CLI_CWD).toBe('/home/alice/wt')
-    expect(options.env.ORCA_TERMINAL_HANDLE).toBe('term_remote')
+    expect(options.env.DORKA_CLI_CWD).toBe('/home/alice/wt')
+    expect(options.env.DORKA_TERMINAL_HANDLE).toBe('term_remote')
     // Why: stdin must be closed even without a payload so CLI handlers that
     // stream stdin see EOF instead of hanging forever.
     expect(child.stdin.end).toHaveBeenCalledWith()
@@ -309,7 +309,7 @@ describe('runHostOrcaCliPassthrough', () => {
     const child = createFakeChild()
     const spawn = vi.fn(() => child)
 
-    const resultPromise = runHostOrcaCliPassthrough(
+    const resultPromise = runHostDorkaCliPassthrough(
       {
         argv: ['linear', 'comment', 'add', 'ENG-1', '--body-file', '-'],
         cwd: '/home/alice/wt',
@@ -330,7 +330,7 @@ describe('runHostOrcaCliPassthrough', () => {
     const child = createFakeChild()
     const spawn = vi.fn(() => child)
 
-    const resultPromise = runHostOrcaCliPassthrough(
+    const resultPromise = runHostDorkaCliPassthrough(
       { argv: ['worktree', 'show'], cwd: '/', env: {} },
       { ...BASE_OPTIONS, spawn: spawn as never }
     )
@@ -345,7 +345,7 @@ describe('runHostOrcaCliPassthrough', () => {
   it('throws HostCliUnavailableError when the CLI entry is missing', async () => {
     const spawn = vi.fn()
     await expect(
-      runHostOrcaCliPassthrough(
+      runHostDorkaCliPassthrough(
         { argv: ['status'], cwd: '/', env: {} },
         { ...BASE_OPTIONS, entryExists: () => false, spawn: spawn as never }
       )
@@ -356,7 +356,7 @@ describe('runHostOrcaCliPassthrough', () => {
   it('rejects an invalid injected kill timeout before spawning', async () => {
     const spawn = vi.fn()
     await expect(
-      runHostOrcaCliPassthrough(
+      runHostDorkaCliPassthrough(
         { argv: ['status'], cwd: '/', env: {} },
         { ...BASE_OPTIONS, spawn: spawn as never, killTimeoutMs: 2_147_483_648 }
       )
@@ -368,7 +368,7 @@ describe('runHostOrcaCliPassthrough', () => {
     const child = createFakeChild()
     const spawn = vi.fn(() => child)
 
-    const resultPromise = runHostOrcaCliPassthrough(
+    const resultPromise = runHostDorkaCliPassthrough(
       { argv: ['status'], cwd: '/', env: {} },
       { ...BASE_OPTIONS, spawn: spawn as never }
     )
@@ -385,7 +385,7 @@ describe('runHostOrcaCliPassthrough', () => {
       const child = createFakeChild()
       const spawn = vi.fn(() => child)
 
-      const resultPromise = runHostOrcaCliPassthrough(
+      const resultPromise = runHostDorkaCliPassthrough(
         { argv: ['terminal', 'wait', '--for', 'exit'], cwd: '/', env: {} },
         { ...BASE_OPTIONS, spawn: spawn as never, killTimeoutMs: 1000 }
       )
@@ -404,7 +404,7 @@ describe('runHostOrcaCliPassthrough', () => {
     const child = createFakeChild()
     const spawn = vi.fn(() => child)
 
-    const resultPromise = runHostOrcaCliPassthrough(
+    const resultPromise = runHostDorkaCliPassthrough(
       { argv: ['terminal', 'read'], cwd: '/', env: {} },
       { ...BASE_OPTIONS, spawn: spawn as never }
     )

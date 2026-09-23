@@ -10,7 +10,7 @@
  * Swapping either ordering loses output with no error anywhere.
  */
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { OrcaRuntimeService } from './orca-runtime'
+import { DorkaRuntimeService } from './dorka-runtime'
 import { HeadlessEmulator } from '../daemon/headless-emulator'
 
 const store = {
@@ -38,8 +38,8 @@ const store = {
 
 const PTY_ID = 'pty-dispose-ordering'
 
-function createRuntime(): OrcaRuntimeService {
-  const runtime = new OrcaRuntimeService(store)
+function createRuntime(): DorkaRuntimeService {
+  const runtime = new DorkaRuntimeService(store)
   runtime.setPtyController({
     write: () => true,
     kill: () => true,

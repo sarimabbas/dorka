@@ -1,10 +1,10 @@
-import type { TaskPageLinearInOrcaEffectsModel } from './use-task-page-linear-in-orca-effects'
+import type { TaskPageLinearInDorkaEffectsModel } from './use-task-page-linear-in-dorka-effects'
 import { useEffect } from 'react'
 import { TASK_SEARCH_DEBOUNCE_MS, LINEAR_ITEM_LIMIT } from './task-page-source-context'
 import { clampLinearIssueListLimit } from '../../../shared/linear/issue-read-limits'
 import { useTaskPageLinearCustomViewEffects } from './use-task-page-linear-custom-view-effects'
-export type TaskPageLinearCollectionEffectsPreludeModel = TaskPageLinearInOrcaEffectsModel
-export function useTaskPageLinearCollectionEffectsPrelude(model: TaskPageLinearInOrcaEffectsModel) {
+export type TaskPageLinearCollectionEffectsPreludeModel = TaskPageLinearInDorkaEffectsModel
+export function useTaskPageLinearCollectionEffectsPrelude(model: TaskPageLinearInDorkaEffectsModel) {
   const {
     setTaskResumeState,
     getCachedLinearProjects,
@@ -195,7 +195,7 @@ export function useTaskPageLinearCollectionEffectsPrelude(model: TaskPageLinearI
   ])
   return model
 }
-export function useTaskPageLinearCollectionEffects(model: TaskPageLinearInOrcaEffectsModel) {
+export function useTaskPageLinearCollectionEffects(model: TaskPageLinearInDorkaEffectsModel) {
   const preludeModel = useTaskPageLinearCollectionEffectsPrelude(model)
   return useTaskPageLinearCustomViewEffects(preludeModel)
 }

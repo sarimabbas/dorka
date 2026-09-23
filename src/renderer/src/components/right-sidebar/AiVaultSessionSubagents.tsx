@@ -19,8 +19,8 @@ import {
   type AiVaultSubagentRunStatus
 } from '../../../../shared/ai-vault-types'
 import { LOCAL_EXECUTION_HOST_ID } from '../../../../shared/execution-host'
-import { canOpenAiVaultSessionLogInOrca } from './ai-vault-session-path-actions'
-import { openAiVaultSessionLogInOrca } from './ai-vault-session-log-open'
+import { canOpenAiVaultSessionLogInDorka } from './ai-vault-session-path-actions'
+import { openAiVaultSessionLogInDorka } from './ai-vault-session-log-open'
 import { translate } from '@/i18n/i18n'
 import {
   aiVaultSessionResumeLabel,
@@ -237,7 +237,7 @@ function SubagentSessionLine({
             <Play className="size-3.5" />
           </Button>
         ) : null}
-        {canOpenAiVaultSessionLogInOrca(session) ? (
+        {canOpenAiVaultSessionLogInDorka(session) ? (
           <Button
             type="button"
             variant="ghost"
@@ -249,7 +249,7 @@ function SubagentSessionLine({
             )}
             onClick={(event) => {
               event.stopPropagation()
-              void openAiVaultSessionLogInOrca(session)
+              void openAiVaultSessionLogInDorka(session)
             }}
             className="shrink-0 text-muted-foreground"
           >

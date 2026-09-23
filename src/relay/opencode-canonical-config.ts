@@ -2,7 +2,7 @@ import { mkdirSync, unlinkSync, writeFileSync } from 'node:fs'
 import { isAbsolute, join, relative, resolve } from 'node:path'
 import { resolveOpenCodeConfigDirectory } from '../shared/opencode-config-directory'
 
-const RELAY_HOOKS_DIR = '.orca-relay'
+const RELAY_HOOKS_DIR = '.dorka-relay'
 
 export type OpenCodeAgent = 'opencode' | 'opencode2'
 
@@ -15,7 +15,7 @@ export function installOpenCodePluginInCanonicalConfig(
   try {
     const configDir = resolveOpenCodeConfigDirectory(environment, homeDir)
     const pluginFileName =
-      agent === 'opencode2' ? 'orca-opencode2-status.js' : 'orca-opencode-status.js'
+      agent === 'opencode2' ? 'dorka-opencode2-status.js' : 'dorka-opencode-status.js'
     const pluginPath = join(configDir, 'plugins', pluginFileName)
     mkdirSync(join(configDir, 'plugins'), { recursive: true })
     try {

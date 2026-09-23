@@ -105,7 +105,7 @@ async function appendStatus(
   text: string
 ): Promise<void> {
   await ctx.journal.appendItem(
-    { provider: 'orca', clientMessageId },
+    { provider: 'dorka', clientMessageId },
     { kind: 'status', text },
     { fence: ctx.fence }
   )

@@ -5,9 +5,9 @@ or terminal topology. It is not the normal supervised loop and is never a full
 handoff recipe.
 
 ```text
-ORCA terminal create --worktree active --title <task_name> --command "<agent_command>" --json
-ORCA terminal wait --terminal <handle> --for tui-idle --timeout-ms 60000 --json
-ORCA orchestration dispatch --task <task_id> --to <handle> --inject --json
+DORKA terminal create --worktree active --title <task_name> --command "<agent_command>" --json
+DORKA terminal wait --terminal <handle> --for tui-idle --timeout-ms 60000 --json
+DORKA orchestration dispatch --task <task_id> --to <handle> --inject --json
 ```
 
 Wait for readiness only when startup could lose injected input. Prefer

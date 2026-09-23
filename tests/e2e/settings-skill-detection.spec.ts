@@ -1,5 +1,5 @@
 import type { ElectronApplication, Page } from '@stablyai/playwright-test'
-import { test, expect } from './helpers/orca-app'
+import { test, expect } from './helpers/dorka-app'
 import { waitForSessionReady } from './helpers/store'
 import type {
   DiscoveredSkill,
@@ -9,12 +9,12 @@ import type {
 import { ORCHESTRATION_ENABLED_STORAGE_KEY } from '../../src/renderer/src/lib/orchestration-setup-state'
 
 type MockSkillDiscoveryGlobal = typeof globalThis & {
-  __orcaSettingsSkillDiscoveryResult?: SkillDiscoveryResult
+  __dorkaSettingsSkillDiscoveryResult?: SkillDiscoveryResult
 }
 
 function makeSkill(sourceKind: SkillSourceKind, directoryPath: string): DiscoveredSkill {
   return {
-    id: `${sourceKind}-orca-cli`,
+    id: `${sourceKind}-dorka-cli`,
     name: 'orchestration',
     description: null,
     providers: ['agent-skills'],
@@ -42,10 +42,10 @@ async function installMockSkillDiscovery(
 ): Promise<void> {
   await app.evaluate((electron, initialResult) => {
     const global = globalThis as MockSkillDiscoveryGlobal
-    global.__orcaSettingsSkillDiscoveryResult = initialResult
+    global.__dorkaSettingsSkillDiscoveryResult = initialResult
     electron.ipcMain.removeHandler('skills:discover')
     electron.ipcMain.handle('skills:discover', () => {
-      const latest = (globalThis as MockSkillDiscoveryGlobal).__orcaSettingsSkillDiscoveryResult
+      const latest = (globalThis as MockSkillDiscoveryGlobal).__dorkaSettingsSkillDiscoveryResult
       if (!latest) {
         throw new Error('Missing mocked skill discovery result')
       }
@@ -59,7 +59,7 @@ async function setMockSkillDiscovery(
   result: SkillDiscoveryResult
 ): Promise<void> {
   await app.evaluate((_, nextResult) => {
-    ;(globalThis as MockSkillDiscoveryGlobal).__orcaSettingsSkillDiscoveryResult = nextResult
+    ;(globalThis as MockSkillDiscoveryGlobal).__dorkaSettingsSkillDiscoveryResult = nextResult
   }, result)
 }
 
@@ -85,13 +85,13 @@ async function openOrchestrationSettings(page: Page): Promise<void> {
 }
 
 test.describe('Settings skill detection', () => {
-  test.beforeEach(async ({ orcaPage }) => {
-    await waitForSessionReady(orcaPage)
+  test.beforeEach(async ({ dorkaPage }) => {
+    await waitForSessionReady(dorkaPage)
   })
 
   test('shows installed only for global orchestration skill installs', async ({
     electronApp,
-    orcaPage
+    dorkaPage
   }) => {
     await installMockSkillDiscovery(
       electronApp,
@@ -101,13 +101,13 @@ test.describe('Settings skill detection', () => {
       ])
     )
 
-    await openOrchestrationSettings(orcaPage)
-    const section = orcaPage.locator('[data-settings-section="orchestration"]')
+    await openOrchestrationSettings(dorkaPage)
+    const section = dorkaPage.locator('[data-settings-section="orchestration"]')
     await section.getByRole('button', { name: 'Re-check' }).click()
 
     await expect(section.getByText('Not installed', { exact: true })).toBeVisible()
     await expect(
-      section.getByText('Enables agents to hand off context and coordinate work through Orca.')
+      section.getByText('Enables agents to hand off context and coordinate work through Dorka.')
     ).toBeVisible()
 
     await setMockSkillDiscovery(
@@ -118,7 +118,7 @@ test.describe('Settings skill detection', () => {
 
     await expect(section.getByText('Installed', { exact: true })).toBeVisible()
     await expect(
-      section.getByText('Enables agents to hand off context and coordinate work through Orca.')
+      section.getByText('Enables agents to hand off context and coordinate work through Dorka.')
     ).toBeVisible()
   })
 })

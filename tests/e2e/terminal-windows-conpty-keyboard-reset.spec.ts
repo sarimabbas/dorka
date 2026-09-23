@@ -1,5 +1,5 @@
 import type { Page } from '@stablyai/playwright-test'
-import { expect, test } from './helpers/orca-app'
+import { expect, test } from './helpers/dorka-app'
 import {
   configureGoldenStubAgent,
   getGoldenStubAgentLaunchEnv,
@@ -48,53 +48,53 @@ async function getKittyKeyboardFlags(page: Page): Promise<number | null> {
 
 test('resets standard keyboard bytes after a protocol-mode agent exits on ConPTY', async ({
   electronApp,
-  orcaPage
+  dorkaPage
 }) => {
   await installTerminalPtyWriteSpy(electronApp)
-  await waitForSessionReady(orcaPage)
-  await waitForActiveWorktree(orcaPage)
-  await ensureTerminalVisible(orcaPage)
+  await waitForSessionReady(dorkaPage)
+  await waitForActiveWorktree(dorkaPage)
+  await ensureTerminalVisible(dorkaPage)
   // Grok is the supported native ConPTY exception to Kitty protocol withholding.
-  await configureGoldenStubAgent(orcaPage, {
+  await configureGoldenStubAgent(dorkaPage, {
     agent: 'grok',
     agentArgs: '--keyboard-protocol --grok'
   })
-  await launchGoldenStubAgentFromNewTab(orcaPage, /^Grok(?:\s|$)/i)
+  await launchGoldenStubAgentFromNewTab(dorkaPage, /^Grok(?:\s|$)/i)
 
-  const ptyId = await waitForActivePanePtyId(orcaPage)
-  await expect.poll(() => getKittyKeyboardFlags(orcaPage), { timeout: 10_000 }).toBe(1)
+  const ptyId = await waitForActivePanePtyId(dorkaPage)
+  await expect.poll(() => getKittyKeyboardFlags(dorkaPage), { timeout: 10_000 }).toBe(1)
 
   await clearTerminalPtyWriteLog(electronApp)
   // Kitty flag 1 preserves plain Enter; modified Enter proves CSI-u input.
-  await orcaPage.keyboard.press('Shift+Enter')
-  await orcaPage.keyboard.type('exit')
-  await orcaPage.keyboard.press('Enter')
-  await waitForTerminalOutput(orcaPage, GOLDEN_STUB_EXIT_MARKER, 15_000)
+  await dorkaPage.keyboard.press('Shift+Enter')
+  await dorkaPage.keyboard.type('exit')
+  await dorkaPage.keyboard.press('Enter')
+  await waitForTerminalOutput(dorkaPage, GOLDEN_STUB_EXIT_MARKER, 15_000)
   const protocolWrites = (await readTerminalPtyWriteEntries(electronApp))
     .filter((entry) => entry.id === ptyId)
     .map((entry) => entry.data)
     .join('')
   expect(protocolWrites).toContain('\x1b[13;2u')
   expect(protocolWrites).toContain('\r')
-  await expect.poll(() => getKittyKeyboardFlags(orcaPage), { timeout: 10_000 }).toBe(0)
+  await expect.poll(() => getKittyKeyboardFlags(dorkaPage), { timeout: 10_000 }).toBe(0)
 
   await clearTerminalPtyWriteLog(electronApp)
-  await focusActiveTerminalInput(orcaPage)
-  await orcaPage.keyboard.type("Write-Output ('CONPTY_KEYBOARD_' + '")
-  await orcaPage.evaluate((text) => window.api.ui.writeClipboardText(text), 'REET_')
-  await orcaPage.keyboard.press('Control+V')
-  await orcaPage.keyboard.press('ArrowLeft')
-  await orcaPage.keyboard.press('ArrowLeft')
-  await orcaPage.keyboard.press('ArrowLeft')
-  await orcaPage.keyboard.type('S')
-  await orcaPage.keyboard.press('ArrowRight')
-  await orcaPage.keyboard.press('ArrowRight')
-  await orcaPage.keyboard.press('ArrowRight')
-  await orcaPage.keyboard.type('EXECUTEX')
-  await orcaPage.keyboard.press('Backspace')
-  await orcaPage.keyboard.type("D')")
-  await orcaPage.keyboard.press('Enter')
-  await waitForTerminalOutput(orcaPage, 'CONPTY_KEYBOARD_RESET_EXECUTED', 15_000)
+  await focusActiveTerminalInput(dorkaPage)
+  await dorkaPage.keyboard.type("Write-Output ('CONPTY_KEYBOARD_' + '")
+  await dorkaPage.evaluate((text) => window.api.ui.writeClipboardText(text), 'REET_')
+  await dorkaPage.keyboard.press('Control+V')
+  await dorkaPage.keyboard.press('ArrowLeft')
+  await dorkaPage.keyboard.press('ArrowLeft')
+  await dorkaPage.keyboard.press('ArrowLeft')
+  await dorkaPage.keyboard.type('S')
+  await dorkaPage.keyboard.press('ArrowRight')
+  await dorkaPage.keyboard.press('ArrowRight')
+  await dorkaPage.keyboard.press('ArrowRight')
+  await dorkaPage.keyboard.type('EXECUTEX')
+  await dorkaPage.keyboard.press('Backspace')
+  await dorkaPage.keyboard.type("D')")
+  await dorkaPage.keyboard.press('Enter')
+  await waitForTerminalOutput(dorkaPage, 'CONPTY_KEYBOARD_RESET_EXECUTED', 15_000)
 
   const shellWrites = (await readTerminalPtyWriteEntries(electronApp))
     .filter((entry) => entry.id === ptyId)

@@ -33,7 +33,7 @@ const appDir = join(projectDir, 'mobile', 'app')
 const itBundling = mobileWebAppDependenciesPresent() ? it : it.skip
 
 async function withScratch(run) {
-  const scratch = await mkdtemp(join(tmpdir(), 'orca-mobile-web-page-routes-test-'))
+  const scratch = await mkdtemp(join(tmpdir(), 'dorka-mobile-web-page-routes-test-'))
   try {
     return await run(scratch)
   } finally {

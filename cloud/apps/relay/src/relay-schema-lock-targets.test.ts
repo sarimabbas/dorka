@@ -6,7 +6,7 @@ import {
   sqlWithoutComments,
   takesRelationLock,
   type SchemaLockTarget
-} from '@orca-cloud/postgres-schema'
+} from '@dorka-cloud/postgres-schema'
 import { relayPostgresSchemaStatements } from './database.js'
 
 // Golden pin of every boot-time statement that takes a relation lock on Postgres. Each entry with

@@ -35,34 +35,34 @@ export function renderMobileTasksProjectMissingRepoDrawer(model: ConnectionPrese
   const {
     copiedLinkKey,
     copyTextToClipboard,
-    projectRepoNotInOrca,
-    setProjectRepoNotInOrca,
+    projectRepoNotInDorka,
+    setProjectRepoNotInDorka,
     taskUiReady
   } = model
   return (
     <BottomDrawer
-      visible={taskUiReady && projectRepoNotInOrca != null}
+      visible={taskUiReady && projectRepoNotInDorka != null}
       onClose={() => {
-        setProjectRepoNotInOrca(null)
+        setProjectRepoNotInDorka(null)
       }}
     >
-      {projectRepoNotInOrca ? (
+      {projectRepoNotInDorka ? (
         <View>
           <View style={styles.sheetHeader}>
-            <Text style={styles.sheetTitle}>Repository not in Orca</Text>
+            <Text style={styles.sheetTitle}>Repository not in Dorka</Text>
             <Text style={styles.sheetSubtitle}>
-              {projectRepoNotInOrca.owner}/{projectRepoNotInOrca.repo} is not added to Orca. Add
+              {projectRepoNotInDorka.owner}/{projectRepoNotInDorka.repo} is not added to Dorka. Add
               this repository from the desktop app, then refresh mobile Tasks.
             </Text>
           </View>
 
           <View style={styles.actionGroup}>
-            {projectRepoNotInOrca.url ? (
+            {projectRepoNotInDorka.url ? (
               <Pressable
                 style={styles.actionRow}
                 onPress={() => {
-                  if (projectRepoNotInOrca.url) {
-                    void Linking.openURL(projectRepoNotInOrca.url)
+                  if (projectRepoNotInDorka.url) {
+                    void Linking.openURL(projectRepoNotInDorka.url)
                   }
                 }}
               >
@@ -70,20 +70,20 @@ export function renderMobileTasksProjectMissingRepoDrawer(model: ConnectionPrese
                 <Text style={styles.actionText}>Open in GitHub</Text>
               </Pressable>
             ) : null}
-            {projectRepoNotInOrca.url ? <View style={styles.actionSeparator} /> : null}
+            {projectRepoNotInDorka.url ? <View style={styles.actionSeparator} /> : null}
             <Pressable
               style={styles.actionRow}
               onPress={() =>
                 void copyTextToClipboard(
-                  `project-repo:${projectRepoNotInOrca.owner}/${projectRepoNotInOrca.repo}`,
-                  `${projectRepoNotInOrca.owner}/${projectRepoNotInOrca.repo}`
+                  `project-repo:${projectRepoNotInDorka.owner}/${projectRepoNotInDorka.repo}`,
+                  `${projectRepoNotInDorka.owner}/${projectRepoNotInDorka.repo}`
                 )
               }
             >
               <Copy size={16} color={colors.textPrimary} />
               <Text style={styles.actionText}>
                 {copiedLinkKey ===
-                `project-repo:${projectRepoNotInOrca.owner}/${projectRepoNotInOrca.repo}`
+                `project-repo:${projectRepoNotInDorka.owner}/${projectRepoNotInDorka.repo}`
                   ? 'Copied'
                   : 'Copy repository'}
               </Text>
@@ -340,7 +340,7 @@ export function renderMobileTasksProjectDetailDrawer(model: ConnectionPresentati
                 </Pressable>
                 {!projectRowHostedRepo ? (
                   <Text style={styles.emptyInlineText}>
-                    Merge requires this repository in Orca.
+                    Merge requires this repository in Dorka.
                   </Text>
                 ) : null}
               </>

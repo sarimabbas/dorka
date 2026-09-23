@@ -10,8 +10,8 @@ const STAGING_CELL = 'staging-gce-c4'
 const C27 = 'production-gce-c27'
 // Each canary proves its own cell under production load; C28/C29 promotion consumes only C27's.
 const PRODUCTION_CANARIES = {
-  [C27]: { kind: 'production-c27-canary', origin: 'https://c27.relay.onorca.dev' },
-  'production-gce-c30': { kind: 'production-c30-canary', origin: 'https://c30.relay.onorca.dev' }
+  [C27]: { kind: 'production-c27-canary', origin: 'https://c27.relay.ondorka.dev' },
+  'production-gce-c30': { kind: 'production-c30-canary', origin: 'https://c30.relay.ondorka.dev' }
 }
 const DIGEST_PATTERN = /^sha256:[a-f0-9]{64}$/
 const SHA_PATTERN = /^[a-f0-9]{40}$/
@@ -212,7 +212,7 @@ function assertLoadReports(reports, expected) {
     const ownsReaderPressure = readerReports.includes(report)
     if (expected.slowReaders > 0 && ownsReaderPressure && (
       queue.length !== 1 ||
-      queue[0]?.origin !== 'https://c4.relay-staging.onorca.dev' ||
+      queue[0]?.origin !== 'https://c4.relay-staging.ondorka.dev' ||
       number(queue[0]?.baselineBytes, 'reader queue baseline') >
         number(queue[0]?.peakBytes, 'reader queue peak') ||
       number(queue[0]?.increaseBytes, 'reader queue increase') <= 0 ||

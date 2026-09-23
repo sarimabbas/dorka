@@ -73,7 +73,7 @@ function installChannel(): { posted: string[]; deliver: (frame: unknown) => void
     },
     onmessage: null
   }
-  Object.defineProperty(globalThis, 'orcaBridge', { value: channel, configurable: true })
+  Object.defineProperty(globalThis, 'dorkaBridge', { value: channel, configurable: true })
   return {
     posted,
     deliver: (frame) => {
@@ -150,7 +150,7 @@ afterEach(() => {
   restoreWarn?.()
   restoreWarn = null
   vi.useRealTimers()
-  Reflect.deleteProperty(globalThis, 'orcaBridge')
+  Reflect.deleteProperty(globalThis, 'dorkaBridge')
 })
 
 describe('a route the page does not render', () => {

@@ -11,7 +11,7 @@ describe.skipIf(process.platform === 'win32')('real sidecar exit reaping', () =>
   let entry = ''
 
   beforeAll(async () => {
-    directory = await mkdtemp(join(tmpdir(), 'orca-sidecar-reaping-'))
+    directory = await mkdtemp(join(tmpdir(), 'dorka-sidecar-reaping-'))
     entry = join(directory, 'sidecar.cjs')
     await build({
       entryPoints: [join(__dirname, 'sidecar-entry.ts')],
@@ -41,7 +41,7 @@ describe.skipIf(process.platform === 'win32')('real sidecar exit reaping', () =>
                     detached: true,
                     stdio: ['ignore', 'pipe', 'ignore']
                   });
-                  writeFileSync(process.env.ORCA_TEST_PROVIDER_PID_FILE, String(child.pid));
+                  writeFileSync(process.env.DORKA_TEST_PROVIDER_PID_FILE, String(child.pid));
                   child.unref();
                   await once(child.stdout, 'data');
                   child.stdout.destroy();
@@ -83,7 +83,7 @@ describe.skipIf(process.platform === 'win32')('real sidecar exit reaping', () =>
       const sidecar = spawnProcess({
         program: process.execPath,
         args: [entry],
-        env: { ...process.env, ORCA_BACKGROUND_LAUNCH: '1', ORCA_TEST_PROVIDER_PID_FILE: pidFile },
+        env: { ...process.env, DORKA_BACKGROUND_LAUNCH: '1', DORKA_TEST_PROVIDER_PID_FILE: pidFile },
         stdio: ['ignore', 'pipe', 'pipe', 'ipc']
       })
       const sidecarExit = once(sidecar, 'exit')

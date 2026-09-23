@@ -36,75 +36,75 @@ describe('resolveRepoBackedProjectDialogState', () => {
 
 describe('resolveMissingRepoProjectDialogState', () => {
   it('clears fallback dialogs while the slug index is rebuilding', () => {
-    const slugDialog = { origin: { owner: 'stablyai', repo: 'orca' } }
-    const repoNotInOrca = { owner: 'stablyai', repo: 'orca', url: null }
+    const slugDialog = { origin: { owner: 'stablyai', repo: 'dorka' } }
+    const repoNotInDorka = { owner: 'stablyai', repo: 'dorka', url: null }
 
     expect(
       resolveMissingRepoProjectDialogState({
         slugIndexReady: false,
         slugDialog,
-        repoNotInOrca,
+        repoNotInDorka,
         lookupSlug: () => [{ id: 'repo-1' }],
         selectedRepoIds: new Set(['repo-1'])
       })
-    ).toEqual({ slugDialog: null, repoNotInOrca: null })
+    ).toEqual({ slugDialog: null, repoNotInDorka: null })
   })
 
   it('clears slug fallback dialogs once the repo slug resolves', () => {
-    const slugDialog = { origin: { owner: 'stablyai', repo: 'orca' } }
-    const repoNotInOrca = { owner: 'other', repo: 'tool', url: null }
+    const slugDialog = { origin: { owner: 'stablyai', repo: 'dorka' } }
+    const repoNotInDorka = { owner: 'other', repo: 'tool', url: null }
     const result = resolveMissingRepoProjectDialogState({
       slugIndexReady: true,
       slugDialog,
-      repoNotInOrca,
+      repoNotInDorka,
       lookupSlug: (slug) => (slug === 'stablyai/orca' ? [{ id: 'repo-1' }] : []),
       selectedRepoIds: new Set(['repo-1'])
     })
 
     expect(result.slugDialog).toBeNull()
-    expect(result.repoNotInOrca).toBe(repoNotInOrca)
+    expect(result.repoNotInDorka).toBe(repoNotInDorka)
   })
 
-  it('clears repo-not-in-orca dialogs once the repo slug resolves', () => {
+  it('clears repo-not-in-dorka dialogs once the repo slug resolves', () => {
     const slugDialog = { origin: { owner: 'other', repo: 'tool' } }
-    const repoNotInOrca = { owner: 'stablyai', repo: 'orca', url: null }
+    const repoNotInDorka = { owner: 'stablyai', repo: 'dorka', url: null }
     const result = resolveMissingRepoProjectDialogState({
       slugIndexReady: true,
       slugDialog,
-      repoNotInOrca,
+      repoNotInDorka,
       lookupSlug: (slug) => (slug === 'stablyai/orca' ? [{ id: 'repo-1' }] : []),
       selectedRepoIds: new Set(['repo-1'])
     })
 
     expect(result.slugDialog).toBe(slugDialog)
-    expect(result.repoNotInOrca).toBeNull()
+    expect(result.repoNotInDorka).toBeNull()
   })
 
   it('clears fallback dialogs when the repo is globally known but not selected', () => {
-    const slugDialog = { origin: { owner: 'stablyai', repo: 'orca' } }
-    const repoNotInOrca = { owner: 'stablyai', repo: 'orca', url: null }
+    const slugDialog = { origin: { owner: 'stablyai', repo: 'dorka' } }
+    const repoNotInDorka = { owner: 'stablyai', repo: 'dorka', url: null }
     const result = resolveMissingRepoProjectDialogState({
       slugIndexReady: true,
       slugDialog,
-      repoNotInOrca,
+      repoNotInDorka,
       lookupSlug: () => [{ id: 'repo-2' }],
       selectedRepoIds: new Set(['repo-1'])
     })
 
-    expect(result).toEqual({ slugDialog: null, repoNotInOrca: null })
+    expect(result).toEqual({ slugDialog: null, repoNotInDorka: null })
   })
 
   it('keeps missing-repo fallback dialogs when there are no global matches', () => {
-    const slugDialog = { origin: { owner: 'stablyai', repo: 'orca' } }
-    const repoNotInOrca = { owner: 'stablyai', repo: 'orca', url: null }
+    const slugDialog = { origin: { owner: 'stablyai', repo: 'dorka' } }
+    const repoNotInDorka = { owner: 'stablyai', repo: 'dorka', url: null }
     const result = resolveMissingRepoProjectDialogState({
       slugIndexReady: true,
       slugDialog,
-      repoNotInOrca,
+      repoNotInDorka,
       lookupSlug: () => [],
       selectedRepoIds: new Set(['repo-1'])
     })
 
-    expect(result).toEqual({ slugDialog, repoNotInOrca })
+    expect(result).toEqual({ slugDialog, repoNotInDorka })
   })
 })

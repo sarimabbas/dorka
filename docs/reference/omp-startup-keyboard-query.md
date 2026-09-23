@@ -9,7 +9,7 @@ Source ingress answers only the exact first `CSI ? u` before its deadline/render
 Run the actual OMP protocol smoke with a read-only reference checkout:
 
 ```sh
-ORCA_BACKGROUND_LAUNCH=1 bun tests/tools/omp-startup-keyboard-smoke.mjs /path/to/oh-my-pi > /tmp/omp-startup-keyboard.json
+DORKA_BACKGROUND_LAUNCH=1 bun tests/tools/omp-startup-keyboard-smoke.mjs /path/to/oh-my-pi > /tmp/omp-startup-keyboard.json
 ```
 
 This uses OMP's real ProcessTerminal with intercepted process-local stdin/stdout, a disposable HOME, and no model call. It verifies negotiation before any renderer attaches, a single reply, preserved mode push, and contiguous raw sequence coverage. It does not constitute live Windows/SSH or rendered shortcut proof.

@@ -7,8 +7,8 @@ const { loadSources, sha256 } = require('./sources.cjs')
 const loaded = loadSources()
 const evaluated = {}
 process.on('exit', () => {
-  if (process.env.ORCA_PLUGIN_LOG_EVALUATED) {
-    writeFileSync(process.env.ORCA_PLUGIN_LOG_EVALUATED, `${JSON.stringify(evaluated, null, 2)}\n`)
+  if (process.env.DORKA_PLUGIN_LOG_EVALUATED) {
+    writeFileSync(process.env.DORKA_PLUGIN_LOG_EVALUATED, `${JSON.stringify(evaluated, null, 2)}\n`)
   }
 })
 export default {

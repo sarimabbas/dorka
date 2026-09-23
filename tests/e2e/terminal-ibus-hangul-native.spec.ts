@@ -1,7 +1,7 @@
 import { execFileSync } from 'node:child_process'
 import { randomUUID } from 'node:crypto'
 import type { Page, TestInfo } from '@stablyai/playwright-test'
-import { test, expect } from './helpers/orca-app'
+import { test, expect } from './helpers/dorka-app'
 import { ensureTerminalVisible, waitForActiveWorktree, waitForSessionReady } from './helpers/store'
 import {
   focusActiveTerminalInput,
@@ -30,7 +30,7 @@ const MAX_KEY_DELAY_MS = 100
 const NATIVE_COMMAND_TIMEOUT_MS = 10_000
 
 test.use({
-  orcaAppExtraEnv: {
+  dorkaAppExtraEnv: {
     GTK_IM_MODULE: 'ibus',
     IBUS_ENABLE_SYNC_MODE: '1',
     QT_IM_MODULE: 'ibus',
@@ -39,14 +39,14 @@ test.use({
 })
 
 function nativeRepetitions(): number {
-  const parsed = Number(process.env.ORCA_E2E_NATIVE_IBUS_REPETITIONS ?? DEFAULT_REPETITIONS)
+  const parsed = Number(process.env.DORKA_E2E_NATIVE_IBUS_REPETITIONS ?? DEFAULT_REPETITIONS)
   return Number.isInteger(parsed) && parsed > 0
     ? Math.min(parsed, MAX_REPETITIONS)
     : DEFAULT_REPETITIONS
 }
 
 function nativeKeyDelayMs(): number {
-  const parsed = Number(process.env.ORCA_E2E_NATIVE_IBUS_KEY_DELAY_MS ?? DEFAULT_KEY_DELAY_MS)
+  const parsed = Number(process.env.DORKA_E2E_NATIVE_IBUS_KEY_DELAY_MS ?? DEFAULT_KEY_DELAY_MS)
   return Number.isInteger(parsed) && parsed >= 0
     ? Math.min(parsed, MAX_KEY_DELAY_MS)
     : DEFAULT_KEY_DELAY_MS
@@ -58,7 +58,7 @@ function runXdotool(...args: string[]): void {
 
 async function focusNativeTerminalWindow(page: Page): Promise<string> {
   await focusActiveTerminalInput(page)
-  const title = `ORCA_NATIVE_IBUS_${randomUUID()}`
+  const title = `DORKA_NATIVE_IBUS_${randomUUID()}`
   await page.evaluate((nextTitle) => {
     document.title = nextTitle
   }, title)
@@ -164,23 +164,23 @@ async function runNativeIbusScenario(
 
 test.describe('Native IBus Hangul terminal input @headful', () => {
   test.skip(
-    process.env.ORCA_E2E_NATIVE_IBUS_HANGUL !== '1',
+    process.env.DORKA_E2E_NATIVE_IBUS_HANGUL !== '1',
     'Run through config/scripts/run-terminal-ibus-hangul-e2e.mjs'
   )
 
   test('forwards the issue exact-byte sequence without loss or duplication', async ({
-    orcaPage,
+    dorkaPage,
     testRepoPath
   }, testInfo) => {
-    await runNativeIbusScenario(orcaPage, testInfo, testRepoPath, '한abc글', typeExactByteSequence)
+    await runNativeIbusScenario(dorkaPage, testInfo, testRepoPath, '한abc글', typeExactByteSequence)
   })
 
   test('forwards the issue sentence stress sequence without leaked ASCII', async ({
-    orcaPage,
+    dorkaPage,
     testRepoPath
   }, testInfo) => {
     await runNativeIbusScenario(
-      orcaPage,
+      dorkaPage,
       testInfo,
       testRepoPath,
       '테스트를 하고 있는데 여전히 그러네',

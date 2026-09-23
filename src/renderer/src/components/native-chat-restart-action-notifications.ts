@@ -2,7 +2,7 @@ import { toast } from 'sonner'
 import { translate } from '@/i18n/i18n'
 
 /**
- * What Orca tells the user after acting on a restart offer.
+ * What Dorka tells the user after acting on a restart offer.
  *
  * Resuming sends a message, so every string here has to say one went out — and an opted-in launch
  * has no dialog in front of it, which makes these toasts the only place that user learns it did.
@@ -46,7 +46,7 @@ export function announceRestartUnconfirmed(count: number): void {
   )
 }
 
-/** A dismissal Orca could not confirm. The offer belongs to the host, so say it may still be there. */
+/** A dismissal Dorka could not confirm. The offer belongs to the host, so say it may still be there. */
 export function announceRestartDismissUnconfirmed(): void {
   toast(
     translate(

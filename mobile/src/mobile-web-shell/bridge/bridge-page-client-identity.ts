@@ -6,7 +6,7 @@
  */
 
 /** What a page puts in `client.id`. Fixed, so a resent message fingerprints the same caller. */
-export const BRIDGE_PAGE_CLIENT_ID = 'orca-page-client'
+export const BRIDGE_PAGE_CLIENT_ID = 'dorka-page-client'
 
 /** `init.accepts` name for a shell that swaps. A page told nothing claims no identity at all. */
 export const BRIDGE_PAGE_CLIENT_IDENTITY_ACCEPT = 'page-client-identity'

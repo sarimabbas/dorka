@@ -7,14 +7,14 @@ import { build } from 'esbuild'
 
 const repo = resolve(fileURLToPath(new URL('../..', import.meta.url)))
 const docker =
-  process.env.ORCA_DOCKER ??
+  process.env.DORKA_DOCKER ??
   (existsSync('/Applications/Docker.app/Contents/Resources/bin/docker')
     ? '/Applications/Docker.app/Contents/Resources/bin/docker'
     : 'docker')
 const dockerDirectory = dirname(docker)
 const dockerEnv = {
   ...process.env,
-  ORCA_BACKGROUND_LAUNCH: '1',
+  DORKA_BACKGROUND_LAUNCH: '1',
   ...(dockerDirectory !== '.'
     ? { PATH: `${dockerDirectory}${delimiter}${process.env.PATH ?? ''}` }
     : {})
@@ -25,12 +25,12 @@ if (args.length !== 2 || args[0] !== '--baseline' || !args[1] || args[1].startsW
 }
 const baselineRef = args[1]
 const dockerDir = join(repo, 'config/docker/daemon-scope-lifetime')
-const temp = mkdtempSync(join(tmpdir(), 'orca-daemon-scope-lifetime-'))
+const temp = mkdtempSync(join(tmpdir(), 'dorka-daemon-scope-lifetime-'))
 const suffix = `${process.pid}-${Date.now()}`
-const image = `orca-daemon-scope-lifetime:${suffix}`
-const container = `orca-daemon-scope-lifetime-${suffix}`
+const image = `dorka-daemon-scope-lifetime:${suffix}`
+const container = `dorka-daemon-scope-lifetime-${suffix}`
 const platform =
-  process.env.ORCA_DOCKER_PLATFORM ?? (process.arch === 'arm64' ? 'linux/arm64' : 'linux/amd64')
+  process.env.DORKA_DOCKER_PLATFORM ?? (process.arch === 'arm64' ? 'linux/arm64' : 'linux/amd64')
 
 function runDocker(command, allowFailure = false) {
   const result = spawnSync(docker, command, {
@@ -116,7 +116,7 @@ try {
     '-v',
     '/sys/fs/cgroup:/sys/fs/cgroup:rw',
     '-e',
-    'ORCA_BACKGROUND_LAUNCH=1',
+    'DORKA_BACKGROUND_LAUNCH=1',
     image
   ])
   runDocker(['cp', `${temp}/.`, `${container}:/opt/daemon-scope-lifetime/`])
@@ -127,7 +127,7 @@ try {
     '-c',
     [
       'systemctl start systemd-logind.service',
-      'loginctl enable-linger orca-repro',
+      'loginctl enable-linger dorka-repro',
       'systemctl start user@1100.service',
       'test -S /run/user/1100/bus'
     ].join(' && ')
@@ -142,11 +142,11 @@ try {
         '90s',
         'runuser',
         '-u',
-        'orca-repro',
+        'dorka-repro',
         '--',
         'env',
         'XDG_RUNTIME_DIR=/run/user/1100',
-        'ORCA_BACKGROUND_LAUNCH=1',
+        'DORKA_BACKGROUND_LAUNCH=1',
         'node',
         '/opt/daemon-scope-lifetime/run-cases.cjs',
         `/opt/daemon-scope-lifetime/${mode}.cjs`,

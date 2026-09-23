@@ -10,9 +10,9 @@ import type { CodexAccountService } from '../codex-accounts/service'
 import type { CodexRuntimeHomeService } from '../codex-accounts/runtime-home-service'
 import type { ClaudeAccountService } from '../claude-accounts/service'
 import type { ClaudeRuntimeAuthService } from '../claude-accounts/runtime-auth-service'
-import type { OrcaRuntimeService } from '../runtime/orca-runtime'
+import type { DorkaRuntimeService } from '../runtime/dorka-runtime'
 import type { RateLimitService } from '../rate-limits/service'
-import type { OrcaRuntimeRpcServer } from '../runtime/runtime-rpc'
+import type { DorkaRuntimeRpcServer } from '../runtime/runtime-rpc'
 import type { DesktopRelayService } from '../runtime/relay/desktop-relay-service'
 import type { DesktopPushService } from '../runtime/push/desktop-push-service'
 import type { StarNagService } from '../star-nag/service'
@@ -31,7 +31,7 @@ import type { GpuFallbackMarker, GpuFallbackEnvironment } from './gpu-fallback-m
 import type { createCodexSessionMigrationScheduler } from '../codex/codex-session-migration-scheduler'
 import type { getDevInstanceIdentity } from './dev-instance-identity'
 import type { createServeDesktopActivationGate } from './serve-desktop-activation'
-import type { ensureActiveOrcaProfile } from '../orca-profiles/profile-index-store'
+import type { ensureActiveDorkaProfile } from '../dorka-profiles/profile-index-store'
 import type { createWindowsShellPathHydration } from './windows-shell-path-hydration'
 import type { ServeOptions } from './main-process-serve'
 import type { HangDetectionMarker } from '../hang-watchdog/hang-detection-marker'
@@ -63,9 +63,9 @@ export const mainProcessState = {
   codexSessionMigration: null as ReturnType<typeof createCodexSessionMigrationScheduler> | null,
   claudeAccounts: null as ClaudeAccountService | null,
   claudeRuntimeAuth: null as ClaudeRuntimeAuthService | null,
-  runtime: null as OrcaRuntimeService | null,
+  runtime: null as DorkaRuntimeService | null,
   rateLimits: null as RateLimitService | null,
-  runtimeRpc: null as OrcaRuntimeRpcServer | null,
+  runtimeRpc: null as DorkaRuntimeRpcServer | null,
   serveReadinessPublisher: new ServeReadinessPublisher(),
   desktopRelayService: null as DesktopRelayService | null,
   desktopPushService: null as DesktopPushService | null,
@@ -128,7 +128,7 @@ export const mainProcessState = {
   devAgentHookEndpointNamespace: undefined as string | undefined,
   startupDiagnosticsEnabled: false,
   desktopActivationGate: null as ReturnType<typeof createServeDesktopActivationGate> | null,
-  activeOrcaProfile: null as ReturnType<typeof ensureActiveOrcaProfile> | null,
+  activeDorkaProfile: null as ReturnType<typeof ensureActiveDorkaProfile> | null,
   windowsShellPathHydration: null as ReturnType<typeof createWindowsShellPathHydration> | null,
   shellPathReady: Promise.resolve(),
   hangDetection: null as HangDetectionMarker | null,

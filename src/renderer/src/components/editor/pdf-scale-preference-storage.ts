@@ -1,6 +1,6 @@
 import type { PdfScalePreference } from './pdf-scale-preference'
 
-export const PDF_SCALE_PREFERENCES_STORAGE_KEY = 'orca.pdf.scale-preferences.v1'
+export const PDF_SCALE_PREFERENCES_STORAGE_KEY = 'dorka.pdf.scale-preferences.v1'
 
 const MAX_STORED_PREFERENCES = 100
 

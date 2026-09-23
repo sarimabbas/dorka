@@ -87,7 +87,7 @@ function envelope(method: string, fields: Record<string, unknown>): AgentSession
 }
 
 beforeEach(async () => {
-  root = await mkdtemp(join(tmpdir(), 'orca-settled-attach-retry-'))
+  root = await mkdtemp(join(tmpdir(), 'dorka-settled-attach-retry-'))
   publishFault.failOnPublish = 0
   publishFault.publishCount = 0
   resetHostTestOperationIds()

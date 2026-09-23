@@ -7,7 +7,7 @@ import {
 } from 'react'
 import { act, create, type ReactTestRenderer } from 'react-test-renderer'
 import { beforeEach, describe, expect, it, vi, type MockInstance } from 'vitest'
-import type { OrcaMobileWebShellViewHandle } from '../../modules/orca-mobile-web-shell/src'
+import type { DorkaMobileWebShellViewHandle } from '../../modules/dorka-mobile-web-shell/src'
 import { BRIDGE_NATIVE_VERB_NAMES } from './bridge/bridge-native-verbs'
 import {
   BRIDGE_HAPTICS_GRANT,
@@ -74,7 +74,7 @@ const SNAPSHOT = {
 }
 
 /** Read on every `init` rather than captured once, so this is a function here as it is there. */
-const STORAGE = { 'orca:pins:host-1': '["wt-1"]' }
+const STORAGE = { 'dorka:pins:host-1': '["wt-1"]' }
 
 function fakeClient(): FakeRpcClient {
   const client = doubles.client
@@ -86,7 +86,7 @@ function fakeClient(): FakeRpcClient {
 
 function FakeShellView(props: {
   sessionId: string
-  viewRef: (handle: OrcaMobileWebShellViewHandle | null) => void
+  viewRef: (handle: DorkaMobileWebShellViewHandle | null) => void
   posted: PostedFrame[]
 }): null {
   useImperativeHandle(
@@ -816,7 +816,7 @@ describe('the props one render passed', () => {
       clientFrame({ type: 'notify', name: BRIDGE_HAPTICS_NOTIFY, kind: 'selection' }),
       clientFrame({ type: 'notify', name: BRIDGE_NAVIGATE_BACK_NOTIFY }),
       // Answered out of `readStorage`, so this frame pins that callback as well as the write.
-      clientFrame({ type: 'notify', name: 'storage', key: 'orca:pins:host-1', value: '["wt-2"]' }),
+      clientFrame({ type: 'notify', name: 'storage', key: 'dorka:pins:host-1', value: '["wt-2"]' }),
       clientFrame({
         type: 'notify',
         name: BRIDGE_FAULT_GRANT,
@@ -857,7 +857,7 @@ describe('the props one render passed', () => {
       externalLinks: ['https://example.com/y'],
       haptics: ['selection'],
       backPops: 1,
-      storageWrites: [{ key: 'orca:pins:host-1', value: '["wt-2"]' }],
+      storageWrites: [{ key: 'dorka:pins:host-1', value: '["wt-2"]' }],
       faults: [{ category: 'Error', message: 'the route threw', isRpcDeliveryUnknown: false }],
       readies: ['session-one']
     })

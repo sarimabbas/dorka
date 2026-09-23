@@ -164,10 +164,10 @@ describe('connectPanePty', () => {
       agentArgs: '--model gpt-5 --reasoning-effort high',
       agentEnv: {
         CODEX_PROFILE: 'captured',
-        ORCA_PANE_KEY: 'wrong-pane',
-        ORCA_TAB_ID: 'wrong-tab',
-        ORCA_WORKTREE_ID: 'wrong-worktree',
-        ORCA_WORKSPACE_ID: 'wrong-workspace'
+        DORKA_PANE_KEY: 'wrong-pane',
+        DORKA_TAB_ID: 'wrong-tab',
+        DORKA_WORKTREE_ID: 'wrong-worktree',
+        DORKA_WORKSPACE_ID: 'wrong-workspace'
       }
     }
     mockStoreState = {
@@ -213,7 +213,7 @@ describe('connectPanePty', () => {
       ([args]) => args.sessionId === 'lost-pty'
     )?.[0]
     const launchToken = (reattachArgs?.env as Record<string, string> | undefined)
-      ?.ORCA_AGENT_LAUNCH_TOKEN
+      ?.DORKA_AGENT_LAUNCH_TOKEN
 
     expect(transport.sendInput).not.toHaveBeenCalled()
     expect(launchToken).toMatch(new RegExp(`^${UUID_RE}$`))
@@ -223,11 +223,11 @@ describe('connectPanePty', () => {
         command: "codex '--model' 'gpt-5' '--reasoning-effort' 'high' 'resume' 'codex-session-1'",
         env: expect.objectContaining({
           CODEX_PROFILE: 'captured',
-          ORCA_PANE_KEY: paneKey,
-          ORCA_TAB_ID: 'tab-1',
-          ORCA_WORKTREE_ID: 'wt-1',
-          ORCA_WORKSPACE_ID: 'wt-1',
-          ORCA_AGENT_LAUNCH_TOKEN: launchToken
+          DORKA_PANE_KEY: paneKey,
+          DORKA_TAB_ID: 'tab-1',
+          DORKA_WORKTREE_ID: 'wt-1',
+          DORKA_WORKSPACE_ID: 'wt-1',
+          DORKA_AGENT_LAUNCH_TOKEN: launchToken
         })
       })
     )
@@ -392,7 +392,7 @@ describe('connectPanePty', () => {
         sessionId: 'lost-pty',
         command: "codex '--model' 'gpt-5-mini' 'resume' 'codex-session-1'",
         env: expect.objectContaining({
-          ORCA_AGENT_LAUNCH_TOKEN: expect.stringMatching(new RegExp(`^${UUID_RE}$`))
+          DORKA_AGENT_LAUNCH_TOKEN: expect.stringMatching(new RegExp(`^${UUID_RE}$`))
         })
       })
     )

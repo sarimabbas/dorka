@@ -22,7 +22,7 @@ import { readMirroredStorage } from '../storage/mirrored-storage-keys'
 
 const NOW = 1_900_000_000_000
 /** The key the journal persists under, which the hybrid shell mirrors into every `init`. */
-const JOURNAL_KEY = 'orca:mobileStructuredSendOperations:v1'
+const JOURNAL_KEY = 'dorka:mobileStructuredSendOperations:v1'
 const OPERATION_KEY = 'a'.repeat(64)
 const CALLER_IDENTITY = 'mobile-device-a'
 

@@ -2,9 +2,9 @@
 
 The `cloud-*` workflows in `.github/workflows/` are the Relay deploy and
 operate surface. Every one of them is gated on the repository variable
-`ORCA_CLOUD_OPERATIONS_ENABLED == 'true'` and does nothing until the repository
+`DORKA_CLOUD_OPERATIONS_ENABLED == 'true'` and does nothing until the repository
 owner sets it. The app and auth deploy workflows this document once also
-covered stay in the private `stablyai/orca-cloud` repository.
+covered stay in the private `stablyai/dorka-cloud` repository.
 
 Set these staging environment variables before running the staging deploy workflow:
 
@@ -111,7 +111,7 @@ closed; no dedicated operations identity falls back to the shared deploy identit
 
 The shared production identity is restricted to seven named direct Relay callers plus the exact
 regional-rehome and same-cap reusable wrapper/job pairs on `main` in the `production` environment.
-Its Artifact Registry and Cloud Run mutation permissions are scoped to the Orca repository, Relay
+Its Artifact Registry and Cloud Run mutation permissions are scoped to the Dorka repository, Relay
 director, and Relay fence broker; it cannot mutate the API or auth services.
 
 Bootstrap the production capacity identity only after its reviewed commit is on
@@ -135,10 +135,10 @@ terraform -chdir=infra/terraform plan -input=false -lock-timeout=30s \
   -target=google_project_iam_member.github_production_relay_capacity_artifact_reader \
   -target=google_storage_bucket_iam_member.github_production_relay_capacity_state \
   -target=google_service_account_iam_member.github_production_relay_capacity_runtime_user \
-  -out=/tmp/orca-relay-production-capacity-identity.tfplan
-terraform -chdir=infra/terraform show /tmp/orca-relay-production-capacity-identity.tfplan
-terraform -chdir=infra/terraform apply /tmp/orca-relay-production-capacity-identity.tfplan
-unlink /tmp/orca-relay-production-capacity-identity.tfplan
+  -out=/tmp/dorka-relay-production-capacity-identity.tfplan
+terraform -chdir=infra/terraform show /tmp/dorka-relay-production-capacity-identity.tfplan
+terraform -chdir=infra/terraform apply /tmp/dorka-relay-production-capacity-identity.tfplan
+unlink /tmp/dorka-relay-production-capacity-identity.tfplan
 ```
 
 Confirm a second targeted plan is empty before setting the two production
@@ -216,8 +216,8 @@ reject a serving director whose runtime digest differs from the cell/evidence di
 Expected project IDs:
 
 ```text
-staging:    onorca-cloud-staging
-production: onorca-cloud
+staging:    ondorka-cloud-staging
+production: ondorka-cloud
 ```
 
 Production relay delivery keeps the stable director separate from GCE cell rollout. `Publish Relay
@@ -259,7 +259,7 @@ in-place condition update, apply the saved plan, and require an empty targeted r
 
 This identity cannot bootstrap its own Relay authorization. Before the first
 capacity dispatch, use the existing audited staging blue/green deploy path to
-roll the compatible image and verified `ORCA_RELAY_CAPACITY_SERVICE_ACCOUNT`
+roll the compatible image and verified `DORKA_RELAY_CAPACITY_SERVICE_ACCOUNT`
 onto both director revisions. Roll C2/C3 through saved, validated cell plans
 with `Bootstrap Relay Staging Capacity` while they remain at 600/60. That
 workflow keeps the deploy identity only for Relay admin calls and uses the
@@ -327,8 +327,8 @@ with one rollout in flight. Keep both the groups and the lease.
 
 | Environment | Bucket                                 | Object                                              |
 | ----------- | -------------------------------------- | --------------------------------------------------- |
-| production  | `onorca-cloud-terraform-state`         | `terraform/state/cloud-sql-rollout/production.lock` |
-| staging     | `onorca-cloud-staging-terraform-state` | `terraform/state/cloud-sql-rollout/staging.lock`    |
+| production  | `ondorka-cloud-terraform-state`         | `terraform/state/cloud-sql-rollout/production.lock` |
+| staging     | `ondorka-cloud-staging-terraform-state` | `terraform/state/cloud-sql-rollout/staging.lock`    |
 
 `Deploy Relay Asia Topology` and `Operate Relay Asia Admission` pick the pair from
 `inputs.environment`. `Deploy Relay Production Capacity` and `Deploy Relay Production Same-Cap` call
@@ -440,7 +440,7 @@ way until the cell is rolled.
 Read the failed run before dispatching anything. If its log has a
 `"event":"relay_production_capacity_canary","mode":"drain"` line for the cell, the cell is
 drained. Then read the cell's live runtime image from
-`POST https://<hostname>.relay.onorca.dev/v1/admin/runtime-status`.
+`POST https://<hostname>.relay.ondorka.dev/v1/admin/runtime-status`.
 
 1. **Do not re-dispatch `apply`.** It requires the cell general and not draining, and a
    drained cell is neither. It will fail closed at the predecessor check.
@@ -512,7 +512,7 @@ aggregate active, receipt, registration, completion, and abort counts.
 ## Mobile push gateway
 
 `Deploy Push Gateway Production` (`.github/workflows/cloud-push-deploy.yml`) is the deploy path
-for `orca-cloud-push`, the mobile push gateway. It is the one `cloud-*` workflow that is not a
+for `dorka-cloud-push`, the mobile push gateway. It is the one `cloud-*` workflow that is not a
 relay operation, and it is here because it shares the Artifact Registry repository and rollout
 lease. Push uses a dedicated Cloud SQL instance.
 

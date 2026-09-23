@@ -15,14 +15,14 @@ describe('generationDirectoryPath', () => {
     expect(
       generationDirectoryPath('file:///var/mobile/Caches/mobile-web/abc/generations/def')
     ).toBe('/var/mobile/Caches/mobile-web/abc/generations/def')
-    expect(generationDirectoryPath('file:///data/user/0/com.stably.orca.mobile/cache/mw')).toBe(
-      '/data/user/0/com.stably.orca.mobile/cache/mw'
+    expect(generationDirectoryPath('file:///data/user/0/com.stably.dorka.mobile/cache/mw')).toBe(
+      '/data/user/0/com.stably.dorka.mobile/cache/mw'
     )
   })
 
   it('decodes what a uri escaped and a path spells literally', () => {
-    expect(generationDirectoryPath('file:///var/Orca%20Mobile/mobile-web')).toBe(
-      '/var/Orca Mobile/mobile-web'
+    expect(generationDirectoryPath('file:///var/Dorka%20Mobile/mobile-web')).toBe(
+      '/var/Dorka Mobile/mobile-web'
     )
   })
 

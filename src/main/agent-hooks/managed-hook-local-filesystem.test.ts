@@ -13,7 +13,7 @@ const tempRoot = process.platform === 'win32' ? tmpdir() : '/tmp'
 
 async function createTempHome(): Promise<string> {
   // Why: mkdir-p probes ancestors; macOS's per-user temp directory can contain hundreds of thousands of entries.
-  const home = await mkdtemp(join(tempRoot, 'orca-managed-hooks-'))
+  const home = await mkdtemp(join(tempRoot, 'dorka-managed-hooks-'))
   tempHomes.push(home)
   return home
 }

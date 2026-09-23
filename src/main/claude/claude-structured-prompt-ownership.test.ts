@@ -665,11 +665,11 @@ describe('Claude live prompt ownership', () => {
           ? [
               {
                 ...item,
-                identity: { provider: 'orca', clientMessageId: 'group:first' }
+                identity: { provider: 'dorka', clientMessageId: 'group:first' }
               },
               {
                 ...item,
-                identity: { provider: 'orca', clientMessageId: 'group:second' }
+                identity: { provider: 'dorka', clientMessageId: 'group:second' }
               }
             ]
           : []

@@ -74,7 +74,7 @@ beforeEach(() => {
   dependencies.refusals.length = 0
   dependencies.params = { hostId: 'host-1', page: ['settings'] }
   Object.assign(globalThis, { __DEV__: true })
-  dependencies.storage.set('orca:mobileWebShellEnabled', 'true')
+  dependencies.storage.set('dorka:mobileWebShellEnabled', 'true')
 })
 
 describe('the catch-all switch', () => {

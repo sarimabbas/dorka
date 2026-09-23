@@ -40,8 +40,8 @@ export function dashboardHostTooltipLabel({
       : translate('dashboardPopout.host.ssh', 'SSH host')
   }
   return label
-    ? translate('dashboardPopout.host.remoteNamed', 'Remote Orca host · {{host}}', { host: label })
-    : translate('dashboardPopout.host.remote', 'Remote Orca host')
+    ? translate('dashboardPopout.host.remoteNamed', 'Remote Dorka host · {{host}}', { host: label })
+    : translate('dashboardPopout.host.remote', 'Remote Dorka host')
 }
 
 export function DashboardHostBadge({

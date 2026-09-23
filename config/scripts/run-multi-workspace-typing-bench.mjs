@@ -16,36 +16,36 @@ import { spawn } from 'node:child_process'
 const npxCommand = process.platform === 'win32' ? 'npx.cmd' : 'npx'
 
 const knobByFlag = {
-  '--visited-workspaces': 'ORCA_TYPING_BENCH_VISITED_WORKSPACES',
-  '--load-workspaces': 'ORCA_TYPING_BENCH_LOAD_WORKSPACES',
-  '--panes': 'ORCA_TYPING_BENCH_LOAD_PANES',
-  '--rate-kbps': 'ORCA_TYPING_BENCH_RATE_KBPS',
-  '--keys': 'ORCA_TYPING_BENCH_KEYS',
-  '--cadence-ms': 'ORCA_TYPING_BENCH_KEY_CADENCE_MS',
-  '--cpu-workers': 'ORCA_TYPING_BENCH_CPU_WORKERS',
-  '--worktrees': 'ORCA_TYPING_BENCH_METADATA_WORKTREES',
-  '--repositories': 'ORCA_TYPING_BENCH_METADATA_REPOSITORIES',
-  '--terminal-tabs': 'ORCA_TYPING_BENCH_METADATA_TERMINAL_TABS',
-  '--unified-tabs': 'ORCA_TYPING_BENCH_METADATA_UNIFIED_TABS',
-  '--sleepers': 'ORCA_TYPING_BENCH_METADATA_SLEEPERS',
-  '--live-statuses': 'ORCA_TYPING_BENCH_METADATA_LIVE_STATUSES',
-  '--panes-per-tab': 'ORCA_TYPING_BENCH_METADATA_PANES',
-  '--status-history': 'ORCA_TYPING_BENCH_METADATA_STATUS_HISTORY',
-  '--status-interval-ms': 'ORCA_TYPING_BENCH_METADATA_STATUS_INTERVAL_MS',
-  '--agent-rows': 'ORCA_TYPING_BENCH_AGENT_ROWS',
-  '--title-change-ms': 'ORCA_TYPING_BENCH_TITLE_CHANGE_MS',
-  '--lifecycle-ms': 'ORCA_TYPING_BENCH_LIFECYCLE_MS',
-  '--cpu-profile': 'ORCA_TYPING_BENCH_CPU_PROFILE',
-  '--pty-metadata': 'ORCA_TYPING_BENCH_PTY_METADATA',
-  '--metadata-status': 'ORCA_TYPING_BENCH_METADATA_STATUS',
-  '--metadata-titles': 'ORCA_TYPING_BENCH_METADATA_TITLES',
-  '--instrumentation': 'ORCA_TYPING_BENCH_INSTRUMENTATION',
-  '--graph-probe': 'ORCA_TYPING_BENCH_GRAPH_PROBE',
-  '--cpu-throttle': 'ORCA_TYPING_BENCH_CPU_THROTTLE',
-  '--label': 'ORCA_TYPING_BENCH_LABEL'
+  '--visited-workspaces': 'DORKA_TYPING_BENCH_VISITED_WORKSPACES',
+  '--load-workspaces': 'DORKA_TYPING_BENCH_LOAD_WORKSPACES',
+  '--panes': 'DORKA_TYPING_BENCH_LOAD_PANES',
+  '--rate-kbps': 'DORKA_TYPING_BENCH_RATE_KBPS',
+  '--keys': 'DORKA_TYPING_BENCH_KEYS',
+  '--cadence-ms': 'DORKA_TYPING_BENCH_KEY_CADENCE_MS',
+  '--cpu-workers': 'DORKA_TYPING_BENCH_CPU_WORKERS',
+  '--worktrees': 'DORKA_TYPING_BENCH_METADATA_WORKTREES',
+  '--repositories': 'DORKA_TYPING_BENCH_METADATA_REPOSITORIES',
+  '--terminal-tabs': 'DORKA_TYPING_BENCH_METADATA_TERMINAL_TABS',
+  '--unified-tabs': 'DORKA_TYPING_BENCH_METADATA_UNIFIED_TABS',
+  '--sleepers': 'DORKA_TYPING_BENCH_METADATA_SLEEPERS',
+  '--live-statuses': 'DORKA_TYPING_BENCH_METADATA_LIVE_STATUSES',
+  '--panes-per-tab': 'DORKA_TYPING_BENCH_METADATA_PANES',
+  '--status-history': 'DORKA_TYPING_BENCH_METADATA_STATUS_HISTORY',
+  '--status-interval-ms': 'DORKA_TYPING_BENCH_METADATA_STATUS_INTERVAL_MS',
+  '--agent-rows': 'DORKA_TYPING_BENCH_AGENT_ROWS',
+  '--title-change-ms': 'DORKA_TYPING_BENCH_TITLE_CHANGE_MS',
+  '--lifecycle-ms': 'DORKA_TYPING_BENCH_LIFECYCLE_MS',
+  '--cpu-profile': 'DORKA_TYPING_BENCH_CPU_PROFILE',
+  '--pty-metadata': 'DORKA_TYPING_BENCH_PTY_METADATA',
+  '--metadata-status': 'DORKA_TYPING_BENCH_METADATA_STATUS',
+  '--metadata-titles': 'DORKA_TYPING_BENCH_METADATA_TITLES',
+  '--instrumentation': 'DORKA_TYPING_BENCH_INSTRUMENTATION',
+  '--graph-probe': 'DORKA_TYPING_BENCH_GRAPH_PROBE',
+  '--cpu-throttle': 'DORKA_TYPING_BENCH_CPU_THROTTLE',
+  '--label': 'DORKA_TYPING_BENCH_LABEL'
 }
 
-const env = { ...process.env, ORCA_BACKGROUND_LAUNCH: '1', ORCA_TYPING_BENCH: '1' }
+const env = { ...process.env, DORKA_BACKGROUND_LAUNCH: '1', DORKA_TYPING_BENCH: '1' }
 const passthroughArgs = []
 const argv = process.argv.slice(2)
 for (let i = 0; i < argv.length; i++) {

@@ -76,9 +76,9 @@ describe('electron-builder config', () => {
 
     for (const authoringOnly of [
       'examples/plugins/hostile-panel/panel.html',
-      'examples/plugins/hostile-panel/orca-plugin.json',
-      'examples/plugins/hello-orca/main.mjs',
-      'examples/plugins/hello-orca/orca-plugin.json'
+      'examples/plugins/hostile-panel/dorka-plugin.json',
+      'examples/plugins/hello-dorka/main.mjs',
+      'examples/plugins/hello-dorka/dorka-plugin.json'
     ]) {
       expect(packs(authoringOnly)).toBe(false)
     }
@@ -95,8 +95,8 @@ describe('electron-builder config', () => {
     const packs = (repoPath) => isPacked(join('/app', repoPath), { isDirectory: () => false })
 
     for (const devBundlePath of [
-      'out/electron-dev/1a2b3c4d5e6f/Orca: dev.app/Contents/MacOS/Electron',
-      'out/electron-dev/1a2b3c4d5e6f/orca-dev-electron-app.json'
+      'out/electron-dev/1a2b3c4d5e6f/Dorka: dev.app/Contents/MacOS/Electron',
+      'out/electron-dev/1a2b3c4d5e6f/dorka-dev-electron-app.json'
     ]) {
       expect(packs(devBundlePath)).toBe(false)
     }
@@ -122,8 +122,8 @@ describe('electron-builder config', () => {
     expect(electronBuilderConfig.mac.extraResources).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
-          from: 'native/computer-use-macos/.build/release/Orca Computer Use.app',
-          to: 'Orca Computer Use.app'
+          from: 'native/computer-use-macos/.build/release/Dorka Computer Use.app',
+          to: 'Dorka Computer Use.app'
         })
       ])
     )
@@ -142,8 +142,8 @@ describe('electron-builder config', () => {
           to: 'computer-use-windows/runtime.ps1'
         }),
         expect.objectContaining({
-          from: 'native/windows-cli-launcher/.build/orca.exe',
-          to: 'bin/orca.exe'
+          from: 'native/windows-cli-launcher/.build/dorka.exe',
+          to: 'bin/dorka.exe'
         })
       ])
     )
@@ -160,10 +160,10 @@ describe('electron-builder config', () => {
   })
 
   // Why: the Windows CLI shim is delivered only via extraResources to
-  // resources/bin/orca.cmd (beside the native resources/bin/orca.exe). If the
+  // resources/bin/dorka.cmd (beside the native resources/bin/dorka.exe). If the
   // source tree is also packed into app.asar it gets extracted by
-  // asarUnpack:['resources/**'] to app.asar.unpacked/resources/win32/bin/orca.cmd,
-  // a duplicate with no adjacent orca.exe that fails to launch (#7351).
+  // asarUnpack:['resources/**'] to app.asar.unpacked/resources/win32/bin/dorka.cmd,
+  // a duplicate with no adjacent dorka.exe that fails to launch (#7351).
   it('keeps the Windows CLI shim source tree out of app.asar', () => {
     expect(electronBuilderConfig.files).toEqual(
       expect.arrayContaining(['!resources/win32{,/**/*}'])
@@ -172,8 +172,8 @@ describe('electron-builder config', () => {
     expect(electronBuilderConfig.win.extraResources).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
-          from: 'resources/win32/bin/orca.cmd',
-          to: 'bin/orca.cmd'
+          from: 'resources/win32/bin/dorka.cmd',
+          to: 'bin/dorka.cmd'
         })
       ])
     )
@@ -185,13 +185,13 @@ describe('electron-builder config', () => {
     expect(electronBuilderConfig.mac.extraFiles).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
-          from: 'native/notification-status-macos/.build/release/orca-notification-status',
-          to: 'MacOS/orca-notification-status'
+          from: 'native/notification-status-macos/.build/release/dorka-notification-status',
+          to: 'MacOS/dorka-notification-status'
         })
       ])
     )
     expect(electronBuilderConfig.mac.extraResources).not.toEqual(
-      expect.arrayContaining([expect.objectContaining({ to: 'orca-notification-status' })])
+      expect.arrayContaining([expect.objectContaining({ to: 'dorka-notification-status' })])
     )
   })
 
@@ -199,13 +199,13 @@ describe('electron-builder config', () => {
     expect(electronBuilderConfig.mac.extraFiles).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
-          from: 'native/keyboard-layout-macos/.build/release/orca-keyboard-layout',
-          to: 'MacOS/orca-keyboard-layout'
+          from: 'native/keyboard-layout-macos/.build/release/dorka-keyboard-layout',
+          to: 'MacOS/dorka-keyboard-layout'
         })
       ])
     )
     expect(electronBuilderConfig.mac.extraResources).not.toEqual(
-      expect.arrayContaining([expect.objectContaining({ to: 'orca-keyboard-layout' })])
+      expect.arrayContaining([expect.objectContaining({ to: 'dorka-keyboard-layout' })])
     )
   })
 
@@ -270,17 +270,17 @@ describe('electron-builder config', () => {
   })
 
   it('matches the Linux desktop entry to Electron window class', () => {
-    expect(electronBuilderConfig.linux.desktop.entry.StartupWMClass).toBe('orca')
+    expect(electronBuilderConfig.linux.desktop.entry.StartupWMClass).toBe('dorka')
   })
 
   it('uses the release artifact set as local Linux targets without changing existing names', () => {
     expect(electronBuilderConfig.linux.target).toEqual(['AppImage', 'deb', 'rpm'])
     expect(electronBuilderConfig.toolsets).toEqual({ appimage: '1.0.3' })
-    expect(electronBuilderConfig.appImage.artifactName).toBe('orca-linux.${ext}')
-    expect(electronBuilderConfig.deb.artifactName).toBe('orca-ide_${version}_${arch}.${ext}')
+    expect(electronBuilderConfig.appImage.artifactName).toBe('dorka-linux.${ext}')
+    expect(electronBuilderConfig.deb.artifactName).toBe('dorka-ide_${version}_${arch}.${ext}')
     expect(electronBuilderConfig.rpm).toMatchObject({
-      packageName: 'orca-ide',
-      artifactName: 'orca-ide-${version}.${arch}.${ext}'
+      packageName: 'dorka-ide',
+      artifactName: 'dorka-ide-${version}.${arch}.${ext}'
     })
   })
 
@@ -295,9 +295,9 @@ describe('electron-builder config', () => {
   })
 
   it('validates each AppImage before electron-builder publishes it', async () => {
-    const root = await mkdtemp(join(tmpdir(), 'orca-electron-builder-appimage-'))
+    const root = await mkdtemp(join(tmpdir(), 'dorka-electron-builder-appimage-'))
     try {
-      const appImage = join(root, 'orca-linux.AppImage')
+      const appImage = join(root, 'dorka-linux.AppImage')
       await writeFile(appImage, 'not an ELF')
       await chmod(appImage, 0o755)
 
@@ -305,7 +305,7 @@ describe('electron-builder config', () => {
         electronBuilderConfig.artifactBuildCompleted({ file: appImage, arch: 1 })
       ).toThrow(/ELF header is outside/)
       expect(() =>
-        electronBuilderConfig.artifactBuildCompleted({ file: join(root, 'orca-ide.deb') })
+        electronBuilderConfig.artifactBuildCompleted({ file: join(root, 'dorka-ide.deb') })
       ).not.toThrow()
     } finally {
       await rm(root, { recursive: true, force: true })
@@ -313,18 +313,18 @@ describe('electron-builder config', () => {
   })
   it('uses a distinct AppImage name for Linux arm64 release uploads', () => {
     const configPath = require.resolve('../electron-builder.config.cjs')
-    const original = process.env.ORCA_LINUX_ARM64_RELEASE
+    const original = process.env.DORKA_LINUX_ARM64_RELEASE
     try {
       delete require.cache[configPath]
-      process.env.ORCA_LINUX_ARM64_RELEASE = '1'
+      process.env.DORKA_LINUX_ARM64_RELEASE = '1'
       expect(require('../electron-builder.config.cjs').appImage.artifactName).toBe(
-        'orca-linux-arm64.${ext}'
+        'dorka-linux-arm64.${ext}'
       )
     } finally {
       if (original === undefined) {
-        delete process.env.ORCA_LINUX_ARM64_RELEASE
+        delete process.env.DORKA_LINUX_ARM64_RELEASE
       } else {
-        process.env.ORCA_LINUX_ARM64_RELEASE = original
+        process.env.DORKA_LINUX_ARM64_RELEASE = original
       }
       delete require.cache[configPath]
       require('../electron-builder.config.cjs')
@@ -333,25 +333,25 @@ describe('electron-builder config', () => {
 
   it('overrides packaged semver only for local macOS builds', () => {
     const configPath = require.resolve('../electron-builder.config.cjs')
-    const original = process.env.ORCA_LOCAL_BUILD_VERSION
-    const originalMacRelease = process.env.ORCA_MAC_RELEASE
+    const original = process.env.DORKA_LOCAL_BUILD_VERSION
+    const originalMacRelease = process.env.DORKA_MAC_RELEASE
     try {
       delete require.cache[configPath]
-      delete process.env.ORCA_MAC_RELEASE
-      process.env.ORCA_LOCAL_BUILD_VERSION = '1.4.159-rc.0.local.123.abc'
+      delete process.env.DORKA_MAC_RELEASE
+      process.env.DORKA_LOCAL_BUILD_VERSION = '1.4.159-rc.0.local.123.abc'
       expect(require('../electron-builder.config.cjs').extraMetadata).toEqual({
         version: '1.4.159-rc.0.local.123.abc'
       })
     } finally {
       if (originalMacRelease === undefined) {
-        delete process.env.ORCA_MAC_RELEASE
+        delete process.env.DORKA_MAC_RELEASE
       } else {
-        process.env.ORCA_MAC_RELEASE = originalMacRelease
+        process.env.DORKA_MAC_RELEASE = originalMacRelease
       }
       if (original === undefined) {
-        delete process.env.ORCA_LOCAL_BUILD_VERSION
+        delete process.env.DORKA_LOCAL_BUILD_VERSION
       } else {
-        process.env.ORCA_LOCAL_BUILD_VERSION = original
+        process.env.DORKA_LOCAL_BUILD_VERSION = original
       }
       delete require.cache[configPath]
       require('../electron-builder.config.cjs')
@@ -360,30 +360,30 @@ describe('electron-builder config', () => {
 
   it('never applies local semver to release packaging', () => {
     const configPath = require.resolve('../electron-builder.config.cjs')
-    const originalLocalVersion = process.env.ORCA_LOCAL_BUILD_VERSION
-    const originalMacRelease = process.env.ORCA_MAC_RELEASE
+    const originalLocalVersion = process.env.DORKA_LOCAL_BUILD_VERSION
+    const originalMacRelease = process.env.DORKA_MAC_RELEASE
     try {
       delete require.cache[configPath]
-      process.env.ORCA_LOCAL_BUILD_VERSION = '1.4.159-local.123.abc'
-      process.env.ORCA_MAC_RELEASE = '1'
+      process.env.DORKA_LOCAL_BUILD_VERSION = '1.4.159-local.123.abc'
+      process.env.DORKA_MAC_RELEASE = '1'
       expect(require('../electron-builder.config.cjs').extraMetadata).toBeUndefined()
     } finally {
       if (originalLocalVersion === undefined) {
-        delete process.env.ORCA_LOCAL_BUILD_VERSION
+        delete process.env.DORKA_LOCAL_BUILD_VERSION
       } else {
-        process.env.ORCA_LOCAL_BUILD_VERSION = originalLocalVersion
+        process.env.DORKA_LOCAL_BUILD_VERSION = originalLocalVersion
       }
       if (originalMacRelease === undefined) {
-        delete process.env.ORCA_MAC_RELEASE
+        delete process.env.DORKA_MAC_RELEASE
       } else {
-        process.env.ORCA_MAC_RELEASE = originalMacRelease
+        process.env.DORKA_MAC_RELEASE = originalMacRelease
       }
       delete require.cache[configPath]
       require('../electron-builder.config.cjs')
     }
   })
 
-  it('uses Orca native rebuild hook instead of electron-builder default rebuild', () => {
+  it('uses Dorka native rebuild hook instead of electron-builder default rebuild', () => {
     expect(electronBuilderConfig.beforeBuild).toBe(electronBuilderNativeRebuild)
     expect(electronBuilderConfig.npmRebuild).toBe(true)
   })
@@ -450,7 +450,7 @@ describe('arch-aware packaging guard', () => {
   let scratch
   let bundleDir
   beforeAll(async () => {
-    scratch = await mkdtemp(join(tmpdir(), 'orca-electron-builder-guard-'))
+    scratch = await mkdtemp(join(tmpdir(), 'dorka-electron-builder-guard-'))
     bundleDir = join(scratch, 'mobile-web')
     await writeMobileWebBundleFixtureTree({ outDir: bundleDir })
   })

@@ -1,5 +1,5 @@
-export const LOC_BLOCK_START = '<!-- orca-pr-loc -->'
-export const LOC_BLOCK_END = '<!-- /orca-pr-loc -->'
+export const LOC_BLOCK_START = '<!-- dorka-pr-loc -->'
+export const LOC_BLOCK_END = '<!-- /dorka-pr-loc -->'
 export const LOC_HANDS_OFF_COMMENT =
   '<!-- Programmatic LoC summary. Do not edit by hand; rewritten on every commit. -->'
 

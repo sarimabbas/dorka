@@ -230,9 +230,9 @@ function ActivityThreadHoverCardContent({
           onIssueMenuOpenChange={detailsHoverControl.handleIssueMenuOpenChange}
           onCopyIssueLink={secondary.hoverIssue?.url ? handleCopyIssueLink : undefined}
           onEditIssue={foundation.handleEditIssue}
-          onOpenGitHubIssueInOrca={
-            secondary.handleOpenGitHubIssueInOrca
-              ? dismissAndRun(secondary.handleOpenGitHubIssueInOrca)
+          onOpenGitHubIssueInDorka={
+            secondary.handleOpenGitHubIssueInDorka
+              ? dismissAndRun(secondary.handleOpenGitHubIssueInDorka)
               : undefined
           }
           onOpenIssueInBrowser={
@@ -257,13 +257,13 @@ function ActivityThreadHoverCardContent({
               )}
               actions={
                 <>
-                  {secondary.hoverLinearIssue.url && secondary.handleOpenLinearIssueInOrca && (
+                  {secondary.hoverLinearIssue.url && secondary.handleOpenLinearIssueInDorka && (
                     <MetadataActionIcon
                       label={translate(
                         'auto.components.sidebar.WorktreeCardMeta.2c67730e07',
-                        'Open in Orca'
+                        'Open in Dorka'
                       )}
-                      onClick={dismissAndRun(secondary.handleOpenLinearIssueInOrca)}
+                      onClick={dismissAndRun(secondary.handleOpenLinearIssueInDorka)}
                     >
                       <MonitorUp className="size-3" />
                     </MetadataActionIcon>
@@ -339,7 +339,7 @@ function ActivityThreadHoverCardContent({
           review={secondary.hoverReview}
           reviewMenuOpen={detailsHoverControl.reviewMenuOpen}
           onReviewMenuOpenChange={detailsHoverControl.handleReviewMenuOpenChange}
-          onOpenReviewInOrca={secondary.handleOpenReviewInOrca}
+          onOpenReviewInDorka={secondary.handleOpenReviewInDorka}
           onOpenReviewInBrowser={
             secondary.hoverReview?.url ? secondary.handleOpenReviewInBrowser : undefined
           }

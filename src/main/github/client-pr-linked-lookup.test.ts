@@ -44,10 +44,10 @@ describe('getPRForBranch', () => {
   it('looks up a linked PR number across PR repo candidates', async () => {
     resolvePRRepositoryCandidatesMock.mockResolvedValueOnce({
       candidates: [
-        { owner: 'stablyai', repo: 'orca' },
-        { owner: 'fork', repo: 'orca' }
+        { owner: 'stablyai', repo: 'dorka' },
+        { owner: 'fork', repo: 'dorka' }
       ],
-      headRepo: { owner: 'fork', repo: 'orca' }
+      headRepo: { owner: 'fork', repo: 'dorka' }
     })
     gitExecFileAsyncMock.mockResolvedValueOnce({ stdout: 'linked-head-oid\n', stderr: '' })
     ghExecFileAsyncMock
@@ -57,7 +57,7 @@ describe('getPRForBranch', () => {
           number: 99,
           title: 'Linked fork PR',
           state: 'OPEN',
-          url: 'https://github.com/fork/orca/pull/99',
+          url: 'https://github.com/fork/dorka/pull/99',
           statusCheckRollup: [],
           updatedAt: '2026-03-28T00:00:00Z',
           isDraft: false,
@@ -91,13 +91,13 @@ describe('getPRForBranch', () => {
         'view',
         '99',
         '--repo',
-        'fork/orca',
+        'fork/dorka',
         '--json',
         'number,title,state,url,statusCheckRollup,updatedAt,isDraft,mergeable,reviewDecision,mergeStateStatus,autoMergeRequest,baseRefName,headRefName,baseRefOid,headRefOid'
       ],
       { cwd: '/repo-root' }
     )
-    expect(pr?.prRepo).toEqual({ owner: 'fork', repo: 'orca' })
+    expect(pr?.prRepo).toEqual({ owner: 'fork', repo: 'dorka' })
   })
 
   it('prefers exact linked PR lookup when the repo identity is known', async () => {

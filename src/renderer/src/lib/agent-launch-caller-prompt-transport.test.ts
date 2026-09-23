@@ -232,7 +232,7 @@ describe('agent launch caller prompt transport', () => {
     }
     if (row.transport === 'env') {
       expect(queuedStartupPayload(store)?.env).toMatchObject({
-        ORCA_HERMES_STARTUP_QUERY: PROMPT
+        DORKA_HERMES_STARTUP_QUERY: PROMPT
       })
     }
   })

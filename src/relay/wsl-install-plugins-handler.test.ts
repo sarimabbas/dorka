@@ -24,20 +24,20 @@ describe.skipIf(process.platform === 'win32')('createInstallPluginsHandler (gues
     }
   }
 
-  it('writes orca-opencode-status.js into the overlay and returns that dir', () => {
+  it('writes dorka-opencode-status.js into the overlay and returns that dir', () => {
     withHome((home) => {
       const install = createInstallPluginsHandler(new PluginOverlayManager({ homeDir: home }), {
         HOME: home,
-        ORCA_WSL_HOOK_INSTANCE: 'inst1'
+        DORKA_WSL_HOOK_INSTANCE: 'inst1'
       })
-      const source = '// orca opencode status plugin\nexport const Plugin = () => ({})\n'
+      const source = '// dorka opencode status plugin\nexport const Plugin = () => ({})\n'
       const res = install({ opencodePluginSource: source })
 
       expect(res.installed.opencode).toBe(true)
       const dir = res.overlayDirs.opencode
       expect(typeof dir).toBe('string')
       // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: Runtime validation or the local test fixture establishes the asserted shape.
-      const pluginPath = join(dir as string, 'plugins', 'orca-opencode-status.js')
+      const pluginPath = join(dir as string, 'plugins', 'dorka-opencode-status.js')
       expect(existsSync(pluginPath)).toBe(true)
       expect(readFileSync(pluginPath, 'utf8')).toBe(source)
     })
@@ -47,12 +47,12 @@ describe.skipIf(process.platform === 'win32')('createInstallPluginsHandler (gues
     withHome((home) => {
       const install = createInstallPluginsHandler(new PluginOverlayManager({ homeDir: home }), {
         HOME: home,
-        ORCA_WSL_HOOK_INSTANCE: 'inst-pi'
+        DORKA_WSL_HOOK_INSTANCE: 'inst-pi'
       })
-      const source = '// @orca-managed-pi-extension\nexport default {}\n'
+      const source = '// @dorka-managed-pi-extension\nexport default {}\n'
       const res = install({ piExtensionSource: source, launchKind: 'pi' })
       expect(res.overlayDirs.pi).toBe(join(home, '.pi', 'agent'))
-      const extension = join(home, '.pi', 'agent', 'extensions', 'orca-agent-status.ts')
+      const extension = join(home, '.pi', 'agent', 'extensions', 'dorka-agent-status.ts')
       expect(readFileSync(extension, 'utf8')).toContain(source)
     })
   })
@@ -61,7 +61,7 @@ describe.skipIf(process.platform === 'win32')('createInstallPluginsHandler (gues
     withHome((home) => {
       const install = createInstallPluginsHandler(new PluginOverlayManager({ homeDir: home }), {
         HOME: home,
-        ORCA_WSL_HOOK_INSTANCE: 'inst-v2'
+        DORKA_WSL_HOOK_INSTANCE: 'inst-v2'
       })
       const source = '// opencode2\n'
       const res = install({ opencode2PluginSource: source })
@@ -69,7 +69,7 @@ describe.skipIf(process.platform === 'win32')('createInstallPluginsHandler (gues
       expect(res.installed.opencode2).toBe(true)
       expect(typeof dir).toBe('string')
       // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: Runtime validation or the local test fixture establishes the asserted shape.
-      expect(readFileSync(join(dir as string, 'plugins', 'orca-opencode2-status.js'), 'utf8')).toBe(
+      expect(readFileSync(join(dir as string, 'plugins', 'dorka-opencode2-status.js'), 'utf8')).toBe(
         source
       )
       expect(res.overlayDirs.opencode).toBeUndefined()
@@ -80,7 +80,7 @@ describe.skipIf(process.platform === 'win32')('createInstallPluginsHandler (gues
     withHome((home) => {
       const install = createInstallPluginsHandler(new PluginOverlayManager({ homeDir: home }), {
         HOME: home,
-        ORCA_WSL_HOOK_INSTANCE: 'inst1'
+        DORKA_WSL_HOOK_INSTANCE: 'inst1'
       })
       const source = '// v1\n'
       // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: Runtime validation or the local test fixture establishes the asserted shape.
@@ -104,14 +104,14 @@ describe.skipIf(process.platform === 'win32')('createInstallPluginsHandler (gues
       // this branch today; it exists so a plugin-only overlay can't outlive a source
       // dir becoming resolvable. Simulated by mutating the env the factory captured.
       const userConfig = join(home, 'my-opencode')
-      const env: NodeJS.ProcessEnv = { HOME: home, ORCA_WSL_HOOK_INSTANCE: 'inst1' }
+      const env: NodeJS.ProcessEnv = { HOME: home, DORKA_WSL_HOOK_INSTANCE: 'inst1' }
       const install = createInstallPluginsHandler(new PluginOverlayManager({ homeDir: home }), env)
       const source = '// v1\n'
       install({ opencodePluginSource: source })
 
       mkdirSync(userConfig, { recursive: true })
       writeFileSync(join(userConfig, 'opencode.json'), '{"model":"late"}')
-      env.ORCA_OPENCODE_SOURCE_CONFIG_DIR = userConfig
+      env.DORKA_OPENCODE_SOURCE_CONFIG_DIR = userConfig
 
       // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: Runtime validation or the local test fixture establishes the asserted shape.
       const dir = install({ opencodePluginSource: source }).overlayDirs.opencode as string
@@ -123,17 +123,17 @@ describe.skipIf(process.platform === 'win32')('createInstallPluginsHandler (gues
     withHome((home) => {
       const install = createInstallPluginsHandler(new PluginOverlayManager({ homeDir: home }), {
         HOME: home,
-        ORCA_WSL_HOOK_INSTANCE: 'inst1'
+        DORKA_WSL_HOOK_INSTANCE: 'inst1'
       })
       const source = '// v1\n'
       // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: Runtime validation or the local test fixture establishes the asserted shape.
       const dir = install({ opencodePluginSource: source }).overlayDirs.opencode as string
       // Why: a rebuild that failed after the wipe leaves the dir but not the plugin;
       // an existsSync on the dir alone would call that a cache hit forever.
-      rmSync(join(dir, 'plugins', 'orca-opencode-status.js'))
+      rmSync(join(dir, 'plugins', 'dorka-opencode-status.js'))
 
       expect(install({ opencodePluginSource: source }).overlayDirs.opencode).toBe(dir)
-      expect(existsSync(join(dir, 'plugins', 'orca-opencode-status.js'))).toBe(true)
+      expect(existsSync(join(dir, 'plugins', 'dorka-opencode-status.js'))).toBe(true)
     })
   })
 
@@ -141,13 +141,13 @@ describe.skipIf(process.platform === 'win32')('createInstallPluginsHandler (gues
     withHome((home) => {
       const install = createInstallPluginsHandler(new PluginOverlayManager({ homeDir: home }), {
         HOME: home,
-        ORCA_WSL_HOOK_INSTANCE: 'inst1'
+        DORKA_WSL_HOOK_INSTANCE: 'inst1'
       })
       install({ opencodePluginSource: '// v1\n' })
-      // Why: a mid-session Orca upgrade ships new plugin source; future spawns must see it.
+      // Why: a mid-session Dorka upgrade ships new plugin source; future spawns must see it.
       // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: Runtime validation or the local test fixture establishes the asserted shape.
       const dir = install({ opencodePluginSource: '// v2\n' }).overlayDirs.opencode as string
-      expect(readFileSync(join(dir, 'plugins', 'orca-opencode-status.js'), 'utf8')).toBe('// v2\n')
+      expect(readFileSync(join(dir, 'plugins', 'dorka-opencode-status.js'), 'utf8')).toBe('// v2\n')
     })
   })
 
@@ -155,7 +155,7 @@ describe.skipIf(process.platform === 'win32')('createInstallPluginsHandler (gues
     withHome((home) => {
       const install = createInstallPluginsHandler(new PluginOverlayManager({ homeDir: home }), {
         HOME: home,
-        ORCA_WSL_HOOK_INSTANCE: 'inst1'
+        DORKA_WSL_HOOK_INSTANCE: 'inst1'
       })
       const source = '// v1\n'
       // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: Runtime validation or the local test fixture establishes the asserted shape.
@@ -163,7 +163,7 @@ describe.skipIf(process.platform === 'win32')('createInstallPluginsHandler (gues
       rmSync(dir, { recursive: true, force: true })
 
       expect(install({ opencodePluginSource: source }).overlayDirs.opencode).toBe(dir)
-      expect(existsSync(join(dir, 'plugins', 'orca-opencode-status.js'))).toBe(true)
+      expect(existsSync(join(dir, 'plugins', 'dorka-opencode-status.js'))).toBe(true)
     })
   })
 
@@ -176,33 +176,33 @@ describe.skipIf(process.platform === 'win32')('createInstallPluginsHandler (gues
       writeFileSync(join(userConfig, 'opencode.json'), '{"model":"user-set"}')
       const install = createInstallPluginsHandler(new PluginOverlayManager({ homeDir: home }), {
         HOME: home,
-        ORCA_OPENCODE_SOURCE_CONFIG_DIR: userConfig,
-        ORCA_WSL_HOOK_INSTANCE: 'inst1'
+        DORKA_OPENCODE_SOURCE_CONFIG_DIR: userConfig,
+        DORKA_WSL_HOOK_INSTANCE: 'inst1'
       })
       // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: Runtime validation or the local test fixture establishes the asserted shape.
       const dir = install({ opencodePluginSource: '// v1\n' }).overlayDirs.opencode as string
 
       expect(readFileSync(join(dir, 'opencode.json'), 'utf8')).toBe('{"model":"user-set"}')
-      expect(existsSync(join(dir, 'plugins', 'orca-opencode-status.js'))).toBe(true)
+      expect(existsSync(join(dir, 'plugins', 'dorka-opencode-status.js'))).toBe(true)
     })
   })
 
   it('mirrors the XDG default config root when using an overlay', () => {
     withHome((home) => {
       // Why: OPENCODE_CONFIG_DIR replaces the default root, so the overlay must
-      // carry the user's default config and Orca's plugin together.
+      // carry the user's default config and Dorka's plugin together.
       const defaultConfig = join(home, '.config', 'opencode')
       mkdirSync(defaultConfig, { recursive: true })
       writeFileSync(join(defaultConfig, 'opencode.json'), '{"model":"default"}')
       const install = createInstallPluginsHandler(new PluginOverlayManager({ homeDir: home }), {
         HOME: home,
-        ORCA_WSL_HOOK_INSTANCE: 'inst1'
+        DORKA_WSL_HOOK_INSTANCE: 'inst1'
       })
       // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: Runtime validation or the local test fixture establishes the asserted shape.
       const dir = install({ opencodePluginSource: '// v1\n' }).overlayDirs.opencode as string
 
       expect(existsSync(join(dir, 'opencode.json'))).toBe(true)
-      expect(existsSync(join(dir, 'plugins', 'orca-opencode-status.js'))).toBe(true)
+      expect(existsSync(join(dir, 'plugins', 'dorka-opencode-status.js'))).toBe(true)
     })
   })
 

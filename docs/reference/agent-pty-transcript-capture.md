@@ -1,6 +1,6 @@
 # Capturing an agent PTY transcript
 
-Orca's readiness and blocked-prompt rules are text rules over what an agent CLI paints on a
+Dorka's readiness and blocked-prompt rules are text rules over what an agent CLI paints on a
 terminal. They are only as good as the screens they were written against. This is how to record
 one, byte for byte, so a rule can be pinned to evidence instead of to a remembered screen.
 
@@ -43,7 +43,7 @@ a screen are not recoverable from the bytes.
 node config/scripts/ensure-native-runtime.mjs --runtime=node
 ```
 
-Orca itself does not need to be running, and the recorder never touches Orca state.
+Dorka itself does not need to be running, and the recorder never touches Dorka state.
 
 ### Platform notes
 

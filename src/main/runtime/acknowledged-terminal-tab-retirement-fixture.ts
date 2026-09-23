@@ -6,7 +6,7 @@ import { getDefaultWorkspaceSession } from '../../shared/constants'
 import type { RuntimeSyncWindowGraph } from '../../shared/runtime-types'
 import { closeTerminalTabInWorkspaceSession } from '../../shared/workspace-session-terminal-tab-close'
 import { Store } from '../persistence/loading-store/store'
-import { OrcaRuntimeService } from './orca-runtime'
+import { DorkaRuntimeService } from './dorka-runtime'
 import { buildHeadlessMobileSessionTerminalTabs } from './mobile-session-terminal-projection'
 import { setRuntimeDesktopSurface } from './runtime-desktop-surface'
 import { advanceTerminalTopologyRevision } from './workspace-session-terminal-membership-authority'
@@ -27,8 +27,8 @@ function deferred(): { promise: Promise<void>; resolve: () => void } {
 }
 
 export function createAcknowledgedTabRetirementFixture(bound = false) {
-  const directory = mkdtempSync(join(tmpdir(), 'orca-close-ack-'))
-  const store = new Store({ dataFile: join(directory, 'orca-data.json') })
+  const directory = mkdtempSync(join(tmpdir(), 'dorka-close-ack-'))
+  const store = new Store({ dataFile: join(directory, 'dorka-data.json') })
   store.addRepo({
     id: 'repo1',
     path: '/tmp/worktree',
@@ -84,7 +84,7 @@ export function createAcknowledgedTabRetirementFixture(bound = false) {
     onIpc: () => {},
     removeIpcListener: () => {}
   })
-  const runtime = new OrcaRuntimeService(store)
+  const runtime = new DorkaRuntimeService(store)
   runtime.attachWindow(1)
   if (bound) {
     runtime.registerPty('pty-a', ACK_WORKTREE, null, {

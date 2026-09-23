@@ -1,17 +1,17 @@
 import { describe, expect, it, vi } from 'vitest'
 import { RpcDispatcher } from '../dispatcher'
 import type { RpcRequest } from '../core'
-import type { OrcaRuntimeService } from '../../orca-runtime'
+import type { DorkaRuntimeService } from '../../dorka-runtime'
 import { WORKTREE_METHODS } from './worktree'
 
-function makeRuntime(): OrcaRuntimeService {
+function makeRuntime(): DorkaRuntimeService {
   return {
     getRuntimeId: () => 'test-runtime',
     dedupeWorktreeCreate: <T>(_repo: string, _id: string | undefined, run: () => Promise<T>) =>
       run(),
     showManagedWorktree: vi.fn().mockResolvedValue({ hostId: 'ssh:builder' }),
     removeManagedWorktree: vi.fn().mockResolvedValue({})
-  } as unknown as OrcaRuntimeService
+  } as unknown as DorkaRuntimeService
 }
 
 /** The dispatcher validates against the Zod schema, so the test spells the wire shape. */
@@ -23,7 +23,7 @@ type RmParams = {
   allowFailedArchiveHook?: boolean
 }
 
-async function dispatchRm(runtime: OrcaRuntimeService, params: RmParams): Promise<void> {
+async function dispatchRm(runtime: DorkaRuntimeService, params: RmParams): Promise<void> {
   const dispatcher = new RpcDispatcher({ runtime, methods: WORKTREE_METHODS })
   const request: RpcRequest = {
     id: 'req-1',

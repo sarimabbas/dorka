@@ -5,7 +5,7 @@ import { Badge } from '../ui/badge'
 import { SettingsSubsectionHeader } from './SettingsFormControls'
 import { showDeleteWorktreeFailureToast } from '../sidebar/delete-worktree-failure-toast'
 import { showLocalBaseRefUpdateSuggestionToast } from '../sidebar/local-base-ref-suggestion-toast'
-import { useOrcaProfileAuthStatusRefresh } from '@/hooks/use-orca-profile-auth-status-refresh'
+import { useDorkaProfileAuthStatusRefresh } from '@/hooks/use-dorka-profile-auth-status-refresh'
 import { translate } from '@/i18n/i18n'
 import { useAppStore } from '@/store'
 import type { AppState } from '@/store/types'
@@ -134,26 +134,26 @@ function showDeleteFailureToast(): void {
   })
 }
 
-// Dev-only preview of the first-party Orca Cloud sign-in. The sidebar/titlebar
+// Dev-only preview of the first-party Dorka Cloud sign-in. The sidebar/titlebar
 // account switcher is hidden in packaged builds while the feature is in
 // progress; this surfaces it (and its status) in dev when the env vars are set.
-function OrcaCloudDevSubsection(): React.JSX.Element {
-  const authStatus = useAppStore((s) => s.orcaProfileAuthStatus)
-  const connect = useAppStore((s) => s.connectCurrentOrcaProfile)
-  const signOut = useAppStore((s) => s.signOutCurrentOrcaProfile)
-  const refresh = useAppStore((s) => s.fetchOrcaProfileAuthStatus)
+function DorkaCloudDevSubsection(): React.JSX.Element {
+  const authStatus = useAppStore((s) => s.dorkaProfileAuthStatus)
+  const connect = useAppStore((s) => s.connectCurrentDorkaProfile)
+  const signOut = useAppStore((s) => s.signOutCurrentDorkaProfile)
+  const refresh = useAppStore((s) => s.fetchDorkaProfileAuthStatus)
   const configured = authStatus?.configured === true
   const connected = authStatus?.state === 'connected'
-  useOrcaProfileAuthStatusRefresh()
+  useDorkaProfileAuthStatusRefresh()
 
   return (
     <section className="space-y-3">
       <div className="flex items-start justify-between gap-3">
         <SettingsSubsectionHeader
-          title={translate('auto.components.settings.DevToolsPane.orcaCloud', 'Orca Cloud')}
+          title={translate('auto.components.settings.DevToolsPane.dorkaCloud', 'Dorka Cloud')}
           description={translate(
-            'auto.components.settings.DevToolsPane.orcaCloudDescription',
-            'Dev-only preview of first-party cloud sign-in. Hidden in production; in dev it also appears in the sidebar account switcher once ORCA_CLOUD_API_URL and ORCA_CLOUD_CLIENT_ID are set.'
+            'auto.components.settings.DevToolsPane.dorkaCloudDescription',
+            'Dev-only preview of first-party cloud sign-in. Hidden in production; in dev it also appears in the sidebar account switcher once DORKA_CLOUD_API_URL and DORKA_CLOUD_CLIENT_ID are set.'
           )}
         />
         <Badge variant="outline" className="mt-0.5">
@@ -164,25 +164,25 @@ function OrcaCloudDevSubsection(): React.JSX.Element {
       {configured ? (
         <div className="space-y-2">
           <p className="text-xs text-muted-foreground">
-            {translate('auto.components.settings.DevToolsPane.orcaCloudStatus', 'Status')}:{' '}
+            {translate('auto.components.settings.DevToolsPane.dorkaCloudStatus', 'Status')}:{' '}
             <span className="font-medium text-foreground">{authStatus?.state}</span>
           </p>
           <div className="flex flex-wrap gap-2">
             {connected ? (
               <Button type="button" variant="outline" size="sm" onClick={() => void signOut()}>
-                {translate('auto.components.settings.DevToolsPane.orcaCloudSignOut', 'Sign out')}
+                {translate('auto.components.settings.DevToolsPane.dorkaCloudSignOut', 'Sign out')}
               </Button>
             ) : (
               <Button type="button" variant="outline" size="sm" onClick={() => void connect()}>
                 {translate(
-                  'auto.components.settings.DevToolsPane.orcaCloudConnect',
+                  'auto.components.settings.DevToolsPane.dorkaCloudConnect',
                   'Connect profile'
                 )}
               </Button>
             )}
             <Button type="button" variant="ghost" size="sm" onClick={() => void refresh()}>
               {translate(
-                'auto.components.settings.DevToolsPane.orcaCloudRefresh',
+                'auto.components.settings.DevToolsPane.dorkaCloudRefresh',
                 'Refresh status'
               )}
             </Button>
@@ -192,8 +192,8 @@ function OrcaCloudDevSubsection(): React.JSX.Element {
         <p className="text-xs text-muted-foreground">
           {authStatus?.setupMessage ??
             translate(
-              'auto.components.settings.DevToolsPane.orcaCloudNotConfigured',
-              'Set ORCA_CLOUD_API_URL and ORCA_CLOUD_CLIENT_ID to preview Orca Cloud sign-in in this dev build.'
+              'auto.components.settings.DevToolsPane.dorkaCloudNotConfigured',
+              'Set DORKA_CLOUD_API_URL and DORKA_CLOUD_CLIENT_ID to preview Dorka Cloud sign-in in this dev build.'
             )}
         </p>
       )}
@@ -323,7 +323,7 @@ export function DevToolsPane(): React.JSX.Element {
         </div>
       </section>
 
-      <OrcaCloudDevSubsection />
+      <DorkaCloudDevSubsection />
     </div>
   )
 }

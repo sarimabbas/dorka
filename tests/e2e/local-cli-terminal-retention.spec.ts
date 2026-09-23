@@ -1,6 +1,6 @@
 /**
- * TOPOLOGY (c): ONE real Orca desktop app, isolated profile, window ATTACHED,
- * NO paired client — `orca terminal create` over the local runtime socket,
+ * TOPOLOGY (c): ONE real Dorka desktop app, isolated profile, window ATTACHED,
+ * NO paired client — `dorka terminal create` over the local runtime socket,
  * which is the transport the shipped CLI uses.
  *
  * Pairing is not what made the paired arm reproduce: `shouldCreateInBackground`
@@ -26,7 +26,7 @@ import { rmSync } from 'node:fs'
 import path from 'node:path'
 import { RuntimeClient } from '../../src/cli/runtime-client'
 import { makePaneKey } from '../../src/shared/stable-pane-id'
-import { expect, test } from './helpers/orca-app'
+import { expect, test } from './helpers/dorka-app'
 import { waitForSessionReady } from './helpers/store'
 import {
   createHostCliTerminal,
@@ -78,11 +78,11 @@ type WorktreeTabSnapshot = {
 
 test('keeps a locally created CLI terminal, and never resumes it as a ghost', async ({
   electronApp,
-  orcaPage
+  dorkaPage
 }) => {
   test.setTimeout(600_000)
   const pageErrors: string[] = []
-  orcaPage.on('pageerror', (error) => pageErrors.push(String(error)))
+  dorkaPage.on('pageerror', (error) => pageErrors.push(String(error)))
   const userDataDir = await electronApp.evaluate(({ app }) => app.getPath('userData'))
   // The shipped CLI's own transport, against this app's profile: no pairing.
   const client = new RuntimeClient(userDataDir, 30_000, null, null)
@@ -91,7 +91,7 @@ test('keeps a locally created CLI terminal, and never resumes it as a ghost', as
   const createdHandles: string[] = []
 
   try {
-    const { worktreeId, unrelatedWorktreeId } = await orcaPage.evaluate(() => {
+    const { worktreeId, unrelatedWorktreeId } = await dorkaPage.evaluate(() => {
       const state = window.__store?.getState()
       const active = state?.activeWorktreeId
       if (!state || !active) {
@@ -109,7 +109,7 @@ test('keeps a locally created CLI terminal, and never resumes it as a ghost', as
 
     // PRECONDITION: the RENDERER owns this workspace's publication, so the CLI
     // tab created next inherits the renderer epoch instead of a headless one.
-    const rendererTabId = await createHostRendererTerminalTab(orcaPage, worktreeId)
+    const rendererTabId = await createHostRendererTerminalTab(dorkaPage, worktreeId)
     const rendererOwned = await readHostInventoryWhenTabAppears(
       call,
       worktreeId,
@@ -138,7 +138,7 @@ test('keeps a locally created CLI terminal, and never resumes it as a ghost', as
     createdHandles.push(unrelated.handle)
 
     // The graph sync a following CLI dispatch drives.
-    const secondRendererTabId = await createHostRendererTerminalTab(orcaPage, worktreeId)
+    const secondRendererTabId = await createHostRendererTerminalTab(dorkaPage, worktreeId)
 
     // SIGNAL 1 — the frame carrying the new renderer tab is the same merge that
     // would drop the CLI tab, so judge on that one inventory.
@@ -182,7 +182,7 @@ test('keeps a locally created CLI terminal, and never resumes it as a ghost', as
 
     // Why: a real agent reports its provider session over the hook server;
     // writing the same store entry keeps this hermetic on the identical path.
-    await orcaPage.evaluate(
+    await dorkaPage.evaluate(
       ({ panes, worktreeId }) => {
         for (const { paneKey, sessionId } of panes) {
           window.__store?.getState().setAgentStatus(
@@ -210,7 +210,7 @@ test('keeps a locally created CLI terminal, and never resumes it as a ghost', as
     await expect
       .poll(
         () =>
-          orcaPage.evaluate(
+          dorkaPage.evaluate(
             (paneKeys) =>
               paneKeys.filter(
                 (paneKey) =>
@@ -224,24 +224,24 @@ test('keeps a locally created CLI terminal, and never resumes it as a ghost', as
         }
       )
       .toBe(2)
-    await orcaPage.evaluate(() => {
+    await dorkaPage.evaluate(() => {
       window.dispatchEvent(new Event('beforeunload'))
       return window.api.session.flush()
     })
 
     // The resume sweep runs once per worktree per Terminal mount, so a reload is
     // what puts the retained pane in front of it.
-    await orcaPage.reload()
-    await waitForSessionReady(orcaPage)
+    await dorkaPage.reload()
+    await waitForSessionReady(dorkaPage)
     await expect
-      .poll(() => orcaPage.evaluate(() => window.__store?.getState().activeWorktreeId), {
+      .poll(() => dorkaPage.evaluate(() => window.__store?.getState().activeWorktreeId), {
         timeout: 60_000,
         message: 'reloaded renderer never reactivated the measured worktree'
       })
       .toBe(worktreeId)
 
     const readWorktreeTabs = async (): Promise<WorktreeTabSnapshot> =>
-      orcaPage.evaluate(
+      dorkaPage.evaluate(
         ({ worktreeId, cliTabId }) => {
           const tabs = window.__store?.getState().tabsByWorktree[worktreeId] ?? []
           return {
@@ -274,7 +274,7 @@ test('keeps a locally created CLI terminal, and never resumes it as a ghost', as
       'the reloaded CLI tab must still name the original PTY, not a replacement'
     ).toBe(cli.ptyId)
     expect(
-      await orcaPage.evaluate(
+      await dorkaPage.evaluate(
         (paneKey) =>
           window.__store?.getState().sleepingAgentSessionsByPaneKey[paneKey] !== undefined,
         cliPaneKey

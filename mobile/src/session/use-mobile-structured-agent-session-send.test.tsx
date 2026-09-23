@@ -437,7 +437,7 @@ describe('mobile structured send retries', () => {
     // resolved instead would put a mutation on the wire carrying an operation id nothing holds,
     // and a retry after a crash would send this message twice (rulings-ota-c7.md ruling 7).
     asyncStorage.setItem.mockImplementation(async () => {
-      throw new Error('Orca could not save orca:mobileStructuredSendOperations:v1')
+      throw new Error('Dorka could not save dorka:mobileStructuredSendOperations:v1')
     })
     await mountSession()
 

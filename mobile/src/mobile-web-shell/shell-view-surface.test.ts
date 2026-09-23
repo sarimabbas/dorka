@@ -14,7 +14,7 @@ import { colors } from '../theme/mobile-theme'
  * background, which is fine; a WKWebView is opaque by default and paints white, so a dark app
  * opening a page flashed white for the whole of the page's boot.
  */
-const SHELL = join(import.meta.dirname, '..', '..', 'modules', 'orca-mobile-web-shell')
+const SHELL = join(import.meta.dirname, '..', '..', 'modules', 'dorka-mobile-web-shell')
 
 function source(relative: string): string {
   return readFileSync(join(SHELL, relative), 'utf8')
@@ -23,7 +23,7 @@ function source(relative: string): string {
 describe('what a mounted view paints before the page does', () => {
   it('gives the Android view no surface of its own', () => {
     const kotlin = source(
-      'android/src/main/java/expo/modules/orcamobilewebshell/MobileWebShellView.kt'
+      'android/src/main/java/expo/modules/dorkamobilewebshell/MobileWebShellView.kt'
     )
     expect(kotlin).toContain('view.setBackgroundColor(Color.TRANSPARENT)')
   })

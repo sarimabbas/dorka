@@ -1,6 +1,6 @@
 import { pathToFileURL } from 'node:url'
 
-const INVENTORY_PREFIX = '[orca-relay] regional rehome inventory '
+const INVENTORY_PREFIX = '[dorka-relay] regional rehome inventory '
 // A counters line, so every field is a bare name and a non-negative integer or
 // `none`. Pinning the whole line instead is what broke the enable workflow when
 // `hostNotArrivedLast24Hours` shipped: the director grew a field and the parser

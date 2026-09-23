@@ -70,7 +70,7 @@ export class BridgeRequestOversizedError extends Error {
   readonly code = 'bridge_request_oversized'
 
   constructor() {
-    super('This action sends too much at once to reach Orca. Try it on fewer files.')
+    super('This action sends too much at once to reach Dorka. Try it on fewer files.')
     this.name = 'BridgeRequestOversizedError'
   }
 }

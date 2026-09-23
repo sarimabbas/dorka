@@ -25,7 +25,7 @@ export const PR_CHECK_JOBS = [
   'xterm_patch_sync',
   'shell_contracts',
   'test',
-  'orcad_browser',
+  'dorkad_browser',
   'mobile_web_app',
   'cross-version-wire',
   'managed_hook_node18',
@@ -100,11 +100,11 @@ const SHELL_PREFIXES = [
   'config/scripts/node-pty-job-ownership'
 ]
 
-const ORCAD_BROWSER_PREFIXES = [
-  'src/main/orcad/external-chromium-',
-  'src/main/orcad/orcad-browser-provider',
-  'src/main/orcad/orcad-agent-browser-binary',
-  'src/main/orcad/electron-serve-browser-process'
+const DORKAD_BROWSER_PREFIXES = [
+  'src/main/dorkad/external-chromium-',
+  'src/main/dorkad/dorkad-browser-provider',
+  'src/main/dorkad/dorkad-agent-browser-binary',
+  'src/main/dorkad/electron-serve-browser-process'
 ]
 
 // The page bundle the desktop packages: the builder and verifier, the manifest writer and the
@@ -124,7 +124,7 @@ const MOBILE_WEB_APP_PREFIXES = [
   'mobile/packages/',
   'mobile/package.json',
   'mobile/pnpm-lock.yaml',
-  'mobile/modules/orca-mobile-web-shell/'
+  'mobile/modules/dorka-mobile-web-shell/'
 ]
 
 function changesMobileWebApp(changedFiles) {
@@ -280,7 +280,7 @@ const WINDOWS_PACKAGE_TESTS = [
   'src/main/cli/wsl-cli-powershell-boundary.test.ts',
   'src/main/computer/desktop-script-runtime-host.win32.test.ts',
   'src/main/cursor/hook-service.test.ts',
-  'src/main/orca-profiles/profile-index-store.test.ts',
+  'src/main/dorka-profiles/profile-index-store.test.ts',
   'src/main/startup/windows-install-dir-acl-repair.win32.test.ts',
   'src/main/runtime/repo-worktree-admin-fingerprint.test.ts',
   'src/main/runtime/worktree-scan-admin-fingerprint-gate.test.ts',
@@ -409,8 +409,8 @@ function jobDetector(job) {
       return (files) => files.some((file) => matchesPrefix(file, XTERM_PREFIXES))
     case 'shell_contracts':
       return (files) => files.some((file) => matchesPrefix(file, SHELL_PREFIXES))
-    case 'orcad_browser':
-      return (files) => files.some((file) => matchesPrefix(file, ORCAD_BROWSER_PREFIXES))
+    case 'dorkad_browser':
+      return (files) => files.some((file) => matchesPrefix(file, DORKAD_BROWSER_PREFIXES))
     // Not redundant with the lift below the jobs map: without a case here the default detector
     // returns true, which would run this job on every desktop-relevant PR.
     case 'mobile_web_app':

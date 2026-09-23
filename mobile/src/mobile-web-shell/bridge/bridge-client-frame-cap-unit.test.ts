@@ -29,10 +29,10 @@ const WIDE_CHARACTER_COUNT = 250_000
 
 describe('what the frame cap counts', () => {
   it('is the unit both shells count, read from their own sources', () => {
-    const shell = join(import.meta.dirname, '..', '..', '..', 'modules', 'orca-mobile-web-shell')
+    const shell = join(import.meta.dirname, '..', '..', '..', 'modules', 'dorka-mobile-web-shell')
     const swift = readFileSync(join(shell, 'ios', 'MobileWebShellView.swift'), 'utf8')
     const kotlin = readFileSync(
-      join(shell, 'android/src/main/java/expo/modules/orcamobilewebshell/MobileWebShellView.kt'),
+      join(shell, 'android/src/main/java/expo/modules/dorkamobilewebshell/MobileWebShellView.kt'),
       'utf8'
     )
     // The inbound gate on each platform, by the expression it measures with.

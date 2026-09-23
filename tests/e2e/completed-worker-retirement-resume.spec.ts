@@ -1,4 +1,4 @@
-import { test as base, expect } from './helpers/orca-app'
+import { test as base, expect } from './helpers/dorka-app'
 import { ensureTerminalVisible, waitForActiveWorktree, waitForSessionReady } from './helpers/store'
 import {
   waitForActivePaneHookDescriptor,
@@ -15,7 +15,7 @@ import {
   readCompletedWorkerDispatchCapability,
   readCompletedWorkerLedger,
   readPersistedWorkerRecoveryRecord,
-  runBuiltOrcaCli,
+  runBuiltDorkaCli,
   seedCurrentCodexTranscript,
   terminalIdentity
 } from './helpers/completed-worker-retirement-fixture'
@@ -37,17 +37,17 @@ test.afterAll(() => {
 
 for (const closeMode of ['terminal-close-cli', 'worker-release'] as const) {
   test(`completed background worker ${closeMode} retires resume authority before first activation`, async ({
-    orcaPage,
+    dorkaPage,
     electronApp
   }) => {
     test.setTimeout(180_000)
     clearCompletedWorkerLedger()
-    await waitForSessionReady(orcaPage)
-    const coordinatorWorktreeId = await waitForActiveWorktree(orcaPage)
-    await ensureTerminalVisible(orcaPage)
-    await waitForActiveTerminalManager(orcaPage)
-    await waitForActivePanePtyId(orcaPage)
-    await orcaPage.evaluate(
+    await waitForSessionReady(dorkaPage)
+    const coordinatorWorktreeId = await waitForActiveWorktree(dorkaPage)
+    await ensureTerminalVisible(dorkaPage)
+    await waitForActiveTerminalManager(dorkaPage)
+    await waitForActivePanePtyId(dorkaPage)
+    await dorkaPage.evaluate(
       async ({ agentCommand, terminalWindowsShell }) => {
         await window.__store?.getState().updateSettings({
           agentCmdOverrides: { codex: agentCommand },
@@ -65,7 +65,7 @@ for (const closeMode of ['terminal-close-cli', 'worker-release'] as const) {
     const userDataDir = await electronApp.evaluate(({ app }) => app.getPath('userData'))
     const isolatedHome = await electronApp.evaluate(({ app }) => app.getPath('home'))
     const client = new RuntimeClient(userDataDir, 30_000, null, null)
-    const coordinatorPane = await waitForActivePaneHookDescriptor(orcaPage)
+    const coordinatorPane = await waitForActivePaneHookDescriptor(dorkaPage)
     const coordinatorResolved = await client.call<{ terminal: { handle: string } }>(
       'terminal.resolvePane',
       { paneKey: coordinatorPane.paneKey }
@@ -84,7 +84,7 @@ for (const closeMode of ['terminal-close-cli', 'worker-release'] as const) {
       .poll(
         async () => {
           const listed = await client.call<{ worktrees: { id: string }[] }>('worktree.list', {})
-          const rendererWorktreeIds = await orcaPage.evaluate(() =>
+          const rendererWorktreeIds = await dorkaPage.evaluate(() =>
             Object.values(window.__store?.getState().worktreesByRepo ?? {})
               .flat()
               .map((worktree) => worktree.id)
@@ -108,7 +108,7 @@ for (const closeMode of ['terminal-close-cli', 'worker-release'] as const) {
     }
 
     expect(
-      await orcaPage.evaluate(
+      await dorkaPage.evaluate(
         (worktreeId) => window.__store?.getState().everActivatedWorktreeIds.has(worktreeId),
         targetWorktreeId
       )
@@ -160,10 +160,10 @@ for (const closeMode of ['terminal-close-cli', 'worker-release'] as const) {
     const workerBefore = terminalIdentity(worker)
     const workerPaneKey = `${worker.tabId}:${worker.leafId}`
     expect(worker.worktreeId).toBe(targetWorktreeId)
-    await orcaPage.evaluate(
+    await dorkaPage.evaluate(
       ({ tabId, worktreeId }) => {
         window.dispatchEvent(
-          new CustomEvent('orca-background-mount-terminal-worktree', {
+          new CustomEvent('dorka-background-mount-terminal-worktree', {
             detail: { worktreeId, tabIds: [tabId] }
           })
         )
@@ -172,11 +172,11 @@ for (const closeMode of ['terminal-close-cli', 'worker-release'] as const) {
     )
     await expect
       .poll(() =>
-        orcaPage.evaluate((tabId) => Boolean(window.__paneManagers?.get(tabId)), workerBefore.tabId)
+        dorkaPage.evaluate((tabId) => Boolean(window.__paneManagers?.get(tabId)), workerBefore.tabId)
       )
       .toBe(true)
     expect(
-      await orcaPage.evaluate(
+      await dorkaPage.evaluate(
         (worktreeId) => window.__store?.getState().everActivatedWorktreeIds.has(worktreeId),
         targetWorktreeId
       )
@@ -208,7 +208,7 @@ for (const closeMode of ['terminal-close-cli', 'worker-release'] as const) {
       targetWorktreePath
     )
 
-    await orcaPage.evaluate(
+    await dorkaPage.evaluate(
       ({
         agentCommand,
         paneKey,
@@ -274,7 +274,7 @@ for (const closeMode of ['terminal-close-cli', 'worker-release'] as const) {
     }
     await expect
       .poll(() =>
-        orcaPage.evaluate((paneKey) => {
+        dorkaPage.evaluate((paneKey) => {
           const record = window.__store?.getState().sleepingAgentSessionsByPaneKey[paneKey]
           return record
             ? {
@@ -342,14 +342,14 @@ for (const closeMode of ['terminal-close-cli', 'worker-release'] as const) {
 
     await client.call('terminal.send', {
       terminal: workerHandle,
-      text: 'ORCA_E2E_EXIT_AFTER_DONE',
+      text: 'DORKA_E2E_EXIT_AFTER_DONE',
       enter: true
     })
     await expect
       .poll(() => readCompletedWorkerLedger().filter((event) => event.event === 'normal-exit'))
       .toHaveLength(1)
     expect(
-      await orcaPage.evaluate(
+      await dorkaPage.evaluate(
         ({ paneKey, tabId, worktreeId }) => {
           const state = window.__store?.getState()
           return {
@@ -361,7 +361,7 @@ for (const closeMode of ['terminal-close-cli', 'worker-release'] as const) {
       )
     ).toEqual({ tabPresent: true, recoveryPresent: true })
 
-    await orcaPage.evaluate(
+    await dorkaPage.evaluate(
       ({ paneKey, tabId, worktreeId }) => {
         const store = window.__store
         if (!store) {
@@ -369,8 +369,8 @@ for (const closeMode of ['terminal-close-cli', 'worker-release'] as const) {
         }
         type Transition = { tabPresent: boolean; recoveryPresent: boolean }
         const e2eWindow = window as typeof window & {
-          __orcaRetiredWorkerTransitions?: Transition[]
-          __orcaRetiredWorkerUnsubscribe?: () => void
+          __dorkaRetiredWorkerTransitions?: Transition[]
+          __dorkaRetiredWorkerUnsubscribe?: () => void
         }
         const transitions: Transition[] = [
           {
@@ -380,8 +380,8 @@ for (const closeMode of ['terminal-close-cli', 'worker-release'] as const) {
             recoveryPresent: Boolean(store.getState().sleepingAgentSessionsByPaneKey[paneKey])
           }
         ]
-        e2eWindow.__orcaRetiredWorkerTransitions = transitions
-        e2eWindow.__orcaRetiredWorkerUnsubscribe = store.subscribe((state) => {
+        e2eWindow.__dorkaRetiredWorkerTransitions = transitions
+        e2eWindow.__dorkaRetiredWorkerUnsubscribe = store.subscribe((state) => {
           const next = {
             tabPresent: Boolean(state.tabsByWorktree[worktreeId]?.some((tab) => tab.id === tabId)),
             recoveryPresent: Boolean(state.sleepingAgentSessionsByPaneKey[paneKey])
@@ -400,7 +400,7 @@ for (const closeMode of ['terminal-close-cli', 'worker-release'] as const) {
     )
 
     if (closeMode === 'terminal-close-cli') {
-      const closed = runBuiltOrcaCli(['terminal', 'close', '--terminal', workerHandle, '--json'], {
+      const closed = runBuiltDorkaCli(['terminal', 'close', '--terminal', workerHandle, '--json'], {
         userDataDir,
         cwd: process.cwd()
       })
@@ -428,10 +428,10 @@ for (const closeMode of ['terminal-close-cli', 'worker-release'] as const) {
     }
     await expect
       .poll(() =>
-        orcaPage.evaluate(() => {
+        dorkaPage.evaluate(() => {
           type Transition = { tabPresent: boolean; recoveryPresent: boolean }
-          return (window as typeof window & { __orcaRetiredWorkerTransitions?: Transition[] })
-            .__orcaRetiredWorkerTransitions
+          return (window as typeof window & { __dorkaRetiredWorkerTransitions?: Transition[] })
+            .__dorkaRetiredWorkerTransitions
         })
       )
       .toEqual(
@@ -440,36 +440,36 @@ for (const closeMode of ['terminal-close-cli', 'worker-release'] as const) {
           { tabPresent: false, recoveryPresent: false }
         ])
       )
-    await orcaPage.evaluate(() => {
-      const e2eWindow = window as typeof window & { __orcaRetiredWorkerUnsubscribe?: () => void }
-      e2eWindow.__orcaRetiredWorkerUnsubscribe?.()
-      delete e2eWindow.__orcaRetiredWorkerUnsubscribe
+    await dorkaPage.evaluate(() => {
+      const e2eWindow = window as typeof window & { __dorkaRetiredWorkerUnsubscribe?: () => void }
+      e2eWindow.__dorkaRetiredWorkerUnsubscribe?.()
+      delete e2eWindow.__dorkaRetiredWorkerUnsubscribe
     })
     await expect
       .poll(() =>
-        orcaPage.evaluate(
+        dorkaPage.evaluate(
           (paneKey) => window.__store?.getState().sleepingAgentSessionsByPaneKey[paneKey] ?? null,
           workerPaneKey
         )
       )
       .toBeNull()
 
-    await orcaPage.evaluate(() => window.dispatchEvent(new Event('beforeunload')))
+    await dorkaPage.evaluate(() => window.dispatchEvent(new Event('beforeunload')))
     await expect
       .poll(() =>
-        orcaPage.evaluate(async (paneKey) => {
+        dorkaPage.evaluate(async (paneKey) => {
           const session = await window.api.session.get()
           return session.sleepingAgentSessionsByPaneKey?.[paneKey] ?? null
         }, workerPaneKey)
       )
       .toBeNull()
-    await orcaPage.evaluate(() => window.api.session.flush())
+    await dorkaPage.evaluate(() => window.api.session.flush())
     expect(readPersistedWorkerRecoveryRecord(userDataDir, workerPaneKey)).toBeNull()
 
-    await orcaPage.reload()
-    await waitForSessionReady(orcaPage)
+    await dorkaPage.reload()
+    await waitForSessionReady(dorkaPage)
 
-    const beforeActivation = await orcaPage.evaluate((worktreeId) => {
+    const beforeActivation = await dorkaPage.evaluate((worktreeId) => {
       const state = window.__store?.getState()
       return {
         everActivated: state?.everActivatedWorktreeIds.has(worktreeId) ?? false,
@@ -479,17 +479,17 @@ for (const closeMode of ['terminal-close-cli', 'worker-release'] as const) {
     }, targetWorktreeId)
     expect(beforeActivation).toEqual({ everActivated: false, tabCount: 0, pendingStartupCount: 0 })
 
-    const targetCard = orcaPage
+    const targetCard = dorkaPage
       .locator(`[data-worktree-id="${String(targetWorktreeId)}"]`)
       .first()
       .locator('[data-worktree-card-surface]')
     await targetCard.evaluate((element: HTMLElement) => element.click())
     await expect
-      .poll(() => orcaPage.evaluate(() => window.__store?.getState().activeWorktreeId))
+      .poll(() => dorkaPage.evaluate(() => window.__store?.getState().activeWorktreeId))
       .toBe(targetWorktreeId)
-    await waitForActiveTerminalManager(orcaPage)
-    await waitForActivePanePtyId(orcaPage)
-    const activatedPane = await waitForActivePaneHookDescriptor(orcaPage)
+    await waitForActiveTerminalManager(dorkaPage)
+    await waitForActivePanePtyId(dorkaPage)
+    const activatedPane = await waitForActivePaneHookDescriptor(dorkaPage)
     expect(activatedPane.worktreeId).toBe(targetWorktreeId)
     const activatedResolved = await client.call<{ terminal: { handle: string } }>(
       'terminal.resolvePane',
@@ -515,9 +515,9 @@ for (const closeMode of ['terminal-close-cli', 'worker-release'] as const) {
         (event) => event.args?.includes('resume') && event.args?.includes(PROVIDER_SESSION_ID)
       )
     ).toEqual([])
-    await expect(orcaPage.locator('.session-restored-banner')).toHaveCount(0)
+    await expect(dorkaPage.locator('.session-restored-banner')).toHaveCount(0)
 
-    const afterActivation = await orcaPage.evaluate(
+    const afterActivation = await dorkaPage.evaluate(
       ({ originalTabId, worktreeId }) => {
         const state = window.__store?.getState()
         const tabs = state?.tabsByWorktree[worktreeId] ?? []

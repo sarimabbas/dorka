@@ -15,7 +15,7 @@ const resumeCardSource = readFileSync(
 function worktree(worktreeId: string): HomeWorktreeSummary {
   return {
     worktreeId,
-    repo: 'orca',
+    repo: 'dorka',
     branch: 'main',
     displayName: worktreeId,
     liveTerminalCount: 0

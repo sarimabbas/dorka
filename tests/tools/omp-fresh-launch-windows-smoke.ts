@@ -7,7 +7,7 @@ import { withFreshOmpLaunch } from '../../src/shared/omp-fresh-launch'
 if (process.platform !== 'win32') {
   throw new Error('Run this smoke on a Windows host')
 }
-const root = mkdtempSync(join(tmpdir(), 'orca-fresh-windows-'))
+const root = mkdtempSync(join(tmpdir(), 'dorka-fresh-windows-'))
 const config = join(root, 'fresh settings.yml')
 const capture = join(root, 'calls')
 const results = []
@@ -25,12 +25,12 @@ try {
       }
       const env: NodeJS.ProcessEnv = {
         ...process.env,
-        ORCA_BACKGROUND_LAUNCH: '1',
-        ORCA_OMP_FRESH_CONFIG: config,
+        DORKA_BACKGROUND_LAUNCH: '1',
+        DORKA_OMP_FRESH_CONFIG: config,
         CAPTURE: capture
       }
       if (state === 'unset') {
-        delete env.ORCA_OMP_FRESH_CONFIG
+        delete env.DORKA_OMP_FRESH_CONFIG
       }
       const command = withFreshOmpLaunch('omp', shell, ' "task with spaces"')
       const runner = join(root, 'run.cmd')

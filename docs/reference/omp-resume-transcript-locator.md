@@ -13,8 +13,8 @@ not create a second automatic-resume identity.
 
 `tests/tools/omp-resume-transcript-locator-smoke.mjs` creates an actual OMP session
 outside its default session store. UUID lookup fails there; the absolute path and
-Orca's generated argv resume the original session. Run it with Bun and a read-only
-OMP checkout as argv[2], under `ORCA_BACKGROUND_LAUNCH=1`. It uses a disposable home
+Dorka's generated argv resume the original session. Run it with Bun and a read-only
+OMP checkout as argv[2], under `DORKA_BACKGROUND_LAUNCH=1`. It uses a disposable home
 and makes no model requests.
 
 This bounded correction follows the resume-locator portion of

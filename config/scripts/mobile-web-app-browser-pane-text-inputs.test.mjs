@@ -74,7 +74,7 @@ describe('the browser pane text inputs under the C4.2 census', () => {
   // A scan that happens to find two things is not a scan that would find a third. Planted in a
   // scratch tree rather than in src/browser, so no other census ever walks the plant.
   it('would report a third input module, and ignores tests and non-JSX mentions', () => {
-    const scratch = mkdtempSync(join(tmpdir(), 'orca-browser-pane-inputs-'))
+    const scratch = mkdtempSync(join(tmpdir(), 'dorka-browser-pane-inputs-'))
     try {
       mkdirSync(join(scratch, 'src/browser'), { recursive: true })
       for (const [name, source] of Object.entries({

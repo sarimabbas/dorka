@@ -316,7 +316,7 @@
       }
     },
     "7d8029e889cf": {
-      "name": "projectRepoNotInOrca",
+      "name": "projectRepoNotInDorka",
       "ordinal": 27,
       "value": {
         "$rpc": "null"
@@ -449,7 +449,7 @@
       }
     },
     "9490fcb6d06d": {
-      "name": "trustedOrcaHooks",
+      "name": "trustedDorkaHooks",
       "ordinal": 52,
       "value": {}
     },

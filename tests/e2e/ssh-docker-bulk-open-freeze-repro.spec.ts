@@ -1,13 +1,13 @@
 /**
  * Freeze repro R2 — direct SSH topology via Docker SSH relay.
  *
- * Requires: ORCA_E2E_SSH_DOCKER=1 and Docker available.
+ * Requires: DORKA_E2E_SSH_DOCKER=1 and Docker available.
  *
  * Run:
- *   ORCA_E2E_SSH_DOCKER=1 pnpm run test:e2e:ssh-docker-bulk-open-freeze
+ *   DORKA_E2E_SSH_DOCKER=1 pnpm run test:e2e:ssh-docker-bulk-open-freeze
  */
 import path from 'node:path'
-import { expect, test } from './helpers/orca-app'
+import { expect, test } from './helpers/dorka-app'
 import {
   cleanupDockerSshRelayTarget,
   DOCKER_SSH_RELAY_REMOTE_REPO_PATH,
@@ -28,7 +28,7 @@ import {
 import { startRendererLagProbe } from './paired-runtime-retention-metrics'
 import { HARD_FREEZE_LAG_MS, SOFT_FREEZE_LAG_MS } from './helpers/remote-session-bulk-open-oracle'
 
-const RUN_DOCKER_SSH = process.env.ORCA_E2E_SSH_DOCKER === '1'
+const RUN_DOCKER_SSH = process.env.DORKA_E2E_SSH_DOCKER === '1'
 const REPORT_DIR = path.join(process.cwd(), 'test-results', 'freeze-repro')
 const SESSION_SPLITS = 5
 const FLOOD_READ_CHARS = 80_000
@@ -51,12 +51,12 @@ function continuousFloodCommand(runId: string, index: number): string {
 }
 
 test.describe('R2 Docker SSH bulk-open freeze', () => {
-  test.skip(!RUN_DOCKER_SSH, 'Set ORCA_E2E_SSH_DOCKER=1 to run Docker SSH freeze repro')
+  test.skip(!RUN_DOCKER_SSH, 'Set DORKA_E2E_SSH_DOCKER=1 to run Docker SSH freeze repro')
 
   // Headless Linux disables compositing and schedules idle RAFs ~1s apart; use headed CI.
   // Headed SwiftShader restores ~16ms frames without changing the freeze budgets.
   test('bulk-open many flooding SSH terminals and measure renderer lag @freeze-repro @headful', async ({
-    orcaPage,
+    dorkaPage,
     registerPostElectronShutdownCleanup
   }, testInfo) => {
     test.setTimeout(420_000)
@@ -71,30 +71,30 @@ test.describe('R2 Docker SSH bulk-open freeze', () => {
 
       // Why: session restore must settle before the remote worktree is added, or the
       // seeded terminal tab races tab hydration and never binds to the remote PTY.
-      await waitForSessionReady(orcaPage)
-      await waitForActiveWorktree(orcaPage)
-      await connectDockerSshRelayTarget(orcaPage, target, {
+      await waitForSessionReady(dorkaPage)
+      await waitForActiveWorktree(dorkaPage)
+      await connectDockerSshRelayTarget(dorkaPage, target, {
         remotePath: DOCKER_SSH_RELAY_REMOTE_REPO_PATH
       })
 
       const runId = `${Date.now()}`
       // First terminal on the SSH worktree.
-      await ensureTerminalVisible(orcaPage, 45_000)
-      await waitForActiveTerminalManager(orcaPage, 60_000)
-      const firstPtyId = await waitForActivePanePtyId(orcaPage, 60_000)
-      await execInTerminal(orcaPage, firstPtyId, continuousFloodCommand(runId, 0))
+      await ensureTerminalVisible(dorkaPage, 45_000)
+      await waitForActiveTerminalManager(dorkaPage, 60_000)
+      const firstPtyId = await waitForActivePanePtyId(dorkaPage, 60_000)
+      await execInTerminal(dorkaPage, firstPtyId, continuousFloodCommand(runId, 0))
       // Why: the one-shot READY line is buried by the 2KB/8ms flood within ~16ms, so it is
       // unobservable through the terminal read window. The repeating BG marker is the only
       // stable readiness signal, and it also proves the pane is actually flooding.
-      await waitForTerminalOutput(orcaPage, `BG:SSH_BULK_${runId}_0:`, 60_000, FLOOD_READ_CHARS)
+      await waitForTerminalOutput(dorkaPage, `BG:SSH_BULK_${runId}_0:`, 60_000, FLOOD_READ_CHARS)
 
       for (let i = 1; i < SESSION_SPLITS; i += 1) {
-        await splitActiveTerminalPane(orcaPage, 'vertical')
-        await focusLastTerminalPane(orcaPage)
-        const panePtyId = await waitForActivePanePtyId(orcaPage, 30_000)
-        await execInTerminal(orcaPage, panePtyId, continuousFloodCommand(runId, i))
+        await splitActiveTerminalPane(dorkaPage, 'vertical')
+        await focusLastTerminalPane(dorkaPage)
+        const panePtyId = await waitForActivePanePtyId(dorkaPage, 30_000)
+        await execInTerminal(dorkaPage, panePtyId, continuousFloodCommand(runId, i))
         await waitForTerminalOutput(
-          orcaPage,
+          dorkaPage,
           `BG:SSH_BULK_${runId}_${i}:`,
           60_000,
           FLOOD_READ_CHARS
@@ -102,28 +102,28 @@ test.describe('R2 Docker SSH bulk-open freeze', () => {
       }
 
       // Leave the workspace view so panes go inactive while flooding.
-      await orcaPage.evaluate(() => window.__store?.getState().setActiveView('tasks'))
-      await orcaPage.waitForTimeout(4_000)
+      await dorkaPage.evaluate(() => window.__store?.getState().setActiveView('tasks'))
+      await dorkaPage.waitForTimeout(4_000)
 
-      const hiddenProbe = await startRendererLagProbe(orcaPage)
-      await orcaPage.waitForTimeout(2_000)
+      const hiddenProbe = await startRendererLagProbe(dorkaPage)
+      await dorkaPage.waitForTimeout(2_000)
       const hiddenFloodMaxLagMs = await hiddenProbe.evaluate((probe) => probe.stop())
       await hiddenProbe.dispose()
 
       // Burst open: return to terminal and cycle panes rapidly.
-      const openProbe = await startRendererLagProbe(orcaPage)
-      await orcaPage.evaluate(() => window.__store?.getState().setActiveView('terminal'))
+      const openProbe = await startRendererLagProbe(dorkaPage)
+      await dorkaPage.evaluate(() => window.__store?.getState().setActiveView('terminal'))
       for (let pass = 0; pass < 3; pass += 1) {
         for (let i = 0; i < SESSION_SPLITS; i += 1) {
-          await orcaPage.keyboard.press(process.platform === 'darwin' ? 'Meta+]' : 'Control+]')
-          await orcaPage.waitForTimeout(50)
+          await dorkaPage.keyboard.press(process.platform === 'darwin' ? 'Meta+]' : 'Control+]')
+          await dorkaPage.waitForTimeout(50)
         }
       }
-      await orcaPage.waitForTimeout(3_000)
+      await dorkaPage.waitForTimeout(3_000)
       const bulkOpenMaxLagMs = await openProbe.evaluate((probe) => probe.stop())
       await openProbe.dispose()
 
-      const interactionProbeMs = await orcaPage.evaluate(async () => {
+      const interactionProbeMs = await dorkaPage.evaluate(async () => {
         const started = performance.now()
         const state = window.__store?.getState()
         const view = state?.activeView

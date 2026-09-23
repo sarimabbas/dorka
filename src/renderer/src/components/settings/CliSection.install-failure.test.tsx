@@ -46,17 +46,17 @@ vi.mock('./CliRegistrationDialog', () => ({
 function notInstalledStatus(overrides: Partial<CliInstallStatus> = {}): CliInstallStatus {
   return {
     platform: 'darwin',
-    commandName: 'orca',
-    commandPath: '/usr/local/bin/orca',
+    commandName: 'dorka',
+    commandPath: '/usr/local/bin/dorka',
     pathDirectory: '/usr/local/bin',
     pathConfigured: true,
-    launcherPath: '/Applications/Orca.app/Contents/Resources/bin/orca',
+    launcherPath: '/Applications/Dorka.app/Contents/Resources/bin/dorka',
     installMethod: 'symlink',
     supported: true,
     state: 'not_installed',
     currentTarget: null,
     unsupportedReason: null,
-    detail: 'Register /usr/local/bin/orca to use Orca from the terminal.',
+    detail: 'Register /usr/local/bin/dorka to use Dorka from the terminal.',
     ...overrides
   }
 }
@@ -92,15 +92,15 @@ describe('CliSection install failure surfacing', () => {
   it('shows the thrown conflict reason and its remedy instead of a success toast', async () => {
     await renderCliSectionAndInstall(async () => {
       throw new Error(
-        "Error invoking remote method 'cli:install': Error: Refusing to replace non-Orca " +
-          'command at /usr/local/bin/orca. Remove it and register again if it is no longer needed.'
+        "Error invoking remote method 'cli:install': Error: Refusing to replace non-Dorka " +
+          'command at /usr/local/bin/dorka. Remove it and register again if it is no longer needed.'
       )
     })
 
     const alert = screen.getByRole('alert')
-    expect(alert.textContent).toContain('Failed to register `orca` in PATH.')
+    expect(alert.textContent).toContain('Failed to register `dorka` in PATH.')
     expect(alert.textContent).toContain(
-      'Refusing to replace non-Orca command at /usr/local/bin/orca.'
+      'Refusing to replace non-Dorka command at /usr/local/bin/dorka.'
     )
     expect(alert.textContent).toContain('Remove it and register again if it is no longer needed.')
     // The Electron transport wrapper must not leak into the panel.
@@ -113,14 +113,14 @@ describe('CliSection install failure surfacing', () => {
     await renderCliSectionAndInstall(async () =>
       notInstalledStatus({
         state: 'conflict',
-        detail: '/usr/local/bin/orca exists but is not an Orca symlink.'
+        detail: '/usr/local/bin/dorka exists but is not an Dorka symlink.'
       })
     )
 
     const alert = screen.getByRole('alert')
-    expect(alert.textContent).toContain('/usr/local/bin/orca exists but is not an Orca symlink.')
+    expect(alert.textContent).toContain('/usr/local/bin/dorka exists but is not an Dorka symlink.')
     expect(alert.textContent).toContain(
-      'Remove /usr/local/bin/orca and register again if it is no longer needed.'
+      'Remove /usr/local/bin/dorka and register again if it is no longer needed.'
     )
     expect(toasts.success).not.toHaveBeenCalled()
   })
@@ -131,12 +131,12 @@ describe('CliSection install failure surfacing', () => {
         state: 'unsupported',
         supported: false,
         unsupportedReason: 'launcher_missing',
-        detail: 'The bundled CLI launcher is missing from this Orca build.'
+        detail: 'The bundled CLI launcher is missing from this Dorka build.'
       })
     )
 
     expect(screen.getByRole('alert').textContent).toContain(
-      'The bundled CLI launcher is missing from this Orca build.'
+      'The bundled CLI launcher is missing from this Dorka build.'
     )
     expect(toasts.success).not.toHaveBeenCalled()
     expect(toasts.error).toHaveBeenCalledTimes(1)

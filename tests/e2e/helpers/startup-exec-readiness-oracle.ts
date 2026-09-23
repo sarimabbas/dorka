@@ -7,7 +7,7 @@ import type {
   RuntimeTerminalShow
 } from '../../../src/shared/runtime-types'
 import { toWebTerminalSurfaceTabId } from '../../../src/shared/terminal-surface-id'
-import { expect } from './orca-app'
+import { expect } from './dorka-app'
 import { getTerminalContent, waitForActivePanePtyId } from './terminal'
 import { readFreshTerminalInventory } from './terminal-inventory-observation'
 
@@ -36,7 +36,7 @@ function execProfileContents(
   execLine: string,
   barrier?: BashExecProfileBarrier
 ): string {
-  const guard = `ORCA_STA4067_EXEC_${runId.replaceAll(/[^A-Za-z0-9_]/g, '_')}`
+  const guard = `DORKA_STA4067_EXEC_${runId.replaceAll(/[^A-Za-z0-9_]/g, '_')}`
   const barrierScript = barrier
     ? [
         `: > ${shellQuote(barrier.startedPath)}`,

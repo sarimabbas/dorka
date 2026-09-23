@@ -47,7 +47,7 @@ async function render(
         <AutomationDetail
           automation={makeAutomation(overrides)}
           runs={[]}
-          projectName="orca"
+          projectName="dorka"
           workspaceName="main"
           projectDefaultBaseRef="main"
           hostEntry={hostEntry}

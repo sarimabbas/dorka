@@ -154,7 +154,7 @@ describe('MobileHostCard', () => {
 
     const navigationButton = renderer.root.findAllByType('Pressable')[0]
     expect(navigationButton.props.accessibilityLabel).toBe(
-      'Open Desk, Connected, Orca Relay, Worktree list unavailable'
+      'Open Desk, Connected, Dorka Relay, Worktree list unavailable'
     )
     expect(
       renderer.root
@@ -193,7 +193,7 @@ describe('MobileHostCard', () => {
 
     const navigationButton = renderer.root.findAllByType('Pressable')[0]
     expect(navigationButton.props.accessibilityLabel).toBe(
-      "Open Desk, Can't reach desktop, Update desktop Orca and sign in to connect from anywhere"
+      "Open Desk, Can't reach desktop, Update desktop Dorka and sign in to connect from anywhere"
     )
   })
 
@@ -212,8 +212,8 @@ describe('MobileHostCard', () => {
             relayHostId: 'AbCdEf0123_-xyZ9',
             relay: {
               v: 1 as const,
-              directorUrl: 'https://relay-staging.onorca.dev',
-              cellUrl: 'https://c1.relay-staging.onorca.dev',
+              directorUrl: 'https://relay-staging.ondorka.dev',
+              cellUrl: 'https://c1.relay-staging.ondorka.dev',
               assignmentEpoch: 4,
               relayHostId: 'AbCdEf0123_-xyZ9',
               e2eeFraming: 2 as const
@@ -224,7 +224,7 @@ describe('MobileHostCard', () => {
             kind: 'unreachable',
             label: 'Host 1 is offline',
             reason: 'never-connected',
-            detail: "Check it's awake, Orca is running, and you're signed in"
+            detail: "Check it's awake, Dorka is running, and you're signed in"
           },
           path: 'lan',
           onPress: vi.fn(),
@@ -236,9 +236,9 @@ describe('MobileHostCard', () => {
     consoleError.mockRestore()
 
     const texts = renderer.root.findAllByType('Text').map((node) => node.props.children)
-    expect(texts).toContainEqual("Check it's awake, Orca is running, and you're signed in")
+    expect(texts).toContainEqual("Check it's awake, Dorka is running, and you're signed in")
     expect(renderer.root.findAllByType('Pressable')[0]?.props.accessibilityLabel).toBe(
-      "Open Host 1, Host 1 is offline, Check it's awake, Orca is running, and you're signed in"
+      "Open Host 1, Host 1 is offline, Check it's awake, Dorka is running, and you're signed in"
     )
   })
 })

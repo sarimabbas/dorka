@@ -36,7 +36,7 @@ export async function readShellCsp() {
   const source = await readFile(
     join(
       projectDir,
-      'mobile/modules/orca-mobile-web-shell/android/src/main/java/expo/modules/orcamobilewebshell/MobileWebShellCsp.kt'
+      'mobile/modules/dorka-mobile-web-shell/android/src/main/java/expo/modules/dorkamobilewebshell/MobileWebShellCsp.kt'
     ),
     'utf8'
   )
@@ -55,7 +55,7 @@ export async function readShellDocumentHeaders() {
   const source = await readFile(
     join(
       projectDir,
-      'mobile/modules/orca-mobile-web-shell/android/src/main/java/expo/modules/orcamobilewebshell/MobileWebShellResponseHeaders.kt'
+      'mobile/modules/dorka-mobile-web-shell/android/src/main/java/expo/modules/dorkamobilewebshell/MobileWebShellResponseHeaders.kt'
     ),
     'utf8'
   )
@@ -242,7 +242,7 @@ export async function readBridgeBackNames() {
  * all. This answers `ready`, answers the methods `replies` names, and refuses everything else: a
  * real reply would make this file the place domain behaviour is decided, and every screen below
  * already has a state for an RPC that failed. `grants` and `pageRoutes` are what the shell would
- * have negotiated, and every notify the page posts is kept whole in `__orcaRenderCheckNotifies`,
+ * have negotiated, and every notify the page posts is kept whole in `__dorkaRenderCheckNotifies`,
  * because a control that handed something to the shell and one that did nothing look the same on
  * the document.
  *
@@ -272,27 +272,27 @@ export function installShellDouble({
 }) {
   // Where the page's own fault reports land. Read back after the render, so a route that threw
   // under the boundary names itself instead of timing out as a page that never mounted.
-  globalThis.__orcaRenderCheckFaults = []
+  globalThis.__dorkaRenderCheckFaults = []
   // Every grant-gated notify the page posted, whole and in order. A control that decided to hand
   // something to the shell and a control that did nothing look identical on the document; this is
   // the only thing that tells them apart.
-  globalThis.__orcaRenderCheckNotifies = []
+  globalThis.__dorkaRenderCheckNotifies = []
   // Every request the page issued, whole and in order, so a check can say which verb a gesture
   // produced and with what geometry rather than only that something was sent.
-  globalThis.__orcaRenderCheckRequests = []
+  globalThis.__dorkaRenderCheckRequests = []
   // The subscriptions the double accepted, with the `wantsBinary` each one asked for: the negative
   // case is "the page did not ask", which no assertion on the frames can see.
-  globalThis.__orcaRenderCheckSubscribes = []
+  globalThis.__dorkaRenderCheckSubscribes = []
   // Binary events this double refused to post because they exceeded the frame cap, which is the
   // shell's drop rule reproduced where the page can watch it survive one.
-  globalThis.__orcaRenderCheckDroppedFrames = []
+  globalThis.__dorkaRenderCheckDroppedFrames = []
   // Every ack seq the page posted, in order. Without this a stream that never acked and one that
   // acked every frame look the same from the page's side.
-  globalThis.__orcaRenderCheckAcks = []
+  globalThis.__dorkaRenderCheckAcks = []
   const openStreams = new Map()
   // One Back press, on demand. The shell decides when the key goes to the page, so a check has no
   // other way to make one happen: nothing the document does produces this frame.
-  globalThis.__orcaRenderCheckSendBack = () => {
+  globalThis.__dorkaRenderCheckSendBack = () => {
     if (backFrame === null) {
       throw new Error('this shell double was not given the back frame name')
     }
@@ -342,9 +342,9 @@ export function installShellDouble({
         return
       }
       if (frame.type === 'notify') {
-        globalThis.__orcaRenderCheckNotifies.push(frame)
+        globalThis.__dorkaRenderCheckNotifies.push(frame)
         if (frame.name === faultGrant) {
-          globalThis.__orcaRenderCheckFaults.push(frame.error.message)
+          globalThis.__dorkaRenderCheckFaults.push(frame.error.message)
         }
         return
       }
@@ -352,7 +352,7 @@ export function installShellDouble({
       // Anything unnamed still takes the refusal below, so a screen only ever sees data a test
       // asked for.
       if (frame.type === 'subscribe' && streams.includes(frame.method)) {
-        globalThis.__orcaRenderCheckSubscribes.push({
+        globalThis.__dorkaRenderCheckSubscribes.push({
           id: frame.id,
           method: frame.method,
           params: frame.params,
@@ -377,7 +377,7 @@ export function installShellDouble({
             acked += 1
           }
           stream.unacked.splice(0, acked)
-          globalThis.__orcaRenderCheckAcks.push(frame.seq)
+          globalThis.__dorkaRenderCheckAcks.push(frame.seq)
         }
         return
       }
@@ -386,7 +386,7 @@ export function installShellDouble({
         return
       }
       if (frame.type === 'request') {
-        globalThis.__orcaRenderCheckRequests.push({ method: frame.method, params: frame.params })
+        globalThis.__dorkaRenderCheckRequests.push({ method: frame.method, params: frame.params })
       }
       if (frame.type === 'request' && replies && Object.hasOwn(replies, frame.method)) {
         answer({
@@ -424,7 +424,7 @@ export function installShellDouble({
    * The window only stays open because the page acks, which the `ack` arm above consumes. That is
    * what makes a long stream a real test of both rather than of neither.
    */
-  globalThis.__orcaRenderCheckEmitBinary = (id, binary) => {
+  globalThis.__dorkaRenderCheckEmitBinary = (id, binary) => {
     const stream = openStreams.get(id)
     if (!stream) {
       return 'no-stream'
@@ -438,7 +438,7 @@ export function installShellDouble({
         stream.unacked.length < windowCaps.maxUnackedFrames &&
         stream.unackedBytes + bytes <= windowCaps.maxUnackedBytes)
     if (!carries) {
-      globalThis.__orcaRenderCheckDroppedFrames.push(binary.frameSeq)
+      globalThis.__dorkaRenderCheckDroppedFrames.push(binary.frameSeq)
       return 'dropped'
     }
     stream.seq = seq
@@ -460,7 +460,7 @@ export function installShellDouble({
    * frame that took a slot without paying for it drove `unackedBytes` negative on the first ack and
    * left the binary emitter's window admitting frames past the cap for the life of the stream.
    */
-  globalThis.__orcaRenderCheckEmitEvent = (id, payload) => {
+  globalThis.__dorkaRenderCheckEmitEvent = (id, payload) => {
     const stream = openStreams.get(id)
     if (!stream) {
       return 'no-stream'
@@ -475,13 +475,13 @@ export function installShellDouble({
     return 'posted'
   }
   /** The window as the double holds it, so a check can read the ledger both emitters share. */
-  globalThis.__orcaRenderCheckWindow = (id) => {
+  globalThis.__dorkaRenderCheckWindow = (id) => {
     const stream = openStreams.get(id)
     return stream === undefined
       ? null
       : { frames: stream.unacked.length, unackedBytes: stream.unackedBytes }
   }
-  globalThis.orcaBridge = channel
+  globalThis.dorkaBridge = channel
 }
 
 /** How long a check waits for a mount's reads before it reports what the page did send. */
@@ -501,7 +501,7 @@ export async function waitForRecordedRequests(
 ) {
   const started = Date.now()
   for (;;) {
-    const requests = await page.evaluate(() => globalThis.__orcaRenderCheckRequests ?? [])
+    const requests = await page.evaluate(() => globalThis.__dorkaRenderCheckRequests ?? [])
     const missing = methods.filter((method) => !requests.some((one) => one.method === method))
     if (missing.length === 0) {
       return requests
@@ -600,12 +600,12 @@ export async function createBundleServer({
  * false so the browser still reports the error normally.
  */
 export function installPageErrorSentinel() {
-  globalThis.__orcaSentinelCalls = []
+  globalThis.__dorkaSentinelCalls = []
   const sentinel = (message) => {
-    globalThis.__orcaSentinelCalls.push(String(message))
+    globalThis.__dorkaSentinelCalls.push(String(message))
     return false
   }
-  globalThis.__orcaSentinel = sentinel
+  globalThis.__dorkaSentinel = sentinel
   window.onerror = sentinel
 }
 
@@ -621,8 +621,8 @@ export function installPageErrorSentinel() {
  * say that there was something to leak before it says that nothing did.
  */
 export function installSchedulerRecorder() {
-  globalThis.__orcaScheduler = { watching: false, scheduled: [], leaked: [] }
-  const state = globalThis.__orcaScheduler
+  globalThis.__dorkaScheduler = { watching: false, scheduled: [], leaked: [] }
+  const state = globalThis.__dorkaScheduler
   const wrap = (schedule, kind) =>
     function (callback, ...rest) {
       if (!state.watching || typeof callback !== 'function') {
@@ -666,7 +666,7 @@ export function installSchedulerRecorder() {
  */
 export function installListenerRecorder() {
   const live = new Map()
-  globalThis.__orcaListeners = {
+  globalThis.__dorkaListeners = {
     snapshot: () =>
       Object.fromEntries(
         [...live.entries()]
@@ -704,9 +704,9 @@ export function installListenerRecorder() {
 }
 
 export function installCspViolationRecorder() {
-  globalThis.__orcaCspViolations = []
+  globalThis.__dorkaCspViolations = []
   document.addEventListener('securitypolicyviolation', (event) => {
-    globalThis.__orcaCspViolations.push(
+    globalThis.__dorkaCspViolations.push(
       `${event.violatedDirective}: ${event.blockedURI || 'inline'} @ ${event.sourceFile ?? '?'}:${String(event.lineNumber ?? 0)}`
     )
   })
@@ -742,12 +742,12 @@ export async function readRootComputedStyles(page) {
 export async function terminalStyleReach(page) {
   return await page.evaluate(() => {
     const sheet = [...document.styleSheets].find(
-      (one) => one.ownerNode?.id === 'orca-terminal-document-style'
+      (one) => one.ownerNode?.id === 'dorka-terminal-document-style'
     )
     if (!sheet) {
       return { rules: 0, outside: ['the terminal stylesheet is not in the head'] }
     }
-    const host = document.querySelector('.orca-terminal-document-host')
+    const host = document.querySelector('.dorka-terminal-document-host')
     const outside = []
     for (const rule of sheet.cssRules) {
       for (const element of document.querySelectorAll(rule.selectorText)) {

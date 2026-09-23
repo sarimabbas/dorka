@@ -6,16 +6,16 @@ import { parseMuseSettingsText } from './hook-config-json'
 import { MuseHookService } from './hook-service'
 import { MUSE_HOOK_EVENTS } from './hook-settings'
 
-// Why: getSharedManagedScriptPath() writes under homedir()/.orca and the
+// Why: getSharedManagedScriptPath() writes under homedir()/.dorka and the
 // Muse config resolves via XDG_CONFIG_HOME ?? ~/.config/muse. Point HOME
 // at a temp dir and clear XDG_CONFIG_HOME so install/remove never touches the
-// real ~/.orca or ~/.config/muse. os.homedir() resolves $HOME on POSIX.
+// real ~/.dorka or ~/.config/muse. os.homedir() resolves $HOME on POSIX.
 let home: string
 let originalHome: string | undefined
 let originalXdg: string | undefined
 
 beforeEach(() => {
-  home = mkdtempSync(join(tmpdir(), 'orca-muse-hook-'))
+  home = mkdtempSync(join(tmpdir(), 'dorka-muse-hook-'))
   originalHome = process.env.HOME
   originalXdg = process.env.XDG_CONFIG_HOME
   process.env.HOME = home
@@ -37,8 +37,8 @@ afterEach(() => {
 })
 
 const configPath = (): string => join(home, '.config', 'muse', 'settings.json')
-const managedHooksPath = (): string => join(home, '.orca', 'agent-hooks', 'muse-hooks.json')
-const scriptPath = (): string => join(home, '.orca', 'agent-hooks', 'muse-hook.sh')
+const managedHooksPath = (): string => join(home, '.dorka', 'agent-hooks', 'muse-hooks.json')
+const scriptPath = (): string => join(home, '.dorka', 'agent-hooks', 'muse-hook.sh')
 
 describe('MuseHookService', () => {
   it('reports not_installed before install', () => {
@@ -50,12 +50,12 @@ describe('MuseHookService', () => {
     expect(status.state).toBe('installed')
     expect(status.managedHooksPresent).toBe(true)
 
-    // The settings pointer aims at the Orca-owned managed file, and a fresh
+    // The settings pointer aims at the Dorka-owned managed file, and a fresh
     // settings.json carries the schema_version muse requires.
     const settings = parseMuseSettingsText(readFileSync(configPath(), 'utf-8'), 'test')
     expect(settings?.managed_hooks_path).toBe(managedHooksPath())
     expect(settings?.schema_version).toBe(1)
-    expect(settings?.managed_hooks_env_vars).toContain('ORCA_PANE_KEY')
+    expect(settings?.managed_hooks_env_vars).toContain('DORKA_PANE_KEY')
 
     const managedText = readFileSync(managedHooksPath(), 'utf-8')
     expect(managedText).toContain('agent-hooks/muse-hook.sh')
@@ -117,8 +117,8 @@ describe('MuseHookService', () => {
 
   it('treats malformed managed hook entries as absent instead of throwing', () => {
     mkdirSync(join(home, '.config', 'muse'), { recursive: true })
-    mkdirSync(join(home, '.orca', 'agent-hooks'), { recursive: true })
-    const managedPath = join(home, '.orca', 'agent-hooks', 'muse-hooks.json')
+    mkdirSync(join(home, '.dorka', 'agent-hooks'), { recursive: true })
+    const managedPath = join(home, '.dorka', 'agent-hooks', 'muse-hooks.json')
     writeFileSync(configPath(), JSON.stringify({ schema_version: 1 }))
     const service = new MuseHookService()
     expect(service.install().state).toBe('installed')

@@ -39,7 +39,7 @@ export function resolveAgentLaunchExecutionContext(
             : getLocalProjectExecutionRuntimeContext(store, args.worktreeId)
         )
       : CLIENT_PLATFORM)
-  // Why: SSH remotes deploy the shim as plain `orca`, so skip the Linux-only `orca-ide` rename for remote launches.
+  // Why: SSH remotes deploy the shim as plain `dorka`, so skip the Linux-only `dorka-ide` rename for remote launches.
   const isRemote = Boolean(worktreeSshConnectionId)
   return {
     worktreeSshConnectionId,

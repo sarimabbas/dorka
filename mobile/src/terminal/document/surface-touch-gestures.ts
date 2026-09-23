@@ -21,7 +21,7 @@ import { getTotalScale, updateTransform } from './viewport-transform'
 import { attachSurfaceWheelHandler } from './wheel-scroll'
 
 /** A surface that has already been wired, so a re-mount does not stack handlers. */
-type TerminalGestureSurface = HTMLElement & { __orcaSurfaceHandlersAttached?: boolean }
+type TerminalGestureSurface = HTMLElement & { __dorkaSurfaceHandlersAttached?: boolean }
 
 /** The live touch gesture: the last point, the velocity, and the pinch it may be in. */
 export type TerminalTouchState = {
@@ -64,10 +64,10 @@ export function attachSurfaceEventHandlers(
   scope: TerminalDocumentScope,
   targetSurface: TerminalGestureSurface
 ) {
-  if (!targetSurface || targetSurface.__orcaSurfaceHandlersAttached) {
+  if (!targetSurface || targetSurface.__dorkaSurfaceHandlersAttached) {
     return
   }
-  targetSurface.__orcaSurfaceHandlersAttached = true
+  targetSurface.__dorkaSurfaceHandlersAttached = true
   // Why: init() swaps in a new hidden surface to avoid flicker; each
   // replacement needs gesture handlers or tab-switch replays stop scrolling.
   targetSurface.addEventListener(

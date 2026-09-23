@@ -1,17 +1,17 @@
 import { describe, expect, it, vi } from 'vitest'
-import type { OrcaRuntimeService } from '../../orca-runtime'
+import type { DorkaRuntimeService } from '../../dorka-runtime'
 import type { RpcRequest } from '../core'
 import { RpcDispatcher } from '../dispatcher'
 import { WORKTREE_METHODS } from './worktree'
 
-function makeRuntime(repoHostIds: (string | undefined)[] = ['local']): OrcaRuntimeService {
+function makeRuntime(repoHostIds: (string | undefined)[] = ['local']): DorkaRuntimeService {
   return {
     getRuntimeId: () => 'test-runtime',
     listRepos: () =>
       repoHostIds.map((executionHostId) => ({ id: 'repo-1', path: '/repo', executionHostId })),
     showManagedWorktree: vi.fn().mockResolvedValue({ id: 'wt-1', hostId: 'local' }),
     removeManagedWorktree: vi.fn().mockResolvedValue({})
-  } as unknown as OrcaRuntimeService
+  } as unknown as DorkaRuntimeService
 }
 
 const WORKTREE_ID = 'repo-1::/repo/wt'

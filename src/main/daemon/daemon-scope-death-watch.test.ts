@@ -17,7 +17,7 @@ function options() {
     launchNonce: 'launch-a',
     platform: 'linux' as const,
     spawn: spawnProcess,
-    detectScope: () => 'orca-daemon-launch-a.scope',
+    detectScope: () => 'dorka-daemon-launch-a.scope',
     log: vi.fn()
   }
 }
@@ -33,7 +33,7 @@ describe('daemon scope death watch ownership', () => {
     expect(spawnProcess).not.toHaveBeenCalled()
   })
 
-  it.each([null, 'app-orca-123.scope', 'orca-daemon-other.scope'])(
+  it.each([null, 'app-dorka-123.scope', 'dorka-daemon-other.scope'])(
     'rejects unverified ownership of %s',
     (unit) => {
       expect(startDaemonScopeDeathWatch({ ...options(), detectScope: () => unit })).toBeNull()
@@ -66,9 +66,9 @@ describe('daemon scope death watch ownership', () => {
         args: [
           '-c',
           expect.any(String),
-          'orca-daemon-scope-watch',
+          'dorka-daemon-scope-watch',
           String(process.pid),
-          'orca-daemon-launch-a.scope'
+          'dorka-daemon-launch-a.scope'
         ],
         stdio: ['pipe', 'ignore', 'ignore'],
         env: expect.objectContaining({ XDG_RUNTIME_DIR: '/run/user/1000' })

@@ -12,9 +12,9 @@ const REPO_ROOT = join(import.meta.dirname, '../../..')
  * picked model. This pins the funnel so a sixth host site cannot re-derive the inputs by hand.
  */
 const MIGRATED_HOST_LAUNCH_MODULES = [
-  'src/main/runtime/orca-runtime-create-agent-session.ts',
-  'src/main/runtime/orca-runtime-resolve-mobile-session-terminal-command.ts',
-  'src/main/runtime/orca-runtime-resolve-worktree-removal-target.ts',
+  'src/main/runtime/dorka-runtime-create-agent-session.ts',
+  'src/main/runtime/dorka-runtime-resolve-mobile-session-terminal-command.ts',
+  'src/main/runtime/dorka-runtime-resolve-worktree-removal-target.ts',
   'src/main/runtime/runtime-worktree-agent-startup.ts'
 ]
 
@@ -49,7 +49,7 @@ describe('host agent-startup input assembly census', () => {
     // Positive control: the markers are real names, so an empty result above is a true negative
     // rather than a typo that can never match.
     const resumeSite = read(
-      'src/main/runtime/orca-runtime-get-agent-session-execution-namespace.ts'
+      'src/main/runtime/dorka-runtime-get-agent-session-execution-namespace.ts'
     )
     expect(HAND_ASSEMBLY_MARKERS.some((marker) => resumeSite.includes(marker))).toBe(true)
   })

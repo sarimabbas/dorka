@@ -17,7 +17,7 @@
  * unevaluated and why.
  */
 
-import type { OrcaRuntimeService } from '../../../../orca-runtime'
+import type { DorkaRuntimeService } from '../../../../dorka-runtime'
 import type { WorkerEffect, WorkerSetupReceipt } from './worker-topology'
 
 export type StructuredWorkerSetupGate = {
@@ -28,7 +28,7 @@ export type StructuredWorkerSetupGate = {
 }
 
 export async function awaitStructuredWorkerSetupGate(args: {
-  runtime: Pick<OrcaRuntimeService, 'waitForSetupTerminalCompletion'>
+  runtime: Pick<DorkaRuntimeService, 'waitForSetupTerminalCompletion'>
   setup: WorkerSetupReceipt
   effects: WorkerEffect[]
   timeoutMs: number

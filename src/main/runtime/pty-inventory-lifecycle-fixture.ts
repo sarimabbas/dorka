@@ -1,5 +1,5 @@
 import { vi } from 'vitest'
-import { OrcaRuntimeService } from './orca-runtime'
+import { DorkaRuntimeService } from './dorka-runtime'
 import type { RuntimePtyController } from './runtime-pty-controller-contract'
 import type { PtyProcessInfo } from '../providers/pty-process-info'
 
@@ -31,7 +31,7 @@ export function processRow(id = PTY, incarnationId = PREDECESSOR): PtyProcessInf
   }
 }
 
-export class InventoryLifecycleRuntime extends OrcaRuntimeService {
+export class InventoryLifecycleRuntime extends DorkaRuntimeService {
   read(connectionId?: string | null, target: string | null = null, deadline?: number) {
     return this.refreshPtyWorktreeRecordsWithControllerInventory([], target, deadline, connectionId)
   }

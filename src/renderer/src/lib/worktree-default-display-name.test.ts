@@ -26,7 +26,7 @@ describe('resolveWorktreeDisplayName', () => {
       resolveWorktreeDisplayName({
         displayName: 'Design review',
         branch: 'refs/heads/feature/jump',
-        path: '/repos/orca'
+        path: '/repos/dorka'
       })
     ).toBe('Design review')
   })
@@ -36,7 +36,7 @@ describe('resolveWorktreeDisplayName', () => {
       resolveWorktreeDisplayName({
         displayName: '',
         branch: 'refs/heads/feature/jump',
-        path: '/repos/orca'
+        path: '/repos/dorka'
       })
     ).toBe('feature/jump')
   })
@@ -46,7 +46,7 @@ describe('resolveWorktreeDisplayName', () => {
       resolveWorktreeDisplayName({
         displayName: '   ',
         branch: 'refs/heads/main',
-        path: '/repos/orca'
+        path: '/repos/dorka'
       })
     ).toBe('main')
   })
@@ -56,7 +56,7 @@ describe('resolveWorktreeDisplayName', () => {
       resolveWorktreeDisplayName({
         displayName: undefined as unknown as string,
         branch: 'refs/heads/main',
-        path: '/repos/orca'
+        path: '/repos/dorka'
       })
     ).toBe('main')
   })

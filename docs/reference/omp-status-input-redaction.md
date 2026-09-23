@@ -31,9 +31,9 @@ bounded serialization correcting its validation-then-original-object approach.
 Run the actual OMP loader/native HTTP smoke with a read-only checkout:
 
 ```sh
-ORCA_BACKGROUND_LAUNCH=1 bun tests/tools/omp-status-input-redaction-smoke.mjs /path/to/oh-my-pi
+DORKA_BACKGROUND_LAUNCH=1 bun tests/tools/omp-status-input-redaction-smoke.mjs /path/to/oh-my-pi
 ```
 
-It loads Orca's generated extension through OMP, invokes synthetic tool events,
+It loads Dorka's generated extension through OMP, invokes synthetic tool events,
 and inspects three real loopback HTTP payloads. Home/config/data roots are
 disposable; it makes no model requests and does not claim an interactive tool run.

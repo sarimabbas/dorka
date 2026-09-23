@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 const callMock = vi.fn()
 const originalExitCode = process.exitCode
-const originalCliCommand = process.env.ORCA_CLI_COMMAND
+const originalCliCommand = process.env.DORKA_CLI_COMMAND
 
 type RecoveryWorkerStartResult = {
   taskId: string
@@ -28,15 +28,15 @@ describe('orchestration worker-start CLI contract', () => {
     callMock.mockReset()
     vi.mocked(printResult).mockReset()
     process.exitCode = undefined
-    delete process.env.ORCA_CLI_COMMAND
+    delete process.env.DORKA_CLI_COMMAND
   })
 
   afterEach(() => {
     process.exitCode = originalExitCode
     if (originalCliCommand === undefined) {
-      delete process.env.ORCA_CLI_COMMAND
+      delete process.env.DORKA_CLI_COMMAND
     } else {
-      process.env.ORCA_CLI_COMMAND = originalCliCommand
+      process.env.DORKA_CLI_COMMAND = originalCliCommand
     }
   })
 
@@ -229,12 +229,12 @@ describe('orchestration worker-start CLI contract', () => {
   })
 
   it.each([
-    ['JSON', 'orca-dev', true],
-    ['plain', 'orca-ide', false]
+    ['JSON', 'dorka-dev', true],
+    ['plain', 'dorka-ide', false]
   ] as const)(
     'renders %s recovery commands through the resolved %s executable',
     async (_format, executable, json) => {
-      process.env.ORCA_CLI_COMMAND = executable
+      process.env.DORKA_CLI_COMMAND = executable
       callMock.mockResolvedValue({
         result: {
           taskId: 'task_1',
@@ -243,8 +243,8 @@ describe('orchestration worker-start CLI contract', () => {
           effects: [],
           residualResources: [],
           nextCommands: [
-            'orca orchestration worker-show --dispatch ctx_unknown --json',
-            'orca orchestration worker-abandon --dispatch ctx_unknown --json'
+            'dorka orchestration worker-show --dispatch ctx_unknown --json',
+            'dorka orchestration worker-abandon --dispatch ctx_unknown --json'
           ]
         }
       })
@@ -283,7 +283,7 @@ describe('orchestration worker-start CLI contract', () => {
         state: 'failed',
         failedStage: 'dispatch_input',
         lastError:
-          'The target terminal is in Structured Chat. Switch it to Terminal, then retry `orca orchestration worker-start`.',
+          'The target terminal is in Structured Chat. Switch it to Terminal, then retry `dorka orchestration worker-start`.',
         effects: [],
         residualResources: []
       }
@@ -316,9 +316,9 @@ describe('orchestration worker-start CLI contract', () => {
         state: 'failed',
         failedStage: 'dispatch_input',
         lastError:
-          'The target terminal is in Structured Chat. Switch it to Terminal, then retry `orca orchestration worker-start`.'
+          'The target terminal is in Structured Chat. Switch it to Terminal, then retry `dorka orchestration worker-start`.'
       })
-    ).toMatch(/Structured Chat.*Switch it to Terminal.*orca orchestration worker-start/s)
+    ).toMatch(/Structured Chat.*Switch it to Terminal.*dorka orchestration worker-start/s)
   })
 
   it('prints a reveal warning for a live background worker', async () => {

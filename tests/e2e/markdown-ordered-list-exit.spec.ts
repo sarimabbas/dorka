@@ -1,4 +1,4 @@
-import { test, expect } from './helpers/orca-app'
+import { test, expect } from './helpers/dorka-app'
 import { waitForActiveWorktree, waitForSessionReady } from './helpers/store'
 import {
   assertLoadedThirdEmptyOrderedListItem,
@@ -60,14 +60,14 @@ const rows: MatrixRow[] = [
 ]
 
 test.describe('Markdown ordered-list exit regression', () => {
-  test.beforeEach(async ({ orcaPage }) => {
-    await waitForSessionReady(orcaPage)
-    await waitForActiveWorktree(orcaPage)
+  test.beforeEach(async ({ dorkaPage }) => {
+    await waitForSessionReady(dorkaPage)
+    await waitForActiveWorktree(dorkaPage)
   })
 
   for (const row of rows) {
-    test(row.name, async ({ orcaPage }, testInfo) => {
-      const context = await getActiveWorktreeContext(orcaPage)
+    test(row.name, async ({ dorkaPage }, testInfo) => {
+      const context = await getActiveWorktreeContext(dorkaPage)
       let filePath: string | null = null
 
       try {
@@ -77,13 +77,13 @@ test.describe('Markdown ordered-list exit regression', () => {
           testInfo.workerIndex,
           row.initialMarkdown
         )
-        const activeFile = await openMarkdownFixture(orcaPage, context, filePath)
+        const activeFile = await openMarkdownFixture(dorkaPage, context, filePath)
         const draftKey = activeFile.filePath
 
-        await row.run(orcaPage, row.sentinel)
+        await row.run(dorkaPage, row.sentinel)
 
-        await expectSentinelParagraphOutsideOrderedList(orcaPage, row.sentinel)
-        await expectSerializedDraftOutsideOrderedList(orcaPage, draftKey, row.sentinel)
+        await expectSentinelParagraphOutsideOrderedList(dorkaPage, row.sentinel)
+        await expectSerializedDraftOutsideOrderedList(dorkaPage, draftKey, row.sentinel)
       } finally {
         await cleanupMarkdownFixture(filePath)
       }

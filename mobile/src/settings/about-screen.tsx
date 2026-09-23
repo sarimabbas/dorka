@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, Pressable } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { ChevronLeft, Globe } from 'lucide-react-native'
 import Svg, { Path } from 'react-native-svg'
-import { OrcaLogo } from '../components/OrcaLogo'
+import { DorkaLogo } from '../components/DorkaLogo'
 import { colors, spacing, typography } from '../theme/mobile-theme'
 
 function GithubIcon({ size = 16, color = colors.textSecondary }) {
@@ -53,8 +53,8 @@ export default function AboutScreen({
       </View>
 
       <View style={styles.brand}>
-        <OrcaLogo size={28} />
-        <Text style={styles.brandName}>Orca</Text>
+        <DorkaLogo size={28} />
+        <Text style={styles.brandName}>Dorka</Text>
         <Text style={styles.brandSub}>Open-source agent IDE for 100x builders</Text>
       </View>
 
@@ -62,17 +62,17 @@ export default function AboutScreen({
         <Pressable
           style={({ pressed }) => [styles.row, pressed && styles.rowPressed]}
           accessibilityRole="button"
-          accessibilityLabel="Orca website"
-          onPress={() => openLink('https://onOrca.dev')}
+          accessibilityLabel="Dorka website"
+          onPress={() => openLink('https://onDorka.dev')}
         >
           <Globe size={16} color={colors.textSecondary} />
-          <Text style={styles.rowValue}>onOrca.dev</Text>
+          <Text style={styles.rowValue}>onDorka.dev</Text>
         </Pressable>
         <View style={styles.separator} />
         <Pressable
           style={({ pressed }) => [styles.row, pressed && styles.rowPressed]}
           accessibilityRole="button"
-          accessibilityLabel="Orca source code"
+          accessibilityLabel="Dorka source code"
           onPress={() => openLink('https://github.com/stablyai/orca')}
         >
           <GithubIcon />
@@ -82,11 +82,11 @@ export default function AboutScreen({
         <Pressable
           style={({ pressed }) => [styles.row, pressed && styles.rowPressed]}
           accessibilityRole="button"
-          accessibilityLabel="Orca on X"
-          onPress={() => openLink('https://x.com/orca_build')}
+          accessibilityLabel="Dorka on X"
+          onPress={() => openLink('https://x.com/dorka_build')}
         >
           <XIcon />
-          <Text style={styles.rowValue}>@orca_build</Text>
+          <Text style={styles.rowValue}>@dorka_build</Text>
         </Pressable>
       </View>
 

@@ -1,5 +1,5 @@
-import { expect } from './orca-app'
-import { readRestartRendererState } from './orca-restart'
+import { expect } from './dorka-app'
+import { readRestartRendererState } from './dorka-restart'
 import type { PairedElectronClient } from './paired-electron-client'
 
 export async function refreshAuthorityRuntimeId(

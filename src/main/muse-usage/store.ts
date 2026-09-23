@@ -26,11 +26,11 @@ import type { MuseUsageDailyAggregate, MuseUsagePersistedState, MuseUsageSession
 let museUsageFile: string | null = null
 
 export function initMuseUsagePath(): void {
-  museUsageFile = join(app.getPath('userData'), 'orca-muse-usage.json')
+  museUsageFile = join(app.getPath('userData'), 'dorka-muse-usage.json')
 }
 
 function getMuseUsageFile(): string {
-  museUsageFile ??= join(app.getPath('userData'), 'orca-muse-usage.json')
+  museUsageFile ??= join(app.getPath('userData'), 'dorka-muse-usage.json')
   return museUsageFile
 }
 

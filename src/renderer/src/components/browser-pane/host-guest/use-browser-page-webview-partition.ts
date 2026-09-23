@@ -1,6 +1,6 @@
 import { useAppStore } from '@/store'
-import { ORCA_BROWSER_PARTITION } from '../../../../../shared/constants'
-import { getOrcaProfileBrowserDefaultPartition } from '../../../../../shared/orca-profiles'
+import { DORKA_BROWSER_PARTITION } from '../../../../../shared/constants'
+import { getDorkaProfileBrowserDefaultPartition } from '../../../../../shared/dorka-profiles'
 
 export function useBrowserPageWebviewPartition({
   sessionProfileId,
@@ -10,9 +10,9 @@ export function useBrowserPageWebviewPartition({
   sessionPartition: string | null
 }): string {
   const browserSessionProfiles = useAppStore((s) => s.browserSessionProfiles)
-  const activeOrcaProfileId = useAppStore((s) => s.activeOrcaProfileId)
-  const fallbackBrowserPartition = activeOrcaProfileId
-    ? getOrcaProfileBrowserDefaultPartition(activeOrcaProfileId)
+  const activeDorkaProfileId = useAppStore((s) => s.activeDorkaProfileId)
+  const fallbackBrowserPartition = activeDorkaProfileId
+    ? getDorkaProfileBrowserDefaultPartition(activeDorkaProfileId)
     : null
   const defaultSessionProfile = browserSessionProfiles.find((p) => p.id === 'default') ?? null
   const sessionProfile = sessionProfileId
@@ -23,6 +23,6 @@ export function useBrowserPageWebviewPartition({
     sessionProfile?.partition ??
     defaultSessionProfile?.partition ??
     fallbackBrowserPartition ??
-    ORCA_BROWSER_PARTITION
+    DORKA_BROWSER_PARTITION
   )
 }

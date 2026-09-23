@@ -44,7 +44,7 @@ beforeEach(async () => {
   resetHostTestOperationIds()
   acquisitions = 0
   compact.mockReset().mockResolvedValue({})
-  directory = await mkdtemp(join(tmpdir(), 'orca-conversation-command-'))
+  directory = await mkdtemp(join(tmpdir(), 'dorka-conversation-command-'))
   store = await AgentSessionRecordStore.open({
     directory: join(directory, 'store'),
     hostId: 'local'

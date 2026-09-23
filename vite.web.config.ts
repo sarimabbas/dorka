@@ -7,11 +7,11 @@ import { createPdfjsViewerAssetsPlugin } from './config/build-plugins/pdfjs-view
 export default defineConfig({
   root: resolve('src/renderer'),
   // Why: pairing URLs may live under a reverse-proxy path prefix like
-  // /orca/web-index.html, so built assets must resolve relative to the page.
+  // /dorka/web-index.html, so built assets must resolve relative to the page.
   base: './',
   plugins: [react(), tailwindcss(), createPdfjsViewerAssetsPlugin()],
   define: {
-    ORCA_FEATURE_WALL_ENABLED: 'true'
+    DORKA_FEATURE_WALL_ENABLED: 'true'
   },
   resolve: {
     alias: {

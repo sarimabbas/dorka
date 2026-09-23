@@ -1,17 +1,17 @@
 import { describe, expect, it, vi } from 'vitest'
-import { OrcaRuntimeService } from './orca-runtime'
+import { DorkaRuntimeService } from './dorka-runtime'
 
 type InventoryInternals = {
   sessionTabsInventoryWaiters: Set<() => void>
 }
 
-function createInventoryRuntime(): OrcaRuntimeService {
-  const runtime = new OrcaRuntimeService()
+function createInventoryRuntime(): DorkaRuntimeService {
+  const runtime = new DorkaRuntimeService()
   runtime.setPtyController({ listProcesses: vi.fn(async () => []) } as never)
   return runtime
 }
 
-async function waitForInventoryWaiter(runtime: OrcaRuntimeService): Promise<void> {
+async function waitForInventoryWaiter(runtime: DorkaRuntimeService): Promise<void> {
   const internals = runtime as unknown as InventoryInternals
   for (let index = 0; index < 20 && internals.sessionTabsInventoryWaiters.size === 0; index += 1) {
     await Promise.resolve()
@@ -171,7 +171,7 @@ describe('authoritative session tab inventory publication', () => {
   })
 
   it('retries once and serves an unlabeled scan when the PTY census is unavailable', async () => {
-    const runtime = new OrcaRuntimeService()
+    const runtime = new DorkaRuntimeService()
     const collect = vi.spyOn(
       runtime as unknown as { collectAllMobileSessionTabs: () => Promise<unknown> },
       'collectAllMobileSessionTabs'
@@ -409,7 +409,7 @@ describe('authoritative session tab inventory publication', () => {
   })
 
   it('reports no authoritative support behind the e2e disable override', () => {
-    vi.stubEnv('ORCA_E2E_DISABLE_AUTHORITATIVE_SESSION_TABS_INVENTORY', '1')
+    vi.stubEnv('DORKA_E2E_DISABLE_AUTHORITATIVE_SESSION_TABS_INVENTORY', '1')
     try {
       expect(createInventoryRuntime().supportsAuthoritativeSessionTabsInventory()).toBe(false)
     } finally {

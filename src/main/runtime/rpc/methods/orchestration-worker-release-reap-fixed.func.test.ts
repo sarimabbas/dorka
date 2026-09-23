@@ -19,7 +19,7 @@
 // showTerminal WHILE THE PTY IS STILL ALIVE. inspectWorkerTerminal swallows the throw and reports
 // `missing`; completeWorkerTerminalRelease then commits `release_unknown` and returns WITHOUT ever
 // calling runtime.closeTerminal — so the process/PTY leaks. On mtl-02 those orphans accumulate in
-// the orca-serve@factory cgroup until TasksMax=4096 is hit and Bun/omp abort() on EAGAIN.
+// the dorka-serve@factory cgroup until TasksMax=4096 is hit and Bun/omp abort() on EAGAIN.
 //
 // The observable leak signal asserted here: state 'release_unknown' + processAction 'none' +
 // closeTerminal NEVER called + the pty STILL alive in ptysById + worker-list terminalState stuck
@@ -29,12 +29,12 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { ORCHESTRATION_METHODS } from './orchestration'
 import { eraseRpcMethods, type RpcContext } from '../core'
 import { OrchestrationDb } from '../../orchestration/db'
-import { OrcaRuntimeService } from '../../orca-runtime'
+import { DorkaRuntimeService } from '../../dorka-runtime'
 
 describe('PRB-0219 worker-release reap FIX (functional verification)', () => {
   let db: OrchestrationDb
   let dbOpen = false
-  let runtime: OrcaRuntimeService
+  let runtime: DorkaRuntimeService
   let ctx: RpcContext
   let activeRunId: string
 
@@ -86,7 +86,7 @@ describe('PRB-0219 worker-release reap FIX (functional verification)', () => {
 
     db = new OrchestrationDb(':memory:')
     dbOpen = true
-    runtime = new OrcaRuntimeService()
+    runtime = new DorkaRuntimeService()
     runtime.setOrchestrationDb(db)
 
     // Incarnation-addressed liveness probe: reads the DURABLE plane, so it stays 'live' across the
@@ -222,7 +222,7 @@ describe('PRB-0219 worker-release reap FIX (functional verification)', () => {
       status: 'running',
       exitCode: null
     })
-    vi.spyOn(runtime, 'getTerminalOrchestrationCliCommand').mockReturnValue('orca')
+    vi.spyOn(runtime, 'getTerminalOrchestrationCliCommand').mockReturnValue('dorka')
     vi.spyOn(runtime, 'sendTerminalAgentPrompt').mockResolvedValue({
       handle: 'term_worker',
       accepted: true,

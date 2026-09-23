@@ -3,10 +3,10 @@ import { getSetupScriptPromptDismissalKey } from '../../../lib/setup-script-prom
 
 export function createUiTrustActions(set: UISliceSet, _get: UISliceGet): Partial<UISlice> {
   return {
-    trustedOrcaHooks: {},
-    markOrcaHookScriptConfirmed: (repoId, kind, contentHash) =>
+    trustedDorkaHooks: {},
+    markDorkaHookScriptConfirmed: (repoId, kind, contentHash) =>
       set((s) => {
-        const existing = s.trustedOrcaHooks[repoId]
+        const existing = s.trustedDorkaHooks[repoId]
         const currentEntry = existing?.[kind]
         if (currentEntry?.contentHash === contentHash) {
           return s
@@ -15,35 +15,35 @@ export function createUiTrustActions(set: UISliceSet, _get: UISliceGet): Partial
           ...existing,
           [kind]: { contentHash, approvedAt: Date.now() }
         }
-        const next = { ...s.trustedOrcaHooks, [repoId]: nextRepo }
-        window.api.ui.set({ trustedOrcaHooks: next }).catch(console.error)
-        return { trustedOrcaHooks: next }
+        const next = { ...s.trustedDorkaHooks, [repoId]: nextRepo }
+        window.api.ui.set({ trustedDorkaHooks: next }).catch(console.error)
+        return { trustedDorkaHooks: next }
       }),
-    markOrcaHookRepoAlwaysTrusted: (repoId) =>
+    markDorkaHookRepoAlwaysTrusted: (repoId) =>
       set((s) => {
-        const existing = s.trustedOrcaHooks[repoId]
+        const existing = s.trustedDorkaHooks[repoId]
         if (existing?.all) {
           return s
         }
         const next = {
-          ...s.trustedOrcaHooks,
+          ...s.trustedDorkaHooks,
           [repoId]: {
             ...existing,
             all: { approvedAt: Date.now() }
           }
         }
-        window.api.ui.set({ trustedOrcaHooks: next }).catch(console.error)
-        return { trustedOrcaHooks: next }
+        window.api.ui.set({ trustedDorkaHooks: next }).catch(console.error)
+        return { trustedDorkaHooks: next }
       }),
-    clearOrcaHookTrustForRepo: (repoId) =>
+    clearDorkaHookTrustForRepo: (repoId) =>
       set((s) => {
-        if (!(repoId in s.trustedOrcaHooks)) {
+        if (!(repoId in s.trustedDorkaHooks)) {
           return s
         }
-        const next = { ...s.trustedOrcaHooks }
+        const next = { ...s.trustedDorkaHooks }
         delete next[repoId]
-        window.api.ui.set({ trustedOrcaHooks: next }).catch(console.error)
-        return { trustedOrcaHooks: next }
+        window.api.ui.set({ trustedDorkaHooks: next }).catch(console.error)
+        return { trustedDorkaHooks: next }
       }),
     setupScriptPromptDismissedRepoIds: [],
     dismissSetupScriptPrompt: (repoHostIdentity) =>

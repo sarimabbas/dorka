@@ -1,12 +1,12 @@
 import { app, powerMonitor, type BrowserWindow } from 'electron'
 import { is } from '@electron-toolkit/utils'
-import { getOrcaCloudAuthConfig } from '../orca-profiles/profile-cloud-auth-config'
-import { getProfileUserDataPath } from '../orca-profiles/profile-storage-paths'
+import { getDorkaCloudAuthConfig } from '../dorka-profiles/profile-cloud-auth-config'
+import { getProfileUserDataPath } from '../dorka-profiles/profile-storage-paths'
 import {
   getCanonicalUserDataPath,
   migrateMobilePairingDataToCanonicalUserDataPath
 } from '../persistence'
-import { OrcaRuntimeRpcServer } from '../runtime/runtime-rpc'
+import { DorkaRuntimeRpcServer } from '../runtime/runtime-rpc'
 import { registerMobileHandlers } from '../ipc/mobile'
 import { getLocalPtyProvider, registerHeadlessPtyRuntime } from '../ipc/pty'
 import { LocalPtyProvider } from '../providers/local-pty-provider'
@@ -33,7 +33,7 @@ import {
   showRuntimeRpcStartupFailureDialog
 } from '../runtime/runtime-rpc-startup-failure'
 import { CliInstaller } from '../cli/cli-installer'
-import { installLinuxBareOrcaDispatcher } from '../cli/linux-bare-orca-dispatcher'
+import { installLinuxBareDorkaDispatcher } from '../cli/linux-bare-dorka-dispatcher'
 import { scheduleAllPendingHistoryTreeRemovals } from '../terminal-history-deletion'
 import { triggerStartupNotificationRegistration } from '../ipc/startup-notification-registration'
 import { startDesktopPushService } from './main-process-push-startup'
@@ -62,32 +62,32 @@ function settleDesktopActivation(): void {
 function installRuntimeRpc(
   runtime: RuntimeService,
   serveOptions: ReturnType<typeof getServeOptions> | null
-): OrcaRuntimeRpcServer {
+): DorkaRuntimeRpcServer {
   // Why: existing installs may have pairing creds under the late app.getPath('userData'); copy them forward before switching to the canonical path.
   migrateMobilePairingDataToCanonicalUserDataPath(app.getPath('userData'))
   // Why: parallel E2E Electron instances would race the fixed port (EADDRINUSE); port 0 gives each a random OS-assigned port.
-  const isE2E = Boolean(process.env.ORCA_E2E_USER_DATA_DIR)
-  const requestedE2EWsPort = process.env.ORCA_E2E_RUNTIME_WS_PORT
+  const isE2E = Boolean(process.env.DORKA_E2E_USER_DATA_DIR)
+  const requestedE2EWsPort = process.env.DORKA_E2E_RUNTIME_WS_PORT
   const e2eWsPort = requestedE2EWsPort === undefined ? 0 : Number(requestedE2EWsPort)
   if (isE2E && (!Number.isInteger(e2eWsPort) || e2eWsPort < 0 || e2eWsPort > 65_535)) {
-    throw new Error(`Invalid ORCA_E2E_RUNTIME_WS_PORT value: ${requestedE2EWsPort}`)
+    throw new Error(`Invalid DORKA_E2E_RUNTIME_WS_PORT value: ${requestedE2EWsPort}`)
   }
-  // Why: pin dev to 6769 so `pnpm dev` doesn't race packaged Orca on 6768 and fall back to a random port, breaking deterministic mobile pairing/repro (STA-1511).
+  // Why: pin dev to 6769 so `pnpm dev` doesn't race packaged Dorka on 6768 and fall back to a random port, breaking deterministic mobile pairing/repro (STA-1511).
   const devWsPort = is.dev && !isE2E ? 6769 : undefined
-  const runtimeRpc = new OrcaRuntimeRpcServer({
+  const runtimeRpc = new DorkaRuntimeRpcServer({
     runtime,
     // Why: mobile pairing needs the stable pre-setName() path (getCanonicalUserDataPath), not a late app.getPath('userData') that drops paired devices across restarts.
     userDataPath: getCanonicalUserDataPath(),
     enableWebSocket: true,
     // Why: STA-2370 — the desktop app binds the WS listener to loopback until the user pairs a device;
-    // `orca serve` is an explicit remote opt-in, and E2E keeps the wide bind its harness connects over.
+    // `dorka serve` is an explicit remote opt-in, and E2E keeps the wide bind its harness connects over.
     exposeNetworkByDefault: Boolean(serveOptions) || isE2E,
     ...(isE2E ? { wsPort: e2eWsPort } : {}),
     ...(devWsPort !== undefined ? { wsPort: devWsPort } : {}),
     ...(serveOptions?.wsPort !== undefined
       ? {
           wsPort: serveOptions.wsPort,
-          // Why: only explicit `orca serve --port` overrides a stale STA-1511 fallback (issue #8535); default/dev stay fallback-first for pairing stability.
+          // Why: only explicit `dorka serve --port` overrides a stale STA-1511 fallback (issue #8535); default/dev stay fallback-first for pairing stability.
           preferPinnedWsPort: true
         }
       : {}),
@@ -122,7 +122,7 @@ function installRuntimeRpc(
 
 async function launchServeMode(
   runtime: RuntimeService,
-  runtimeRpc: OrcaRuntimeRpcServer,
+  runtimeRpc: DorkaRuntimeRpcServer,
   serveOptions: NonNullable<ReturnType<typeof getServeOptions>>
 ): Promise<void> {
   // Why here: headless serve has no window to unblock, so keep the persisted proxy strictly
@@ -178,28 +178,28 @@ async function launchServeMode(
         }
       }).install()
       console.log(
-        `[serve] orca CLI install: ${cliStatus.state}${cliStatus.commandPath ? ` (${cliStatus.commandPath})` : ''}`
+        `[serve] dorka CLI install: ${cliStatus.state}${cliStatus.commandPath ? ` (${cliStatus.commandPath})` : ''}`
       )
     } catch (error) {
       console.warn(
-        '[serve] orca CLI install skipped:',
+        '[serve] dorka CLI install skipped:',
         error instanceof Error ? error.message : String(error)
       )
     }
   }
-  // Why: Linux CLI installs as `orca-ide`, but the Claude Team launcher invokes bare `orca`; drop a ~/.local/bin dispatcher (ahead of /usr/bin) so it resolves. Best-effort.
+  // Why: Linux CLI installs as `dorka-ide`, but the Claude Team launcher invokes bare `dorka`; drop a ~/.local/bin dispatcher (ahead of /usr/bin) so it resolves. Best-effort.
   if (process.platform === 'linux' && app.isPackaged && process.resourcesPath) {
     try {
-      const dispatcher = await installLinuxBareOrcaDispatcher({
+      const dispatcher = await installLinuxBareDorkaDispatcher({
         resourcesPath: process.resourcesPath
       })
       console.log(
-        `[serve] bare orca dispatcher ${dispatcher.state}: ${dispatcher.dispatcherPath}` +
+        `[serve] bare dorka dispatcher ${dispatcher.state}: ${dispatcher.dispatcherPath}` +
           `${dispatcher.target ? ` -> ${dispatcher.target}` : ''}`
       )
     } catch (error) {
       console.warn(
-        '[serve] bare orca dispatcher install skipped:',
+        '[serve] bare dorka dispatcher install skipped:',
         error instanceof Error ? error.message : String(error)
       )
     }
@@ -214,7 +214,7 @@ async function launchServeMode(
 }
 
 async function launchDesktopMode(
-  runtimeRpc: OrcaRuntimeRpcServer,
+  runtimeRpc: DorkaRuntimeRpcServer,
   shellPathReady: Promise<void>,
   desktopWindow: BrowserWindow | null,
   openMainWindow: MainProcessRuntimeLaunchOptions['openMainWindow']
@@ -252,7 +252,7 @@ async function launchDesktopMode(
   // Why after the proxy await: the push gateway client is an app-owned fetcher, so it must not
   // issue its first request ahead of the persisted proxy.
   startDesktopPushService(runtimeRpc)
-  const cloudAuth = getOrcaCloudAuthConfig()
+  const cloudAuth = getDorkaCloudAuthConfig()
   if (cloudAuth.configured) {
     try {
       const relayService = new DesktopRelayService({

@@ -51,7 +51,7 @@ function nameFilter(query: string): (relativePath: string) => boolean {
 function spawnMissingRipgrep(): void {
   wslAwareSpawnMock.mockImplementation(
     (_command: string, _args: string[], options: SpawnOptions & { cwd?: string }) =>
-      spawn('orca-definitely-missing-rg', [], { cwd: options.cwd, stdio: options.stdio })
+      spawn('dorka-definitely-missing-rg', [], { cwd: options.cwd, stdio: options.stdio })
   )
 }
 
@@ -104,7 +104,7 @@ describe('listQuickOpenFiles name filter', () => {
 
   it('filters the whole git listing when ripgrep is missing', async () => {
     spawnMissingRipgrep()
-    tempDir = await mkdtemp(join(tmpdir(), 'orca-name-filter-'))
+    tempDir = await mkdtemp(join(tmpdir(), 'dorka-name-filter-'))
     const repoPath = join(tempDir, 'repo')
     await execFile('git', ['init', '-q', repoPath])
     for (const relPath of ['a.ts', 'b.ts', 'zz/Notion Web Clipper/AppDelegate.swift']) {

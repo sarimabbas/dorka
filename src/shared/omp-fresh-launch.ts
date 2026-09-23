@@ -1,7 +1,7 @@
 import { OMP_DRAFT_LAUNCH_PREFIX } from './omp-draft-launch'
 import { tokenizeStartupCommand, type AgentStartupShell } from './tui-agent-startup-shell'
 
-export const ORCA_OMP_FRESH_CONFIG_ENV = 'ORCA_OMP_FRESH_CONFIG'
+export const DORKA_OMP_FRESH_CONFIG_ENV = 'DORKA_OMP_FRESH_CONFIG'
 export const OMP_FRESH_CONFIG_FILENAME = 'fresh-session.yml'
 export const OMP_FRESH_CONFIG_SOURCE = 'autoResume: false\n'
 
@@ -48,20 +48,20 @@ export function withFreshOmpLaunch(command: string, shell: AgentStartupShell, su
   }
   const path =
     shell === 'cmd'
-      ? `"%${ORCA_OMP_FRESH_CONFIG_ENV}%"`
+      ? `"%${DORKA_OMP_FRESH_CONFIG_ENV}%"`
       : shell === 'powershell'
-        ? `"$env:${ORCA_OMP_FRESH_CONFIG_ENV}"`
-        : `"$${ORCA_OMP_FRESH_CONFIG_ENV}"`
+        ? `"$env:${DORKA_OMP_FRESH_CONFIG_ENV}"`
+        : `"$${DORKA_OMP_FRESH_CONFIG_ENV}"`
   const launch = `${command} --config ${path}${suffix}`
   const error =
-    'Orca: fresh OMP settings are unavailable on this host. Restart the terminal after updating Orca.'
+    'Dorka: fresh OMP settings are unavailable on this host. Restart the terminal after updating Dorka.'
   if (shell === 'powershell') {
     return `if (${path} -and (Test-Path -LiteralPath ${path} -PathType Leaf)) { ${launch} } else { $global:LASTEXITCODE = 1; Write-Error '${error}' }`
   }
   if (shell === 'cmd') {
     return `if exist ${path} (if not exist "${path.slice(1, -1)}\\*" (${launch}) else (echo ${error} 1>&2 & verify invalid 2>nul)) else (echo ${error} 1>&2 & verify invalid 2>nul)`
   }
-  const available = `printenv ${ORCA_OMP_FRESH_CONFIG_ENV} >/dev/null && test -f ${path}`
+  const available = `printenv ${DORKA_OMP_FRESH_CONFIG_ENV} >/dev/null && test -f ${path}`
   // && is supported by bash, zsh, and fish; invoking directly preserves shell aliases/functions.
   return `${available} || printf '%s\\n' '${error}' >&2; ${available} && ${launch}`
 }
@@ -75,9 +75,9 @@ export function isFreshOmpLaunchCommand(command: string | undefined): boolean {
   return Boolean(
     guarded &&
     [
-      `printenv ${ORCA_OMP_FRESH_CONFIG_ENV} >/dev/null && test -f "$${ORCA_OMP_FRESH_CONFIG_ENV}"`,
-      `if ("$env:${ORCA_OMP_FRESH_CONFIG_ENV}" -and (Test-Path -LiteralPath "$env:${ORCA_OMP_FRESH_CONFIG_ENV}" -PathType Leaf))`,
-      `if exist "%${ORCA_OMP_FRESH_CONFIG_ENV}%" (if not exist "%${ORCA_OMP_FRESH_CONFIG_ENV}%\\*"`
+      `printenv ${DORKA_OMP_FRESH_CONFIG_ENV} >/dev/null && test -f "$${DORKA_OMP_FRESH_CONFIG_ENV}"`,
+      `if ("$env:${DORKA_OMP_FRESH_CONFIG_ENV}" -and (Test-Path -LiteralPath "$env:${DORKA_OMP_FRESH_CONFIG_ENV}" -PathType Leaf))`,
+      `if exist "%${DORKA_OMP_FRESH_CONFIG_ENV}%" (if not exist "%${DORKA_OMP_FRESH_CONFIG_ENV}%\\*"`
     ].some((prefix) => guarded.startsWith(prefix))
   )
 }

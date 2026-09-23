@@ -38,7 +38,7 @@ describe('the placeholder a page claims', () => {
   it('is a fixed string, so a resent message fingerprints the same caller after a remount', () => {
     // The composer's send journal refuses a retained operation whose caller changed, and it has no
     // expiry. A per-document identity would turn "send it again" into a permanent refusal.
-    expect(BRIDGE_PAGE_CLIENT_ID).toBe('orca-page-client')
+    expect(BRIDGE_PAGE_CLIENT_ID).toBe('dorka-page-client')
     expect(BRIDGE_PAGE_CLIENT_IDENTITY_ACCEPT).toBe('page-client-identity')
   })
 

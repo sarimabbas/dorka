@@ -14,7 +14,7 @@ import {
 import { customKeyModalStyles as styles } from './CustomKeyModal.styles'
 import { persistMirrored } from '../storage/mirrored-storage-keys'
 
-const CUSTOM_ACCESSORY_KEYS_STORAGE_KEY = 'orca:custom-accessory-keys'
+const CUSTOM_ACCESSORY_KEYS_STORAGE_KEY = 'dorka:custom-accessory-keys'
 
 export type CustomKey = {
   id: string

@@ -39,13 +39,13 @@ defaults:
 
 jobs:
   candidate:
-    if: ${{ vars.ORCA_CLOUD_OPERATIONS_ENABLED == 'true' }}
+    if: ${{ vars.DORKA_CLOUD_OPERATIONS_ENABLED == 'true' }}
     runs-on: blacksmith-2vcpu-ubuntu-2204
     environment: staging
     env:
-      GCP_PROJECT_ID: onorca-cloud-staging
-      DIRECTOR_ORIGIN: https://relay-staging.onorca.dev
-      ADMIN_AUDIENCE: https://relay-staging.onorca.dev/v1/admin/drain
+      GCP_PROJECT_ID: ondorka-cloud-staging
+      DIRECTOR_ORIGIN: https://relay-staging.ondorka.dev
+      ADMIN_AUDIENCE: https://relay-staging.ondorka.dev/v1/admin/drain
       SOURCE_CELL_ID: ${{ inputs.source-cell-id }}
       TARGET_CELL_ID: ${{ inputs.target-cell-id }}
       DEPLOY_MODE: ${{ inputs.mode }}
@@ -58,14 +58,14 @@ jobs:
           workload_identity_provider: ${{ vars.STAGING_GCP_RELAY_DEPLOY_WORKLOAD_IDENTITY_PROVIDER }}
           service_account: ${{ vars.STAGING_GCP_RELAY_DEPLOY_SERVICE_ACCOUNT }}
           token_format: id_token
-          id_token_audience: https://relay-staging.onorca.dev/v1/admin/drain
+          id_token_audience: https://relay-staging.ondorka.dev/v1/admin/drain
           id_token_include_email: true
 
       - uses: google-github-actions/setup-gcloud@v2
 
       - uses: ./.github/actions/cloud-sql-rollout-lease
         with:
-          bucket: onorca-cloud-staging-terraform-state
+          bucket: ondorka-cloud-staging-terraform-state
           object: terraform/state/cloud-sql-rollout/staging.lock
 
       - uses: hashicorp/setup-terraform@v3
@@ -96,7 +96,7 @@ jobs:
 
       - name: Preflight or evacuate exact GCE candidate
         env:
-          ORCA_RELAY_ADMIN_ID_TOKEN: ${{ steps.google-auth.outputs.id_token }}
+          DORKA_RELAY_ADMIN_ID_TOKEN: ${{ steps.google-auth.outputs.id_token }}
         run: |
           node dev/scripts/deploy-relay-gce-candidate.mjs \
             --project "${GCP_PROJECT_ID}" \

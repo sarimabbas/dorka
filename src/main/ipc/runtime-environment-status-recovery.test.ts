@@ -31,7 +31,7 @@ beforeEach(() => {
   vi.useFakeTimers()
   request.mockReset()
   publish.mockReset()
-  profile = mkdtempSync(join(tmpdir(), 'orca-status-recovery-'))
+  profile = mkdtempSync(join(tmpdir(), 'dorka-status-recovery-'))
 })
 afterEach(() => {
   resetSharedControlSupport()

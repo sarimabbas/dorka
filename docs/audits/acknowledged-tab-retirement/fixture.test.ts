@@ -12,11 +12,11 @@ import { createStoreCascadesMockApi } from '../../../src/renderer/src/store/slic
 import { buildWorkspaceSessionPayload } from '../../../src/renderer/src/lib/workspace-session'
 import { buildHeadlessMobileSessionTerminalTabs } from '../../../src/main/runtime/mobile-session-terminal-projection'
 import { setRuntimeDesktopSurface } from '../../../src/main/runtime/runtime-desktop-surface'
-import { OrcaRuntimeService } from '../../../src/main/runtime/orca-runtime'
+import { DorkaRuntimeService } from '../../../src/main/runtime/dorka-runtime'
 import { advanceTerminalTopologyRevision } from '../../../src/main/runtime/workspace-session-terminal-membership-authority'
 import type { ExecutionHostId } from '../../../src/shared/execution-host'
 
-class AuditRuntime extends OrcaRuntimeService {
+class AuditRuntime extends DorkaRuntimeService {
   surfaceParents(worktree: string) {
     return (
       this.mobileSessionTabsByWorktree
@@ -48,8 +48,8 @@ function deferred() {
 }
 function fixture(kind: 'repo' | 'folder' = 'repo', host: ExecutionHostId = 'local', bound = false) {
   const api = createStoreCascadesMockApi()
-  const dir = mkdtempSync(join(tmpdir(), 'orca-close-ack-'))
-  const file = join(dir, 'orca-data.json')
+  const dir = mkdtempSync(join(tmpdir(), 'dorka-close-ack-'))
+  const file = join(dir, 'dorka-data.json')
   const main = new Store({ dataFile: file })
   const renderer = createTestStore()
   seedStore(renderer, {})

@@ -36,10 +36,10 @@ describe('computer-use e2e workflow', () => {
 
     expect(driver).not.toContain('await delay(3500)')
     expect(driver).toContain("await waitForComputerWindowTitle('gedit', fileName, 15000)")
-    expect(cliDriver).toContain('ORCA_DEV_USER_DATA_PATH')
-    expect(cliDriver).toContain('orca-computer-runtime-')
+    expect(cliDriver).toContain('DORKA_DEV_USER_DATA_PATH')
+    expect(cliDriver).toContain('dorka-computer-runtime-')
     expect(cliDriver).toContain('retryMissingRuntimeMetadata')
-    expect(cliDriver).toContain('Could not read Orca runtime metadata')
+    expect(cliDriver).toContain('Could not read Dorka runtime metadata')
     expect(cliDriver).toContain("'serve', '--no-pairing', '--json'")
 
     expect(windowsStoreE2e).toContain("app.bundleId === 'ApplicationFrameHost'")

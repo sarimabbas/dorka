@@ -13,7 +13,7 @@ import type { RosterGroup } from './claude-subagent-roster-state'
 /** Durable journal identity for the group's row — stable across revisions and
  *  across a restart, so replay finds the same row instead of appending a new one. */
 export function claudeSubagentGroupIdentity(groupId: string): AgentJournalItemIdentity {
-  return { provider: 'orca', clientMessageId: `claude-subagents:${groupId}` }
+  return { provider: 'dorka', clientMessageId: `claude-subagents:${groupId}` }
 }
 
 /** The roster row: the structured block plus the plain sentence an older client

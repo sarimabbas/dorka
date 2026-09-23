@@ -65,7 +65,7 @@ function readEnvironment(args) {
     return args[envIndex + 1]
   }
 
-  return process.env.ORCA_CLOUD_ENV
+  return process.env.DORKA_CLOUD_ENV
 }
 
 function readRoot(args) {

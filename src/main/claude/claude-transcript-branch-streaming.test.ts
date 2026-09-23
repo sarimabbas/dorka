@@ -94,7 +94,7 @@ const read = (previousLeafUuid: string | null = null, intentionalRewindUuid?: st
   })
 
 beforeEach(async () => {
-  directory = await mkdtemp(join(tmpdir(), 'orca-branch-streaming-'))
+  directory = await mkdtemp(join(tmpdir(), 'dorka-branch-streaming-'))
   Object.assign(state, {
     path: join(directory, 'transcript.jsonl'),
     opens: 0,

@@ -33,15 +33,21 @@ export async function DocsHeader() {
         <div className="flex shrink-0 items-center gap-6">
           <Link
             href="/docs"
-            aria-label="Orca docs"
+            aria-label="Dorka docs"
             className="group flex shrink-0 items-center gap-2 rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
           >
-            <Image src="/docs/logo.svg" alt="" width={40} height={25} />
+            <Image
+              src="/docs/dorka-geek-app-icon.png"
+              alt=""
+              width={32}
+              height={32}
+              className="rounded-md"
+            />
             <span
               aria-hidden="true"
               className="font-sans text-sm font-semibold tracking-tight text-foreground"
             >
-              ORCA
+              DORKA
             </span>
           </Link>
           <nav className="hidden items-center gap-5 sm:flex" aria-label="Primary navigation">
@@ -52,13 +58,13 @@ export async function DocsHeader() {
               Docs
             </Link>
             <a
-              href="https://www.onorca.dev"
+              href="https://www.ondorka.dev"
               className="rounded-md px-2 py-1 text-[13px] font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
             >
               Home
             </a>
             <a
-              href="https://www.onorca.dev/download"
+              href="https://www.ondorka.dev/download"
               className="rounded-md px-2 py-1 text-[13px] font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
             >
               Download
@@ -73,16 +79,16 @@ export async function DocsHeader() {
             target="_blank"
             rel="noopener noreferrer"
             className="hidden size-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50 sm:flex"
-            aria-label="Join Orca on Discord"
+            aria-label="Join Dorka on Discord"
           >
             <MessageCircle className="size-4" aria-hidden="true" />
           </a>
           <a
-            href="https://x.com/orca_build"
+            href="https://x.com/dorka_build"
             target="_blank"
             rel="noopener noreferrer"
             className="hidden size-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50 sm:flex"
-            aria-label="Follow Orca on X"
+            aria-label="Follow Dorka on X"
           >
             <span aria-hidden="true" className="text-[15px] font-semibold leading-none">
               𝕏

@@ -7,8 +7,8 @@ import {
   resolveProfileLoadingShell
 } from './hydrate-shell-path'
 
-const START_MARKER = '__ORCA_LOGIN_SHELL_ENV_START__'
-const END_MARKER = '__ORCA_LOGIN_SHELL_ENV_END__'
+const START_MARKER = '__DORKA_LOGIN_SHELL_ENV_START__'
+const END_MARKER = '__DORKA_LOGIN_SHELL_ENV_END__'
 const SPAWN_TIMEOUT_MS = 5000
 
 const environmentCache = new Map<string, Promise<NodeJS.ProcessEnv>>()
@@ -132,7 +132,7 @@ export type ResolveLoginShellEnvironmentOptions = {
   spawner?: (shell: string, env: NodeJS.ProcessEnv) => Promise<NodeJS.ProcessEnv | null>
 }
 
-/** Resolves the environment seen by commands launched from Orca's profile-loading terminal shell. */
+/** Resolves the environment seen by commands launched from Dorka's profile-loading terminal shell. */
 export function resolveLoginShellEnvironment(
   options: ResolveLoginShellEnvironmentOptions = {}
 ): Promise<NodeJS.ProcessEnv> {

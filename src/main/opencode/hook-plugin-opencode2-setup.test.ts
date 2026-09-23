@@ -40,18 +40,18 @@ describe.each(['opencode', 'opencode2'] as const)('%s plugin on OpenCode 2', (ag
       server?: (ctx: unknown) => Promise<PluginHooks>
       setup?: (ctx: unknown) => Promise<() => Promise<void>>
     }
-    OrcaOpenCodeStatusPlugin?: (ctx: unknown) => Promise<PluginHooks>
+    DorkaOpenCodeStatusPlugin?: (ctx: unknown) => Promise<PluginHooks>
   }
 
   // Why: the plugin resolves hook coords from the endpoint file first and only then from
-  // env. Pin every input here so the run does not depend on the developer's Orca session
-  // (an inherited ORCA_AGENT_HOOK_ENDPOINT would otherwise redirect the post to a live app).
+  // env. Pin every input here so the run does not depend on the developer's Dorka session
+  // (an inherited DORKA_AGENT_HOOK_ENDPOINT would otherwise redirect the post to a live app).
   const ENV_KEYS = [
-    'ORCA_PANE_KEY',
-    'ORCA_OPENCODE_AGENT',
-    'ORCA_AGENT_HOOK_ENDPOINT',
-    'ORCA_AGENT_HOOK_PORT',
-    'ORCA_AGENT_HOOK_TOKEN'
+    'DORKA_PANE_KEY',
+    'DORKA_OPENCODE_AGENT',
+    'DORKA_AGENT_HOOK_ENDPOINT',
+    'DORKA_AGENT_HOOK_PORT',
+    'DORKA_AGENT_HOOK_TOKEN'
   ] as const
 
   let tempDir: string
@@ -59,16 +59,16 @@ describe.each(['opencode', 'opencode2'] as const)('%s plugin on OpenCode 2', (ag
   let savedEnv: Record<string, string | undefined>
 
   beforeEach(() => {
-    tempDir = mkdtempSync(join(tmpdir(), 'orca-opencode-plugin-contract-'))
+    tempDir = mkdtempSync(join(tmpdir(), 'dorka-opencode-plugin-contract-'))
     savedFetch = globalThis.fetch
     savedEnv = {}
     for (const key of ENV_KEYS) {
       savedEnv[key] = process.env[key]
     }
-    process.env.ORCA_OPENCODE_AGENT = agent
-    delete process.env.ORCA_AGENT_HOOK_ENDPOINT
-    process.env.ORCA_AGENT_HOOK_PORT = '59999'
-    process.env.ORCA_AGENT_HOOK_TOKEN = 'test-token'
+    process.env.DORKA_OPENCODE_AGENT = agent
+    delete process.env.DORKA_AGENT_HOOK_ENDPOINT
+    process.env.DORKA_AGENT_HOOK_PORT = '59999'
+    process.env.DORKA_AGENT_HOOK_TOKEN = 'test-token'
   })
 
   afterEach(() => {
@@ -89,7 +89,7 @@ describe.each(['opencode', 'opencode2'] as const)('%s plugin on OpenCode 2', (ag
     // Why: a unique basename per load defeats the ESM module cache between cases.
     const pluginPath = join(
       tempDir,
-      `orca-opencode-status-${Math.random().toString(36).slice(2)}.mjs`
+      `dorka-opencode-status-${Math.random().toString(36).slice(2)}.mjs`
     )
     writeFileSync(pluginPath, source)
     // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: Runtime validation or the local test fixture establishes the asserted shape.
@@ -97,7 +97,7 @@ describe.each(['opencode', 'opencode2'] as const)('%s plugin on OpenCode 2', (ag
   }
 
   it('does not register hooks for the other pane variant', async () => {
-    process.env.ORCA_OPENCODE_AGENT = agent === 'opencode' ? 'opencode2' : 'opencode'
+    process.env.DORKA_OPENCODE_AGENT = agent === 'opencode' ? 'opencode2' : 'opencode'
     const module = await loadPluginModule(
       agent === 'opencode2'
         ? _internals.getOpenCode2PluginSource()
@@ -112,7 +112,7 @@ describe.each(['opencode', 'opencode2'] as const)('%s plugin on OpenCode 2', (ag
   })
 
   it('subscribes through the OpenCode 2 setup API and disposes its registrations', async () => {
-    process.env.ORCA_PANE_KEY = 'tab-1:leaf-1'
+    process.env.DORKA_PANE_KEY = 'tab-1:leaf-1'
     const posts: unknown[] = []
     globalThis.fetch = vi.fn(async (_input, init) => {
       posts.push(JSON.parse(String(init?.body)))
@@ -168,7 +168,7 @@ describe.each(['opencode', 'opencode2'] as const)('%s plugin on OpenCode 2', (ag
   })
 
   it('maps permission, form, and text events through the live setup bridge', async () => {
-    process.env.ORCA_PANE_KEY = 'tab-1:leaf-1'
+    process.env.DORKA_PANE_KEY = 'tab-1:leaf-1'
     const posts: { body: PostBody }[] = []
     globalThis.fetch = vi.fn(async (_input, init) => {
       posts.push({ body: record(JSON.parse(String(init?.body))) ?? {} })
@@ -262,7 +262,7 @@ describe.each(['opencode', 'opencode2'] as const)('%s plugin on OpenCode 2', (ag
   async function runSetupBridge(
     events: { type: string; data: Record<string, unknown> }[]
   ): Promise<{ names: string[]; cleanup?: () => Promise<void> }> {
-    process.env.ORCA_PANE_KEY = 'tab-1:leaf-1'
+    process.env.DORKA_PANE_KEY = 'tab-1:leaf-1'
     const names: string[] = []
     globalThis.fetch = vi.fn(async (_input, init) => {
       names.push(String(payload(record(JSON.parse(String(init?.body))) ?? {}).hook_event_name))
@@ -372,7 +372,7 @@ describe.each(['opencode', 'opencode2'] as const)('%s plugin on OpenCode 2', (ag
   it.each(['waiting', 'idle', 'disposed'])(
     'drops an admitted prompt overtaken by %s',
     async (transition) => {
-      process.env.ORCA_PANE_KEY = 'tab-1:leaf-1'
+      process.env.DORKA_PANE_KEY = 'tab-1:leaf-1'
       const posts: unknown[] = []
       globalThis.fetch = vi.fn(async (_input, init) => {
         posts.push(JSON.parse(String(init?.body)))

@@ -5,7 +5,7 @@ import {
   relayCellAdmissionBounds,
   type RelayCellConnectionHardCap,
   type RelayRegion
-} from '@orca-cloud/relay-contract'
+} from '@dorka-cloud/relay-contract'
 import {
   decodeMembership,
   encodeMembership,

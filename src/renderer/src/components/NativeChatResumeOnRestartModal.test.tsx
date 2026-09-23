@@ -154,7 +154,7 @@ it('fully dismisses the offer only through Dismiss all', async () => {
 })
 
 // Bookkeeping must never gate the user's own action: the dismissal lands in the UI either way, and
-// a write Orca could not confirm is reported instead of trapping the dialog open.
+// a write Dorka could not confirm is reported instead of trapping the dialog open.
 it('reports a dismissal the host never confirmed instead of trapping the dialog', async () => {
   rpc.mockImplementation(async (_target, method) => {
     if (method === 'agentSession.restartResumable') {

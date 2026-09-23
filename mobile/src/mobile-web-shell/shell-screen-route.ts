@@ -8,7 +8,7 @@ import { BridgeInitRouteSchema, type BridgeInitRoute } from './bridge/bridge-ini
  *
  * `bridge-host.ts` parses the route against this same schema and drops it to `null` when it fails,
  * so a route that does not fit reaches the phone as an `init` naming no screen — and the page
- * answers that with "Update Orca to open this workspace", which is both wrong and worse than the
+ * answers that with "Update Dorka to open this workspace", which is both wrong and worse than the
  * native screen sitting right behind the switch. Deciding here instead means the route stays
  * native, which is where every route starts.
  *

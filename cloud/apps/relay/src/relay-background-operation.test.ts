@@ -8,12 +8,12 @@ describe('relay background operations', () => {
     await expect(
       runRelayBackgroundOperation(
         () => Promise.reject(new Error('postgresql://secret@database.invalid/relay')),
-        '[orca-relay] credential cleanup failed',
+        '[dorka-relay] credential cleanup failed',
         warn
       )
     ).resolves.toBeUndefined()
 
-    expect(warn).toHaveBeenCalledWith('[orca-relay] credential cleanup failed: Error: redacted')
+    expect(warn).toHaveBeenCalledWith('[dorka-relay] credential cleanup failed: Error: redacted')
     expect(String(warn.mock.calls[0])).not.toContain('secret')
   })
 
@@ -25,12 +25,12 @@ describe('relay background operations', () => {
 
     await runRelayBackgroundOperation(
       () => Promise.reject(locked),
-      '[orca-relay] assignment cleanup failed',
+      '[dorka-relay] assignment cleanup failed',
       warn
     )
 
     expect(warn).toHaveBeenCalledWith(
-      '[orca-relay] assignment cleanup failed: Error: regional_rehome_assignment_mismatch code=55P03'
+      '[dorka-relay] assignment cleanup failed: Error: regional_rehome_assignment_mismatch code=55P03'
     )
   })
 

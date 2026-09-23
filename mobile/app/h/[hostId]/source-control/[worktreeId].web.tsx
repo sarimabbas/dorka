@@ -8,7 +8,7 @@ import { parseSourceControlHubTab } from '../../../../src/source-control/mobile-
  *
  * This page is what the shell renders for this route, so there is no shell to mount here and no
  * flag to read: the switch already happened natively. Its native file also reaches
- * OrcaMobileWebShellView, whose module calls requireNativeViewManager at import and throws in a
+ * DorkaMobileWebShellView, whose module calls requireNativeViewManager at import and throws in a
  * browser, and the route manifest imports every route — one throwing module takes the bundle down.
  */
 export default function MobileSourceControlScreen() {

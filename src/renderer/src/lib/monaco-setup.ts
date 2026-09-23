@@ -88,7 +88,7 @@ runMonacoSetupSteps([
   ['diff editor disposal guard', () => installMonacoDiffEditorDisposalGuard(monaco)],
   ['peek references preview options', installMonacoPeekReferencesPreviewOptions],
   // Why: Monaco's built-in context-menu Paste reads navigator.clipboard, which is blocked in
-  // Orca's sandboxed renderer. Route it through the trusted IPC bridge so right-click Paste
+  // Dorka's sandboxed renderer. Route it through the trusted IPC bridge so right-click Paste
   // works like Cmd+V (which already works via native events).
   ['context-menu paste', () => installMonacoContextMenuPaste(monaco)]
 ])

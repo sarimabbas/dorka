@@ -68,9 +68,9 @@ export function useTerminalPaneLifecycle(deps: UseTerminalPaneLifecycleDeps): vo
         }
       }
     }
-    window.addEventListener('orca:wake-hibernated-agents-worktree', onWakeHibernatedAgents)
+    window.addEventListener('dorka:wake-hibernated-agents-worktree', onWakeHibernatedAgents)
     return () =>
-      window.removeEventListener('orca:wake-hibernated-agents-worktree', onWakeHibernatedAgents)
+      window.removeEventListener('dorka:wake-hibernated-agents-worktree', onWakeHibernatedAgents)
   }, [deps.worktreeId, deps.panePtyBindingsRef])
 
   useEffect(() => {

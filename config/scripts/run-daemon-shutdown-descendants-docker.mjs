@@ -7,14 +7,14 @@ import { build } from 'esbuild'
 
 const repo = resolve(fileURLToPath(new URL('../..', import.meta.url)))
 const docker =
-  process.env.ORCA_DOCKER ??
+  process.env.DORKA_DOCKER ??
   (existsSync('/Applications/Docker.app/Contents/Resources/bin/docker')
     ? '/Applications/Docker.app/Contents/Resources/bin/docker'
     : 'docker')
 const dockerDirectory = dirname(docker)
 const dockerEnv = {
   ...process.env,
-  ORCA_BACKGROUND_LAUNCH: '1',
+  DORKA_BACKGROUND_LAUNCH: '1',
   ...(dockerDirectory !== '.'
     ? { PATH: `${dockerDirectory}${delimiter}${process.env.PATH ?? ''}` }
     : {})
@@ -43,10 +43,10 @@ if (baselineIndex !== -1 && (!baselineRef || baselineRef.startsWith('-'))) {
   throw new Error('Usage: run-daemon-shutdown-descendants-docker.mjs [--baseline <git-ref>]')
 }
 
-const temp = mkdtempSync(join(tmpdir(), 'orca-daemon-shutdown-descendants-'))
-const image = `orca-daemon-shutdown-descendants:${process.pid}-${Date.now()}`
+const temp = mkdtempSync(join(tmpdir(), 'dorka-daemon-shutdown-descendants-'))
+const image = `dorka-daemon-shutdown-descendants:${process.pid}-${Date.now()}`
 const platform =
-  process.env.ORCA_DOCKER_PLATFORM ?? (process.arch === 'arm64' ? 'linux/arm64' : 'linux/amd64')
+  process.env.DORKA_DOCKER_PLATFORM ?? (process.arch === 'arm64' ? 'linux/arm64' : 'linux/amd64')
 
 function gitSource(relativePath, ref) {
   return execFileSync('git', ['show', `${ref}:${relativePath}`], {
@@ -124,7 +124,7 @@ try {
         '--platform',
         platform,
         '-e',
-        'ORCA_BACKGROUND_LAUNCH=1',
+        'DORKA_BACKGROUND_LAUNCH=1',
         '-v',
         `${bundlePath}:/fixtures/${mode}.cjs:ro`,
         image,

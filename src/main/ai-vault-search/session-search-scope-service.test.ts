@@ -12,7 +12,7 @@ const CATALOG = {
   projects: [],
   projectHostSetups: [],
   worktreeMeta: { 'repo-1::/work/app': {} },
-  settings: { workspaceDir: '/home/me/orca/workspaces', nestWorkspaces: true }
+  settings: { workspaceDir: '/home/me/dorka/workspaces', nestWorkspaces: true }
 }
 
 afterEach(() => {
@@ -47,7 +47,7 @@ describe('scope identity at the search choke point', () => {
     // An exact match, so a leaked `within` would fail here as an extra key.
     expect(service.search).toHaveBeenCalledWith(
       { query: 'needle', limit: 20 },
-      { kind: 'resolved', paths: ['/work/app', '/home/me/orca/workspaces/app'] }
+      { kind: 'resolved', paths: ['/work/app', '/home/me/dorka/workspaces/app'] }
     )
   })
 

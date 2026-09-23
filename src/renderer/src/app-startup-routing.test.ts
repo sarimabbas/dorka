@@ -635,13 +635,13 @@ describe('renderer startup runtime routing', () => {
     expect(checkpointBlock).toContain('shutdownCheckpointPersist.run')
     expect(checkpointBlock).toContain('shutdownCheckpointPersist.abandonAttempt')
     expect(source).toContain(
-      'window.addEventListener(ORCA_APP_RESTART_ABORTED_EVENT, shutdownCheckpoint.abandonAttempt)'
+      'window.addEventListener(DORKA_APP_RESTART_ABORTED_EVENT, shutdownCheckpoint.abandonAttempt)'
     )
     expect(source).toContain(
-      'ORCA_RENDERER_SHUTDOWN_CHECKPOINT_ABORTED_EVENT,\n      shutdownCheckpoint.abortAfterCheckpointFailure'
+      'DORKA_RENDERER_SHUTDOWN_CHECKPOINT_ABORTED_EVENT,\n      shutdownCheckpoint.abortAfterCheckpointFailure'
     )
     expect(source).toContain(
-      'window.addEventListener(ORCA_RENDERER_UNLOAD_PREVENTED_EVENT, shutdownCheckpoint.abandonAttempt)'
+      'window.addEventListener(DORKA_RENDERER_UNLOAD_PREVENTED_EVENT, shutdownCheckpoint.abandonAttempt)'
     )
     expect(source).toContain("window.addEventListener('beforeunload', persistBeforeUnload)")
     expect(source.match(/window\.addEventListener\('beforeunload'/g) ?? []).toHaveLength(1)

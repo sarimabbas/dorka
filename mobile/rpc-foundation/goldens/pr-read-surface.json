@@ -53,8 +53,8 @@
           "ok": true,
           "result": {
             "host": "github.com",
-            "owner": "orca",
-            "repo": "orca"
+            "owner": "dorka",
+            "repo": "dorka"
           }
         }
       }
@@ -105,8 +105,8 @@
         "ok": true,
         "result": {
           "host": "github.com",
-          "owner": "orca",
-          "repo": "orca"
+          "owner": "dorka",
+          "repo": "dorka"
         }
       }
     },
@@ -418,8 +418,8 @@
         "ok": true,
         "result": {
           "host": "github.com",
-          "owner": "orca",
-          "repo": "orca"
+          "owner": "dorka",
+          "repo": "dorka"
         }
       },
       "work-item": {
@@ -522,8 +522,8 @@
         "ok": true,
         "result": {
           "host": "github.com",
-          "owner": "orca",
-          "repo": "orca"
+          "owner": "dorka",
+          "repo": "dorka"
         }
       }
     },
@@ -599,8 +599,8 @@
         "ok": true,
         "result": {
           "host": "github.com",
-          "owner": "orca",
-          "repo": "orca"
+          "owner": "dorka",
+          "repo": "dorka"
         }
       }
     },
@@ -776,8 +776,8 @@
         "ok": true,
         "result": {
           "host": "github.com",
-          "owner": "orca",
-          "repo": "orca"
+          "owner": "dorka",
+          "repo": "dorka"
         }
       },
       "work-item": {
@@ -908,8 +908,8 @@
         "ok": true,
         "result": {
           "host": "github.com",
-          "owner": "orca",
-          "repo": "orca"
+          "owner": "dorka",
+          "repo": "dorka"
         }
       }
     },
@@ -1062,8 +1062,8 @@
         "ok": true,
         "result": {
           "host": "github.com",
-          "owner": "orca",
-          "repo": "orca"
+          "owner": "dorka",
+          "repo": "dorka"
         }
       },
       "work-item": {
@@ -1275,8 +1275,8 @@
         "ok": true,
         "result": {
           "host": "github.com",
-          "owner": "orca",
-          "repo": "orca"
+          "owner": "dorka",
+          "repo": "dorka"
         }
       },
       "work-item": {

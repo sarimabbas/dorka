@@ -2,7 +2,7 @@ import { createHash, randomUUID } from 'node:crypto'
 import { rmSync, writeFileSync } from 'node:fs'
 import path from 'node:path'
 import type { Page } from '@stablyai/playwright-test'
-import { test, expect } from './helpers/orca-app'
+import { test, expect } from './helpers/dorka-app'
 import { ensureTerminalVisible, waitForActiveWorktree, waitForSessionReady } from './helpers/store'
 import {
   focusActiveTerminalInput,
@@ -23,7 +23,7 @@ function keyboardPasteChord(): string {
 }
 
 function largePastePayload(runId: string): string {
-  return `ORCA_LARGE_PASTE_${runId}_0123456789abcdef`.repeat(4096)
+  return `DORKA_LARGE_PASTE_${runId}_0123456789abcdef`.repeat(4096)
 }
 
 function sha256(text: string): string {
@@ -97,37 +97,37 @@ async function stopRendererHeartbeat(page: Page): Promise<void> {
 test.describe('large terminal paste responsiveness', () => {
   test('chunked keyboard paste keeps the renderer responsive while PTY writes are pending', async ({
     electronApp,
-    orcaPage,
+    dorkaPage,
     testRepoPath
   }) => {
-    await waitForSessionReady(orcaPage)
-    await waitForActiveWorktree(orcaPage)
-    await ensureTerminalVisible(orcaPage)
-    await waitForActiveTerminalManager(orcaPage, 30_000)
+    await waitForSessionReady(dorkaPage)
+    await waitForActiveWorktree(dorkaPage)
+    await ensureTerminalVisible(dorkaPage)
+    await waitForActiveTerminalManager(dorkaPage, 30_000)
     await installTerminalPtyWriteSpy(electronApp)
 
-    const ptyId = await waitForActivePanePtyId(orcaPage)
+    const ptyId = await waitForActivePanePtyId(dorkaPage)
     const runId = randomUUID()
     const payload = largePastePayload(runId)
     const expectedBytes = Buffer.byteLength(payload, 'utf8')
     const expectedHash = sha256(payload)
     const doneLine = `LARGE_PASTE_DONE_${runId}:${expectedBytes}:${expectedHash}`
-    const scriptPath = path.join(testRepoPath, `.orca-large-paste-${runId}.cjs`)
+    const scriptPath = path.join(testRepoPath, `.dorka-large-paste-${runId}.cjs`)
     writeFileSync(scriptPath, pasteReceiverScript(runId, expectedBytes, expectedHash))
     let scriptStarted = false
 
     try {
-      await sendToTerminal(orcaPage, ptyId, `node ${JSON.stringify(scriptPath)}\r`)
+      await sendToTerminal(dorkaPage, ptyId, `node ${JSON.stringify(scriptPath)}\r`)
       scriptStarted = true
-      await waitForTerminalOutput(orcaPage, `LARGE_PASTE_READY_${runId}`, 10_000)
+      await waitForTerminalOutput(dorkaPage, `LARGE_PASTE_READY_${runId}`, 10_000)
 
-      await orcaPage.evaluate((text) => window.api.ui.writeClipboardText(text), payload)
+      await dorkaPage.evaluate((text) => window.api.ui.writeClipboardText(text), payload)
       await clearTerminalPtyWriteLog(electronApp)
       await setTerminalPtyWriteDelay(electronApp, 35)
-      await installRendererHeartbeat(orcaPage)
-      await focusActiveTerminalInput(orcaPage)
+      await installRendererHeartbeat(dorkaPage)
+      await focusActiveTerminalInput(dorkaPage)
 
-      const pasteKey = orcaPage.keyboard.press(keyboardPasteChord())
+      const pasteKey = dorkaPage.keyboard.press(keyboardPasteChord())
       await expect
         .poll(
           async () =>
@@ -140,13 +140,13 @@ test.describe('large terminal paste responsiveness', () => {
         )
         .toBeGreaterThan(1)
 
-      const heartbeatBefore = await readRendererHeartbeat(orcaPage)
-      await orcaPage.waitForTimeout(150)
-      const heartbeatAfter = await readRendererHeartbeat(orcaPage)
+      const heartbeatBefore = await readRendererHeartbeat(dorkaPage)
+      await dorkaPage.waitForTimeout(150)
+      const heartbeatAfter = await readRendererHeartbeat(dorkaPage)
       expect(heartbeatAfter).toBeGreaterThan(heartbeatBefore)
 
       await pasteKey
-      await waitForTerminalOutput(orcaPage, doneLine, 20_000, 12_000)
+      await waitForTerminalOutput(dorkaPage, doneLine, 20_000, 12_000)
 
       const writes = (await readTerminalPtyWriteEntries(electronApp)).filter(
         (entry) => entry.id === ptyId
@@ -154,9 +154,9 @@ test.describe('large terminal paste responsiveness', () => {
       expect(writes.length).toBeGreaterThan(1)
     } finally {
       await setTerminalPtyWriteDelay(electronApp, 0).catch(() => undefined)
-      await stopRendererHeartbeat(orcaPage).catch(() => undefined)
+      await stopRendererHeartbeat(dorkaPage).catch(() => undefined)
       if (scriptStarted) {
-        await sendToTerminal(orcaPage, ptyId, '\x03').catch(() => undefined)
+        await sendToTerminal(dorkaPage, ptyId, '\x03').catch(() => undefined)
       }
       rmSync(scriptPath, { force: true })
     }

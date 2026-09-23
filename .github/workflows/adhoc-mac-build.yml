@@ -11,9 +11,9 @@ name: Adhoc macOS + Windows Dev Build
 #   - Windows is unsigned; the published release notes explain the one-time
 #     SmartScreen/manual-install requirement.
 #
-# Artifacts publish to stablyai/orca-adhoc — separate from both orca and
-# orca-hourly. Separate from orca because the main repo's releases atom feed
-# exposes only its 10 newest entries. Separate from orca-hourly because a build
+# Artifacts publish to stablyai/dorka-adhoc — separate from both dorka and
+# dorka-hourly. Separate from dorka because the main repo's releases atom feed
+# exposes only its 10 newest entries. Separate from dorka-hourly because a build
 # from someone's branch must never be picked up by a developer who only meant to
 # ride main; the two are different levels of "unvetted".
 #
@@ -28,7 +28,7 @@ name: Adhoc macOS + Windows Dev Build
 # branch carrying a stale copy of this file would otherwise run that copy.
 #
 # GITHUB_TOKEN is scoped to this repo and cannot publish there, so writes use the
-# same GitHub App as hourly, additionally installed on orca-adhoc with
+# same GitHub App as hourly, additionally installed on dorka-adhoc with
 # Contents: Read and write. The secret names below are historical — one App, one
 # private key, both dev-channel repos — and rotating it stays a single operation.
 # Provision with `bash config/scripts/setup-hourly-release-token.sh`.
@@ -73,7 +73,7 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  ADHOC_REPO: stablyai/orca-adhoc
+  ADHOC_REPO: stablyai/dorka-adhoc
   # Why age and not a count like hourly: this channel is low-volume and bursty, so
   # a count would either hold one week's experiments forever or evict a build
   # someone is still running after a busy afternoon. A month is well past the "few
@@ -213,7 +213,7 @@ jobs:
       - uses: ./.github/actions/install-mobile-dependencies
 
       # Why: signing is what makes an adhoc build installable over an existing
-      # Orca, so a missing cert must fail here rather than after a 20-minute build.
+      # Dorka, so a missing cert must fail here rather than after a 20-minute build.
       - name: Verify macOS signing environment
         run: node config/scripts/verify-macos-release-env.mjs
         env:
@@ -250,7 +250,7 @@ jobs:
           published="$(GH_TOKEN="$MAIN_REPO_TOKEN" gh api \
             "repos/$GITHUB_REPOSITORY/git/matching-refs/tags/v" \
             --jq '.[].ref | sub("^refs/tags/"; "")' || true)"
-          ORCA_PUBLISHED_VERSIONS="$published" ORCA_ADHOC_LABEL="${LABEL:-$REF}" \
+          DORKA_PUBLISHED_VERSIONS="$published" DORKA_ADHOC_LABEL="${LABEL:-$REF}" \
             node config/scripts/adhoc-build-version.mjs \
             >"$RUNNER_TEMP/adhoc-identity.txt"
           if ! grep -q '^name=' "$RUNNER_TEMP/adhoc-identity.txt"; then
@@ -266,7 +266,7 @@ jobs:
           # Why: adhoc builds are not an official channel — telemetry's transport
           # gate accepts only 'stable' or 'rc', so leaving this unset keeps them
           # silent, which is correct for unvetted branch artifacts.
-          ORCA_DIAGNOSTICS_TOKEN_URL: https://www.onorca.dev/diagnostics/token
+          DORKA_DIAGNOSTICS_TOKEN_URL: https://www.ondorka.dev/diagnostics/token
 
       # Why the token is minted here and not at the top: installation tokens live
       # one hour, everything before this point writes nothing, and the notary round
@@ -279,7 +279,7 @@ jobs:
           app-id: ${{ secrets.HOURLY_RELEASE_APP_ID }}
           private-key: ${{ secrets.HOURLY_RELEASE_APP_PRIVATE_KEY }}
           owner: stablyai
-          repositories: orca-adhoc
+          repositories: dorka-adhoc
 
       - name: Create adhoc release
         id: release
@@ -316,12 +316,12 @@ jobs:
 
           **Unlanded and unvetted.** This is somebody's branch, not main. No tests
           ran. The macOS build is signed and notarized like a release, so it installs
-          through Orca's in-app updater and opens without a Gatekeeper prompt — but the
+          through Dorka's in-app updater and opens without a Gatekeeper prompt — but the
           branch may never merge, and this build is deleted after $ADHOC_RETAIN_DAYS days.
 
           **Windows builds are unsigned.** They install and update normally once you
           are on one, but a signed Stable or RC build cannot install one through the
-          in-app updater — download \`orca-windows-setup.exe\` below and run it once
+          in-app updater — download \`dorka-windows-setup.exe\` below and run it once
           (SmartScreen will warn about an unknown publisher). Every later switch,
           including back to Stable, works in-app from there."
           echo "tag=$TAG" >>"$GITHUB_OUTPUT"
@@ -335,13 +335,13 @@ jobs:
           timeout_minutes: 45
           max_attempts: 2
           retry_wait_seconds: 30
-          command: node config/scripts/ensure-native-runtime.mjs --runtime=electron && ORCA_MAC_ADHOC=1 pnpm exec electron-builder --config config/electron-builder.config.cjs --mac --publish always
+          command: node config/scripts/ensure-native-runtime.mjs --runtime=electron && DORKA_MAC_ADHOC=1 pnpm exec electron-builder --config config/electron-builder.config.cjs --mac --publish always
         env:
           # Why: electron-builder's github publisher targets the repo named in the
-          # config; the token must therefore carry write access to orca-adhoc.
+          # config; the token must therefore carry write access to dorka-adhoc.
           GH_TOKEN: ${{ steps.app_token.outputs.token }}
-          ORCA_ADHOC_BUILD_VERSION: ${{ steps.adhoc.outputs.version }}
-          ORCA_BUILD_COMMIT: ${{ steps.adhoc.outputs.commit }}
+          DORKA_ADHOC_BUILD_VERSION: ${{ steps.adhoc.outputs.version }}
+          DORKA_BUILD_COMMIT: ${{ steps.adhoc.outputs.commit }}
           CSC_LINK: ${{ secrets.MAC_CERTS }}
           CSC_KEY_PASSWORD: ${{ secrets.MAC_CERTS_PASSWORD }}
           # Why all three: electron-builder's notarize step authenticates to the

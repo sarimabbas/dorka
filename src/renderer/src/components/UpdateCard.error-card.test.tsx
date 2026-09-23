@@ -66,8 +66,8 @@ beforeEach(() => {
   setSettings.mockReset().mockResolvedValue(undefined)
   getInstructions.mockReset().mockResolvedValue({
     ok: true,
-    command: 'sudo apt-get install -y /tmp/orca_1.4.200_amd64.deb',
-    packageFileName: 'orca_1.4.200_amd64.deb'
+    command: 'sudo apt-get install -y /tmp/dorka_1.4.200_amd64.deb',
+    packageFileName: 'dorka_1.4.200_amd64.deb'
   })
   Object.defineProperty(window, 'api', {
     configurable: true,
@@ -98,7 +98,7 @@ afterEach(() => {
 describe('UpdateCard Windows signature failures', () => {
   it('does not offer the rejected version as a manual publisher-check bypass', () => {
     const message =
-      'New version 1.4.200 is not signed by the application owner: publisherNames: Orca'
+      'New version 1.4.200 is not signed by the application owner: publisherNames: Dorka'
     renderAfterAvailableStatus()
 
     act(() => useAppStore.getState().setUpdateStatus({ state: 'error', message }))
@@ -136,14 +136,14 @@ describe('UpdateCard Windows signature failures', () => {
   // An install failure now carries the updater's own text, so it can reach these branches too.
   it('routes a signature verdict raised during install to the security-stop card', () => {
     const message =
-      'New version 1.4.200 is not signed by the application owner: publisherNames: Orca'
+      'New version 1.4.200 is not signed by the application owner: publisherNames: Dorka'
     renderAfterAvailableStatus()
 
     act(() => useAppStore.getState().setUpdateStatus({ state: 'error', message }))
 
     expect(screen.getByText("Update Wasn't Installed")).toBeTruthy()
     // The generic restart advice must not be prefixed onto a security stop.
-    expect(screen.queryByText(/Quit and reopen Orca/)).toBeNull()
+    expect(screen.queryByText(/Quit and reopen Dorka/)).toBeNull()
   })
 })
 
@@ -165,7 +165,7 @@ describe('UpdateCard hourly builds', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Release notes' }))
     expect(openUrl).toHaveBeenCalledWith(
-      'https://github.com/stablyai/orca-hourly/releases/tag/v1.4.160-hourly.202607281400'
+      'https://github.com/stablyai/dorka-hourly/releases/tag/v1.4.160-hourly.202607281400'
     )
   })
 })
@@ -218,7 +218,7 @@ function showPackageRecovery(recovery = PACKAGE_RECOVERY): void {
   act(() =>
     useAppStore.getState().setUpdateStatus({
       state: 'error',
-      message: 'Quit Orca before running the system package install command.',
+      message: 'Quit Dorka before running the system package install command.',
       recovery
     })
   )
@@ -242,7 +242,7 @@ describe('UpdateCard Linux package-install recovery', () => {
   it('renders an initial recovery snapshot with its versioned release fallback', () => {
     renderWithInitialStatus({
       state: 'error',
-      message: 'Quit Orca before running the system package install command.',
+      message: 'Quit Dorka before running the system package install command.',
       recovery: PACKAGE_RECOVERY
     })
 
@@ -282,7 +282,7 @@ describe('UpdateCard Linux package-install recovery', () => {
 
     expect(getInstructions).toHaveBeenCalledTimes(1)
     expect(writeClipboardText).toHaveBeenCalledWith(
-      'sudo apt-get install -y /tmp/orca_1.4.200_amd64.deb'
+      'sudo apt-get install -y /tmp/dorka_1.4.200_amd64.deb'
     )
   })
 
@@ -325,7 +325,7 @@ describe('UpdateCard Linux package-install recovery', () => {
 
   it('links unusable package metadata to the release without offering a futile retry', () => {
     const message =
-      'The downloaded package metadata could not be verified. Quit Orca before downloading and installing the update from the official release page.'
+      'The downloaded package metadata could not be verified. Quit Dorka before downloading and installing the update from the official release page.'
     renderWithInitialStatus({
       state: 'error',
       message,
@@ -354,7 +354,7 @@ describe('UpdateCard Linux package-install recovery', () => {
 
   it('shows the appended install cause behind the generic card details', () => {
     const message =
-      'Could not start the update installer. Orca remains open. (Command failed: pkexec must be setuid root)'
+      'Could not start the update installer. Dorka remains open. (Command failed: pkexec must be setuid root)'
     renderAfterAvailableStatus()
 
     act(() => useAppStore.getState().setUpdateStatus({ state: 'error', message }))

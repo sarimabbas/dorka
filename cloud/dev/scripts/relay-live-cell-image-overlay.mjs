@@ -10,7 +10,7 @@ function liveRelayImage(script, committedImage, cellId) {
   const pulled = [...script.matchAll(/^docker pull '([^']+)'$/gm)]
     .map((match) => match[1])
     .filter((image) => image.split('@')[0] === repository)
-  const digest = /^\s*printf 'ORCA_RELAY_IMAGE_DIGEST=%s\\n' '(sha256:[a-f0-9]{64})'$/m.exec(script)?.[1]
+  const digest = /^\s*printf 'DORKA_RELAY_IMAGE_DIGEST=%s\\n' '(sha256:[a-f0-9]{64})'$/m.exec(script)?.[1]
   if (pulled.length !== 1 || !IMAGE_PATTERN.test(pulled[0]) || pulled[0].split('@')[1] !== digest) {
     throw new Error(`${cellId} live template has no single pinned Relay image`)
   }

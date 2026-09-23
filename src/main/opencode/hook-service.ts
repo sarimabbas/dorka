@@ -23,11 +23,11 @@ import { getStatusPluginLifecycleSource } from './status-plugin-lifecycle-source
 import { getStatusPluginFactorySource } from './status-plugin-factory-source'
 import { resolveOpenCodeConfigDirectory } from '../../shared/opencode-config-directory'
 
-const ORCA_OPENCODE_PLUGIN_FILE = 'orca-opencode-status.js'
+const DORKA_OPENCODE_PLUGIN_FILE = 'dorka-opencode-status.js'
 const OPENCODE_LEGACY_HOOKS_DIR = 'opencode-hooks'
 const OPENCODE_OVERLAY_DIR = 'opencode-config-overlays'
 const OPENCODE_SHARED_CONFIG_DIR = 'shared'
-const OPENCODE_OVERLAY_MANIFEST_FILE = '.orca-opencode-overlay-manifest.json'
+const OPENCODE_OVERLAY_MANIFEST_FILE = '.dorka-opencode-overlay-manifest.json'
 
 type OpenCodeOverlayManifest = {
   topLevelEntries: string[]
@@ -100,13 +100,13 @@ export class OpenCodeHookService {
     const config: OpenCodeHookVariant =
       typeof variant === 'function'
         ? {
-            pluginFileName: ORCA_OPENCODE_PLUGIN_FILE,
+            pluginFileName: DORKA_OPENCODE_PLUGIN_FILE,
             legacyHooksDir: OPENCODE_LEGACY_HOOKS_DIR,
             overlayDir: OPENCODE_OVERLAY_DIR,
             pluginSource: variant
           }
         : (variant ?? {
-            pluginFileName: ORCA_OPENCODE_PLUGIN_FILE,
+            pluginFileName: DORKA_OPENCODE_PLUGIN_FILE,
             legacyHooksDir: OPENCODE_LEGACY_HOOKS_DIR,
             overlayDir: OPENCODE_OVERLAY_DIR,
             pluginSource: getOpenCodePluginSource
@@ -123,7 +123,7 @@ export class OpenCodeHookService {
 
   buildPtyEnv(ptyId: string, existingConfigDir?: string | undefined): Record<string, string> {
     if (!isUsableId(ptyId)) {
-      // Why: on a bad id, still preserve a user-set OPENCODE_CONFIG_DIR; only the Orca status plugin is forfeited.
+      // Why: on a bad id, still preserve a user-set OPENCODE_CONFIG_DIR; only the Dorka status plugin is forfeited.
       return existingConfigDir ? { OPENCODE_CONFIG_DIR: existingConfigDir } : {}
     }
 
@@ -201,10 +201,10 @@ export class OpenCodeHookService {
     }
   }
 
-  // Why: mirror user config entries as symlinks so edits propagate live; only plugins/ becomes a real overlay dir so Orca can drop a sibling plugin file.
+  // Why: mirror user config entries as symlinks so edits propagate live; only plugins/ becomes a real overlay dir so Dorka can drop a sibling plugin file.
   private mirrorUserConfig(sourceDir: string, overlayDir: string): void {
     const previousManifest = this.readOverlayManifest(overlayDir)
-    // Why: overlays persist across terminals; remove only Orca-mirrored paths so stale user config clears but OpenCode runtime dirs (node_modules) survive.
+    // Why: overlays persist across terminals; remove only Dorka-mirrored paths so stale user config clears but OpenCode runtime dirs (node_modules) survive.
     this.clearManifestEntries(overlayDir, previousManifest)
 
     const nextManifest: OpenCodeOverlayManifest = { topLevelEntries: [], pluginEntries: [] }
@@ -231,7 +231,7 @@ export class OpenCodeHookService {
           const overlayPluginsDir = join(overlayDir, 'plugins')
           mkdirSync(overlayPluginsDir, { recursive: true })
           for (const pluginEntry of readdirSync(resolvedSource, { withFileTypes: true })) {
-            // Why: skip a user plugin sharing Orca's filename; mirroring it would let writePluginIntoOverlay clobber the user's file.
+            // Why: skip a user plugin sharing Dorka's filename; mirroring it would let writePluginIntoOverlay clobber the user's file.
             if (pluginEntry.name === this.pluginFileName) {
               continue
             }
@@ -274,7 +274,7 @@ export class OpenCodeHookService {
 
 export const openCodeHookService = new OpenCodeHookService()
 export const openCode2HookService = new OpenCodeHookService({
-  pluginFileName: 'orca-opencode2-status.js',
+  pluginFileName: 'dorka-opencode2-status.js',
   legacyHooksDir: 'opencode2-hooks',
   overlayDir: 'opencode2-config-overlays',
   pluginSource: getOpenCode2PluginSource

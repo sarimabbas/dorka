@@ -28,17 +28,17 @@ describe('OpenCode status plugin module contract', () => {
       server?: (ctx: unknown) => Promise<PluginHooks>
       setup?: (ctx: unknown) => Promise<() => Promise<void>>
     }
-    OrcaOpenCodeStatusPlugin?: (ctx: unknown) => Promise<PluginHooks>
+    DorkaOpenCodeStatusPlugin?: (ctx: unknown) => Promise<PluginHooks>
   }
 
   // Why: the plugin resolves hook coords from the endpoint file first and only then from
-  // env. Pin every input here so the run does not depend on the developer's Orca session
-  // (an inherited ORCA_AGENT_HOOK_ENDPOINT would otherwise redirect the post to a live app).
+  // env. Pin every input here so the run does not depend on the developer's Dorka session
+  // (an inherited DORKA_AGENT_HOOK_ENDPOINT would otherwise redirect the post to a live app).
   const ENV_KEYS = [
-    'ORCA_PANE_KEY',
-    'ORCA_AGENT_HOOK_ENDPOINT',
-    'ORCA_AGENT_HOOK_PORT',
-    'ORCA_AGENT_HOOK_TOKEN'
+    'DORKA_PANE_KEY',
+    'DORKA_AGENT_HOOK_ENDPOINT',
+    'DORKA_AGENT_HOOK_PORT',
+    'DORKA_AGENT_HOOK_TOKEN'
   ] as const
 
   let tempDir: string
@@ -46,15 +46,15 @@ describe('OpenCode status plugin module contract', () => {
   let savedEnv: Record<string, string | undefined>
 
   beforeEach(() => {
-    tempDir = mkdtempSync(join(tmpdir(), 'orca-opencode-plugin-contract-'))
+    tempDir = mkdtempSync(join(tmpdir(), 'dorka-opencode-plugin-contract-'))
     savedFetch = globalThis.fetch
     savedEnv = {}
     for (const key of ENV_KEYS) {
       savedEnv[key] = process.env[key]
     }
-    delete process.env.ORCA_AGENT_HOOK_ENDPOINT
-    process.env.ORCA_AGENT_HOOK_PORT = '59999'
-    process.env.ORCA_AGENT_HOOK_TOKEN = 'test-token'
+    delete process.env.DORKA_AGENT_HOOK_ENDPOINT
+    process.env.DORKA_AGENT_HOOK_PORT = '59999'
+    process.env.DORKA_AGENT_HOOK_TOKEN = 'test-token'
   })
 
   afterEach(() => {
@@ -75,7 +75,7 @@ describe('OpenCode status plugin module contract', () => {
     // Why: a unique basename per load defeats the ESM module cache between cases.
     const pluginPath = join(
       tempDir,
-      `orca-opencode-status-${Math.random().toString(36).slice(2)}.mjs`
+      `dorka-opencode-status-${Math.random().toString(36).slice(2)}.mjs`
     )
     writeFileSync(pluginPath, source)
     // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: Runtime validation or the local test fixture establishes the asserted shape.
@@ -87,7 +87,7 @@ describe('OpenCode status plugin module contract', () => {
 
     expect(module.default).toBeTypeOf('object')
     expect(typeof module.default?.id).toBe('string')
-    expect(module.default?.id).toBe('orca-opencode-status')
+    expect(module.default?.id).toBe('dorka-opencode-status')
     expect(module.default?.server).toBeTypeOf('function')
   })
 
@@ -103,21 +103,21 @@ describe('OpenCode status plugin module contract', () => {
   it('keeps the named factory export so the factory-based loader still resolves', async () => {
     const module = await loadPluginModule()
 
-    expect(module.OrcaOpenCodeStatusPlugin).toBeTypeOf('function')
+    expect(module.DorkaOpenCodeStatusPlugin).toBeTypeOf('function')
   })
 
   it('returns an event handler from the default export server(), like the named factory', async () => {
     const module = await loadPluginModule()
 
     const fromDefault = await module.default?.server?.({})
-    const fromNamed = await module.OrcaOpenCodeStatusPlugin?.({})
+    const fromNamed = await module.DorkaOpenCodeStatusPlugin?.({})
 
     expect(fromDefault?.event).toBeTypeOf('function')
     expect(fromNamed?.event).toBeTypeOf('function')
   })
 
   it('reports a session lifecycle event through the hook endpoint when driven via the default export', async () => {
-    process.env.ORCA_PANE_KEY = 'tab-1:leaf-1'
+    process.env.DORKA_PANE_KEY = 'tab-1:leaf-1'
     const posts: { url: string; body: unknown }[] = []
     // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: The mocked fetch is assigned to the standard Fetch API shape.
     globalThis.fetch = vi.fn(async (input: unknown, init?: { body?: unknown }) => {
@@ -156,7 +156,7 @@ describe('OpenCode status plugin module contract', () => {
   })
 
   it('keeps OpenCode 2 busy across steps until the session becomes idle', async () => {
-    process.env.ORCA_PANE_KEY = 'tab-1:leaf-1'
+    process.env.DORKA_PANE_KEY = 'tab-1:leaf-1'
     const posts: { body: Record<string, unknown> }[] = []
     // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: The mocked fetch is assigned to the standard Fetch API shape.
     globalThis.fetch = vi.fn(async (_input: unknown, init?: { body?: unknown }) => {
@@ -203,7 +203,7 @@ describe('OpenCode status plugin module contract', () => {
   })
 
   it('maps OpenCode 2 permission.v2 events to the existing permission card contract', async () => {
-    process.env.ORCA_PANE_KEY = 'tab-1:leaf-1'
+    process.env.DORKA_PANE_KEY = 'tab-1:leaf-1'
     const posts: { body: Record<string, unknown> }[] = []
     // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: The mocked fetch is assigned to the standard Fetch API shape.
     globalThis.fetch = vi.fn(async (_input: unknown, init?: { body?: unknown }) => {
@@ -256,7 +256,7 @@ describe('OpenCode status plugin module contract', () => {
   })
 
   it('forwards admitted prompts and completed streamed text once', async () => {
-    process.env.ORCA_PANE_KEY = 'tab-1:leaf-1'
+    process.env.DORKA_PANE_KEY = 'tab-1:leaf-1'
     const posts: { body: Record<string, unknown> }[] = []
     // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: The mocked fetch is assigned to the standard Fetch API shape.
     globalThis.fetch = vi.fn(async (_input: unknown, init?: { body?: unknown }) => {
@@ -306,7 +306,7 @@ describe('OpenCode status plugin module contract', () => {
   })
 
   it('maps question.v2 blockers and replies through the waiting lifecycle', async () => {
-    process.env.ORCA_PANE_KEY = 'tab-1:leaf-1'
+    process.env.DORKA_PANE_KEY = 'tab-1:leaf-1'
     const posts: { body: Record<string, unknown> }[] = []
     // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: The mocked fetch is assigned to the standard Fetch API shape.
     globalThis.fetch = vi.fn(async (_input: unknown, init?: { body?: unknown }) => {

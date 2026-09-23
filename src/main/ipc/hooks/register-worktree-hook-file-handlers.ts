@@ -5,7 +5,7 @@ import { isFolderRepo } from '../../../shared/repo-kind'
 import { joinWorktreeRelativePath } from '../../runtime/runtime-relative-paths'
 import { getSshFilesystemProvider } from '../../providers/ssh-filesystem-dispatch'
 import { isENOENT } from '../filesystem-path-containment'
-import { parseOrcaYaml } from '../../hooks'
+import { parseDorkaYaml } from '../../hooks'
 import {
   isIssueCommandIgnoredByGit,
   readIssueCommand,
@@ -33,7 +33,7 @@ export function registerWorktreeHookFileHandlers(context: WorktreeIpcContext): v
         }
       }
       if (repo.connectionId) {
-        const issueCommandPath = joinWorktreeRelativePath(repo.path, '.orca/issue-command')
+        const issueCommandPath = joinWorktreeRelativePath(repo.path, '.dorka/issue-command')
         const fsProvider = getSshFilesystemProvider(repo.connectionId)
         if (!fsProvider) {
           return {
@@ -58,10 +58,10 @@ export function registerWorktreeHookFileHandlers(context: WorktreeIpcContext): v
           }
         }
         try {
-          const result = await fsProvider.readFile(joinWorktreeRelativePath(repo.path, 'orca.yaml'))
+          const result = await fsProvider.readFile(joinWorktreeRelativePath(repo.path, 'dorka.yaml'))
           sharedContent = result.isBinary
             ? null
-            : parseOrcaYaml(result.content)?.issueCommand?.trim() || null
+            : parseDorkaYaml(result.content)?.issueCommand?.trim() || null
         } catch (error) {
           if (!isENOENT(error)) {
             status = 'error'
@@ -93,7 +93,7 @@ export function registerWorktreeHookFileHandlers(context: WorktreeIpcContext): v
         return
       }
       if (repo.connectionId) {
-        const issueCommandPath = joinWorktreeRelativePath(repo.path, '.orca/issue-command')
+        const issueCommandPath = joinWorktreeRelativePath(repo.path, '.dorka/issue-command')
         const fsProvider = getSshFilesystemProvider(repo.connectionId)
         if (!fsProvider) {
           throw new Error(
@@ -109,7 +109,7 @@ export function registerWorktreeHookFileHandlers(context: WorktreeIpcContext): v
           })
           return
         }
-        await fsProvider.createDir(joinWorktreeRelativePath(repo.path, '.orca'))
+        await fsProvider.createDir(joinWorktreeRelativePath(repo.path, '.dorka'))
         if (await isIssueCommandIgnoredByGit(repo.path, repo.connectionId)) {
           await fsProvider.writeFile(issueCommandPath, `${trimmed}\n`)
           return
@@ -117,15 +117,15 @@ export function registerWorktreeHookFileHandlers(context: WorktreeIpcContext): v
         const gitignorePath = joinWorktreeRelativePath(repo.path, '.gitignore')
         try {
           const result = await fsProvider.readFile(gitignorePath)
-          if (!result.isBinary && !/^\.orca\/?$/m.test(result.content)) {
+          if (!result.isBinary && !/^\.dorka\/?$/m.test(result.content)) {
             const separator = result.content.endsWith('\n') ? '' : '\n'
-            await fsProvider.writeFile(gitignorePath, `${result.content}${separator}.orca\n`)
+            await fsProvider.writeFile(gitignorePath, `${result.content}${separator}.dorka\n`)
           }
         } catch (error) {
           if (!isENOENT(error)) {
             throw error
           }
-          await fsProvider.writeFile(gitignorePath, '.orca\n')
+          await fsProvider.writeFile(gitignorePath, '.dorka\n')
         }
         await fsProvider.writeFile(issueCommandPath, `${trimmed}\n`)
         return

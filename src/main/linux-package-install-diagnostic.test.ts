@@ -34,10 +34,10 @@ describe('redactLinuxPackageInstallText', () => {
 
   it('replaces every cached package-path occurrence before the home directory', () => {
     const home = os.homedir()
-    const packagePath = `${home}/.cache/orca-updater/Orca-1.2.3.deb`
-    const text = `${packagePath} failed; retry ${packagePath}; config ${home}/.config/orca`
+    const packagePath = `${home}/.cache/dorka-updater/Dorka-1.2.3.deb`
+    const text = `${packagePath} failed; retry ${packagePath}; config ${home}/.config/dorka`
     expect(diagnostic.redactLinuxPackageInstallText(text, packagePath)).toBe(
-      '<package> failed; retry <package>; config <home>/.config/orca'
+      '<package> failed; retry <package>; config <home>/.config/dorka'
     )
   })
 

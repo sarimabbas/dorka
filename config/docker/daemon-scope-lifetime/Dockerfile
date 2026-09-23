@@ -7,7 +7,7 @@ RUN apt-get update \
   && apt-get install -y --no-install-recommends \
     systemd systemd-sysv libpam-systemd dbus dbus-user-session procps util-linux \
   && rm -rf /var/lib/apt/lists/* \
-  && useradd --uid 1100 --create-home --shell /bin/sh orca-repro
+  && useradd --uid 1100 --create-home --shell /bin/sh dorka-repro
 
 COPY process-fixture.cjs run-cases.cjs /opt/daemon-scope-lifetime/
 

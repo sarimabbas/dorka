@@ -24,7 +24,7 @@ afterEach(() => {
 })
 
 it('prepares the execution host OMP config and status extension for a guarded launch', async () => {
-  state.home = mkdtempSync(join(tmpdir(), 'orca-relay-fresh-'))
+  state.home = mkdtempSync(join(tmpdir(), 'dorka-relay-fresh-'))
   const dispatcher = new RelayDispatcher(() => {})
   const handler = new PtyHandler(dispatcher)
   const augment = vi.spyOn(handler, 'addEnvAugmenter')
@@ -34,7 +34,7 @@ it('prepares the execution host OMP config and status extension for a guarded la
     this: PluginOverlayManager,
     ...args
   ) {
-    this.setSources({ ompExtensionSource: '// Orca managed test status extension' })
+    this.setSources({ ompExtensionSource: '// Dorka managed test status extension' })
     return original.apply(this, args)
   })
   const runtime = new RelayAgentHookRuntime(
@@ -51,15 +51,15 @@ it('prepares the execution host OMP config and status extension for a guarded la
       env: { HOME: state.home },
       command: withFreshOmpLaunch('omp', 'posix')
     })
-    expect(readFileSync(environment.ORCA_OMP_FRESH_CONFIG, 'utf8')).toBe('autoResume: false\n')
-    expect(existsSync(environment.ORCA_OMP_STATUS_EXTENSION)).toBe(true)
-    expect(environment.ORCA_OMP_SOURCE_AGENT_DIR).toBe(join(state.home, '.omp', 'agent'))
+    expect(readFileSync(environment.DORKA_OMP_FRESH_CONFIG, 'utf8')).toBe('autoResume: false\n')
+    expect(existsSync(environment.DORKA_OMP_STATUS_EXTENSION)).toBe(true)
+    expect(environment.DORKA_OMP_SOURCE_AGENT_DIR).toBe(join(state.home, '.omp', 'agent'))
     expect(environment.PI_CODING_AGENT_DIR).toBeUndefined()
-    expect(environment.ORCA_PI_SOURCE_AGENT_DIR).toBeUndefined()
+    expect(environment.DORKA_PI_SOURCE_AGENT_DIR).toBeUndefined()
     if (process.platform !== 'win32' && existsSync('/bin/bash')) {
       writeFileSync(
         join(state.home, 'omp'),
-        '#!/bin/sh\nprintf "%s\\n" "$@" "$ORCA_OMP_PREFILL"\nexit 17\n',
+        '#!/bin/sh\nprintf "%s\\n" "$@" "$DORKA_OMP_PREFILL"\nexit 17\n',
         { mode: 0o755 }
       )
       const result = await runProcess({
@@ -75,15 +75,15 @@ it('prepares the execution host OMP config and status extension for a guarded la
           ...process.env,
           ...environment,
           PATH: state.home + delimiter + process.env.PATH,
-          ORCA_OMP_PREFILL: 'remote draft'
+          DORKA_OMP_PREFILL: 'remote draft'
         }
       })
       expect(result.code).toBe(17)
       expect(result.stdout.trim().split('\n')).toEqual([
         '--extension',
-        environment.ORCA_OMP_STATUS_EXTENSION,
+        environment.DORKA_OMP_STATUS_EXTENSION,
         '--config',
-        environment.ORCA_OMP_FRESH_CONFIG,
+        environment.DORKA_OMP_FRESH_CONFIG,
         'remote draft'
       ])
     }
@@ -91,7 +91,7 @@ it('prepares the execution host OMP config and status extension for a guarded la
     source.mockReturnValue(false)
     expect(
       await augment.mock.calls[1][0]({ id: 'other', shell: '/bin/bash', env: {}, command: 'codex' })
-    ).toEqual({ ORCA_OPENCODE_AGENT: 'opencode' })
+    ).toEqual({ DORKA_OPENCODE_AGENT: 'opencode' })
   } finally {
     runtime.stop()
     dispatcher.dispose()
@@ -99,7 +99,7 @@ it('prepares the execution host OMP config and status extension for a guarded la
 })
 
 it('fails the config guard safely when the relay-owned directory cannot be created', () => {
-  state.home = mkdtempSync(join(tmpdir(), 'orca-relay-fresh-fail-'))
+  state.home = mkdtempSync(join(tmpdir(), 'dorka-relay-fresh-fail-'))
   const blocked = join(state.home, 'file')
   writeFileSync(blocked, '')
   const manager = new PluginOverlayManager({ homeDir: blocked })

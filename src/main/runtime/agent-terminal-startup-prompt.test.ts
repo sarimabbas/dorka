@@ -8,7 +8,7 @@
  */
 
 import { describe, expect, it, vi } from 'vitest'
-import { OrcaRuntimeService } from './orca-runtime'
+import { DorkaRuntimeService } from './dorka-runtime'
 
 vi.mock('electron', () => ({
   BrowserWindow: { fromId: vi.fn(() => null) },
@@ -18,10 +18,10 @@ vi.mock('electron', () => ({
 }))
 
 function runtimeWithAgentLaunch(): {
-  runtime: OrcaRuntimeService
+  runtime: DorkaRuntimeService
   spawn: ReturnType<typeof vi.fn>
 } {
-  const runtime = new OrcaRuntimeService()
+  const runtime = new DorkaRuntimeService()
   // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: the resolver under test is a protected member; the assertion names only the three internals this stub replaces, each of which is assigned before the create reaches it.
   const internal = runtime as unknown as {
     store: { getSettings: () => Record<string, unknown> }

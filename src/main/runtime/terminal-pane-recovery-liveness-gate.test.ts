@@ -3,12 +3,12 @@ import {
   HEADLESS_LEAF_ID,
   TEST_WORKTREE_ID,
   createRuntimeWithSshLease
-} from './orca-runtime-test-fixtures.spec'
-import { makePaneKey } from './orca-runtime-test-mocks.spec'
+} from './dorka-runtime-test-fixtures.spec'
+import { makePaneKey } from './dorka-runtime-test-mocks.spec'
 
 // What `terminal.recoverPane` may and may not treat as authority to spawn a replacement shell over
 // a remote pane. Lives in a `.test.ts` rather than beside the other recoverPane cases in
-// orca-runtime-tests/*.spec.ts because config/vitest.config.ts — the config CI runs — includes only
+// dorka-runtime-tests/*.spec.ts because config/vitest.config.ts — the config CI runs — includes only
 // `*.test.ts`, so a ratchet placed there would never execute.
 
 describe('terminal.recoverPane liveness gate', () => {

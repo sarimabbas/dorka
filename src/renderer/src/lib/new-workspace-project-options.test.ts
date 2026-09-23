@@ -20,7 +20,7 @@ function repo(id: string, overrides: Partial<Repo> = {}): Repo {
     displayName: id,
     badgeColor: '#111111',
     addedAt: 1,
-    upstream: { owner: 'stablyai', repo: 'orca' },
+    upstream: { owner: 'stablyai', repo: 'dorka' },
     ...overrides
   }
 }
@@ -28,9 +28,9 @@ function repo(id: string, overrides: Partial<Repo> = {}): Repo {
 function project(overrides: Partial<Project> = {}): Project {
   return {
     id: 'github:stablyai/orca',
-    displayName: 'orca',
+    displayName: 'dorka',
     badgeColor: '#111111',
-    providerIdentity: { provider: 'github', owner: 'stablyai', repo: 'orca' },
+    providerIdentity: { provider: 'github', owner: 'stablyai', repo: 'dorka' },
     sourceRepoIds: ['local-repo', 'ssh-repo'],
     createdAt: 1,
     updatedAt: 1,
@@ -44,8 +44,8 @@ function setup(overrides: Partial<ProjectHostSetup>): ProjectHostSetup {
     projectId: overrides.projectId ?? 'github:stablyai/orca',
     hostId: overrides.hostId ?? 'local',
     repoId: overrides.repoId ?? 'local-repo',
-    path: overrides.path ?? '/tmp/orca',
-    displayName: overrides.displayName ?? 'orca',
+    path: overrides.path ?? '/tmp/dorka',
+    displayName: overrides.displayName ?? 'dorka',
     setupState: overrides.setupState ?? 'ready',
     setupMethod: overrides.setupMethod ?? 'legacy-repo',
     createdAt: 1,
@@ -86,7 +86,7 @@ describe('buildNewWorkspaceProjectOptions', () => {
         id: 'github:stablyai/orca',
         kind: 'project',
         projectId: 'github:stablyai/orca',
-        displayName: 'orca',
+        displayName: 'dorka',
         badgeColor: '#111111',
         detail: 'stablyai/orca'
       }
@@ -395,9 +395,9 @@ describe('buildNewWorkspaceProjectOptions', () => {
     const options: NewWorkspaceProjectOption[] = [
       {
         kind: 'project',
-        id: 'orca',
-        projectId: 'orca',
-        displayName: 'Orca',
+        id: 'dorka',
+        projectId: 'dorka',
+        displayName: 'Dorka',
         badgeColor: '#111111',
         detail: 'stablyai/orca'
       },
@@ -440,10 +440,10 @@ describe('buildNewWorkspaceProjectOptions', () => {
 describe('buildNewWorkspaceFolderSourceOptions', () => {
   it('keeps concrete source repos separate even when they are the same logical project', () => {
     const options = buildNewWorkspaceFolderSourceOptions([
-      repo('local-repo', { displayName: 'orca', path: '/tmp/orca' }),
+      repo('local-repo', { displayName: 'dorka', path: '/tmp/dorka' }),
       repo('ssh-repo', {
-        displayName: 'orca',
-        path: '/srv/orca',
+        displayName: 'dorka',
+        path: '/srv/dorka',
         connectionId: 'ssh:builder'
       })
     ])
@@ -452,7 +452,7 @@ describe('buildNewWorkspaceFolderSourceOptions', () => {
       'folder-source:local-repo',
       'folder-source:ssh-repo'
     ])
-    expect(options.map((option) => option.detail).sort()).toEqual(['/srv/orca', '/tmp/orca'])
+    expect(options.map((option) => option.detail).sort()).toEqual(['/srv/dorka', '/tmp/dorka'])
     expect(getRepoIdFromNewWorkspaceFolderSourceOptionId('folder-source:ssh-repo')).toBe('ssh-repo')
   })
 })

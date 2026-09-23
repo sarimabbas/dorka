@@ -45,11 +45,11 @@ function requestHeaders(call = 0): Record<string, string> {
  *  filtering stays readable and stays green whatever platform is passed. */
 const allPlatformAssets = [
   { name: 'latest-mac.yml' },
-  { name: 'orca-macos-arm64.dmg' },
+  { name: 'dorka-macos-arm64.dmg' },
   { name: 'latest.yml' },
-  { name: 'orca-windows-setup.exe' },
+  { name: 'dorka-windows-setup.exe' },
   { name: 'latest-linux.yml' },
-  { name: 'orca-linux.AppImage' }
+  { name: 'dorka-linux.AppImage' }
 ]
 
 const release = (tag: string, extra: Record<string, unknown> = {}) => ({
@@ -88,7 +88,7 @@ describe('listReleaseBuilds', () => {
 
     const builds = await listReleaseBuilds('hourly', 'darwin')
 
-    expect(fetchMock.mock.calls[0][0]).toContain('stablyai/orca-hourly')
+    expect(fetchMock.mock.calls[0][0]).toContain('stablyai/dorka-hourly')
     expect(builds.map((build) => build.version)).toEqual([
       '1.4.160-hourly.202607281400',
       '1.4.160-hourly.202607281000',
@@ -107,7 +107,7 @@ describe('listReleaseBuilds', () => {
 
     const builds = await listReleaseBuilds('daily', 'darwin')
 
-    expect(fetchMock.mock.calls[0][0]).toContain('stablyai/orca-daily')
+    expect(fetchMock.mock.calls[0][0]).toContain('stablyai/dorka-daily')
     expect(builds.map((build) => build.version)).toEqual([
       '1.4.160-daily.202607291300',
       '1.4.160-daily.202607281300',
@@ -181,7 +181,7 @@ describe('listReleaseBuilds', () => {
       jsonResponse([
         release('v1.4.163-hourly.202607312054'),
         release('v1.4.163-hourly.202607311933', {
-          assets: [{ name: 'latest-mac.yml' }, { name: 'orca-macos-arm64.dmg' }]
+          assets: [{ name: 'latest-mac.yml' }, { name: 'dorka-macos-arm64.dmg' }]
         })
       ])
     )
@@ -223,7 +223,7 @@ describe('listReleaseBuilds', () => {
     const [build] = await listReleaseBuilds('hourly', 'win32')
 
     expect(build.installerUrl).toBe(
-      'https://github.com/stablyai/orca-hourly/releases/download/v1.4.163-hourly.202607312054/orca-windows-setup.exe'
+      'https://github.com/stablyai/dorka-hourly/releases/download/v1.4.163-hourly.202607312054/dorka-windows-setup.exe'
     )
   })
 
@@ -423,7 +423,7 @@ describe('listReleaseBuilds', () => {
     )
 
     await expect(listReleaseBuilds('hourly', 'darwin')).rejects.toThrow(
-      "GitHub rate limit reached. Try again in about 28 minutes, or run `gh auth login` so Orca can use your account's higher limit."
+      "GitHub rate limit reached. Try again in about 28 minutes, or run `gh auth login` so Dorka can use your account's higher limit."
     )
   })
 
@@ -517,7 +517,7 @@ describe('resolveTargetBuild', () => {
       tag: 'v1.4.160-hourly.202607281400',
       version: '1.4.160-hourly.202607281400',
       feedUrl:
-        'https://github.com/stablyai/orca-hourly/releases/download/v1.4.160-hourly.202607281400'
+        'https://github.com/stablyai/dorka-hourly/releases/download/v1.4.160-hourly.202607281400'
     })
   })
 
@@ -526,7 +526,7 @@ describe('resolveTargetBuild', () => {
       tag: 'v1.4.160-daily.202607281300',
       version: '1.4.160-daily.202607281300',
       feedUrl:
-        'https://github.com/stablyai/orca-daily/releases/download/v1.4.160-daily.202607281300'
+        'https://github.com/stablyai/dorka-daily/releases/download/v1.4.160-daily.202607281300'
     })
   })
 

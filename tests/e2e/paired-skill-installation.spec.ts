@@ -3,7 +3,7 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import type { Page } from '@stablyai/playwright-test'
 import type { SkillInstallDestination } from '../../src/shared/skill-install-contract'
-import { expect, test } from './helpers/orca-app'
+import { expect, test } from './helpers/dorka-app'
 import {
   createRuntimeDesktopPairingOffer,
   launchPairedElectronClient,
@@ -37,20 +37,20 @@ test.afterAll(async () => {
 
 test('installs on a headed desktop runtime without a local fallback', async ({
   electronApp,
-  orcaPage,
+  dorkaPage,
   testRepoPath
 }, testInfo) => {
   test.setTimeout(240_000)
   const fixture = requireCloudFixture()
   const requestStart = fixture.requests.length
-  const folderRoot = mkdtempSync(join(tmpdir(), 'orca-paired-skill-folder-'))
+  const folderRoot = mkdtempSync(join(tmpdir(), 'dorka-paired-skill-folder-'))
   let client: PairedElectronClient | null = null
   try {
     const hostHome = await electronApp.evaluate(({ app }) => app.getPath('home'))
-    const worktreeId = await activeWorktreeId(orcaPage)
-    const folderWorkspaceId = await createHostFolderWorkspace(orcaPage, folderRoot)
+    const worktreeId = await activeWorktreeId(dorkaPage)
+    const folderWorkspaceId = await createHostFolderWorkspace(dorkaPage, folderRoot)
     client = await launchPairedElectronClient(
-      await createRuntimeDesktopPairingOffer(orcaPage),
+      await createRuntimeDesktopPairingOffer(dorkaPage),
       testInfo,
       'Skill installation client',
       { extraEnv: cloudClientEnvironment() }
@@ -120,17 +120,17 @@ test('installs on a headless serve runtime through the same contract', async ({
 function cloudClientEnvironment(): Record<string, string> {
   const { origin } = requireCloudFixture()
   return {
-    ORCA_ARTIFACTS_API_URL: origin,
-    ORCA_CLOUD_API_URL: origin,
-    ORCA_CLOUD_CLIENT_ID: 'skills-e2e-client',
-    ORCA_CLOUD_DEV_AUTH: '1',
-    ORCA_CLOUD_ALLOW_PLAINTEXT_SESSION: '1',
-    ORCA_SKILL_PACKAGE_DOWNLOAD_ORIGINS: origin
+    DORKA_ARTIFACTS_API_URL: origin,
+    DORKA_CLOUD_API_URL: origin,
+    DORKA_CLOUD_CLIENT_ID: 'skills-e2e-client',
+    DORKA_CLOUD_DEV_AUTH: '1',
+    DORKA_CLOUD_ALLOW_PLAINTEXT_SESSION: '1',
+    DORKA_SKILL_PACKAGE_DOWNLOAD_ORIGINS: origin
   }
 }
 
 async function connectCloud(page: Page): Promise<void> {
-  const auth = await page.evaluate(() => window.api.orcaProfiles.connectCurrent())
+  const auth = await page.evaluate(() => window.api.dorkaProfiles.connectCurrent())
   expect(auth.status).toBe('connected')
 }
 

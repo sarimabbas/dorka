@@ -16,7 +16,7 @@ describe('automation source display', () => {
       providerIdentity: {
         provider: 'github',
         owner: 'stablyai',
-        repo: 'orca'
+        repo: 'dorka'
       }
     }
 
@@ -61,7 +61,7 @@ describe('automation source display', () => {
       providerIdentity: {
         provider: 'github',
         owner: 'stablyai',
-        repo: 'orca'
+        repo: 'dorka'
       }
     }
 

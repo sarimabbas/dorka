@@ -3,7 +3,7 @@ export function getOpenCode2SetupSource(): string[] {
 async function setupOpenCode2Status(ctx) {
   const controller = new AbortController();
   const client = { session: { get: (input, options) => ctx.session.get(input, options) } };
-  const hooks = await OrcaOpenCodeStatusPlugin({ client });
+  const hooks = await DorkaOpenCodeStatusPlugin({ client });
   if (!hooks.event) return async () => {};
   const promptRegistration = await ctx.session.hook("prompt", async (properties) => {
     await hooks.event({ event: { type: "session.next.prompt.admitted", properties } });
@@ -51,7 +51,7 @@ async function setupOpenCode2Status(ctx) {
     }
   };
   const consuming = consume().catch((error) => {
-    if (!controller.signal.aborted) console.warn("[orca-hook] event subscription failed:", error.message);
+    if (!controller.signal.aborted) console.warn("[dorka-hook] event subscription failed:", error.message);
   });
   return async () => {
     controller.abort();

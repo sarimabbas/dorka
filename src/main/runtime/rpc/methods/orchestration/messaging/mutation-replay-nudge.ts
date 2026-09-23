@@ -1,4 +1,4 @@
-import type { OrcaRuntimeService } from '../../../../orca-runtime'
+import type { DorkaRuntimeService } from '../../../../dorka-runtime'
 import {
   attachMutationReplayNudge,
   type MutationReplayNudge
@@ -52,7 +52,7 @@ export function messageReplayNudge(receipt: unknown): MutationReplayNudge | unde
 }
 
 export function replayMutationNudge(
-  runtime: OrcaRuntimeService,
+  runtime: DorkaRuntimeService,
   replayNudge: MutationReplayNudge
 ): void {
   if (replayNudge.kind === 'federation') {

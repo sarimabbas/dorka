@@ -2,14 +2,14 @@ import { expect, it, vi } from 'vitest'
 import type { RuntimeMobileSessionTabsResult } from '../../shared/runtime-types'
 
 // Fragments stay side-effect ordered: mocks, then lifecycle, then fixtures.
-const { OrcaRuntimeService } = await import('./orca-runtime-test-mocks.spec')
-await import('./orca-runtime-test-lifecycle.spec')
-const { store, TEST_WORKTREE_ID } = await import('./orca-runtime-test-fixtures.spec')
+const { DorkaRuntimeService } = await import('./dorka-runtime-test-mocks.spec')
+await import('./dorka-runtime-test-lifecycle.spec')
+const { store, TEST_WORKTREE_ID } = await import('./dorka-runtime-test-fixtures.spec')
 
 it.each(['renderer:active-generation', 'headless:active-generation'])(
   'keeps %s live when runtime-owned creation supplements its inventory',
   async (publicationEpoch) => {
-    const runtime = new OrcaRuntimeService(store)
+    const runtime = new DorkaRuntimeService(store)
     runtime.setPtyController({
       spawn: vi.fn().mockResolvedValue({ id: 'pty-runtime-fallback' }),
       write: () => true,

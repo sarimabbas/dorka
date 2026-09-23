@@ -27,7 +27,7 @@ let root: string
 const journals = createTrackedJournalOpener()
 
 beforeEach(async () => {
-  root = await mkdtemp(join(tmpdir(), 'orca-agent-subscribers-'))
+  root = await mkdtemp(join(tmpdir(), 'dorka-agent-subscribers-'))
 })
 
 afterEach(async () => {
@@ -115,7 +115,7 @@ describe('AgentSessionSubscribers', () => {
     subscribers.open({ id: 'one', sessionId: SESSION, journal, fence: 1, emit })
     subscribers.open({ id: 'two', sessionId: SESSION, journal, fence: 1, emit })
     await journal.appendItem(
-      { provider: 'orca', clientMessageId: 'clocked' },
+      { provider: 'dorka', clientMessageId: 'clocked' },
       { kind: 'status', text: 'Clocked' },
       { fence: 1 }
     )
@@ -369,7 +369,7 @@ describe('AgentSessionSubscribers', () => {
     })
 
     await journal.appendItem(
-      { provider: 'orca', clientMessageId: 'after-background-fence' },
+      { provider: 'dorka', clientMessageId: 'after-background-fence' },
       { kind: 'status', text: 'After background state' },
       { fence: 2 }
     )

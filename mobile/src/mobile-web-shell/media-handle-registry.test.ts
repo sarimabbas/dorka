@@ -8,7 +8,7 @@ import {
 import { MEDIA_HANDLE_TTL_MS, MediaHandleRegistry, type StagedMedia } from './media-handle-registry'
 
 const staged = (index: number, byteLength = 3000): StagedMedia => ({
-  uri: `file:///cache/orca-media-${index}.png`,
+  uri: `file:///cache/dorka-media-${index}.png`,
   mime: 'image/png',
   byteLength,
   width: 10,
@@ -98,7 +98,7 @@ describe('reading a handle', () => {
     const [item] = registry.mint([staged(1, 1000)])
     const handle = item?.handle ?? ''
     expect(registry.read(handle, 0, 400)).toEqual({
-      uri: 'file:///cache/orca-media-1.png',
+      uri: 'file:///cache/dorka-media-1.png',
       start: 0,
       end: 400,
       eof: false
@@ -171,7 +171,7 @@ describe('ending a handle', () => {
   it('deletes the staged file and says it released one', () => {
     const [item] = registry.mint([staged(1)])
     expect(registry.release(item?.handle ?? '')).toBe(true)
-    expect(deleted).toEqual(['file:///cache/orca-media-1.png'])
+    expect(deleted).toEqual(['file:///cache/dorka-media-1.png'])
     expect(registry.liveCount()).toBe(0)
   })
 
@@ -189,7 +189,7 @@ describe('ending a handle', () => {
     clock += MEDIA_HANDLE_TTL_MS + 1
     expect(ageing.release(item?.handle ?? '')).toBe(false)
     // Swept, not leaked: the file goes either way, and only the answer differs.
-    expect(swept).toEqual(['file:///cache/orca-media-1.png'])
+    expect(swept).toEqual(['file:///cache/dorka-media-1.png'])
   })
 
   it('is gone at exactly the TTL, not one millisecond after', () => {

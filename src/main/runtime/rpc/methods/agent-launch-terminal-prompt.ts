@@ -23,12 +23,12 @@
 
 import { randomUUID } from 'node:crypto'
 import { isAgentPromptStalledError } from '../../agent-prompt-submission-verification'
-import type { OrcaRuntimeService } from '../../orca-runtime'
+import type { DorkaRuntimeService } from '../../dorka-runtime'
 
 /** The same budget orchestration gives a worker to reach its composer before dispatching to it. */
 const AGENT_READY_TIMEOUT_MS = 60_000
 
-type TerminalPromptRuntime = Pick<OrcaRuntimeService, 'waitForTerminal' | 'sendTerminalAgentPrompt'>
+type TerminalPromptRuntime = Pick<DorkaRuntimeService, 'waitForTerminal' | 'sendTerminalAgentPrompt'>
 
 /**
  * Whether the text reached the pane.

@@ -100,7 +100,7 @@ function evictionContext(
 
 beforeEach(async () => {
   legacyImport.throws = false
-  root = await mkdtemp(join(tmpdir(), 'orca-wire-handles-'))
+  root = await mkdtemp(join(tmpdir(), 'dorka-wire-handles-'))
   journalDir = join(root, 'journal')
 })
 

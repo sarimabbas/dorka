@@ -78,8 +78,8 @@ describe('landing preflight issues', () => {
       hasGitHubBackedProject([
         repo({
           id: 'github-repo',
-          path: '/Users/alice/orca',
-          displayName: 'orca',
+          path: '/Users/alice/dorka',
+          displayName: 'dorka',
           repoIcon: {
             type: 'image',
             src: 'https://github.com/stablyai.png?size=64',
@@ -96,9 +96,9 @@ describe('landing preflight issues', () => {
       hasGitHubBackedProject([
         repo({
           id: 'github-repo',
-          path: '/Users/alice/orca',
-          displayName: 'orca',
-          upstream: { owner: 'stablyai', repo: 'orca' }
+          path: '/Users/alice/dorka',
+          displayName: 'dorka',
+          upstream: { owner: 'stablyai', repo: 'dorka' }
         })
       ])
     ).toBe(true)

@@ -68,7 +68,7 @@ describe('gitlab issue operations', () => {
 
     await expect(getIssue('/repo-root', 923)).resolves.toMatchObject({ number: 923 })
     expect(glabExecFileAsyncMock).toHaveBeenCalledWith(
-      ['api', 'projects/stablyai%2Forca/issues/923'],
+      ['api', 'projects/stablyai%2Fdorka/issues/923'],
       { cwd: '/repo-root' }
     )
   })
@@ -143,7 +143,7 @@ describe('gitlab issue operations', () => {
     )
     expect(glabApiWithHeadersMock).toHaveBeenCalledWith(
       [
-        'projects/stablyai%2Forca/issues?page=1&per_page=5&order_by=updated_at&sort=desc&state=opened'
+        'projects/stablyai%2Fdorka/issues?page=1&per_page=5&order_by=updated_at&sort=desc&state=opened'
       ],
       { cwd: '/repo-root', ...localGitOptions }
     )
@@ -176,7 +176,7 @@ describe('gitlab issue operations', () => {
 
     expect(glabApiWithHeadersMock).toHaveBeenCalledWith(
       [
-        'projects/stablyai%2Forca/issues?page=1&per_page=5&order_by=updated_at&sort=desc&state=opened'
+        'projects/stablyai%2Fdorka/issues?page=1&per_page=5&order_by=updated_at&sort=desc&state=opened'
       ],
       { cwd: '/repo-root' }
     )
@@ -192,7 +192,7 @@ describe('gitlab issue operations', () => {
 
     expect(glabApiWithHeadersMock).toHaveBeenCalledWith(
       [
-        'projects/stablyai%2Forca/issues?page=3&per_page=50&order_by=updated_at&sort=desc&state=opened'
+        'projects/stablyai%2Fdorka/issues?page=3&per_page=50&order_by=updated_at&sort=desc&state=opened'
       ],
       { cwd: '/repo-root' }
     )
@@ -311,7 +311,7 @@ describe('gitlab issue operations', () => {
         'api',
         '-X',
         'POST',
-        'projects/stablyai%2Forca/issues',
+        'projects/stablyai%2Fdorka/issues',
         '-f',
         'title=New issue',
         '-f',
@@ -392,7 +392,7 @@ describe('gitlab issue operations', () => {
     })
 
     expect(glabExecFileAsyncMock).toHaveBeenCalledWith(
-      ['api', '-X', 'PUT', 'projects/stablyai%2Forca/issues/5', '-f', 'description=Updated body'],
+      ['api', '-X', 'PUT', 'projects/stablyai%2Fdorka/issues/5', '-f', 'description=Updated body'],
       { cwd: '/repo-root' }
     )
   })
@@ -427,7 +427,7 @@ describe('gitlab issue operations', () => {
       '--hostname',
       'git.internal',
       '--paginate',
-      'projects/stablyai%2Forca/labels',
+      'projects/stablyai%2Fdorka/labels',
       '--jq',
       '.[].name'
     ])
@@ -436,7 +436,7 @@ describe('gitlab issue operations', () => {
       '--hostname',
       'git.internal',
       '--paginate',
-      'projects/stablyai%2Forca/members/all?per_page=100',
+      'projects/stablyai%2Fdorka/members/all?per_page=100',
       '--jq',
       '.[] | {id, username, name, avatar_url, state}'
     ])
@@ -467,7 +467,7 @@ describe('gitlab issue operations', () => {
       }
     })
     expect(glabExecFileAsyncMock).toHaveBeenCalledWith(
-      ['api', '-X', 'POST', 'projects/stablyai%2Forca/issues/5/notes', '-f', 'body=Hello'],
+      ['api', '-X', 'POST', 'projects/stablyai%2Fdorka/issues/5/notes', '-f', 'body=Hello'],
       { cwd: '/repo-root' }
     )
   })
@@ -490,7 +490,7 @@ describe('gitlab issue operations', () => {
         'gitlab.example.com',
         '-X',
         'POST',
-        'projects/stablyai%2Forca/issues/5/notes',
+        'projects/stablyai%2Fdorka/issues/5/notes',
         '-f',
         'body=Hello'
       ],

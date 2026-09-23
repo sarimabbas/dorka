@@ -2,7 +2,7 @@ import type { Locator, Page } from '@stablyai/playwright-test'
 import type { ExecutionHostId } from '../../src/shared/execution-host'
 import { getPaletteWorktreeIdentity } from '../../src/renderer/src/lib/palette-repo-resolution'
 import { encodePaletteIdentity } from '../../src/renderer/src/lib/palette-match/palette-ranking'
-import { expect, test } from './helpers/orca-app'
+import { expect, test } from './helpers/dorka-app'
 import { waitForActiveWorktree, waitForSessionReady } from './helpers/store'
 
 const LOCAL_PROJECT = 'E2E Palette Local Project'
@@ -161,12 +161,12 @@ async function openComposerFromTypedName(page: Page): Promise<Locator> {
 }
 
 test.describe('Worktree jump-palette filters', () => {
-  test.beforeEach(async ({ orcaPage }) => {
-    await waitForSessionReady(orcaPage)
-    await waitForActiveWorktree(orcaPage)
+  test.beforeEach(async ({ dorkaPage }) => {
+    await waitForSessionReady(dorkaPage)
+    await waitForActiveWorktree(dorkaPage)
   })
-  test.afterEach(async ({ orcaPage }) => {
-    await orcaPage.evaluate(() => {
+  test.afterEach(async ({ dorkaPage }) => {
+    await dorkaPage.evaluate(() => {
       const store = window.__store?.getState()
       store?.setFilterRepoIds([])
       store?.closeModal()
@@ -174,94 +174,94 @@ test.describe('Worktree jump-palette filters', () => {
   })
 
   test('filters results, intersects fields, and reseeds from the sidebar on reopen', async ({
-    orcaPage
+    dorkaPage
   }) => {
-    const fixture = await seedPaletteFilterFixture(orcaPage)
-    await openPalette(orcaPage)
-    await searchFixtureWorkspaces(orcaPage, fixture)
+    const fixture = await seedPaletteFilterFixture(dorkaPage)
+    await openPalette(dorkaPage)
+    await searchFixtureWorkspaces(dorkaPage, fixture)
 
     // P1: keyboard focus reaches the control; its rendered selection narrows rows.
-    await selectRemoteHost(orcaPage, true)
-    await expect(filterTrigger(orcaPage)).toContainText('1')
-    await expect(palette(orcaPage).getByLabel(`Remove filter ${REMOTE_HOST}`)).toBeVisible()
+    await selectRemoteHost(dorkaPage, true)
+    await expect(filterTrigger(dorkaPage)).toContainText('1')
+    await expect(palette(dorkaPage).getByLabel(`Remove filter ${REMOTE_HOST}`)).toBeVisible()
     await expect(
-      worktreeRow(orcaPage, fixture.remoteWorktreeId, fixture.remoteHostId)
+      worktreeRow(dorkaPage, fixture.remoteWorktreeId, fixture.remoteHostId)
     ).toBeVisible()
-    await expect(worktreeRow(orcaPage, fixture.localWorktreeId)).toHaveCount(0)
+    await expect(worktreeRow(dorkaPage, fixture.localWorktreeId)).toHaveCount(0)
 
     // P2: host and repository fields intersect, with the filter-specific empty state.
-    await palette(orcaPage).getByPlaceholder(SEARCH_PLACEHOLDER).fill('')
-    await filterTrigger(orcaPage).click()
-    await palette(orcaPage).getByText('Projects', { exact: true }).click()
-    const projects = palette(orcaPage).getByRole('listbox', { name: 'Projects' })
+    await palette(dorkaPage).getByPlaceholder(SEARCH_PLACEHOLDER).fill('')
+    await filterTrigger(dorkaPage).click()
+    await palette(dorkaPage).getByText('Projects', { exact: true }).click()
+    const projects = palette(dorkaPage).getByRole('listbox', { name: 'Projects' })
     const localProject = projects.getByRole('option', { name: LOCAL_PROJECT })
     await expect(localProject).toBeVisible()
     await localProject.click()
-    await filterTrigger(orcaPage).click()
-    await expect(palette(orcaPage).getByText('No results match the active filter')).toBeVisible()
+    await filterTrigger(dorkaPage).click()
+    await expect(palette(dorkaPage).getByText('No results match the active filter')).toBeVisible()
     await expect(
-      palette(orcaPage).getByText('Clear the filter above, or widen it to more hosts and projects.')
+      palette(dorkaPage).getByText('Clear the filter above, or widen it to more hosts and projects.')
     ).toBeVisible()
 
     // P3: clear restores both rows; reopening replaces ephemeral state with the sidebar scope.
-    await filterTrigger(orcaPage).click()
-    await palette(orcaPage).getByRole('button', { name: 'Clear all' }).last().click()
-    await filterTrigger(orcaPage).click()
-    await expect(filterTrigger(orcaPage)).not.toContainText('1')
-    await searchFixtureWorkspaces(orcaPage, fixture)
+    await filterTrigger(dorkaPage).click()
+    await palette(dorkaPage).getByRole('button', { name: 'Clear all' }).last().click()
+    await filterTrigger(dorkaPage).click()
+    await expect(filterTrigger(dorkaPage)).not.toContainText('1')
+    await searchFixtureWorkspaces(dorkaPage, fixture)
 
-    await selectRemoteHost(orcaPage)
-    await orcaPage.evaluate((repoId) => {
+    await selectRemoteHost(dorkaPage)
+    await dorkaPage.evaluate((repoId) => {
       const store = window.__store?.getState()
       store?.closeModal()
       store?.setFilterRepoIds([repoId])
     }, fixture.localRepoId)
-    await expect(palette(orcaPage)).toBeHidden()
-    await openPalette(orcaPage)
-    await palette(orcaPage).getByPlaceholder(SEARCH_PLACEHOLDER).fill('E2E Palette')
-    await expect(filterTrigger(orcaPage)).toContainText('1')
-    await expect(worktreeRow(orcaPage, fixture.localWorktreeId)).toBeVisible()
-    await expect(worktreeRow(orcaPage, fixture.remoteWorktreeId, fixture.remoteHostId)).toHaveCount(
+    await expect(palette(dorkaPage)).toBeHidden()
+    await openPalette(dorkaPage)
+    await palette(dorkaPage).getByPlaceholder(SEARCH_PLACEHOLDER).fill('E2E Palette')
+    await expect(filterTrigger(dorkaPage)).toContainText('1')
+    await expect(worktreeRow(dorkaPage, fixture.localWorktreeId)).toBeVisible()
+    await expect(worktreeRow(dorkaPage, fixture.remoteWorktreeId, fixture.remoteHostId)).toHaveCount(
       0
     )
   })
 
-  test('opens with the sidebar repository scope without widening it', async ({ orcaPage }) => {
-    const fixture = await seedPaletteFilterFixture(orcaPage)
-    await orcaPage.evaluate((repoId) => {
+  test('opens with the sidebar repository scope without widening it', async ({ dorkaPage }) => {
+    const fixture = await seedPaletteFilterFixture(dorkaPage)
+    await dorkaPage.evaluate((repoId) => {
       window.__store?.getState().setFilterRepoIds([repoId])
     }, fixture.localRepoId)
 
-    await openPalette(orcaPage)
-    await palette(orcaPage).getByPlaceholder(SEARCH_PLACEHOLDER).fill('E2E Palette')
+    await openPalette(dorkaPage)
+    await palette(dorkaPage).getByPlaceholder(SEARCH_PLACEHOLDER).fill('E2E Palette')
 
-    await expect(filterTrigger(orcaPage)).toContainText('1')
-    await expect(palette(orcaPage).getByLabel(`Remove filter ${LOCAL_PROJECT}`)).toBeVisible()
-    await expect(worktreeRow(orcaPage, fixture.localWorktreeId)).toBeVisible()
-    await expect(worktreeRow(orcaPage, fixture.remoteWorktreeId, fixture.remoteHostId)).toHaveCount(
+    await expect(filterTrigger(dorkaPage)).toContainText('1')
+    await expect(palette(dorkaPage).getByLabel(`Remove filter ${LOCAL_PROJECT}`)).toBeVisible()
+    await expect(worktreeRow(dorkaPage, fixture.localWorktreeId)).toBeVisible()
+    await expect(worktreeRow(dorkaPage, fixture.remoteWorktreeId, fixture.remoteHostId)).toHaveCount(
       0
     )
   })
 
-  test('pressing Enter creates a worktree from a typed name', async ({ orcaPage }) => {
-    const createDialog = await openComposerFromTypedName(orcaPage)
+  test('pressing Enter creates a worktree from a typed name', async ({ dorkaPage }) => {
+    const createDialog = await openComposerFromTypedName(dorkaPage)
 
-    await orcaPage.keyboard.press('Escape')
+    await dorkaPage.keyboard.press('Escape')
 
     await expect(createDialog).toBeHidden()
   })
 
-  test('Escape closes the composer opened over the Automations page', async ({ orcaPage }) => {
+  test('Escape closes the composer opened over the Automations page', async ({ dorkaPage }) => {
     // Why this view: Cmd+J has no view guard, and a page mounted under the palette
     // keeps its own capture-phase Escape listener registered. Window capture runs
     // before Radix's document capture, so a preventDefault there vetoes dismissal.
-    await orcaPage.evaluate(() => window.__store?.getState().openAutomationsPage())
-    const automationsHeading = orcaPage.getByRole('heading', { name: 'Automations', level: 1 })
+    await dorkaPage.evaluate(() => window.__store?.getState().openAutomationsPage())
+    const automationsHeading = dorkaPage.getByRole('heading', { name: 'Automations', level: 1 })
     await expect(automationsHeading).toBeVisible()
 
-    const createDialog = await openComposerFromTypedName(orcaPage)
+    const createDialog = await openComposerFromTypedName(dorkaPage)
 
-    await orcaPage.keyboard.press('Escape')
+    await dorkaPage.keyboard.press('Escape')
 
     await expect(createDialog).toBeHidden()
     // The page declined the press rather than consuming it, so it is still open.

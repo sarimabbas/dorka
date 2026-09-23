@@ -1,13 +1,13 @@
 # Fresh OMP launches
 
-Orca's new-session and draft launch plans apply a one-time `--config` overlay
+Dorka's new-session and draft launch plans apply a one-time `--config` overlay
 containing `autoResume: false`. OMP's configured session directory, settings,
 authentication and extensions remain in their usual locations. Saved launch
 configuration omits the overlay so explicit resume keeps its normal semantics.
 Custom commands with session selectors, unknown flags, positional arguments or
 shell compounds are left unchanged.
 
-The execution host creates the overlay. Local and WSL terminals use Orca userData
+The execution host creates the overlay. Local and WSL terminals use Dorka userData
 (with WSLENV path translation); SSH relays use their own managed directory. Config
 creation is independent of status-hook preferences and does not require plugin
 source installation. An unavailable file produces a terminal diagnostic and skips
@@ -39,12 +39,12 @@ Local host assembly tests recognize guarded POSIX, cmd and PowerShell commands.
 Run the actual OMP storage smoke against a read-only OMP checkout:
 
 ```sh
-ORCA_BACKGROUND_LAUNCH=1 bun tests/tools/omp-fresh-session-runtime-smoke.mjs /path/to/oh-my-pi
+DORKA_BACKGROUND_LAUNCH=1 bun tests/tools/omp-fresh-session-runtime-smoke.mjs /path/to/oh-my-pi
 ```
 
 For Windows, bundle `tests/tools/omp-fresh-launch-windows-smoke.ts` with
 `bun build --target=node --outfile=/tmp/omp-fresh-windows-smoke.mjs`, transfer the
-bundle to the host and run it using Node with `ORCA_BACKGROUND_LAUNCH=1`.
+bundle to the host and run it using Node with `DORKA_BACKGROUND_LAUNCH=1`.
 The smoke uses temporary files and process-local environment only. Both cmd and
 PowerShell must pass existing/missing/unset/directory settings cases, preserving
 exit 17 for the single successful launch and returning exit 1 without launching

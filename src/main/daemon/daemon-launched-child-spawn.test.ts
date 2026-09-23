@@ -12,10 +12,10 @@ vi.mock('./daemon-launch-paths', () => ({ daemonLogArgs: () => [] }))
 const options = {
   entryPath: '/app/daemon-entry.js',
   forkEntryPath: '/app/daemon-entry.js',
-  userDataPath: '/tmp/orca',
-  socketPath: '/tmp/orca/daemon.sock',
-  tokenPath: '/tmp/orca/token',
-  pidPath: '/tmp/orca/pid',
+  userDataPath: '/tmp/dorka',
+  socketPath: '/tmp/dorka/daemon.sock',
+  tokenPath: '/tmp/dorka/token',
+  pidPath: '/tmp/dorka/pid',
   launchNonce: 'scope-owner',
   macosLoginSessionWatch: false
 }
@@ -31,7 +31,7 @@ describe('daemon launch scope ownership', () => {
         program: 'systemd-run',
         args: expect.arrayContaining([
           '--scope',
-          '--unit=orca-daemon-scope-owner.scope',
+          '--unit=dorka-daemon-scope-owner.scope',
           '--property=TimeoutStopSec=5s',
           '--fresh-daemon-scope'
         ])

@@ -88,7 +88,7 @@ describe('the native agent-history route that hands off to the shell', () => {
     dependencies.lifecycle.length = 0
     dependencies.params = { hostId: 'host-1', worktreeId: 'wt-1', name: 'my worktree' }
     Object.assign(globalThis, { __DEV__: true })
-    dependencies.storage.set('orca:mobileWebShellEnabled', 'true')
+    dependencies.storage.set('dorka:mobileWebShellEnabled', 'true')
   })
 
   it('opens the shell on this screen, with the name as the search half', async () => {
@@ -117,7 +117,7 @@ describe('the native agent-history route that hands off to the shell', () => {
   })
 
   it('renders the native panel with the flag off, which is every store build', async () => {
-    dependencies.storage.set('orca:mobileWebShellEnabled', 'false')
+    dependencies.storage.set('dorka:mobileWebShellEnabled', 'false')
     await renderRoute()
     expect(dependencies.routes).toEqual([])
     expect(dependencies.panels.at(-1)).toEqual({
@@ -132,7 +132,7 @@ describe('the native agent-history route that hands off to the shell', () => {
    *
    * `encodeURIComponent('..')` is `'..'`, so a dot-segment id reaches the bridge's own segment rule
    * intact and `BridgeInitRouteSchema` refuses it. Before this the route handed it over anyway,
-   * `bridge-host.ts` dropped the route to null, and the page answered with "Update Orca to open
+   * `bridge-host.ts` dropped the route to null, and the page answered with "Update Dorka to open
    * this workspace" — a failure screen in place of the native panel sitting right behind the
    * switch. The route decides first now, the way C3.1's files routes do.
    */

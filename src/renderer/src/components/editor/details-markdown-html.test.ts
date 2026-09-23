@@ -10,9 +10,9 @@ import {
 } from './details-markdown-html'
 
 function nestedToggles(depth: number): string {
-  let html = '<details class="orca-details" open>\n<summary>leaf</summary>\n\nBody\n\n</details>'
+  let html = '<details class="dorka-details" open>\n<summary>leaf</summary>\n\nBody\n\n</details>'
   for (let level = depth - 1; level > 0; level -= 1) {
-    html = `<details class="orca-details" open>\n<summary>level ${level}</summary>\n\n${html}\n\n</details>`
+    html = `<details class="dorka-details" open>\n<summary>level ${level}</summary>\n\n${html}\n\n</details>`
   }
   return html
 }
@@ -28,14 +28,14 @@ afterEach(() => {
 
 describe('details markdown html', () => {
   it.each([
-    ['<details>', '<details class="orca-details">'],
-    ['<details open="open">', '<details class="orca-details" open>'],
-    ['<details CLASS="orca-details">', '<details class="orca-details">'],
-    ["<details Class='orca-details'>", '<details class="orca-details">'],
-    ['<details cLaSs=orca-details>', '<details class="orca-details">'],
+    ['<details>', '<details class="dorka-details">'],
+    ['<details open="open">', '<details class="dorka-details" open>'],
+    ['<details CLASS="dorka-details">', '<details class="dorka-details">'],
+    ["<details Class='dorka-details'>", '<details class="dorka-details">'],
+    ['<details cLaSs=dorka-details>', '<details class="dorka-details">'],
     [
-      "<details open data-orca-toggle = 'heading-2' class='orca-details'>",
-      '<details class="orca-details" data-orca-toggle="heading-2" open>'
+      "<details open data-dorka-toggle = 'heading-2' class='dorka-details'>",
+      '<details class="dorka-details" data-dorka-toggle="heading-2" open>'
     ]
   ])('normalizes supported opening tag %s like the serializer', (input, expected) => {
     expect(normalizeDetailsOpeningTag(input)).toBe(expected)
@@ -44,10 +44,10 @@ describe('details markdown html', () => {
   it.each([
     '<details id="keep">',
     '<details class="custom">',
-    '<details class="ORCA-DETAILS">',
-    "<details CLASS='Orca-Details'>",
-    '<details Class=ORCA-DETAILS>',
-    '<details data-orca-toggle="heading-6">',
+    '<details class="DORKA-DETAILS">',
+    "<details CLASS='Dorka-Details'>",
+    '<details Class=DORKA-DETAILS>',
+    '<details data-dorka-toggle="heading-6">',
     '<details open="false">',
     '<detailsish>',
     '</details>',
@@ -57,7 +57,7 @@ describe('details markdown html', () => {
     expect(normalizeDetailsOpeningTag(fragment)).toBe(fragment)
   })
 
-  it.each(['ORCA-DETAILS', 'Orca-Details'])(
+  it.each(['DORKA-DETAILS', 'Dorka-Details'])(
     'keeps case-sensitive class %s out of editable details nodes',
     (className) => {
       expect(
@@ -104,21 +104,21 @@ describe('details markdown html', () => {
   it('accepts heading-5 toggle variants and rejects unsupported levels', () => {
     expect(parseToggleHeadingVariant('heading-5')).toBe('heading-5')
     expect(parseToggleHeadingVariant('heading-6')).toBeNull()
-    expect(parseDetailsAttributes(' data-orca-toggle="heading-5"')).toMatchObject({
+    expect(parseDetailsAttributes(' data-dorka-toggle="heading-5"')).toMatchObject({
       variant: 'heading-5'
     })
-    expect(parseDetailsAttributes(' data-orca-toggle="heading-6"')).toMatchObject({
+    expect(parseDetailsAttributes(' data-dorka-toggle="heading-6"')).toMatchObject({
       variant: null
     })
 
     const editableHeading5: DetailsHtmlBlock = {
       raw: '',
-      openingAttributes: ' data-orca-toggle="heading-5"',
+      openingAttributes: ' data-dorka-toggle="heading-5"',
       inner: '<summary>Toggle</summary><p>Body</p>'
     }
     const unsupportedHeading6: DetailsHtmlBlock = {
       raw: '',
-      openingAttributes: ' data-orca-toggle="heading-6"',
+      openingAttributes: ' data-dorka-toggle="heading-6"',
       inner: '<summary>Toggle</summary><p>Body</p>'
     }
 
@@ -136,10 +136,10 @@ describe('details markdown html', () => {
       Array.from(
         { length: count },
         (_, index) =>
-          `<details class="orca-details"${extra}>\n<summary>sibling ${index}</summary>\n\nBody\n\n</details>`
+          `<details class="dorka-details"${extra}>\n<summary>sibling ${index}</summary>\n\nBody\n\n</details>`
       ).join('\n\n')
     const wrap = (body: string): string =>
-      `<details class="orca-details">\n<summary>Outer</summary>\n\n${body}\n\n</details>`
+      `<details class="dorka-details">\n<summary>Outer</summary>\n\n${body}\n\n</details>`
 
     expect(isEditableHtml(wrap(siblings(40)))).toBe(true)
     // A single non-editable sibling must still reject, so sharing fence ranges
@@ -150,7 +150,7 @@ describe('details markdown html', () => {
   it('rejects a toggle whose nested toggle is not itself editable', () => {
     const block: DetailsHtmlBlock = {
       raw: '',
-      openingAttributes: ' class="orca-details"',
+      openingAttributes: ' class="dorka-details"',
       inner: '<summary>Outer</summary><details id="x"><summary>Inner</summary><p>Body</p></details>'
     }
 

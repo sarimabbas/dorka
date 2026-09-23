@@ -5,7 +5,7 @@
  */
 
 import type { ElectronApplication, Page } from '@stablyai/playwright-test'
-import { expect, test } from './helpers/orca-app'
+import { expect, test } from './helpers/dorka-app'
 import { waitForSessionReady } from './helpers/store'
 import {
   buildSshConfigBody,
@@ -19,7 +19,7 @@ import {
   removeSshTargetsByPrefix,
   returnToAppShell,
   seedIsolatedSshConfig,
-  seedOrcaSshTargetMatchingAlias,
+  seedDorkaSshTargetMatchingAlias,
   type SeededSshConfigHost
 } from './helpers/ssh-config-host-picker'
 
@@ -62,9 +62,9 @@ async function importPairThenDeleteAlias(
 ): Promise<{ alpha: SeededSshConfigHost; bravo: SeededSshConfigHost }> {
   const hosts = await seedPairConfig(electronApp, prefix)
   const picker = await openSshConfigHostPicker(page)
-  await expect(picker.getByRole('button', { name: 'Add all 2 to Orca' })).toBeEnabled()
-  await picker.getByRole('button', { name: 'Add all 2 to Orca' }).click()
-  await expect(page.getByText('Added 2 hosts to Orca.')).toBeVisible({ timeout: 15_000 })
+  await expect(picker.getByRole('button', { name: 'Add all 2 to Dorka' })).toBeEnabled()
+  await picker.getByRole('button', { name: 'Add all 2 to Dorka' }).click()
+  await expect(page.getByText('Added 2 hosts to Dorka.')).toBeVisible({ timeout: 15_000 })
   await expect(page.getByRole('dialog', { name: 'Choose from ~/.ssh/config' })).toBeHidden({
     timeout: 10_000
   })
@@ -76,77 +76,77 @@ async function importPairThenDeleteAlias(
 }
 
 test.describe('SSH config host import (bulk + settings re-adopt)', () => {
-  test.beforeEach(async ({ orcaPage }) => {
-    await waitForSessionReady(orcaPage)
+  test.beforeEach(async ({ dorkaPage }) => {
+    await waitForSessionReady(dorkaPage)
   })
 
-  test.afterEach(async ({ orcaPage }) => {
-    await removeSshTargetsByPrefix(orcaPage, HOST_PREFIX).catch(() => undefined)
+  test.afterEach(async ({ dorkaPage }) => {
+    await removeSshTargetsByPrefix(dorkaPage, HOST_PREFIX).catch(() => undefined)
   })
 
   // ── P5 ─────────────────────────────────────────────────────────────
-  test('P5: already-in-Orca badge, disabled row, and Add all counts only new hosts', async ({
+  test('P5: already-in-Dorka badge, disabled row, and Add all counts only new hosts', async ({
     electronApp,
-    orcaPage
+    dorkaPage
   }) => {
     const hosts = await seedPairConfig(electronApp, HOST_PREFIX)
-    await seedOrcaSshTargetMatchingAlias(orcaPage, {
+    await seedDorkaSshTargetMatchingAlias(dorkaPage, {
       alias: hosts.alpha.alias,
       hostname: hosts.alpha.hostname,
       username: hosts.alpha.user,
       port: hosts.alpha.port
     })
 
-    const picker = await openSshConfigHostPicker(orcaPage)
+    const picker = await openSshConfigHostPicker(dorkaPage)
     const alphaRow = configHostRow(picker, hosts.alpha)
     const bravoRow = configHostRow(picker, hosts.bravo)
 
     await expect(alphaRow).toBeVisible()
     await expect(alphaRow).toBeDisabled()
-    await expect(alphaRow.getByText('In Orca', { exact: true })).toBeVisible()
+    await expect(alphaRow.getByText('In Dorka', { exact: true })).toBeVisible()
 
     await expect(bravoRow).toBeVisible()
     await expect(bravoRow).toBeEnabled()
-    await expect(bravoRow.getByText('In Orca', { exact: true })).toHaveCount(0)
+    await expect(bravoRow.getByText('In Dorka', { exact: true })).toHaveCount(0)
 
-    await expect(picker.getByRole('button', { name: 'Add all 1 to Orca' })).toBeEnabled()
-    await expect(picker.getByRole('button', { name: 'Add all 2 to Orca' })).toHaveCount(0)
+    await expect(picker.getByRole('button', { name: 'Add all 1 to Dorka' })).toBeEnabled()
+    await expect(picker.getByRole('button', { name: 'Add all 2 to Dorka' })).toHaveCount(0)
   })
 
   // ── P6 ─────────────────────────────────────────────────────────────
-  test('P6: Add all N to Orca imports new hosts; re-open shows all in Orca', async ({
+  test('P6: Add all N to Dorka imports new hosts; re-open shows all in Dorka', async ({
     electronApp,
-    orcaPage
+    dorkaPage
   }) => {
     const hosts = await seedPairConfig(electronApp, HOST_PREFIX)
-    const picker = await openSshConfigHostPicker(orcaPage)
+    const picker = await openSshConfigHostPicker(dorkaPage)
 
     await expect(configHostRow(picker, hosts.alpha)).toBeVisible()
     await expect(configHostRow(picker, hosts.bravo)).toBeVisible()
-    await expect(picker.getByRole('button', { name: 'Add all 2 to Orca' })).toBeEnabled()
+    await expect(picker.getByRole('button', { name: 'Add all 2 to Dorka' })).toBeEnabled()
 
-    await picker.getByRole('button', { name: 'Add all 2 to Orca' }).click()
-    await expect(orcaPage.getByText('Added 2 hosts to Orca.')).toBeVisible({ timeout: 15_000 })
-    await expect(orcaPage.getByRole('dialog', { name: 'Choose from ~/.ssh/config' })).toBeHidden({
+    await picker.getByRole('button', { name: 'Add all 2 to Dorka' }).click()
+    await expect(dorkaPage.getByText('Added 2 hosts to Dorka.')).toBeVisible({ timeout: 15_000 })
+    await expect(dorkaPage.getByRole('dialog', { name: 'Choose from ~/.ssh/config' })).toBeHidden({
       timeout: 10_000
     })
-    await expect(orcaPage.getByRole('dialog', { name: 'Add SSH host' })).toBeHidden({
+    await expect(dorkaPage.getByRole('dialog', { name: 'Add SSH host' })).toBeHidden({
       timeout: 10_000
     })
 
-    const sshSection = await openSshHostSettings(orcaPage)
+    const sshSection = await openSshHostSettings(dorkaPage)
     await expectSshHostListedInSettings(sshSection, hosts.alpha)
     await expectSshHostListedInSettings(sshSection, hosts.bravo)
 
-    await returnToAppShell(orcaPage)
-    const reopened = await openSshConfigHostPicker(orcaPage)
+    await returnToAppShell(dorkaPage)
+    const reopened = await openSshConfigHostPicker(dorkaPage)
     await expect(configHostRow(reopened, hosts.alpha)).toBeDisabled()
     await expect(
-      configHostRow(reopened, hosts.alpha).getByText('In Orca', { exact: true })
+      configHostRow(reopened, hosts.alpha).getByText('In Dorka', { exact: true })
     ).toBeVisible()
     await expect(configHostRow(reopened, hosts.bravo)).toBeDisabled()
     await expect(
-      configHostRow(reopened, hosts.bravo).getByText('In Orca', { exact: true })
+      configHostRow(reopened, hosts.bravo).getByText('In Dorka', { exact: true })
     ).toBeVisible()
     await expect(reopened.getByRole('button', { name: 'No new hosts to add' })).toBeDisabled()
   })
@@ -154,51 +154,51 @@ test.describe('SSH config host import (bulk + settings re-adopt)', () => {
   // ── P7 ─────────────────────────────────────────────────────────────
   test('P7: Add all does not re-adopt deleted config hosts (suppress tombstones)', async ({
     electronApp,
-    orcaPage
+    dorkaPage
   }) => {
     const hosts = await importPairThenDeleteAlias(
-      orcaPage,
+      dorkaPage,
       electronApp,
       HOST_PREFIX,
       `${HOST_PREFIX}-alpha`
     )
 
-    const picker = await openSshConfigHostPicker(orcaPage)
+    const picker = await openSshConfigHostPicker(dorkaPage)
     // Suppressed aliases stay listed (re-pickable) but never count as new.
     const alphaRow = configHostRow(picker, hosts.alpha)
     await expect(alphaRow).toBeVisible()
     await expect(alphaRow).toBeEnabled()
-    await expect(alphaRow.getByText('Removed from Orca', { exact: true })).toBeVisible()
-    await expect(alphaRow.getByText('In Orca', { exact: true })).toHaveCount(0)
+    await expect(alphaRow.getByText('Removed from Dorka', { exact: true })).toBeVisible()
+    await expect(alphaRow.getByText('In Dorka', { exact: true })).toHaveCount(0)
     await expect(configHostRow(picker, hosts.bravo)).toBeVisible()
     await expect(
-      configHostRow(picker, hosts.bravo).getByText('In Orca', { exact: true })
+      configHostRow(picker, hosts.bravo).getByText('In Dorka', { exact: true })
     ).toBeVisible()
     await expect(picker.getByRole('button', { name: 'No new hosts to add' })).toBeDisabled()
-    await expect(picker.getByRole('button', { name: /Add all \d+ to Orca/ })).toHaveCount(0)
+    await expect(picker.getByRole('button', { name: /Add all \d+ to Dorka/ })).toHaveCount(0)
 
-    await returnToAppShell(orcaPage)
-    const sshSection = await openSshHostSettings(orcaPage)
+    await returnToAppShell(dorkaPage)
+    const sshSection = await openSshHostSettings(dorkaPage)
     // Pane auto-syncs without reAdopt — deleted alpha must stay gone.
     await expectSshHostListedInSettings(sshSection, hosts.bravo)
     await expectSshHostAbsentFromSettings(sshSection, hosts.alpha)
   })
 
   // ── P9 ─────────────────────────────────────────────────────────────
-  test('P9: Settings Import re-adopts deleted config hosts', async ({ electronApp, orcaPage }) => {
+  test('P9: Settings Import re-adopts deleted config hosts', async ({ electronApp, dorkaPage }) => {
     const hosts = await importPairThenDeleteAlias(
-      orcaPage,
+      dorkaPage,
       electronApp,
       HOST_PREFIX,
       `${HOST_PREFIX}-alpha`
     )
 
-    const sshSection = await openSshHostSettings(orcaPage)
+    const sshSection = await openSshHostSettings(dorkaPage)
     await expectSshHostListedInSettings(sshSection, hosts.bravo)
     await expectSshHostAbsentFromSettings(sshSection, hosts.alpha)
 
     await sshSection.getByRole('button', { name: 'Import' }).click()
-    await expect(orcaPage.getByText(/Synced \d+ servers?/i)).toBeVisible({ timeout: 15_000 })
+    await expect(dorkaPage.getByText(/Synced \d+ servers?/i)).toBeVisible({ timeout: 15_000 })
 
     await expectSshHostListedInSettings(sshSection, hosts.alpha)
     await expectSshHostListedInSettings(sshSection, hosts.bravo)

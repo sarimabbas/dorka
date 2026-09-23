@@ -24,7 +24,7 @@ function rolloutLine(message: string): string {
 }
 
 beforeEach(async () => {
-  root = await mkdtemp(join(tmpdir(), 'orca-tui-catchup-'))
+  root = await mkdtemp(join(tmpdir(), 'dorka-tui-catchup-'))
   store = await AgentSessionRecordStore.open({ directory: join(root, 'store'), hostId: 'local' })
 })
 

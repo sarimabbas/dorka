@@ -2,7 +2,7 @@ import { existsSync, readFileSync, unlinkSync } from 'node:fs'
 import type { SFTPWrapper } from 'ssh2'
 
 // Muse runs managed hooks with an explicit environment allowlist. The installer
-// persists Orca's hook coordinates in that allowlist so events stay attributed.
+// persists Dorka's hook coordinates in that allowlist so events stay attributed.
 import type { AgentHookInstallState, AgentHookInstallStatus } from '../../shared/agent-hook-types'
 import {
   buildWindowsAgentHookCurlPostCommand,
@@ -47,7 +47,7 @@ function getManagedScript(target: 'local' | 'posix' = 'local'): string {
     return [
       '@echo off',
       'setlocal',
-      'if defined ORCA_AGENT_HOOK_ENDPOINT if exist "%ORCA_AGENT_HOOK_ENDPOINT%" call "%ORCA_AGENT_HOOK_ENDPOINT%" 2>nul',
+      'if defined DORKA_AGENT_HOOK_ENDPOINT if exist "%DORKA_AGENT_HOOK_ENDPOINT%" call "%DORKA_AGENT_HOOK_ENDPOINT%" 2>nul',
       ...buildWindowsHookEnvironmentGuardLines(),
       buildWindowsAgentHookCurlPostCommand('muse'),
       'exit /b 0',
@@ -60,12 +60,12 @@ function getManagedScript(target: 'local' | 'posix' = 'local'): string {
     '#!/bin/sh',
     ...buildPosixHookPayloadCapture(),
     ...buildPosixHookSpoolLines('muse'),
-    // Why: endpoint file holds the live port/token; PTYs that outlive an Orca restart carry stale env, so source it to reach the new server (else PTY env).
+    // Why: endpoint file holds the live port/token; PTYs that outlive an Dorka restart carry stale env, so source it to reach the new server (else PTY env).
     // Why: silence the `.` builtin (2>/dev/null + `|| :`) so a TOCTOU race can't leak shell parse errors into agent transcripts (fail-open).
-    'if [ -n "$ORCA_AGENT_HOOK_ENDPOINT" ] && [ -r "$ORCA_AGENT_HOOK_ENDPOINT" ]; then',
-    '  . "$ORCA_AGENT_HOOK_ENDPOINT" 2>/dev/null || :',
+    'if [ -n "$DORKA_AGENT_HOOK_ENDPOINT" ] && [ -r "$DORKA_AGENT_HOOK_ENDPOINT" ]; then',
+    '  . "$DORKA_AGENT_HOOK_ENDPOINT" 2>/dev/null || :',
     'fi',
-    'if [ -z "$ORCA_AGENT_HOOK_PORT" ] || [ -z "$ORCA_AGENT_HOOK_TOKEN" ] || [ -z "$ORCA_PANE_KEY" ]; then',
+    'if [ -z "$DORKA_AGENT_HOOK_PORT" ] || [ -z "$DORKA_AGENT_HOOK_TOKEN" ] || [ -z "$DORKA_PANE_KEY" ]; then',
     '  spool_hook_event',
     '  exit 0',
     'fi',
@@ -102,7 +102,7 @@ function buildStatus(
       ...base,
       state: 'error',
       managedHooksPresent: false,
-      detail: 'Could not read Orca managed hooks file'
+      detail: 'Could not read Dorka managed hooks file'
     }
   }
   if (pointer !== managedHooksPath) {
@@ -113,10 +113,10 @@ function buildStatus(
       detail:
         pointer === undefined
           ? null
-          : `managed_hooks_path points at ${pointer}, not the Orca managed hooks file`
+          : `managed_hooks_path points at ${pointer}, not the Dorka managed hooks file`
     }
   }
-  const parsed = parseMuseSettingsText(managedText, 'Orca managed Muse hooks')
+  const parsed = parseMuseSettingsText(managedText, 'Dorka managed Muse hooks')
   const present = readManagedMuseHookEvents(parsed, getMuseManagedCommandMatcher())
   const missing = MUSE_HOOK_EVENTS.filter((event) => !present.has(event))
   const configuredEnv = Array.isArray(config.managed_hooks_env_vars)
@@ -221,7 +221,7 @@ export class MuseHookService {
   // Install the Muse hook on an SSH execution host, where the shell contract is POSIX.
   async installRemote(sftp: SFTPWrapper, remoteHome: string): Promise<AgentHookInstallStatus> {
     const remoteConfigPath = getMuseRemoteConfigPath(remoteHome)
-    const remoteScriptPath = `${remoteHome.replace(/\/$/, '')}/.orca/agent-hooks/muse-hook.sh`
+    const remoteScriptPath = `${remoteHome.replace(/\/$/, '')}/.dorka/agent-hooks/muse-hook.sh`
     const remoteManagedHooksPath = getMuseRemoteManagedHooksPath(remoteHome)
     try {
       const body = await readTextFileRemote(sftp, remoteConfigPath)

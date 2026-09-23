@@ -1,4 +1,4 @@
-import type { OrcaRuntimeService } from '../../../orca-runtime'
+import type { DorkaRuntimeService } from '../../../dorka-runtime'
 import {
   TerminalStreamOpcode,
   encodeTerminalStreamJson
@@ -22,13 +22,13 @@ const REQUESTED_SNAPSHOT_BYTE_BUDGET = 2 * 1024 * 1024
 
 /** E2E-only: reproduce a host that retains nothing for a pty — the state a client cannot tell
  *  apart from a host that is merely slow, and the one a parked pane must survive. Mirrors
- *  ORCA_E2E_FORCE_REMOTE_TERMINAL_INITIAL_SNAPSHOT_TRUNCATED. */
+ *  DORKA_E2E_FORCE_REMOTE_TERMINAL_INITIAL_SNAPSHOT_TRUNCATED. */
 function isTerminalSnapshotForcedUnavailable(): boolean {
-  return process.env.ORCA_E2E_FORCE_REMOTE_TERMINAL_SNAPSHOT_UNAVAILABLE === '1'
+  return process.env.DORKA_E2E_FORCE_REMOTE_TERMINAL_SNAPSHOT_UNAVAILABLE === '1'
 }
 
 export async function serializeBudgetedRequestedSnapshot(
-  runtime: OrcaRuntimeService,
+  runtime: DorkaRuntimeService,
   ptyId: string,
   scrollbackRows: number | undefined
 ): Promise<SerializedSnapshot> {
@@ -103,7 +103,7 @@ type SnapshotVariableMeta = Pick<
 >
 
 /** Narrowed to the one method this reads, so a caller can hand it a buffer source and nothing else. */
-type TerminalBufferSource = Pick<OrcaRuntimeService, 'serializeTerminalBuffer'>
+type TerminalBufferSource = Pick<DorkaRuntimeService, 'serializeTerminalBuffer'>
 
 /**
  * What a subscriber with a frame cap told this host it can carry, and what it will publish with.
@@ -137,7 +137,7 @@ export type MobileSnapshotByteBudget = {
 /** `JSON.stringify` writes `false` in five bytes and `true` in four, so `false` is the bound. */
 const WIDEST_BOOLEAN = false
 
-type MobileDisplayMode = ReturnType<OrcaRuntimeService['getMobileDisplayMode']>
+type MobileDisplayMode = ReturnType<DorkaRuntimeService['getMobileDisplayMode']>
 
 /** Every mode the runtime can answer; the type below is what keeps this list complete. */
 const DISPLAY_MODES = ['auto', 'desktop'] as const satisfies readonly MobileDisplayMode[]
@@ -274,7 +274,7 @@ export async function serializeBudgetedMobileSnapshot(
 
 /** Narrowed to what the retry loop reads, so a stable-snapshot case needs no whole runtime. */
 type RendererBufferSource = Pick<
-  OrcaRuntimeService,
+  DorkaRuntimeService,
   'getPtyOutputSequence' | 'serializeRendererTerminalBuffer'
 >
 
@@ -317,7 +317,7 @@ export async function serializeStableMobileRendererSnapshot(
 
 // Why: mobile xterm can't rewrap the HARD newlines baked into a restored snapshot, so a real reflow re-serializes and replays the FULL buffer at the new cols.
 export async function sendMobileResizeRestream(
-  runtime: OrcaRuntimeService,
+  runtime: DorkaRuntimeService,
   ptyId: string,
   sendFrame: (opcode: TerminalStreamOpcode, payload?: Uint8Array<ArrayBufferLike>) => void,
   event: { cols: number; rows: number; displayMode: string; reason: string; seq?: number },

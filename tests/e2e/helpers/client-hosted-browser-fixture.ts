@@ -1,8 +1,8 @@
 import { createServer } from 'node:http'
 import type { AddressInfo } from 'node:net'
 import type { Page } from '@stablyai/playwright-test'
-import { expect } from './orca-app'
-import { readRestartRendererState } from './orca-restart'
+import { expect } from './dorka-app'
+import { readRestartRendererState } from './dorka-restart'
 import type { PairedElectronClient } from './paired-electron-client'
 
 /**

@@ -114,7 +114,7 @@ beforeEach(() => {
   dependencies.natives = 0
   dependencies.params = { hostId: 'host-1', worktreeId: 'wt-1', name: 'my worktree' }
   Object.assign(globalThis, { __DEV__: true })
-  dependencies.storage.set('orca:mobileWebShellEnabled', 'true')
+  dependencies.storage.set('dorka:mobileWebShellEnabled', 'true')
 })
 
 describe('the native session route that hands off to the shell', () => {
@@ -128,7 +128,7 @@ describe('the native session route that hands off to the shell', () => {
   it('renders the native screen while the flag read is still settling', async () => {
     // The element is built on every render and mounted only by `fallback`, so the count below is
     // what a settling read costs: one native screen, before the switch has an answer.
-    dependencies.storage.delete('orca:mobileWebShellEnabled')
+    dependencies.storage.delete('dorka:mobileWebShellEnabled')
     await renderSession()
     expect(dependencies.routes).toEqual([])
     expect(dependencies.natives).toBeGreaterThan(0)
@@ -180,7 +180,7 @@ describe('the native session route that hands off to the shell', () => {
   })
 
   it('renders the native screen with the flag off, which is every store build', async () => {
-    dependencies.storage.set('orca:mobileWebShellEnabled', 'false')
+    dependencies.storage.set('dorka:mobileWebShellEnabled', 'false')
     await renderSession()
     expect(dependencies.routes).toEqual([])
     expect(dependencies.natives).toBeGreaterThan(0)

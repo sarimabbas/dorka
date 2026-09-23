@@ -7,7 +7,7 @@
 
 import { createServer } from 'node:http'
 import type { AddressInfo } from 'node:net'
-import { expect, test } from './helpers/orca-app'
+import { expect, test } from './helpers/dorka-app'
 import type { ElectronApplication, Locator, Page } from '@stablyai/playwright-test'
 import {
   ensureTerminalVisible,
@@ -77,11 +77,11 @@ async function toolbarWidth(page: Page): Promise<number> {
 }
 
 function addressBarInput(page: Page): Locator {
-  return page.locator('[data-orca-browser-address-bar="true"]')
+  return page.locator('[data-dorka-browser-address-bar="true"]')
 }
 
 function addressBarOverlay(page: Page): Locator {
-  return page.locator('[data-orca-browser-address-bar-overlay="true"]')
+  return page.locator('[data-dorka-browser-address-bar-overlay="true"]')
 }
 
 async function addressBarInputWidth(page: Page): Promise<number> {
@@ -129,38 +129,38 @@ async function settleToSqueezedRestingState(
 }
 
 test.describe('Browser address bar in a narrow toolbar', () => {
-  test.beforeEach(async ({ orcaPage }) => {
-    await waitForSessionReady(orcaPage)
-    await waitForActiveWorktree(orcaPage)
-    await ensureTerminalVisible(orcaPage)
+  test.beforeEach(async ({ dorkaPage }) => {
+    await waitForSessionReady(dorkaPage)
+    await waitForActiveWorktree(dorkaPage)
+    await ensureTerminalVisible(dorkaPage)
   })
 
   test('focusing the squeezed address bar expands a typable field that navigates', async ({
-    orcaPage,
+    dorkaPage,
     electronApp
   }) => {
     const destination = await startDestinationServer()
     try {
-      const worktreeId = (await getActiveWorktreeId(orcaPage))!
-      await createBlankBrowserTab(orcaPage, worktreeId)
-      await settleToSqueezedRestingState(orcaPage, electronApp)
+      const worktreeId = (await getActiveWorktreeId(dorkaPage))!
+      await createBlankBrowserTab(dorkaPage, worktreeId)
+      await settleToSqueezedRestingState(dorkaPage, electronApp)
 
-      const overlay = addressBarOverlay(orcaPage)
+      const overlay = addressBarOverlay(dorkaPage)
       // The bug: the inline field is squeezed away entirely.
-      await expect.poll(() => addressBarInputWidth(orcaPage), { timeout: 10_000 }).toBeLessThan(40)
+      await expect.poll(() => addressBarInputWidth(dorkaPage), { timeout: 10_000 }).toBeLessThan(40)
 
-      await orcaPage.locator('form:has(> [data-orca-browser-address-bar="true"])').click()
+      await dorkaPage.locator('form:has(> [data-dorka-browser-address-bar="true"])').click()
 
       await expect(overlay).toBeVisible()
       await expect
-        .poll(() => addressBarInputWidth(orcaPage), { timeout: 5_000 })
+        .poll(() => addressBarInputWidth(dorkaPage), { timeout: 5_000 })
         .toBeGreaterThan(BROWSER_ADDRESS_BAR_MIN_INLINE_WIDTH / 2)
 
-      await addressBarInput(orcaPage).fill(destination.url)
-      await addressBarInput(orcaPage).press('Enter')
+      await addressBarInput(dorkaPage).fill(destination.url)
+      await addressBarInput(dorkaPage).press('Enter')
 
       await expect
-        .poll(async () => (await getBrowserTabs(orcaPage, worktreeId)).at(-1)?.url ?? null, {
+        .poll(async () => (await getBrowserTabs(dorkaPage, worktreeId)).at(-1)?.url ?? null, {
           timeout: 15_000
         })
         .toContain('/typed')

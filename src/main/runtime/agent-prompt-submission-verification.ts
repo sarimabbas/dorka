@@ -50,7 +50,7 @@ export function resolveAgentPromptEffectTimeoutMs(agent: TuiAgent | null | undef
     : AGENT_PROMPT_EFFECT_TIMEOUT_MS
 }
 
-/** Only these providers expose a turn-start signal Orca can settle a prompt receipt against. */
+/** Only these providers expose a turn-start signal Dorka can settle a prompt receipt against. */
 export function isTerminalSendSettlementAgent(
   agent: TuiAgent | null | undefined
 ): agent is 'antigravity' | 'claude' | 'codex' {

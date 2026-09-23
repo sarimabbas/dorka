@@ -1,1 +1,1 @@
-export { applyPostgresSchema } from '@orca-cloud/postgres-schema'
+export { applyPostgresSchema } from '@dorka-cloud/postgres-schema'

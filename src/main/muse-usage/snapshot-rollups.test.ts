@@ -27,7 +27,7 @@ function daily(
   }
 }
 
-// One session that ran model `a` inside the Orca worktree and model `b` outside it.
+// One session that ran model `a` inside the Dorka worktree and model `b` outside it.
 const session: MuseUsageSession = {
   sessionId: 's1',
   firstTimestamp: '2026-09-22T10:00:00.000Z',
@@ -87,13 +87,13 @@ const session: MuseUsageSession = {
 
 describe('Muse usage snapshot rollups', () => {
   it('counts a session only toward models it used inside the selected scope', () => {
-    const orcaRows = buildMuseUsageBreakdownRows(
+    const dorkaRows = buildMuseUsageBreakdownRows(
       'model',
-      'orca',
+      'dorka',
       [daily('a', 'worktree:wt-1', 'wt-1')],
       [session]
     )
-    expect(orcaRows.map((row) => [row.key, row.sessions])).toEqual([['a', 1]])
+    expect(dorkaRows.map((row) => [row.key, row.sessions])).toEqual([['a', 1]])
 
     const allRows = buildMuseUsageBreakdownRows(
       'model',

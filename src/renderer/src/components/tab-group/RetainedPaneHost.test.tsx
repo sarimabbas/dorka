@@ -8,7 +8,7 @@ let notifyResize: () => void
 let anchors: HTMLDivElement[]
 
 beforeEach(() => {
-  vi.stubGlobal('__ORCA_WEB_CLIENT__', true)
+  vi.stubGlobal('__DORKA_WEB_CLIENT__', true)
   vi.stubGlobal(
     'ResizeObserver',
     class {

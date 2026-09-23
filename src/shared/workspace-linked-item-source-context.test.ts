@@ -7,9 +7,9 @@ const JIRA_ITEM: WorkspaceLinkedItem = {
   provider: 'jira',
   type: 'issue',
   number: 0,
-  title: 'ORCA-123 Link Jira',
-  url: 'https://company.atlassian.net/jira/browse/ORCA-123',
-  jiraIdentifier: 'ORCA-123'
+  title: 'DORKA-123 Link Jira',
+  url: 'https://company.atlassian.net/jira/browse/DORKA-123',
+  jiraIdentifier: 'DORKA-123'
 }
 
 const JIRA_CONTEXT: TaskSourceContext = {
@@ -21,7 +21,7 @@ const JIRA_CONTEXT: TaskSourceContext = {
     provider: 'jira',
     siteId: 'site-1',
     siteUrl: 'https://company.atlassian.net/jira',
-    projectKey: 'ORCA'
+    projectKey: 'DORKA'
   }
 }
 
@@ -50,7 +50,7 @@ describe('workspace linked-item source context', () => {
     ).toBe(false)
     expect(
       isWorkspaceLinkedItemSourceContextMatch(
-        { ...JIRA_ITEM, jiraIdentifier: 'ORCA-999' },
+        { ...JIRA_ITEM, jiraIdentifier: 'DORKA-999' },
         JIRA_CONTEXT
       )
     ).toBe(false)

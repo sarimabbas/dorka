@@ -1,7 +1,7 @@
 # OpenCode 2 `form.created` is not always a question (#22371)
 
-OpenCode 2 has one form primitive and several producers. Orca's setup bridge mapped every
-`form.created` to `question.asked`, which is Orca's un-evictable "the pane owner must answer
+OpenCode 2 has one form primitive and several producers. Dorka's setup bridge mapped every
+`form.created` to `question.asked`, which is Dorka's un-evictable "the pane owner must answer
 this" blocker. Only one producer is an agent-initiated question.
 
 Captured against the shipped `opencode v2.0.12` binary on macOS, driving the real TUI in a PTY
@@ -18,13 +18,13 @@ each producer stamps. Every `Form.ask` call site in the v2.0.12 bundle:
 | `websearch.provider` | `Web Search` / `Choose a web search provider` | the session | no — a provider picker    |
 | `mcp-elicitation`    | `<server> is requesting input`                | `"global"`  | no — an MCP server prompt |
 
-`mcp-elicitation` is the worst shape for Orca: `"global"` is not a session, so the blocker it
+`mcp-elicitation` is the worst shape for Dorka: `"global"` is not a session, so the blocker it
 mints can never be retired by that session going idle — only by an exact `form.replied` /
 `form.cancelled` for the same form id.
 
 `form-created-question.json` and `form-replied-question.json` are the live capture of the
 `question` tool's form being raised and answered. Note `metadata.tool` is `{ messageID, id }`,
-not the `{ messageID, callID }` that Orca's `clearQuestionForToolPart` matches on, and OpenCode 2
+not the `{ messageID, callID }` that Dorka's `clearQuestionForToolPart` matches on, and OpenCode 2
 never emits `message.part.updated` at all — so that retirement path is dead for OpenCode 2 and
 `form.replied` / `form.cancelled` is the only reply-side retirement it has.
 
@@ -36,7 +36,7 @@ The whole time that dock was opened, paged and dismissed, the server's `/api/eve
 carried nothing but `server.connected`, heartbeats, and unrelated `skill.updated` filewatcher
 noise from another checkout. Same result for the `shift+tab` agent picker and the `ctrl+p`
 command palette. The TUI's pickers are local Solid components; they never call `Form.ask`, so
-they produce no server event of any kind and cannot be the thing Orca saw.
+they produce no server event of any kind and cannot be the thing Dorka saw.
 
 So this capture proves the mapping was wrong and which field fixes it; it does not reproduce
 the exact frame in the issue screenshot.

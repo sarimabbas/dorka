@@ -1,20 +1,20 @@
 import { delimiter } from 'node:path'
-import { dropInheritedOrcaFishHistory } from '../../fish-history-session'
+import { dropInheritedDorkaFishHistory } from '../../fish-history-session'
 import { removeAppImageRuntimeEnv } from '../../pty/appimage-terminal-env'
 import { stripInheritedBuildModeEnv } from '../../pty/build-mode-env'
 import { dropIncoherentCondaActivationEnv } from '../../pty/conda-activation-env'
 import { stripLegacyTerminalShimEnv } from '../../pty/legacy-terminal-shim-dir'
 import { removeInheritedNoColor } from '../../pty/terminal-color-env'
 import { resolvePathEnvKey } from '../../pty/windows-environment-path'
-import { dropInheritedOrcaHistFile } from '../../worktree-history-file-path'
+import { dropInheritedDorkaHistFile } from '../../worktree-history-file-path'
 import {
   gitCredentialPromptGuardEnv,
   mergeGitConfigEnvProtocol
 } from '../../../shared/git-credential-prompt-env'
 import { TERMINAL_GIT_CREDENTIAL_GUARD_POLICY_ENV } from '../../../shared/terminal-git-credential-guard'
 import {
-  ORCA_IMAGE_PROTOCOL_ENV,
-  ORCA_IMAGE_PROTOCOL_VALUE
+  DORKA_IMAGE_PROTOCOL_ENV,
+  DORKA_IMAGE_PROTOCOL_VALUE
 } from '../../../shared/terminal-image-protocol'
 import {
   expandWindowsEnvironmentVariables,
@@ -24,10 +24,10 @@ import type { TuiAgent } from '../../../shared/tui-agent'
 import type { PtySubprocessOptions } from '../pty-subprocess'
 
 const PANE_IDENTITY_ENV_KEYS = [
-  'ORCA_PANE_KEY',
-  'ORCA_TAB_ID',
-  'ORCA_WORKTREE_ID',
-  'ORCA_AGENT_LAUNCH_TOKEN'
+  'DORKA_PANE_KEY',
+  'DORKA_TAB_ID',
+  'DORKA_WORKTREE_ID',
+  'DORKA_AGENT_LAUNCH_TOKEN'
 ] as const
 const WINDOWS_PATH_ENV_KEY_RE = /^path$/i
 
@@ -49,15 +49,15 @@ function deleteRequestedDaemonEnvKeys(
   env: Record<string, string>,
   keys: readonly string[] | undefined
 ): void {
-  // Why: persistent daemon state can differ from Electron; delete CODEX_HOME only when its Orca overlay owns it.
-  const deleteOrcaOwnedCodexHome =
-    keys?.includes('ORCA_CODEX_HOME') === true &&
-    env.ORCA_CODEX_HOME !== undefined &&
-    env.CODEX_HOME === env.ORCA_CODEX_HOME
+  // Why: persistent daemon state can differ from Electron; delete CODEX_HOME only when its Dorka overlay owns it.
+  const deleteDorkaOwnedCodexHome =
+    keys?.includes('DORKA_CODEX_HOME') === true &&
+    env.DORKA_CODEX_HOME !== undefined &&
+    env.CODEX_HOME === env.DORKA_CODEX_HOME
   for (const key of keys ?? []) {
     delete env[key]
   }
-  if (deleteOrcaOwnedCodexHome) {
+  if (deleteDorkaOwnedCodexHome) {
     delete env.CODEX_HOME
   }
 }
@@ -108,7 +108,7 @@ function promoteAgentTeamsShimPath(
   env: Record<string, string>,
   requestedPath: string | undefined
 ): void {
-  if (!env.ORCA_AGENT_TEAMS_TEAM_ID || !requestedPath) {
+  if (!env.DORKA_AGENT_TEAMS_TEAM_ID || !requestedPath) {
     return
   }
   const normalizedRequestedPath =
@@ -129,9 +129,9 @@ function removeInheritedDevAgentHookEndpoint(
   env: Record<string, string>,
   explicitEnv: Record<string, string> | undefined
 ): void {
-  if (explicitEnv?.ORCA_AGENT_HOOK_ENV === 'development' && !explicitEnv.ORCA_AGENT_HOOK_ENDPOINT) {
+  if (explicitEnv?.DORKA_AGENT_HOOK_ENV === 'development' && !explicitEnv.DORKA_AGENT_HOOK_ENDPOINT) {
     // Why: strip only stale inherited endpoints; a fresh explicit one is needed by hooks that scrub token-like env vars before exec.
-    delete env.ORCA_AGENT_HOOK_ENDPOINT
+    delete env.DORKA_AGENT_HOOK_ENDPOINT
   }
 }
 
@@ -140,10 +140,10 @@ export function createDaemonPtyEnvironment(opts: PtySubprocessOptions): Record<s
     ...mergeGitConfigEnvProtocol(stripInheritedBuildModeEnv(process.env), opts.env),
     TERM: 'xterm-256color',
     COLORTERM: 'truecolor',
-    TERM_PROGRAM: 'Orca',
-    TERM_PROGRAM_VERSION: process.env.ORCA_APP_VERSION ?? '0.0.0-dev',
+    TERM_PROGRAM: 'Dorka',
+    TERM_PROGRAM_VERSION: process.env.DORKA_APP_VERSION ?? '0.0.0-dev',
     FORCE_HYPERLINK: '1',
-    [ORCA_IMAGE_PROTOCOL_ENV]: ORCA_IMAGE_PROTOCOL_VALUE
+    [DORKA_IMAGE_PROTOCOL_ENV]: DORKA_IMAGE_PROTOCOL_VALUE
   } satisfies Record<string, string>
   stripLegacyTerminalShimEnv(env, process.platform)
   composeGuardedDaemonGitConfigEnv(env, opts.env, opts.launchAgent)
@@ -153,13 +153,13 @@ export function createDaemonPtyEnvironment(opts: PtySubprocessOptions): Record<s
   }
   removeUnspecifiedPaneIdentityEnv(env, opts.env)
   if (opts.env?.fish_history === undefined) {
-    dropInheritedOrcaFishHistory(env)
+    dropInheritedDorkaFishHistory(env)
   }
   if (opts.env?.HISTFILE === undefined) {
-    dropInheritedOrcaHistFile(env)
+    dropInheritedDorkaHistFile(env)
   }
-  if (opts.env?.ORCA_HISTFILE === undefined) {
-    delete env.ORCA_HISTFILE
+  if (opts.env?.DORKA_HISTFILE === undefined) {
+    delete env.DORKA_HISTFILE
   }
   removeInheritedDevAgentHookEndpoint(env, opts.env)
   delete env.ELECTRON_RUN_AS_NODE

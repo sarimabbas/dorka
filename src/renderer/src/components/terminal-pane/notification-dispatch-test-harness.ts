@@ -85,7 +85,7 @@ function buildNotificationDispatchMockState(): NotificationDispatchMockState {
         }
       ]
     },
-    repos: [{ id: 'repo1', displayName: 'orca', connectionId: null }],
+    repos: [{ id: 'repo1', displayName: 'dorka', connectionId: null }],
     settings: { experimentalTerminalAttention: true, notifications: { customSoundPath: null } },
     markWorktreeUnread: vi.fn(),
     markTerminalTabUnread: vi.fn(),

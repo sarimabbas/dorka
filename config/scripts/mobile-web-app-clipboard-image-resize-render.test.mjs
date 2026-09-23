@@ -72,7 +72,7 @@ async function measuredDimensions(base64) {
   return { width: image.naturalWidth, height: image.naturalHeight }
 }
 
-globalThis.__orcaResizeCheck = async ({ width, height, maxBase64Length, attempts }) => {
+globalThis.__dorkaResizeCheck = async ({ width, height, maxBase64Length, attempts }) => {
   const source = noisePng(width, height)
   const resizes = []
   let data = source
@@ -100,7 +100,7 @@ globalThis.__orcaResizeCheck = async ({ width, height, maxBase64Length, attempts
   }
 }
 
-globalThis.__orcaResizeRefusal = async (source) => {
+globalThis.__dorkaResizeRefusal = async (source) => {
   try {
     await resizeMobileClipboardImage(source, { width: 8, height: 8 })
     return null
@@ -159,7 +159,7 @@ beforeAll(async () => {
   const served = await createBundleServer({ outDir, cspHeader })
   server = served.server
   origin = served.origin
-  const executablePath = process.env.ORCA_MOBILE_WEB_RENDER_BROWSER
+  const executablePath = process.env.DORKA_MOBILE_WEB_RENDER_BROWSER
   browser = await chromium.launch({
     headless: true,
     ...(executablePath ? { executablePath } : {})
@@ -188,9 +188,9 @@ async function openPage() {
   })
   page.on('pageerror', (error) => consoleErrors.push(error.message))
   await page.addInitScript(() => {
-    globalThis.__orcaCspViolations = []
+    globalThis.__dorkaCspViolations = []
     document.addEventListener('securitypolicyviolation', (event) => {
-      globalThis.__orcaCspViolations.push(event.violatedDirective)
+      globalThis.__dorkaCspViolations.push(event.violatedDirective)
     })
   })
   await page.goto(`${origin}/`, { waitUntil: 'domcontentloaded' })
@@ -206,7 +206,7 @@ describeResize(
     it('brings a noise PNG under the upload chunk, and says what it weighed', async () => {
       const { page, context, consoleErrors } = await openPage()
       try {
-        const measured = await page.evaluate((args) => globalThis.__orcaResizeCheck(args), {
+        const measured = await page.evaluate((args) => globalThis.__dorkaResizeCheck(args), {
           ...FIXTURE,
           maxBase64Length: uploadChunkBase64Chars,
           attempts: 3
@@ -227,7 +227,7 @@ describeResize(
         // The policy admits the source: the `data:` of `img-src 'self' data: https:` is what the
         // decode rests on, and a page that violated it would still resolve `decode()` on some
         // browsers.
-        expect(await page.evaluate(() => globalThis.__orcaCspViolations)).toEqual([])
+        expect(await page.evaluate(() => globalThis.__dorkaCspViolations)).toEqual([])
         expect(consoleErrors).toEqual([])
       } finally {
         await context.close()
@@ -240,7 +240,7 @@ describeResize(
         // `onload` never fires for this; `decode()` is what makes it a rejection the paste's own
         // catch can put on screen.
         const message = await page.evaluate(
-          (source) => globalThis.__orcaResizeRefusal(source),
+          (source) => globalThis.__dorkaResizeRefusal(source),
           'bm90LWFuLWltYWdl'
         )
         expect(message).toMatch(/decode/i)

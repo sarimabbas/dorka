@@ -1,7 +1,7 @@
 import { createServer, type Server } from 'node:http'
 import type { AddressInfo } from 'node:net'
 import type { ElectronApplication, Page, TestInfo } from '@stablyai/playwright-test'
-import { expect, test } from './helpers/orca-app'
+import { expect, test } from './helpers/dorka-app'
 import { launchHeadlessPairedRuntimeHost } from './helpers/headless-paired-runtime-host'
 import {
   createRuntimeDesktopPairingOffer,
@@ -316,14 +316,14 @@ async function runClientHostedBrowserJourney(args: {
 
 test('hosts a paired browser on the viewing desktop and keeps the kill switch new-page-only', async ({
   electronApp,
-  orcaPage,
+  dorkaPage,
   testRepoPath
 }, testInfo) => {
   test.setTimeout(300_000)
-  await waitForSessionReady(orcaPage)
-  await waitForActiveWorktree(orcaPage)
-  await ensureTerminalVisible(orcaPage)
-  const offer = await createRuntimeDesktopPairingOffer(orcaPage)
+  await waitForSessionReady(dorkaPage)
+  await waitForActiveWorktree(dorkaPage)
+  await ensureTerminalVisible(dorkaPage)
+  const offer = await createRuntimeDesktopPairingOffer(dorkaPage)
   await runClientHostedBrowserJourney({
     hostApp: electronApp,
     offer,

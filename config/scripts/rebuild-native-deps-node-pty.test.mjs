@@ -30,14 +30,14 @@ describe('rebuild-native-deps patched node-pty rebuild', () => {
       try {
         const rebuildLogPath = join(projectDir, 'electron-rebuild.log')
         writeFakeUsableElectronPackage(projectDir, { platform: 'win32' })
-        writeFakeElectronRebuild(projectDir, { logPathEnv: 'ORCA_REBUILD_TEST_LOG' })
+        writeFakeElectronRebuild(projectDir, { logPathEnv: 'DORKA_REBUILD_TEST_LOG' })
         writeFakeLoadableNodePty(projectDir, { nativeDir: '../build/Release/' })
         writeFakeWindowsRegistry(projectDir)
         writeFakeWindowsProcessTree(projectDir)
         writeFakeNodePtyConptyPayload(projectDir, process.arch)
 
         const result = runRebuildScript(projectDir, {
-          ORCA_REBUILD_TEST_LOG: rebuildLogPath,
+          DORKA_REBUILD_TEST_LOG: rebuildLogPath,
           npm_config_platform: 'win32',
           npm_config_arch: process.arch
         })
@@ -228,21 +228,21 @@ describe('rebuild-native-deps patched node-pty rebuild', () => {
       try {
         const rebuildLogPath = join(projectDir, 'electron-rebuild.log')
         writeFakeUsableElectronPackage(projectDir, { platform: 'win32' })
-        writeFakeElectronRebuild(projectDir, { logPathEnv: 'ORCA_REBUILD_TEST_LOG' })
+        writeFakeElectronRebuild(projectDir, { logPathEnv: 'DORKA_REBUILD_TEST_LOG' })
         writeFakeLoadableNodePty(projectDir)
         writeFakeWindowsProcessTree(projectDir)
         writeFakeNodePtyConptyPayload(projectDir, process.arch)
 
         const result = runRebuildScript(projectDir, {
-          ORCA_REBUILD_TEST_LOG: rebuildLogPath,
+          DORKA_REBUILD_TEST_LOG: rebuildLogPath,
           npm_config_platform: 'win32',
           npm_config_arch: process.arch
         })
 
         expect(result.status, result.stderr).toBe(0)
-        expect(result.stdout).toContain('Rebuilding failed native modules: @orca/windows-registry')
+        expect(result.stdout).toContain('Rebuilding failed native modules: @dorka/windows-registry')
         const rebuildCall = JSON.parse(readFileSync(rebuildLogPath, 'utf8').trim())
-        expect(rebuildCall.onlyModules).toEqual(['@orca/windows-registry'])
+        expect(rebuildCall.onlyModules).toEqual(['@dorka/windows-registry'])
       } finally {
         removeTreeSync(projectDir)
       }
@@ -250,21 +250,21 @@ describe('rebuild-native-deps patched node-pty rebuild', () => {
   )
 
   it.skipIf(process.platform !== 'win32')(
-    'rebuilds a loadable ConPTY native that lacks Orca job ownership',
+    'rebuilds a loadable ConPTY native that lacks Dorka job ownership',
     () => {
       const projectDir = mkTempProject()
 
       try {
         const rebuildLogPath = join(projectDir, 'electron-rebuild.log')
         writeFakeUsableElectronPackage(projectDir, { platform: 'win32' })
-        writeFakeElectronRebuild(projectDir, { logPathEnv: 'ORCA_REBUILD_TEST_LOG' })
+        writeFakeElectronRebuild(projectDir, { logPathEnv: 'DORKA_REBUILD_TEST_LOG' })
         writeFakeLoadableNodePty(projectDir, { ownsPtyJob: false })
         writeFakeWindowsRegistry(projectDir)
         writeFakeWindowsProcessTree(projectDir)
         writeFakeNodePtyConptyPayload(projectDir, process.arch)
 
         const result = runRebuildScript(projectDir, {
-          ORCA_REBUILD_TEST_LOG: rebuildLogPath,
+          DORKA_REBUILD_TEST_LOG: rebuildLogPath,
           npm_config_platform: 'win32',
           npm_config_arch: process.arch
         })
@@ -291,7 +291,7 @@ describe('rebuild-native-deps patched node-pty rebuild', () => {
       try {
         const rebuildLogPath = join(projectDir, 'electron-rebuild.log')
         writeFakeUsableElectronPackage(projectDir, { platform: 'win32' })
-        writeFakeElectronRebuild(projectDir, { logPathEnv: 'ORCA_REBUILD_TEST_LOG' })
+        writeFakeElectronRebuild(projectDir, { logPathEnv: 'DORKA_REBUILD_TEST_LOG' })
         writeFakeLoadableNodePty(projectDir, { cygwinBreakawayDenied: false })
         writeFakeWindowsRegistry(projectDir)
         writeFakeWindowsProcessTree(projectDir)
@@ -299,7 +299,7 @@ describe('rebuild-native-deps patched node-pty rebuild', () => {
         writeFakeNodePtyConptySource(projectDir)
 
         const result = runRebuildScript(projectDir, {
-          ORCA_REBUILD_TEST_LOG: rebuildLogPath,
+          DORKA_REBUILD_TEST_LOG: rebuildLogPath,
           npm_config_platform: 'win32',
           npm_config_arch: process.arch
         })
@@ -324,12 +324,12 @@ describe('rebuild-native-deps patched node-pty rebuild', () => {
       try {
         const rebuildLogPath = join(projectDir, 'electron-rebuild.log')
         writeFakeUsableElectronPackage(projectDir)
-        writeFakeElectronRebuild(projectDir, { logPathEnv: 'ORCA_REBUILD_TEST_LOG' })
+        writeFakeElectronRebuild(projectDir, { logPathEnv: 'DORKA_REBUILD_TEST_LOG' })
         writeFakeLoadableNodePty(projectDir)
         writeNodePtyPatchFile(projectDir)
 
         const result = runRebuildScript(projectDir, {
-          ORCA_REBUILD_TEST_LOG: rebuildLogPath
+          DORKA_REBUILD_TEST_LOG: rebuildLogPath
         })
 
         expect(result.status, result.stderr).toBe(0)
@@ -355,13 +355,13 @@ describe('rebuild-native-deps patched node-pty rebuild', () => {
       try {
         const rebuildLogPath = join(projectDir, 'electron-rebuild.log')
         writeFakeUsableElectronPackage(projectDir)
-        writeFakeElectronRebuild(projectDir, { logPathEnv: 'ORCA_REBUILD_TEST_LOG' })
+        writeFakeElectronRebuild(projectDir, { logPathEnv: 'DORKA_REBUILD_TEST_LOG' })
         writeFakeLoadableNodePty(projectDir, { nativeDir: '../build/Release/' })
         writeNodePtyPatchFile(projectDir)
         writePatchedNodePtyBuildArtifacts(projectDir)
 
         const result = runRebuildScript(projectDir, {
-          ORCA_REBUILD_TEST_LOG: rebuildLogPath
+          DORKA_REBUILD_TEST_LOG: rebuildLogPath
         })
 
         expect(result.status, result.stderr).toBe(0)
@@ -383,18 +383,20 @@ describe('rebuild-native-deps patched node-pty rebuild', () => {
       try {
         const rebuildLogPath = join(projectDir, 'electron-rebuild.log')
         writeFakeUsableElectronPackage(projectDir)
-        writeFakeElectronRebuild(projectDir, { logPathEnv: 'ORCA_REBUILD_TEST_LOG' })
+        writeFakeElectronRebuild(projectDir, { logPathEnv: 'DORKA_REBUILD_TEST_LOG' })
         writeFakeLoadableNodePty(projectDir, { nativeDir: '../prebuilds/darwin-arm64/' })
         writeNodePtyPatchFile(projectDir)
         writePatchedNodePtyBuildArtifacts(projectDir)
 
         const result = runRebuildScript(projectDir, {
-          ORCA_REBUILD_TEST_LOG: rebuildLogPath
+          DORKA_REBUILD_TEST_LOG: rebuildLogPath
         })
 
         expect(result.status, result.stderr).toBe(0)
         expect(result.stdout).toContain('Rebuilding failed native modules: node-pty')
-        expect(result.stdout).toContain("expected build/Release so Orca's node-pty patch is active")
+        expect(result.stdout).toContain(
+          "expected build/Release so Dorka's node-pty patch is active"
+        )
 
         const rebuildCall = JSON.parse(readFileSync(rebuildLogPath, 'utf8').trim())
         expect(rebuildCall.onlyModules).toEqual(['node-pty'])
@@ -474,7 +476,7 @@ describe('rebuild-native-deps patched node-pty rebuild', () => {
     try {
       const rebuildLogPath = join(projectDir, 'electron-rebuild.log')
       writeFakeUsableElectronPackage(projectDir, { platform: 'win32' })
-      writeFakeElectronRebuild(projectDir, { logPathEnv: 'ORCA_REBUILD_TEST_LOG' })
+      writeFakeElectronRebuild(projectDir, { logPathEnv: 'DORKA_REBUILD_TEST_LOG' })
       writeFakeNodePtyConptyPayload(projectDir, 'x64')
       writeFakeNodePtyConptySource(projectDir, { cygwinBreakawayDenied: false })
       writeFakeWindowsProcessTreeWithNodeAddonApi(projectDir)
@@ -482,7 +484,7 @@ describe('rebuild-native-deps patched node-pty rebuild', () => {
       const result = runRebuildScript(
         projectDir,
         {
-          ORCA_REBUILD_TEST_LOG: rebuildLogPath,
+          DORKA_REBUILD_TEST_LOG: rebuildLogPath,
           npm_config_platform: 'win32',
           npm_config_arch: 'x64'
         },
@@ -505,7 +507,7 @@ describe('rebuild-native-deps patched node-pty rebuild', () => {
     try {
       const rebuildLogPath = join(projectDir, 'electron-rebuild.log')
       writeFakeUsableElectronPackage(projectDir, { platform: 'win32' })
-      writeFakeElectronRebuild(projectDir, { logPathEnv: 'ORCA_REBUILD_TEST_LOG' })
+      writeFakeElectronRebuild(projectDir, { logPathEnv: 'DORKA_REBUILD_TEST_LOG' })
       writeFakeNodePtyConptyPayload(projectDir, 'x64')
       writeFakeNodePtyConptySource(projectDir)
       writeFakeWindowsProcessTreeWithNodeAddonApi(projectDir)
@@ -513,7 +515,7 @@ describe('rebuild-native-deps patched node-pty rebuild', () => {
       const result = runRebuildScript(
         projectDir,
         {
-          ORCA_REBUILD_TEST_LOG: rebuildLogPath,
+          DORKA_REBUILD_TEST_LOG: rebuildLogPath,
           npm_config_platform: 'win32',
           npm_config_arch: 'x64'
         },

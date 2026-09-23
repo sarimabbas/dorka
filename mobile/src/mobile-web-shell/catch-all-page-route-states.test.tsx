@@ -9,7 +9,7 @@
 import { createElement } from 'react'
 import { act, create, type ReactTestInstance, type ReactTestRenderer } from 'react-test-renderer'
 import { beforeEach, describe, expect, it, vi, type Mock } from 'vitest'
-import type { OrcaMobileWebShellViewProps } from '../../modules/orca-mobile-web-shell/src'
+import type { DorkaMobileWebShellViewProps } from '../../modules/dorka-mobile-web-shell/src'
 import type { MobileWebShellSessionState } from './mobile-web-shell-session-contract'
 
 type Dependencies = {
@@ -61,7 +61,7 @@ vi.mock('expo-document-picker', () => ({ getDocumentAsync: () => Promise.resolve
 // Dictation's device half, which the shell screen reaches through the audio verbs. The real module
 // touches the Expo global at import and this test has none; what each verb does is
 // `bridge-audio-verbs.test.ts`.
-vi.mock('@orca/expo-two-way-audio', () => ({
+vi.mock('@dorka/expo-two-way-audio', () => ({
   addExpoTwoWayAudioEventListener: () => ({ remove: () => {} }),
   initialize: () => Promise.resolve(true),
   requestMicrophonePermissionsAsync: () =>
@@ -109,11 +109,11 @@ vi.mock('expo-router', () => ({
   usePathname: () => '/h/host-1',
   useNavigation: () => ({ setOptions: vi.fn() })
 }))
-vi.mock('../../modules/orca-mobile-web-shell/src', async () => {
+vi.mock('../../modules/dorka-mobile-web-shell/src', async () => {
   const React = await import('react')
-  const loadState = await import('../../modules/orca-mobile-web-shell/src/load-state')
+  const loadState = await import('../../modules/dorka-mobile-web-shell/src/load-state')
   return {
-    OrcaMobileWebShellView: (props: OrcaMobileWebShellViewProps) =>
+    DorkaMobileWebShellView: (props: DorkaMobileWebShellViewProps) =>
       React.createElement('ShellViewProbe', props),
     parseMobileWebShellLoadState: loadState.parseMobileWebShellLoadState
   }
@@ -197,7 +197,7 @@ beforeEach(() => {
   dependencies.replace.mockClear()
   dependencies.push.mockClear()
   dependencies.storage.clear()
-  dependencies.storage.set('orca:mobileWebShellEnabled', 'true')
+  dependencies.storage.set('dorka:mobileWebShellEnabled', 'true')
 })
 
 describe('the screen the catch-all paints for each shell state', () => {

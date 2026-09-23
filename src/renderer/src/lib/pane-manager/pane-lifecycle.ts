@@ -6,7 +6,7 @@ import {
 } from './pane-fit-resize-observer'
 import { clearPendingSplitScrollRestore } from './pane-split-scroll'
 import { cancelDeferredScrollRestore } from './pane-scroll'
-import { activateOrcaTerminalUnicodeProvider } from '../../../../shared/terminal-unicode-provider'
+import { activateDorkaTerminalUnicodeProvider } from '../../../../shared/terminal-unicode-provider'
 import { attachTerminalMouseWheelMultiplier } from './pane-terminal-mouse-wheel'
 import { attachTerminalScrollIntentTracking } from './terminal-scroll-intent-dom-tracking'
 import {
@@ -81,7 +81,7 @@ export function openTerminal(
     linkTooltip
   )
 
-  // Activate Orca's Unicode 11 width shim *before* any caller-driven write. CJK / emoji /
+  // Activate Dorka's Unicode 11 width shim *before* any caller-driven write. CJK / emoji /
   // ZWJ codepoints get baked into the buffer at the active unicode version on
   // write — if a restore (snapshot, scrollback, cold-restore) writes bytes
   // through xterm while the default v6 width tables are still active, wide
@@ -90,7 +90,7 @@ export function openTerminal(
   // (replayTerminalLayout → splitPane/createInitialPane → openTerminal,
   // restoreScrollbackBuffers, handleReattachResult) run after openTerminal,
   // so the activation must stay at this position.
-  activateOrcaTerminalUnicodeProvider(terminal)
+  activateDorkaTerminalUnicodeProvider(terminal)
 
   // Why: any xterm character joiner makes every repaint scan the whole grid.
   // Defer registration until the first RTL write; replay and live paths both
@@ -109,7 +109,7 @@ export function openTerminal(
   if (ligatures) {
     attachLigatures(pane)
   }
-  // Deferred attachment restores Orca's DA1 handler after the addon registers its own.
+  // Deferred attachment restores Dorka's DA1 handler after the addon registers its own.
   if (inlineImages) {
     attachInlineImages(pane)
   }

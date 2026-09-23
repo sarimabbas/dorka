@@ -11,9 +11,9 @@ const DEFAULT_MARKETING_REPO = path.join(
   'source',
   'repos',
   'Stably',
-  'orca-marketing-website'
+  'dorka-marketing-website'
 )
-const MARKETING_REPO = process.env.ORCA_MARKETING_REPO || DEFAULT_MARKETING_REPO
+const MARKETING_REPO = process.env.DORKA_MARKETING_REPO || DEFAULT_MARKETING_REPO
 const DEST_ROOT = path.join(ROOT, 'resources', 'onboarding', 'feature-wall')
 
 const TILES = [
@@ -30,8 +30,8 @@ const TILES = [
   },
   {
     id: 'tile-03',
-    gifRelativePath: 'public/whats-new/orca-github.gif',
-    posterRelativePath: 'public/whats-new/posters/orca-github.jpg'
+    gifRelativePath: 'public/whats-new/dorka-github.gif',
+    posterRelativePath: 'public/whats-new/posters/dorka-github.jpg'
   },
   {
     id: 'tile-04',
@@ -40,8 +40,8 @@ const TILES = [
   },
   {
     id: 'tile-05',
-    gifRelativePath: 'public/whats-new/orca-design-mode.gif',
-    posterRelativePath: 'public/whats-new/posters/orca-design-mode.jpg'
+    gifRelativePath: 'public/whats-new/dorka-design-mode.gif',
+    posterRelativePath: 'public/whats-new/posters/dorka-design-mode.jpg'
   },
   {
     id: 'tile-06',
@@ -60,8 +60,8 @@ const TILES = [
   },
   {
     id: 'tile-09',
-    gifRelativePath: 'public/whats-new/orca-cli-demo.gif',
-    posterRelativePath: 'public/whats-new/posters/orca-cli-demo.jpg'
+    gifRelativePath: 'public/whats-new/dorka-cli-demo.gif',
+    posterRelativePath: 'public/whats-new/posters/dorka-cli-demo.jpg'
   },
   {
     id: 'tile-10',
@@ -75,8 +75,8 @@ const TILES = [
   },
   {
     id: 'tile-12',
-    gifRelativePath: 'public/whats-new/orca-markdown-editor.gif',
-    posterRelativePath: 'public/whats-new/posters/orca-markdown-editor.jpg'
+    gifRelativePath: 'public/whats-new/dorka-markdown-editor.gif',
+    posterRelativePath: 'public/whats-new/posters/dorka-markdown-editor.jpg'
   }
 ]
 

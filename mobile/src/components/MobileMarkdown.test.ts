@@ -36,11 +36,11 @@ describe('parseMobileMarkdown', () => {
   })
 
   it('parses GFM tables into table blocks', () => {
-    expect(parseMobileMarkdown('| Name | State |\n| --- | --- |\n| Orca | Open |')).toEqual([
+    expect(parseMobileMarkdown('| Name | State |\n| --- | --- |\n| Dorka | Open |')).toEqual([
       {
         type: 'table',
         headers: ['Name', 'State'],
-        rows: [['Orca', 'Open']]
+        rows: [['Dorka', 'Open']]
       }
     ])
   })
@@ -78,8 +78,8 @@ describe('parseMobileMarkdown', () => {
   it('normalizes common README HTML into readable Markdown preview text', () => {
     const normalized = normalizeMobileMarkdownPreviewHtml(`
 <h1 align="center">
-  <a href="https://onOrca.dev"><img src="resources/build/icon.png" alt="Orca" width="64" /></a>
-  Orca
+  <a href="https://onDorka.dev"><img src="resources/build/icon.png" alt="Dorka" width="64" /></a>
+  Dorka
 </h1>
 
 <p align="center">
@@ -89,7 +89,7 @@ describe('parseMobileMarkdown', () => {
 </p>
 `)
 
-    expect(normalized).toContain('# [Orca](https://onOrca.dev)')
+    expect(normalized).toContain('# [Dorka](https://onDorka.dev)')
     expect(normalized).toContain('[GitHub stars](https://github.com/stablyai/orca/stargazers)')
     expect(normalized).toContain('**The AI Orchestrator**')
     expect(normalized).not.toContain('<h1')
@@ -143,8 +143,8 @@ describe('parseMobileMarkdown', () => {
     expect(normalizeMobileMarkdownPreviewHtml('<T> is a type parameter')).toBe(
       '<T> is a type parameter'
     )
-    expect(normalizeMobileMarkdownPreviewHtml('<mailto:orca@example.com>')).toBe(
-      '<mailto:orca@example.com>'
+    expect(normalizeMobileMarkdownPreviewHtml('<mailto:dorka@example.com>')).toBe(
+      '<mailto:dorka@example.com>'
     )
     expect(normalizeMobileMarkdownPreviewHtml('<ftp://example.com/file>')).toBe(
       '<ftp://example.com/file>'
@@ -193,7 +193,7 @@ describe('parseMobileMarkdown', () => {
   })
 
   it('does not replace literal code placeholder text in markdown prose', () => {
-    const literalPlaceholder = '\uE000ORCA_MD_CODE_0\uE000'
+    const literalPlaceholder = '\uE000DORKA_MD_CODE_0\uE000'
     expect(normalizeMobileMarkdownPreviewHtml(`${literalPlaceholder} and \`Array<string>\``)).toBe(
       `${literalPlaceholder} and \`Array<string>\``
     )

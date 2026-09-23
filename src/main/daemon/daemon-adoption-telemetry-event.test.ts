@@ -72,7 +72,7 @@ const stalePidRecord: ParsedDaemonPid = {
   linuxStartTicks: null,
   bootId: null,
   spawnerExecPath:
-    '/Users/alice/Library/Caches/com.stablyai.orca.ShipIt/u/Orca.app/Contents/MacOS/Orca',
+    '/Users/alice/Library/Caches/com.stablyai.dorka.ShipIt/u/Dorka.app/Contents/MacOS/Dorka',
   cgroupUnit: null
 }
 const origin = {
@@ -184,7 +184,7 @@ describe('trackDaemonPtyCwdVerdict', () => {
       JSON.stringify({
         ...stalePidRecord,
         appVersion: '1.4.191',
-        spawnerExecPath: '/Applications/Orca.app/Contents/MacOS/Orca'
+        spawnerExecPath: '/Applications/Dorka.app/Contents/MacOS/Dorka'
       })
     )
     await trackDaemonPtyCwdVerdict('daemon_pty_cwd_denied', DENIED_CWD, PID_PATH)

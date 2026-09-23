@@ -1,7 +1,7 @@
 // Answers the one question the running daemon cannot (STA-7948): would a daemon forked by THIS
 // app, right now, be able to list this folder? macOS attributes a TCC grant to the process that
 // forked the child, so only a fresh child of the current app binary can tell the user whether
-// restarting the terminal service is the remedy or whether they must re-allow Orca first.
+// restarting the terminal service is the remedy or whether they must re-allow Dorka first.
 
 import { isAbsolute } from 'node:path'
 import { runProcess } from '../../shared/child-process/run-process'

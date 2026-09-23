@@ -29,11 +29,11 @@ import {
   parseBuildToolchainProbe,
   type BuildToolchainStatus
 } from '../main/ssh/build-toolchain-diagnosis'
-import { detectNativeHostAbi } from '../main/orcad/native-host-abi'
+import { detectNativeHostAbi } from '../main/dorkad/native-host-abi'
 import {
   buildNodePtyLoadProbeScript,
   readNodePtyProbeOutcome
-} from '../main/orcad/node-pty-precondition'
+} from '../main/dorkad/node-pty-precondition'
 import {
   diagnoseNodePtyUnavailable,
   type NodePtyBindingSurvey,

@@ -91,21 +91,21 @@ describe('the hybrid shell route', () => {
   })
 
   it('redirects with the flag explicitly off', async () => {
-    dependencies.storage.set('orca:mobileWebShellEnabled', 'false')
+    dependencies.storage.set('dorka:mobileWebShellEnabled', 'false')
     const tree = await renderRoute()
     expect(byName(tree, 'Redirect')).toHaveLength(1)
     expect(dependencies.mounted).toEqual([])
   })
 
   it('mounts the shell screen for this host with the flag on', async () => {
-    dependencies.storage.set('orca:mobileWebShellEnabled', 'true')
+    dependencies.storage.set('dorka:mobileWebShellEnabled', 'true')
     const tree = await renderRoute()
     expect(byName(tree, 'Redirect')).toEqual([])
     expect(dependencies.mounted).toEqual(['host-1'])
   })
 
   it('encodes the host id into the pathname, so no host id can bend the route', async () => {
-    dependencies.storage.set('orca:mobileWebShellEnabled', 'true')
+    dependencies.storage.set('dorka:mobileWebShellEnabled', 'true')
     // Every shape the bridge's pathname rule refuses, reached through a host id the app will
     // happily route to: a query, a fragment, whitespace, a separator and a backslash.
     for (const hostId of ['a?b', 'a#b', 'a b', 'a/b', 'a\\b']) {
@@ -121,7 +121,7 @@ describe('the hybrid shell route', () => {
   })
 
   it('cannot encode a dot-segment host id away, and does not pretend to', async () => {
-    dependencies.storage.set('orca:mobileWebShellEnabled', 'true')
+    dependencies.storage.set('dorka:mobileWebShellEnabled', 'true')
     dependencies.hostId = '..'
     await renderRoute()
     // `encodeURIComponent` leaves a dot alone, and percent-escaping one would not help either: the
@@ -134,14 +134,14 @@ describe('the hybrid shell route', () => {
 
   it('redirects a store build whose container kept a flag a development build set', async () => {
     setDevelopmentBuild(undefined)
-    dependencies.storage.set('orca:mobileWebShellEnabled', 'true')
+    dependencies.storage.set('dorka:mobileWebShellEnabled', 'true')
     const tree = await renderRoute()
     expect(byName(tree, 'Redirect')).toHaveLength(1)
     expect(dependencies.mounted).toEqual([])
   })
 
   it('neither redirects nor mounts until the flag has been read', async () => {
-    dependencies.storage.set('orca:mobileWebShellEnabled', 'true')
+    dependencies.storage.set('dorka:mobileWebShellEnabled', 'true')
     const rendered: { tree: ReactTestRenderer | null } = { tree: null }
     // No `await` inside act: the effect's promise is deliberately left unsettled.
     act(() => {

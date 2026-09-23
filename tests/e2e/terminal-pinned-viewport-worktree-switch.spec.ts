@@ -2,7 +2,7 @@ import { randomUUID } from 'node:crypto'
 import { rmSync, writeFileSync } from 'node:fs'
 import path from 'node:path'
 import type { Page } from '@stablyai/playwright-test'
-import { expect, test } from './helpers/orca-app'
+import { expect, test } from './helpers/dorka-app'
 import {
   ensureTerminalVisible,
   getAllWorktreeIds,
@@ -39,7 +39,7 @@ await writeStdout('PINNED_VIEWPORT_SWITCH_${runId}_DONE\\n')
 async function closeFeatureTips(page: Page): Promise<void> {
   await page.evaluate(() => {
     const store = window.__store
-    store?.getState().markFeatureTipsSeen(['orca-cli', 'cmd-j-palette', 'voice-dictation'])
+    store?.getState().markFeatureTipsSeen(['dorka-cli', 'cmd-j-palette', 'voice-dictation'])
     if (store?.getState().activeModal === 'feature-tips') {
       store.getState().closeModal()
     }
@@ -120,13 +120,13 @@ async function sampleTerminalViewportDuringReturn(
 
 test.describe('Terminal pinned viewport worktree switch', () => {
   test('does not jump or flash when returning to a viewport pinned just above bottom', async ({
-    orcaPage,
+    dorkaPage,
     testRepoPath
   }) => {
-    await waitForSessionReady(orcaPage)
-    await closeFeatureTips(orcaPage)
-    const firstWorktreeId = await waitForActiveWorktree(orcaPage)
-    const secondWorktreeId = (await getAllWorktreeIds(orcaPage)).find(
+    await waitForSessionReady(dorkaPage)
+    await closeFeatureTips(dorkaPage)
+    const firstWorktreeId = await waitForActiveWorktree(dorkaPage)
+    const secondWorktreeId = (await getAllWorktreeIds(dorkaPage)).find(
       (id) => id !== firstWorktreeId
     )
     test.skip(!secondWorktreeId, 'pinned viewport repro needs the seeded secondary worktree')
@@ -134,34 +134,34 @@ test.describe('Terminal pinned viewport worktree switch', () => {
       return
     }
 
-    await ensureTerminalVisible(orcaPage)
-    await waitForActiveTerminalManager(orcaPage, 30_000)
-    const ptyId = await waitForActivePanePtyId(orcaPage)
-    await waitForPtyShellEcho(orcaPage, ptyId, 15_000)
+    await ensureTerminalVisible(dorkaPage)
+    await waitForActiveTerminalManager(dorkaPage, 30_000)
+    const ptyId = await waitForActivePanePtyId(dorkaPage)
+    await waitForPtyShellEcho(dorkaPage, ptyId, 15_000)
     const runId = randomUUID()
-    const scriptPath = path.join(testRepoPath, `.orca-pinned-viewport-${runId}.mjs`)
+    const scriptPath = path.join(testRepoPath, `.dorka-pinned-viewport-${runId}.mjs`)
     writeFileSync(scriptPath, scrollbackFixtureScript(runId))
 
     try {
-      await sendToTerminal(orcaPage, ptyId, `${nodeTerminalCommand([scriptPath])}\r`)
+      await sendToTerminal(dorkaPage, ptyId, `${nodeTerminalCommand([scriptPath])}\r`)
       await expect
-        .poll(() => getTerminalContent(orcaPage, 30_000), {
+        .poll(() => getTerminalContent(dorkaPage, 30_000), {
           timeout: 10_000,
           message: 'pinned viewport fixture did not reach terminal scrollback'
         })
         .toContain(`PINNED_VIEWPORT_SWITCH_${runId}_DONE`)
 
-      const pinned = await pinActiveTerminalNearBottom(orcaPage)
+      const pinned = await pinActiveTerminalNearBottom(dorkaPage)
       expect(pinned.baseY).toBeGreaterThan(20)
-      await orcaPage.waitForTimeout(50)
-      await switchToWorktree(orcaPage, secondWorktreeId)
-      await waitForActiveTerminalManager(orcaPage, 30_000)
-      await orcaPage.waitForTimeout(250)
+      await dorkaPage.waitForTimeout(50)
+      await switchToWorktree(dorkaPage, secondWorktreeId)
+      await waitForActiveTerminalManager(dorkaPage, 30_000)
+      await dorkaPage.waitForTimeout(250)
 
-      const samplesPromise = sampleTerminalViewportDuringReturn(orcaPage, pinned.tabId, 450)
-      await switchToWorktree(orcaPage, firstWorktreeId)
-      await ensureTerminalVisible(orcaPage)
-      await waitForActiveTerminalManager(orcaPage, 30_000)
+      const samplesPromise = sampleTerminalViewportDuringReturn(dorkaPage, pinned.tabId, 450)
+      await switchToWorktree(dorkaPage, firstWorktreeId)
+      await ensureTerminalVisible(dorkaPage)
+      await waitForActiveTerminalManager(dorkaPage, 30_000)
       const samples = await samplesPromise
       expect(samples.length).toBeGreaterThan(0)
       expect(samples.filter((sample) => sample.viewportY <= 1)).toEqual([])

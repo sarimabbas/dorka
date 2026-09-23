@@ -8,7 +8,7 @@ import { pathToFileURL } from 'node:url'
 import { getPiAgentStatusExtensionSource } from '../../src/main/pi/agent-status-extension-source.ts'
 
 assert.ok(process.argv[2], 'Pass a read-only OMP checkout path')
-const scratch = await mkdtemp(join(tmpdir(), 'orca-omp-input-redaction-'))
+const scratch = await mkdtemp(join(tmpdir(), 'dorka-omp-input-redaction-'))
 process.env.HOME = join(scratch, 'home')
 process.env.USERPROFILE = process.env.HOME
 process.env.XDG_CONFIG_HOME = join(scratch, 'config')
@@ -22,8 +22,8 @@ for (const key of [
   'OMP_PROFILE',
   'PI_PROFILE',
   'PI_CONFIG_FILES',
-  'ORCA_AGENT_HOOK_ENDPOINT',
-  'ORCA_PI_STATUS_OWNED'
+  'DORKA_AGENT_HOOK_ENDPOINT',
+  'DORKA_PI_STATUS_OWNED'
 ]) {
   delete process.env[key]
 }
@@ -45,10 +45,10 @@ const server = createServer(async (request, response) => {
 await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve))
 const manager = SessionManager.inMemory(scratch)
 try {
-  process.env.ORCA_PANE_KEY = 'redaction-test-pane'
-  process.env.ORCA_AGENT_HOOK_PORT = String(server.address().port)
-  process.env.ORCA_AGENT_HOOK_TOKEN = 'synthetic-test-token'
-  const extensionPath = join(scratch, 'orca-agent-status.ts')
+  process.env.DORKA_PANE_KEY = 'redaction-test-pane'
+  process.env.DORKA_AGENT_HOOK_PORT = String(server.address().port)
+  process.env.DORKA_AGENT_HOOK_TOKEN = 'synthetic-test-token'
+  const extensionPath = join(scratch, 'dorka-agent-status.ts')
   await writeFile(extensionPath, getPiAgentStatusExtensionSource('omp'))
   const loaded = await loadExtensions([extensionPath], scratch, new EventBus())
   assert.deepEqual(loaded.errors, [])

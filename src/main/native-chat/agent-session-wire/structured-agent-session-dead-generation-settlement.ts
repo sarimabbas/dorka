@@ -120,7 +120,7 @@ export async function settleStructuredAgentSessionDeadGeneration(input: {
     if (showUnexpectedExitOutcome) {
       mutations.push({
         kind: 'item',
-        identity: { provider: 'orca', clientMessageId: input.settlementId },
+        identity: { provider: 'dorka', clientMessageId: input.settlementId },
         body: {
           kind: 'status',
           text: boundJournalStatusText(unexpectedProviderExitOutcome(input.unexpectedExitReason))

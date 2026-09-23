@@ -1,6 +1,6 @@
 /**
  * Executes the generated OpenCode plugin source because fail-open ownership
- * lives inside OpenCode's process, not in Orca's TypeScript runtime.
+ * lives inside OpenCode's process, not in Dorka's TypeScript runtime.
  */
 import { mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
@@ -32,10 +32,10 @@ type RecordedPost = {
 }
 
 const ENV_KEYS = [
-  'ORCA_PANE_KEY',
-  'ORCA_AGENT_HOOK_PORT',
-  'ORCA_AGENT_HOOK_TOKEN',
-  'ORCA_AGENT_HOOK_ENDPOINT'
+  'DORKA_PANE_KEY',
+  'DORKA_AGENT_HOOK_PORT',
+  'DORKA_AGENT_HOOK_TOKEN',
+  'DORKA_AGENT_HOOK_ENDPOINT'
 ] as const
 
 describe('OpenCode plugin fail-open ownership', () => {
@@ -45,16 +45,16 @@ describe('OpenCode plugin fail-open ownership', () => {
   let savedFetch: typeof globalThis.fetch
 
   beforeEach(() => {
-    tempDir = mkdtempSync(join(tmpdir(), 'orca-opencode-fail-open-plugin-'))
+    tempDir = mkdtempSync(join(tmpdir(), 'dorka-opencode-fail-open-plugin-'))
     posts = []
     savedEnv = {}
     for (const key of ENV_KEYS) {
       savedEnv[key] = process.env[key]
     }
-    process.env.ORCA_PANE_KEY = 'tab-1:leaf-1'
-    process.env.ORCA_AGENT_HOOK_PORT = '45678'
-    process.env.ORCA_AGENT_HOOK_TOKEN = 'test-token'
-    delete process.env.ORCA_AGENT_HOOK_ENDPOINT
+    process.env.DORKA_PANE_KEY = 'tab-1:leaf-1'
+    process.env.DORKA_AGENT_HOOK_PORT = '45678'
+    process.env.DORKA_AGENT_HOOK_TOKEN = 'test-token'
+    delete process.env.DORKA_AGENT_HOOK_ENDPOINT
     savedFetch = globalThis.fetch
     globalThis.fetch = vi.fn(async (_url: RequestInfo | URL, init?: RequestInit) => {
       posts.push(readPayload(init))
@@ -92,12 +92,12 @@ describe('OpenCode plugin fail-open ownership', () => {
   }
 
   async function loadHooksWithContext(context: unknown): Promise<PluginHooks> {
-    const pluginPath = join(tempDir, 'orca-opencode-status.mjs')
+    const pluginPath = join(tempDir, 'dorka-opencode-status.mjs')
     writeFileSync(pluginPath, _internals.getOpenCodePluginSource())
     const module = (await import(pathToFileURL(pluginPath).href)) as {
-      OrcaOpenCodeStatusPlugin: (ctx: unknown) => Promise<PluginHooks>
+      DorkaOpenCodeStatusPlugin: (ctx: unknown) => Promise<PluginHooks>
     }
-    return module.OrcaOpenCodeStatusPlugin(context)
+    return module.DorkaOpenCodeStatusPlugin(context)
   }
 
   function status(type: 'busy' | 'idle' | 'retry', sessionID = 'root'): PluginEvent {

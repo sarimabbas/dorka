@@ -2,7 +2,7 @@ import { ipcMain } from 'electron'
 import { appStarSourceSchema } from '../../shared/gh-star-source'
 import { githubHostFromIdentityKey } from '../../shared/github/repository-identity-key'
 import { diagnoseGhAuth } from '../github/auth-diagnose'
-import { checkOrcaStarred, getAuthenticatedViewer, starOrca } from '../github/client'
+import { checkDorkaStarred, getAuthenticatedViewer, starDorka } from '../github/client'
 import {
   listGhAccountBindingInventory,
   validateGhAccountBinding
@@ -15,12 +15,12 @@ import { assertRegisteredGitHubRepo, getGitHubLocalGitOptionArgs } from './githu
 
 export function registerGitHubAccountHandlers(store: Store): void {
   ipcMain.handle('gh:viewer', () => getAuthenticatedViewer())
-  ipcMain.handle('gh:checkOrcaStarred', () => checkOrcaStarred())
-  ipcMain.handle('gh:starOrca', async (_event, source: unknown) => {
+  ipcMain.handle('gh:checkDorkaStarred', () => checkDorkaStarred())
+  ipcMain.handle('gh:starDorka', async (_event, source: unknown) => {
     const sourceParse = appStarSourceSchema.safeParse(source)
-    const starred = await starOrca()
+    const starred = await starDorka()
     if (starred && sourceParse.success) {
-      track('app_starred_orca', {
+      track('app_starred_dorka', {
         source: sourceParse.data,
         ...getCohortAtEmit()
       })

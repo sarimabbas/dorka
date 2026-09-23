@@ -102,7 +102,7 @@ describe('buildSourceControlManualReviewUrl', () => {
         pushTarget: {
           remoteName: 'fork',
           branchName: 'feature/fork-head',
-          remoteUrl: 'git@github.com:contributor/orca.git'
+          remoteUrl: 'git@github.com:contributor/dorka.git'
         }
       })
     ).toBe('https://github.com/stablyai/orca/compare/main...contributor:feature/fork-head?expand=1')
@@ -128,12 +128,12 @@ describe('buildSourceControlManualReviewUrl', () => {
         baseRef: 'refs/remotes/origin/release/next',
         branchName: 'feature/gitlab',
         repoRemoteName: 'origin',
-        repoRemoteUrl: 'git@gitlab.company.test:group/sub/orca.git',
+        repoRemoteUrl: 'git@gitlab.company.test:group/sub/dorka.git',
         provider: 'gitlab',
         upstreamName: 'origin/feature/gitlab'
       })
     ).toBe(
-      'https://gitlab.company.test/group/sub/orca/-/merge_requests/new?merge_request%5Bsource_branch%5D=feature%2Fgitlab&merge_request%5Btarget_branch%5D=release%2Fnext'
+      'https://gitlab.company.test/group/sub/dorka/-/merge_requests/new?merge_request%5Bsource_branch%5D=feature%2Fgitlab&merge_request%5Btarget_branch%5D=release%2Fnext'
     )
   })
 
@@ -143,17 +143,17 @@ describe('buildSourceControlManualReviewUrl', () => {
         baseRef: 'refs/remotes/upstream/main',
         branchName: 'feature/fork-head',
         repoRemoteName: 'upstream',
-        repoRemoteUrl: 'git@gitlab.company.test:group/sub/orca.git',
+        repoRemoteUrl: 'git@gitlab.company.test:group/sub/dorka.git',
         provider: 'gitlab',
         pushTarget: {
           remoteName: 'fork',
           branchName: 'feature/fork-head',
-          remoteUrl: 'git@gitlab.company.test:contributor/orca.git'
+          remoteUrl: 'git@gitlab.company.test:contributor/dorka.git'
         }
       })
-      // On the fork project — not group/sub/orca, where source_branch would 404.
+      // On the fork project — not group/sub/dorka, where source_branch would 404.
     ).toBe(
-      'https://gitlab.company.test/contributor/orca/-/merge_requests/new?merge_request%5Bsource_branch%5D=feature%2Ffork-head&merge_request%5Btarget_branch%5D=main'
+      'https://gitlab.company.test/contributor/dorka/-/merge_requests/new?merge_request%5Bsource_branch%5D=feature%2Ffork-head&merge_request%5Btarget_branch%5D=main'
     )
   })
 
@@ -191,11 +191,11 @@ describe('buildSourceControlManualReviewUrl', () => {
         baseRef: 'refs/remotes/origin/main',
         branchName: 'feature/gitea',
         repoRemoteName: 'origin',
-        repoRemoteUrl: 'ssh://git@gitea.company.test/team/orca.git',
+        repoRemoteUrl: 'ssh://git@gitea.company.test/team/dorka.git',
         provider: 'gitea',
         upstreamName: 'origin/feature/gitea'
       })
-    ).toBe('https://gitea.company.test/team/orca/compare/main...feature/gitea')
+    ).toBe('https://gitea.company.test/team/dorka/compare/main...feature/gitea')
   })
 
   it('suppresses the link when the branch tracks a fork remote with no resolvable push URL', () => {
@@ -207,7 +207,7 @@ describe('buildSourceControlManualReviewUrl', () => {
         branchName: 'quick-commands',
         repoRemoteName: 'origin',
         repoRemoteUrl: 'https://github.com/stablyai/orca.git',
-        upstreamName: 'pr-devajmeireles-orca/quick-commands'
+        upstreamName: 'pr-devajmeireles-dorka/quick-commands'
       })
     ).toBeNull()
   })
@@ -224,18 +224,18 @@ describe('buildSourceControlManualReviewUrl', () => {
     ).toBe('https://github.com/stablyai/orca/compare/main...feature/pushed-name?expand=1')
   })
 
-  it('still qualifies the fork head when Orca resolved the fork push URL', () => {
+  it('still qualifies the fork head when Dorka resolved the fork push URL', () => {
     expect(
       buildSourceControlManualReviewUrl({
         baseRef: 'refs/remotes/origin/main',
         branchName: 'quick-commands',
         repoRemoteName: 'origin',
         repoRemoteUrl: 'https://github.com/stablyai/orca.git',
-        upstreamName: 'pr-devajmeireles-orca/quick-commands',
+        upstreamName: 'pr-devajmeireles-dorka/quick-commands',
         pushTarget: {
-          remoteName: 'pr-devajmeireles-orca',
+          remoteName: 'pr-devajmeireles-dorka',
           branchName: 'quick-commands',
-          remoteUrl: 'git@github.com:devajmeireles/orca.git'
+          remoteUrl: 'git@github.com:devajmeireles/dorka.git'
         }
       })
     ).toBe('https://github.com/stablyai/orca/compare/main...devajmeireles:quick-commands?expand=1')
@@ -247,7 +247,7 @@ describe('buildSourceControlManualReviewUrl', () => {
         baseRef: 'refs/remotes/origin/main',
         branchName: 'feature/unknown',
         repoRemoteName: 'origin',
-        repoRemoteUrl: 'git@git.company.test:team/orca.git',
+        repoRemoteUrl: 'git@git.company.test:team/dorka.git',
         upstreamName: 'origin/feature/unknown'
       })
     ).toBeNull()

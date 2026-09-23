@@ -40,13 +40,13 @@ describe('automation-list-search', () => {
     expect(resolveAutomationListSearchQuery(oversized)).toEqual({ status: 'too_large' })
     expect(
       automationListSearchFieldsMatch(
-        { name: 'Auto PR', project: 'orca', prompt: 'nudge' },
+        { name: 'Auto PR', project: 'dorka', prompt: 'nudge' },
         oversized
       )
     ).toBe(false)
 
     const items = [
-      { id: '1', name: 'Auto PR', project: 'orca', prompt: 'nudge' },
+      { id: '1', name: 'Auto PR', project: 'dorka', prompt: 'nudge' },
       { id: '2', name: 'Nightly', project: 'mobile', prompt: 'ship' }
     ]
     // Why: oversized paste must leave the list unfiltered, not blank it.
@@ -112,8 +112,8 @@ describe('automation-list-search', () => {
     expect(buildAutomationProjectSearchText({ displayName: '  ', path: null })).toBe(
       AUTOMATION_LIST_SEARCH_UNKNOWN_PROJECT
     )
-    expect(buildAutomationProjectSearchText({ displayName: 'orca', path: '/tmp/orca' })).toBe(
-      'orca /tmp/orca'
+    expect(buildAutomationProjectSearchText({ displayName: 'dorka', path: '/tmp/dorka' })).toBe(
+      'dorka /tmp/dorka'
     )
     const index = buildAutomationListSearchIndex({
       name: 'Orphan',
@@ -131,13 +131,13 @@ describe('automation-list-search', () => {
   it('matches workspace, agent, and host alongside name, project, and prompt', () => {
     const fields = {
       name: 'Auto PR assignment',
-      project: 'orca / main',
+      project: 'dorka / main',
       workspace: 'feature/login-retry',
       agent: 'Claude Code',
       host: 'build-box',
       prompt: 'Assign reviewers for open PRs'
     }
-    for (const query of ['assignment', 'ORCA', 'login-retry', 'claude', 'build-box', 'reviewers']) {
+    for (const query of ['assignment', 'DORKA', 'login-retry', 'claude', 'build-box', 'reviewers']) {
       expect(automationListSearchFieldsMatch(fields, query)).toBe(true)
     }
     expect(automationListSearchFieldsMatch(fields, 'missing')).toBe(false)
@@ -161,7 +161,7 @@ describe('automation-list-search', () => {
   })
 
   it('leaves absent workspace/agent/host axes empty rather than matching everything', () => {
-    const index = buildAutomationListSearchIndex({ name: 'Job', project: 'orca', prompt: 'hi' })
+    const index = buildAutomationListSearchIndex({ name: 'Job', project: 'dorka', prompt: 'hi' })
     expect(index.workspace).toBe('')
     expect(index.agent).toBe('')
     expect(index.host).toBe('')
@@ -195,20 +195,20 @@ describe('automation-list-search', () => {
   it('matches name, project, or prompt', () => {
     const fields = {
       name: 'Auto PR assignment',
-      project: 'orca / main',
+      project: 'dorka / main',
       prompt: 'Assign reviewers for open PRs'
     }
     expect(automationListSearchFieldsMatch(fields, 'assignment')).toBe(true)
-    expect(automationListSearchFieldsMatch(fields, 'ORCA')).toBe(true)
+    expect(automationListSearchFieldsMatch(fields, 'DORKA')).toBe(true)
     expect(automationListSearchFieldsMatch(fields, 'reviewers')).toBe(true)
     expect(automationListSearchFieldsMatch(fields, 'missing')).toBe(false)
   })
 
   it('filters by active query without re-resolving bounds', () => {
     const items = [
-      { id: '1', name: 'Auto Issue assignment', project: 'orca', prompt: 'triage issues' },
+      { id: '1', name: 'Auto Issue assignment', project: 'dorka', prompt: 'triage issues' },
       { id: '2', name: 'Nightly deploy', project: 'mobile', prompt: 'ship apk' },
-      { id: '3', name: 'PR nudge', project: 'orca', prompt: 'remind reviewers' }
+      { id: '3', name: 'PR nudge', project: 'dorka', prompt: 'remind reviewers' }
     ]
     const indexes = items.map((item) =>
       buildAutomationListSearchIndex({
@@ -221,7 +221,7 @@ describe('automation-list-search', () => {
       filterByActiveAutomationListSearchQuery(items, indexes, 'apk').map((item) => item.id)
     ).toEqual(['2'])
     expect(
-      filterByAutomationListSearchIndex(items, indexes, 'orca').map((item) => item.id)
+      filterByAutomationListSearchIndex(items, indexes, 'dorka').map((item) => item.id)
     ).toEqual(['1', '3'])
     expect(filterByAutomationListSearchIndex(items, indexes, '   ')).toBe(items)
     expect(

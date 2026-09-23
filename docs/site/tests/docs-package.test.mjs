@@ -43,7 +43,7 @@ function isMediaPath(urlPath) {
 test('docs package has an isolated, reproducible app contract', async () => {
   const packageJson = JSON.parse(await read('package.json'))
 
-  assert.equal(packageJson.name, '@orca/docs')
+  assert.equal(packageJson.name, '@dorka/docs')
   assert.equal(packageJson.private, true)
   assert.equal(packageJson.packageManager, 'pnpm@10.24.0')
   assert.equal(packageJson.engines.node, '22.x')
@@ -142,7 +142,7 @@ test('published docs do not retain private source provenance', async () => {
     const content = await readFile(file, 'utf8')
     assert.doesNotMatch(
       content,
-      /orca-(?:internal|marketing-website)|147cdfd|jinwoo@stably\.ai|demo-generation/i,
+      /dorka-(?:internal|marketing-website)|147cdfd|jinwoo@stably\.ai|demo-generation/i,
       path.relative(siteRoot, file)
     )
   }
@@ -187,10 +187,10 @@ test('docs routes stay namespaced and the generated source uses /docs as its bas
   assert.match(header, /<ThemeSwitch\b/)
   assert.match(footer, /<h2\b/)
   assert.match(appLayout, /(?:icon|shortcut):\s*['"]\/docs\/favicon\.ico['"]+/)
-  assert.match(ogImage, /public\/docs\/logo\.svg/)
-  assert.match(header, /src="\/docs\/logo\.svg"/)
-  assert.match(footer, /src="\/docs\/logo\.svg"/)
-  assert.ok(existsSync(path.join(publicRoot, 'docs', 'logo.svg')))
+  assert.match(ogImage, /public\/docs\/dorka-geek-app-icon\.png/)
+  assert.match(header, /src="\/docs\/dorka-geek-app-icon\.png"/)
+  assert.match(footer, /src="\/docs\/dorka-geek-app-icon\.png"/)
+  assert.ok(existsSync(path.join(publicRoot, 'docs', 'dorka-geek-app-icon.png')))
   assert.ok(existsSync(path.join(publicRoot, 'docs', 'favicon.ico')))
   assert.equal(existsSync(path.join(publicRoot, 'logo.svg')), false)
   assert.equal(existsSync(path.join(publicRoot, 'favicon.ico')), false)
@@ -210,12 +210,15 @@ test('docs routes stay namespaced and the generated source uses /docs as its bas
 
 test('GIF media helpers use the shared poster and video variants', async () => {
   const media = await import(pathToFileURL(path.join(siteRoot, 'src', 'lib', 'demoMedia.mjs')).href)
-  assert.equal(media.posterFor('/docs/orca-design-mode.gif'), '/docs/posters/orca-design-mode.jpg')
-  assert.equal(media.videoFor('/docs/orca-design-mode.gif'), '/docs/videos/orca-design-mode.mp4')
+  assert.equal(
+    media.posterFor('/docs/dorka-design-mode.gif'),
+    '/docs/posters/dorka-design-mode.jpg'
+  )
+  assert.equal(media.videoFor('/docs/dorka-design-mode.gif'), '/docs/videos/dorka-design-mode.mp4')
   assert.equal(media.posterFor('/docs/tab-split.gif'), '/docs/posters/tab-split.jpg')
   assert.equal(media.videoFor('/docs/tab-split.gif'), '/docs/videos/tab-split.mp4')
 
-  for (const name of ['orca-design-mode', 'tab-split']) {
+  for (const name of ['dorka-design-mode', 'tab-split']) {
     assert.ok(existsSync(path.join(publicRoot, 'docs', 'posters', `${name}.jpg`)))
     assert.ok(existsSync(path.join(publicRoot, 'docs', 'videos', `${name}.mp4`)))
   }

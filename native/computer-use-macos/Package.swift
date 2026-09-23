@@ -3,34 +3,34 @@
 import PackageDescription
 
 let package = Package(
-    name: "OrcaComputerUseMacOS",
+    name: "DorkaComputerUseMacOS",
     platforms: [
         .macOS(.v14)
     ],
     products: [
         .library(
-            name: "OrcaComputerUseMacOSCore",
-            targets: ["OrcaComputerUseMacOSCore"]
+            name: "DorkaComputerUseMacOSCore",
+            targets: ["DorkaComputerUseMacOSCore"]
         ),
         .executable(
-            name: "orca-computer-use-macos",
-            targets: ["OrcaComputerUseMacOS"]
+            name: "dorka-computer-use-macos",
+            targets: ["DorkaComputerUseMacOS"]
         )
     ],
     targets: [
         .target(
-            name: "OrcaComputerUseMacOSCore",
-            path: "Sources/OrcaComputerUseMacOSCore"
+            name: "DorkaComputerUseMacOSCore",
+            path: "Sources/DorkaComputerUseMacOSCore"
         ),
         .executableTarget(
-            name: "OrcaComputerUseMacOS",
-            dependencies: ["OrcaComputerUseMacOSCore"],
-            path: "Sources/OrcaComputerUseMacOS"
+            name: "DorkaComputerUseMacOS",
+            dependencies: ["DorkaComputerUseMacOSCore"],
+            path: "Sources/DorkaComputerUseMacOS"
         ),
         .testTarget(
-            name: "OrcaComputerUseMacOSTests",
-            dependencies: ["OrcaComputerUseMacOSCore"],
-            path: "Tests/OrcaComputerUseMacOSTests"
+            name: "DorkaComputerUseMacOSTests",
+            dependencies: ["DorkaComputerUseMacOSCore"],
+            path: "Tests/DorkaComputerUseMacOSTests"
         )
     ]
 )
