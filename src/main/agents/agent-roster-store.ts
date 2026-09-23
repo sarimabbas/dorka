@@ -4,15 +4,11 @@ import { dirname, join } from 'node:path'
 import {
   AgentRosterFileSchema,
   AgentSchema,
-  ConversationSchema,
   RunSchema,
   type Agent,
   type AgentCreate,
   type AgentRosterFile,
   type AgentUpdate,
-  type Conversation,
-  type ConversationCreate,
-  type ConversationUpdate,
   type Run,
   type RunCreate,
   type RunStatus,
@@ -34,7 +30,6 @@ const transitions: Readonly<Record<RunStatus, readonly RunStatus[]>> = {
 const emptyRoster = (): AgentRosterFile => ({
   version: 1,
   agents: [],
-  conversations: [],
   runs: []
 })
 
@@ -44,8 +39,6 @@ function isMissingFile(error: unknown): boolean {
 
 function validateRelationships(roster: AgentRosterFile): void {
   const agentIds = new Set<string>()
-  const conversationIds = new Set<string>()
-  const conversationAgentIds = new Set<string>()
   const runIds = new Set<string>()
 
   for (const agent of roster.agents) {
@@ -54,26 +47,12 @@ function validateRelationships(roster: AgentRosterFile): void {
     }
     agentIds.add(agent.id)
   }
-  for (const conversation of roster.conversations) {
-    if (conversationIds.has(conversation.id)) {
-      throw new Error(`Duplicate Conversation id: ${conversation.id}`)
-    }
-    if (!agentIds.has(conversation.agentId)) {
-      throw new Error(`Conversation ${conversation.id} references a missing Agent`)
-    }
-    if (conversationAgentIds.has(conversation.agentId)) {
-      throw new Error(`Agent ${conversation.agentId} has more than one primary Conversation`)
-    }
-    conversationIds.add(conversation.id)
-    conversationAgentIds.add(conversation.agentId)
-  }
   for (const run of roster.runs) {
     if (runIds.has(run.id)) {
       throw new Error(`Duplicate Run id: ${run.id}`)
     }
-    const conversation = roster.conversations.find((item) => item.id === run.conversationId)
-    if (!agentIds.has(run.agentId) || conversation?.agentId !== run.agentId) {
-      throw new Error(`Run ${run.id} has invalid Agent or Conversation references`)
+    if (!agentIds.has(run.agentId)) {
+      throw new Error(`Run ${run.id} references a missing Agent`)
     }
     runIds.add(run.id)
   }
@@ -141,7 +120,6 @@ export class AgentRosterStore {
       const now = Date.now()
       const agent = AgentSchema.parse({
         ...input,
-        memoryPolicy: input.memoryPolicy ?? 'agent',
         id: randomUUID(),
         createdAt: now,
         updatedAt: now
@@ -179,81 +157,23 @@ export class AgentRosterStore {
     })
   }
 
-  getConversation(id: string): Conversation | null {
-    return this.roster.conversations.find((conversation) => conversation.id === id) ?? null
-  }
-
-  listConversations(agentId?: string): Conversation[] {
-    return this.roster.conversations.filter(
-      (conversation) => agentId === undefined || conversation.agentId === agentId
-    )
-  }
-
-  createConversation(input: ConversationCreate): Promise<Conversation> {
-    return this.mutate((roster) => {
-      if (!roster.agents.some((agent) => agent.id === input.agentId)) {
-        throw new Error(`Agent not found: ${input.agentId}`)
-      }
-      if (roster.conversations.some((conversation) => conversation.agentId === input.agentId)) {
-        throw new Error(`Agent ${input.agentId} already has a primary Conversation`)
-      }
-      const now = Date.now()
-      const conversation = ConversationSchema.parse({
-        ...input,
-        id: randomUUID(),
-        createdAt: now,
-        updatedAt: now
-      })
-      roster.conversations.push(conversation)
-      return conversation
-    })
-  }
-
-  updateConversation(id: string, update: ConversationUpdate): Promise<Conversation> {
-    return this.mutate((roster) => {
-      const index = roster.conversations.findIndex((conversation) => conversation.id === id)
-      if (index === -1) {
-        throw new Error(`Conversation not found: ${id}`)
-      }
-      const conversation = ConversationSchema.parse({
-        ...roster.conversations[index],
-        ...update,
-        updatedAt: Date.now()
-      })
-      roster.conversations[index] = conversation
-      return conversation
-    })
-  }
-
   getRun(id: string): Run | null {
     return this.roster.runs.find((run) => run.id === id) ?? null
   }
 
-  listRuns(filter: { agentId?: string; conversationId?: string } = {}): Run[] {
+  listRuns(filter: { agentId?: string } = {}): Run[] {
     return this.roster.runs.filter(
-      (run) =>
-        (filter.agentId === undefined || run.agentId === filter.agentId) &&
-        (filter.conversationId === undefined || run.conversationId === filter.conversationId)
+      (run) => filter.agentId === undefined || run.agentId === filter.agentId
     )
   }
 
   createRun(input: RunCreate): Promise<Run> {
     return this.mutate((roster) => {
-      const agent = roster.agents.find((item) => item.id === input.agentId)
-      const conversation = roster.conversations.find((item) => item.id === input.conversationId)
-      if (!agent) {
+      if (!roster.agents.some((agent) => agent.id === input.agentId)) {
         throw new Error(`Agent not found: ${input.agentId}`)
-      }
-      if (!conversation || conversation.agentId !== agent.id) {
-        throw new Error(`Conversation does not belong to Agent ${agent.id}`)
-      }
-      const computerId = input.computerId ?? agent.lastComputerId
-      if (!computerId) {
-        throw new Error('A Run requires a computerId')
       }
       const run = RunSchema.parse({
         ...input,
-        computerId,
         id: randomUUID(),
         status: 'queued',
         createdAt: Date.now()

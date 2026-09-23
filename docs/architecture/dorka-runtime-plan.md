@@ -1,10 +1,10 @@
-# Dorka: ruthless headless-first Computer plan
+# Dorka: terminal-first, headless Computer plan
 
 ## Decision
 
-Build Dorka as a **single-user, headless-first agent roster** backed by multiple durable, isolated **Computers**.
+Build Dorka as a **single-user, terminal-first agent roster** backed by multiple durable, isolated **Computers**. Dorka remains a terminal wrapper, not a new chat runtime.
 
-The remote Linux server owns all state and execution. macOS and mobile are thin clients. Agents are durable identities independent of compute. An Agent can be assigned to a Computer for a Run, then move to another Computer later. A Computer may host many Agents concurrently. Agents on the same Computer deliberately share its filesystem and credentials; Agents on different Computers share neither.
+The remote Linux server owns all state and execution. macOS and mobile are thin clients. Agents are durable launch presets around an existing CLI harness, independent of compute. An Agent can be launched on a Computer for a Run, then launched on another Computer later. A Computer may host many Agent Runs concurrently. Agents on the same Computer deliberately share its filesystem and credentials; Agents on different Computers share neither.
 
 ```text
 MacBook client ─┐
@@ -22,20 +22,20 @@ Deploy the Dorka Server itself as a container. Give it access to a **Docker-comp
 
 ## Why this model
 
-Grok Bot gets its simplicity from a small product vocabulary. A Bot is a durable teammate with a name, job, conversation, and accumulated context. The primary interaction is messaging, not managing terminal topology or worktrees. Grok Bot's current hosted architecture uses a dedicated Firecracker microVM per user, while all Bots for that user share the computer. Its own documentation warns that files, browser sessions, and command-line credentials are therefore shared across the Bot roster.
+Grok Bot gets its simplicity from a small product vocabulary. Its current hosted architecture uses a dedicated Firecracker microVM per user, while all Bots for that user share the computer. Its own documentation warns that files, browser sessions, and command-line credentials are therefore shared across the Bot roster.
 
-Dorka should preserve the simple roster and messaging model but make the credential boundary an explicit Computer:
+Dorka should preserve the simple roster while keeping its terminal-first execution model and making the credential boundary an explicit Computer:
 
 ```text
 Grok Bot:  User ──> one Computer ──> many Bots
 Dorka:     Server ──> many Computers ⇄ movable Agents
 ```
 
-This directly handles separate Git identities. Put Git config, SSH keys, `gh` auth, browser profiles, repositories, installed apps, startup programs, and the visual desktop inside the Computer. Keep Agent characteristics and conversation history in the Server so they survive moves. Never model Git identity as a per-terminal toggle.
+This directly handles separate Git identities. Put Git config, SSH keys, `gh` auth, browser profiles, repositories, installed apps, startup programs, and the visual desktop inside the Computer. Keep Agent launch presets and Run records in the Server so they survive moves. Existing PTYs and restored terminal sessions remain authoritative for transcripts and harness-owned context. Never model Git identity as a per-terminal toggle.
 
 ## Product objects
 
-Keep five first-class objects.
+Keep four first-class objects.
 
 ### 1. Server
 
@@ -60,19 +60,15 @@ A Computer is the **credential and filesystem trust boundary**. Multiple Agents 
 
 ### 3. Agent
 
-A durable AI teammate with a name, avatar, role, instructions, behavioral boundaries, preferred provider/model, tools, memory policy, and conversation.
+A durable launch preset around an existing CLI harness. It stores identity, character, name, job, `harnessId`, an optional model, a prompt template, an optional working directory, and an optional `lastComputerId`. Provider, tools, memory, and behavioral boundaries are not separate Agent fields; the selected harness and prompt template express them when needed.
 
-An Agent does not own compute and has no permanent `computerId`. A Run records the assigned `computerId`. The UI may remember `lastComputerId` as a convenience. Moving an Agent changes where its next Run executes; it does not copy credentials, files, processes, or browser sessions between Computers.
+An Agent does not own compute and has no permanent `computerId`. A Run records the assigned `computerId`. `lastComputerId` is only a launch convenience. Moving an Agent changes where its next Run executes; it does not copy credentials, files, processes, terminal history, or browser sessions between Computers.
 
-### 4. Conversation
+### 4. Run
 
-The durable user-facing transcript for one Agent. The MVP gives each Agent one primary conversation. Tool activity, questions, approvals, files, and results appear inline.
+One active or completed launch. A Run records status, timestamps, `agentId`, `computerId`, prompt, and optional terminal-session and process identity. Placement belongs to the Run. It is not a sidebar object.
 
-### 5. Run
-
-One active or completed turn. A Run records status, timestamps, owning Agent, runtime placement, and process/session identity. It is not a sidebar object.
-
-Projects, repositories, branches, worktrees, terminals, panes, and PTYs remain implementation details below this interface. They may appear in a detail view, but they do not organize the product.
+Conversation is not a durable domain object. The existing PTY or restored terminal session owns the transcript. Structured chat is an optional projection of that session, and raw Terminal is always available. Projects, repositories, branches, worktrees, panes, and PTYs remain execution details below this interface.
 
 ## Lessons from the Grok Bot reference screens
 
@@ -81,9 +77,9 @@ The reference screens sharpen the intended product behavior:
 - The first-run experience is nearly empty and explains one idea at a time.
 - A default teammate and its compute are prepared automatically; infrastructure setup is not the opening task.
 - “Give each Bot a job” is the central mental model. Identity is conveyed through a simple colored character, name, and short role.
-- The normal application is a two-pane messenger: roster on the left, conversation on the right.
+- The normal application can project a two-pane messenger from terminal sessions: roster on the left, structured session output on the right.
 - Search and create share one command surface. Settings appear as a temporary right inspector, not a permanent third column.
-- Setup questions, suggested jobs, capability requests, approvals, and working status all appear inline in conversation.
+- Setup questions, suggested jobs, capability requests, approvals, and working status may appear inline when the harness exposes structure.
 - Dense configuration and integrations open only on demand in a drawer or modal.
 
 Dorka should adopt those interaction principles without copying Grok's cloud sign-in, marketplace, voice-first controls, or claim that every Agent permanently owns one Computer.
@@ -97,15 +93,15 @@ Connect to Dorka Server with URL + pairing code
     ↓
 Server prepares “Main” Computer and first Agent automatically
     ↓
-Agent asks inline: “What should I take off your plate?”
+Launch surface asks: “What should this Agent take off your plate?”
     ↓
 User picks a suggested job or types one
     ↓
-Agent requests only the missing capability or login
+Harness requests only the missing capability or login
     ↓
 Open Computer desktop only when interactive sign-in is required
     ↓
-Run starts on Main and reports progress inline
+Run starts in an existing PTY on Main; terminal output stays authoritative
 ```
 
 Advanced flow:
@@ -119,25 +115,25 @@ Agent header Computer chip → move next Run to another Computer
 The main UI should contain:
 
 1. **Agent roster** in a narrow left sidebar with search and create.
-2. **Conversation** as the dominant surface.
+2. **Terminal session** as the authoritative Run surface, optionally projected as structured chat.
 3. **Agent header chip** showing state and current/next Computer.
-4. **Inline cards** for questions, approvals, capabilities, files, diffs, results, and background progress.
-5. **Transient right inspector** for Agent profile, Computer details, and Run details.
-6. **Focused secondary views** for Desktop, Files, Diff, and Computers; none remain permanently open.
+4. **Inline cards** when a harness exposes structured questions, approvals, files, diffs, results, or progress.
+5. **Transient right inspector** for Agent preset, Computer details, and Run details.
+6. **Focused views** for raw Terminal, Desktop, Files, Diff, and Computers. Raw Terminal is always available.
 
 Do not expose project groups, worktree lineage, terminal split topology, host scopes, SSH targets, pairing records, image digests, or container IDs in the default flow.
 
-### Visual direction: minimal messenger with character
+### Visual direction: minimal terminal companion with character
 
 Dorka should feel like a roster of capable coworkers, not an IDE or infrastructure dashboard.
 
 - Use a **near-black and charcoal** foundation with off-white text. Let Agent colors, state, and a restrained Dorka accent provide the only saturation.
 - Give every Agent a simple generated character mark with two or three expressive traits, a color, a name, and a one-line job. Avoid generic profile photos and corporate illustrations.
 - Keep the shell quiet: hairline dividers, large empty regions, soft rounded message surfaces, and almost no ornamental chrome.
-- Keep conversation width readable. Do not stretch message text across the entire window.
+- Keep projected transcript width readable. Do not stretch text across the entire window.
 - Use a narrow roster by default. Expand it to show Agent names and last activity; collapse it to character marks on smaller windows.
-- Put search and create at the top of the roster. The create surface offers only **New Agent** and **New Computer** in the MVP. Group conversations can come later.
-- Open Agent settings as a right inspector. Lead with character, name, job, and notifications. Hide model, provider, tools, memory, and behavioral boundaries under **Advanced**.
+- Put search and create at the top of the roster. The create surface offers only **New Agent** and **New Computer** in the MVP.
+- Open Agent settings as a right inspector. Lead with character, name, job, harness, prompt template, and notifications. Keep the optional model and working directory under **Advanced**.
 - Show the Computer as a compact chip in the Agent header. Clicking it opens status, Git identity, active Agents, resource pressure, Desktop, and “Move next Run.”
 - Show Computer thumbnails only in the dedicated Computers view or connection picker. Do not spend permanent chat space on live thumbnails.
 - Render tool and capability requests as clear inline cards with one primary action. For Computer credentials, the action is **Open desktop to sign in**.
@@ -151,7 +147,7 @@ Default desktop client
 │ Search           +   │       Agent mark · Ada     On Main ▾           │
 │                      ├────────────────────────────────────────────────┤
 │ ● Ada                 │                                                │
-│   reviewing the PR    │  conversation                                  │
+│   reviewing the PR    │  structured session projection                 │
 │                      │  inline questions / approvals / evidence        │
 │ ● Scout               │                                                │
 │   waiting             │                                                │
@@ -204,10 +200,10 @@ The fork already contains most of the hard distributed-systems plumbing.
 ### Keep and deepen
 
 - **Node-only headless server:** `src/main/orcad/` and `docs/reference/orcad-operations.md` already define a plain-Node control plane plus a detached terminal daemon.
-- **Durable terminal ownership:** the daemon can preserve PTYs across a process-scoped server restart.
+- **Execution core:** existing launchers create the CLI harness processes, durable PTYs own their streams, and session restoration reconnects clients after restart. Extend this path rather than building a separate chat executor.
 - **Paired clients and versioned RPC:** use the existing runtime pairing and mixed-version compatibility contracts.
 - **Mobile transport and projections:** keep session status, transcript, questions, and basic source review.
-- **Agent launch/status:** retain supported CLI launchers, hooks, status, and structured chat where they work.
+- **Agent launch/status:** retain supported CLI launchers, hooks, and status. Structured chat remains an optional presentation of terminal activity.
 - **Remote execution seam:** reuse runtime-owned SSH targets and the existing SSH file/Git/PTY adapters for the first container vertical slice.
 - **Environment lifecycle ideas:** generalize the useful lifecycle pieces under `ephemeral-vm-*`; do not keep the current project/workspace-coupled product model.
 
@@ -363,10 +359,10 @@ On macOS, Podman itself runs Linux containers inside one managed Linux VM. That 
 - containerized headless Server;
 - Mac desktop client and mobile client;
 - direct device pairing and reconnect over Tailscale/WireGuard/LAN or user-provided TLS ingress;
-- Agent roster, profile/characteristics, chat/transcript, status, questions, stop/retry;
+- Agent launch presets, terminal transcripts, optional structured projections, status, questions, stop/retry;
 - Computer create/start/stop/delete, startup programs, and Agent placement/moves;
 - interactive visual desktop streaming;
-- terminal fallback for debugging;
+- raw Terminal as an always-available primary surface;
 - Git clone/status/diff/commit/push and basic file/result review;
 - Codex, Claude, and Pi launchers initially.
 
@@ -397,7 +393,7 @@ Do not delete transport security, persistence migration, process-liveness verdic
 
 - Complete the Dorka product rename without changing wire compatibility blindly.
 - Record current local build and headless smoke commands.
-- Add one architecture decision record for the five product objects.
+- Record the four product objects in this plan.
 - Mark features as `keep`, `migrate`, or `delete`; stop adding features to delete-marked modules.
 
 Acceptance:
@@ -435,7 +431,7 @@ Acceptance:
 
 - Two Agents run concurrently on Computer A.
 - A third Agent runs on Computer B.
-- Agent 1 finishes on A, then starts its next Run on B with the same profile and conversation.
+- Agent 1 finishes on A, then starts its next Run on B with the same launch preset; each Run links to its own terminal session.
 - Files and credentials from A do not follow Agent 1 to B.
 - Closing MacBook does not stop any Agent.
 - Mobile reconnects and can answer an Agent question.
@@ -465,9 +461,9 @@ Acceptance:
 - Replacing the Server container does not end the Computer desktop session.
 - A browser login remains present after reconnect.
 
-### Phase 5 — Make chat the product
+### Phase 5 — Add an optional structured projection
 
-Replace worktree-first navigation with the two-pane roster → conversation shell. Add progressive first-run provisioning, generated Agent characters, inline job suggestions, capability cards, the transient Agent inspector, dedicated Computers view, desktop view, and explicit Run placement/move controls. Keep terminal, files, diff, models, and infrastructure details behind secondary actions. Show a clear “shared with N Agents” warning wherever a Computer is selected.
+Replace worktree-first navigation with a roster → session shell. Add progressive first-run provisioning, generated Agent characters, inline job suggestions, harness-backed capability cards, the transient Agent inspector, dedicated Computers view, desktop view, and explicit Run placement/move controls. Project structured chat only when the harness supplies structured events. Keep raw Terminal always available rather than hiding it behind the projection. Show a clear “shared with N Agents” warning wherever a Computer is selected.
 
 Acceptance:
 
