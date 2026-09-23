@@ -20,14 +20,14 @@ import {
 
 export class AgentRosterUnsupportedError extends Error {
   constructor() {
-    super('Agent presets require a newer Dorka runtime.')
+    super('Agents require a newer Dorka runtime.')
     this.name = 'AgentRosterUnsupportedError'
   }
 }
 
 export class AgentExecutionUnsupportedError extends Error {
   constructor() {
-    super('Launching agent presets requires a newer Dorka runtime.')
+    super('Launching Agents requires a newer Dorka runtime.')
     this.name = 'AgentExecutionUnsupportedError'
   }
 }

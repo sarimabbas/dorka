@@ -174,7 +174,9 @@ describe('AgentsPane', () => {
   it('puts durable Agent presets before client launch preferences', () => {
     const markup = renderPane(getDefaultSettings('/tmp'))
 
-    expect(markup.indexOf('Agent Presets')).toBeLessThan(markup.indexOf('Default Agent'))
+    expect(markup.indexOf('Create reusable agent configurations')).toBeLessThan(
+      markup.indexOf('Default Agent')
+    )
   })
 
   it('scopes agent detection to the active remote server', () => {

@@ -38,9 +38,7 @@ function errorMessage(error: unknown): string {
   if (error instanceof AgentRosterUnsupportedError) {
     return error.message
   }
-  return error instanceof Error && error.message
-    ? error.message
-    : 'Agent presets could not be loaded.'
+  return error instanceof Error && error.message ? error.message : 'Agents could not be loaded.'
 }
 
 function buildCreateRequest(draft: AgentPresetDraft): AgentCreate {
@@ -141,8 +139,8 @@ export function AgentPresetsSection({
   return (
     <section className="space-y-4">
       <SettingsSubsectionHeader
-        title="Agent Presets"
-        description="Save terminal harness instructions and launch them on a Computer."
+        title="Agents"
+        description="Create reusable agent configurations and launch them on a Computer."
         action={
           <Button
             type="button"
@@ -155,7 +153,7 @@ export function AgentPresetsSection({
             }}
           >
             <Plus className="size-3.5" />
-            New preset
+            New agent
           </Button>
         }
       />
@@ -199,7 +197,7 @@ export function AgentPresetsSection({
               />
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="agent-preset-harness">Harness</Label>
+              <Label htmlFor="agent-preset-harness">Agent app</Label>
               <Select
                 value={draft.harnessId}
                 onValueChange={(harnessId) => setDraft({ ...draft, harnessId })}
@@ -256,17 +254,17 @@ export function AgentPresetsSection({
               Cancel
             </Button>
             <Button type="submit" size="sm" disabled={saving}>
-              {saving ? 'Creating…' : 'Create preset'}
+              {saving ? 'Creating…' : 'Create agent'}
             </Button>
           </div>
         </form>
       ) : null}
 
       {presets === null && !loadError ? (
-        <p className="text-sm text-muted-foreground">Loading agent presets…</p>
+        <p className="text-sm text-muted-foreground">Loading agents…</p>
       ) : presets?.length === 0 && !draft ? (
         <p className="rounded-xl border border-dashed border-border/60 px-4 py-5 text-sm text-muted-foreground">
-          No agent presets yet.
+          No agents yet.
         </p>
       ) : presets && presets.length > 0 ? (
         <div className="divide-y divide-border rounded-xl border border-border">

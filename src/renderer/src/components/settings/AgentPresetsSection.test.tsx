@@ -104,8 +104,11 @@ describe('AgentPresetsSection', () => {
 
     renderSection()
 
-    expect(await screen.findByText('Computer: runner-1')).toBeTruthy()
-    expect(screen.getByText('Terminal: term-persisted · Process: pty-persisted')).toBeTruthy()
+    expect(await screen.findByText(/Runner 1 ·/)).toBeTruthy()
+    fireEvent.click(screen.getByText('Details'))
+    expect(screen.getByText('Computer: runner-1')).toBeTruthy()
+    expect(screen.getByText('Terminal: term-persisted')).toBeTruthy()
+    expect(screen.getByText('Process: pty-persisted')).toBeTruthy()
     expect(listRuns).toHaveBeenCalledWith({ kind: 'local' }, { agentId: preset.id })
   })
 
@@ -151,7 +154,7 @@ describe('AgentPresetsSection', () => {
 
     renderSection()
 
-    expect(await screen.findByText('No agent presets yet.')).toBeTruthy()
+    expect(await screen.findByText('No agents yet.')).toBeTruthy()
   })
 
   it('shows a retryable list error', async () => {
@@ -163,22 +166,22 @@ describe('AgentPresetsSection', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Retry' }))
 
     await waitFor(() => expect(listPresets).toHaveBeenCalledTimes(2))
-    expect(await screen.findByText('No agent presets yet.')).toBeTruthy()
+    expect(await screen.findByText('No agents yet.')).toBeTruthy()
   })
 
   it('creates a terminal preset with the strict request shape', async () => {
     listPresets.mockResolvedValue([])
     createPreset.mockResolvedValue({ ...preset, name: 'Focused reviewer' })
     renderSection()
-    await screen.findByText('No agent presets yet.')
+    await screen.findByText('No agents yet.')
 
-    fireEvent.click(screen.getByRole('button', { name: 'New preset' }))
+    fireEvent.click(screen.getByRole('button', { name: 'New agent' }))
     fireEvent.change(screen.getByLabelText('Name'), { target: { value: ' Focused reviewer ' } })
     fireEvent.change(screen.getByLabelText('Job'), { target: { value: ' Review releases ' } })
     fireEvent.change(screen.getByLabelText('Prompt'), {
       target: { value: ' Inspect changes and report risks. ' }
     })
-    const form = screen.getByRole<HTMLButtonElement>('button', { name: 'Create preset' }).form
+    const form = screen.getByRole<HTMLButtonElement>('button', { name: 'Create agent' }).form
     expect(form).not.toBeNull()
     if (form) {
       fireEvent.submit(form)
