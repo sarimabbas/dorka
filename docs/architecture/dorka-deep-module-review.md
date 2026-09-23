@@ -2,14 +2,15 @@
 
 ## Scope and verdict
 
-This review covers the Agent, Run, Computer, and Server vertical slice through `4a0d160b8`. It applies
+This review covers the Agent, Run, Computer, and Server vertical slice through `ee8fffcb1`. It applies
 Ousterhout's deep-module criteria: information hiding, interface leverage, temporal coupling, policy
 ownership, error vocabulary, and deletion opportunity.
 
-The core model is sound. `AgentExecutionService`, `ComputerRunSourceControl`, and
-`ComputerRuntimeManager` are deep product modules. They hide meaningful policy behind small
-interfaces. The review's isolated authority leaks are now closed. The largest remaining design debt is
-temporal: Run launch outcomes span separate persistence and PTY identity commits.
+The core model is sound. `AgentExecutionService`, `ComputerRunSourceControl`,
+`ComputerRuntimeManager`, and `ManagedRunPtyExitObserver` are deep product modules. They hide
+meaningful policy behind small interfaces. Cross-instance Agent/Run roster writes now use the existing
+whole-file transaction lock. The largest remaining design debt is that exact Run execution identity and
+certified-exit projection still span persistence, launch, reconnect, and observer modules.
 
 ```text
 Renderer domain clients
@@ -63,16 +64,23 @@ Missing handles, replaced incarnations, stopped Computers, reattach failure, and
 not mutate or relaunch Runs. This closes observer reconstruction for PTYs that can be authoritatively
 reattached. It does not manufacture evidence for an exit that happened while the Server was absent.
 
+### Agent and Run records no longer lose cross-instance writes
+
+Commit `ee8fffcb1` keeps the `AgentRosterStore` public interface unchanged but rereads the latest durable
+snapshot under the existing cross-process file transaction lock before every mutation. Separate store
+instances can now create Agents and Runs concurrently without replacing each other's records. The
+change remains behind the existing store boundary and does not alter PTY ownership or exit evidence.
+
 ## Ranked remaining findings
 
-| Rank | Verdict | Finding                                                                                                 | Required direction                                                                                                                                              |
-| ---- | ------- | ------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1    | Next    | Run launch persistence exposes a `create -> transition -> launch -> update identity` temporal protocol. | Deepen the existing roster seam around committed, unverifiable, and failed launch outcomes. Coordinate this with PTY observation. Do not add a lifecycle store. |
-| 2    | Later   | Capability proof is repeated in renderer domain clients and React Computer settings.                    | Put required-capability proof in the existing runtime RPC client. Domain clients should expose Agent, Run, Computer, and source-control operations only.        |
-| 3    | Later   | Run and Computer UI behavior classifies some failures by matching prose.                                | Add an additive, allowlisted domain error vocabulary while retaining human messages and mixed-version fallback.                                                 |
-| 4    | Later   | `RunDiffDataSource` exposes form validation and React cache identity alongside remote Git operations.   | Replace it with a Run-bound four-operation client and one panel-local request controller with cancellation. Do not create a global store.                       |
-| 5    | Later   | Computer Git identity writes name and email sequentially.                                               | Make the existing relay mutation atomic while preserving unrelated Git config and permissions.                                                                  |
-| 6    | Later   | Computer-create constraints are restated in RPC schemas and command validation.                         | Reuse one Computer-domain parser at RPC, persistence, and execution trust boundaries. Keep operator mount allowlisting and argv emission server-local.          |
+| Rank | Verdict | Finding                                                                                                                     | Required direction                                                                                                                                            |
+| ---- | ------- | --------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1    | Next    | Exact Run execution identity is reconstructed as a loose tuple across launch, persistence, reconnect, and exit observation. | Add one internal `ManagedRunExecutionIdentity` module and one exact store projection operation. Preserve the persisted fields and wire shape.                 |
+| 2    | Next    | Cross-entity Agent/Run/Computer/Server rules are split between `DorkaRuntimeService` pass-throughs and dorkad composition.  | Deepen the existing dorkad control plane and let `DorkaRuntimeService` remain the capability boundary that delegates to it. Do not add a facade or transport. |
+| 3    | Later   | Capability requirements and response parsing are duplicated between RPC method arrays and renderer clients.                 | Add lifecycle-operation descriptors with params, result schema, and capability metadata while preserving method strings and envelopes.                        |
+| 4    | Later   | Renderer lifecycle clients still expose target selection, compatibility policy, and unchecked generic responses to React.   | Bind one lifecycle client to a runtime target and centralize capability/error/result handling. Keep UI state local.                                           |
+| 5    | Later   | Run and Computer UI behavior classifies some failures by matching prose.                                                    | Add an additive, allowlisted domain error vocabulary while retaining human messages and mixed-version fallback.                                               |
+| 6    | Later   | Computer-create constraints are restated in RPC schemas and command validation.                                             | Reuse one Computer-domain parser at RPC, persistence, and execution trust boundaries. Keep operator mount allowlisting and argv emission server-local.        |
 
 ## Modules to preserve
 
@@ -95,9 +103,10 @@ Docker-compatible CLI contract.
 
 ### `DorkaRuntimeService`
 
-Its forwarding methods are intentionally shallow. They form the established composition and capability
-boundary for desktop and `dorkad`. Inlining authorities into RPC handlers would spread optional-
-dependency checks and weaken capability honesty.
+Preserve it as the established runtime composition and capability boundary for desktop and `dorkad`.
+Do not inline authorities into RPC handlers. As the dorkad control plane deepens, replace groups of
+cross-entity pass-through policy with delegation to that one aggregate; keep optional-dependency checks
+and capability honesty at this boundary.
 
 ## Validation evidence
 
