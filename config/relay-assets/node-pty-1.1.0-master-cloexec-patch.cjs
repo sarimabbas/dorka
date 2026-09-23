@@ -49,7 +49,7 @@ const { dirname, join, resolve } = require('node:path')
 
 const EXPECTED_NODE_PTY_VERSION = '1.1.0'
 const ORIGINAL_SOURCE_SHA256 = '5e1005d6bdcfbe97b486ee415419fe7adae99035047f07340fbad36419e0bae6'
-const PATCHED_SOURCE_SHA256 = '3e6bc1a688aae187d231687130cfc0a11781c672f5f616d73183d471ee8ee65c'
+const PATCHED_SOURCE_SHA256 = 'a5d18fa4f82a0937c8323e8e6b39ab326262cb9b1df8546f001297c6f7124a43'
 
 const STATUS_PREFIX = 'DORKA-NPTY-CLOEXEC:'
 const SKIP_MARKER_FILENAME = '.node-pty-cloexec-skip'
